@@ -1,24 +1,30 @@
-import { applyMiddleware, createStore } from "redux";
-import { thunk } from "redux-thunk";
-import { persistStore, persistReducer } from "redux-persist";
-import storage from "redux-persist/lib/storage";
-import { rootReducer } from "./rootReducer.js";
+import { configureStore as createRTKStore } from '@reduxjs/toolkit';
+import { persistStore, persistReducer, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
+import storage from 'redux-persist/lib/storage';
+import { rootReducer } from './rootReducer';
+
+const persistConfig = {
+  key: 'root',
+  version: 1,
+  storage,
+  whitelist: ['auth'], // Persist only the auth state
+};
+
+const persistedReducer = persistReducer(persistConfig, rootReducer);
 
 export const configureStore = () => {
-    const persistConfig = {
-        key: "root",
-        storage,
-        whitelist: ['auth'],
-        // Add transforms to handle state clearing
-        transforms: [],
-        // Ensure state is properly cleared on logout
-        serialize: false,
-    };
-    const persistedReducer = persistReducer(persistConfig, rootReducer);
+  const store = createRTKStore({
+    reducer: persistedReducer,
+    middleware: (getDefaultMiddleware) =>
+      getDefaultMiddleware({
+        serializableCheck: {
+          ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
+        },
+      }),
+    devTools: process.env.NODE_ENV !== 'production',
+  });
 
-    const store = createStore(persistedReducer, applyMiddleware(thunk));
+  const persistor = persistStore(store);
 
-    let persistor = persistStore(store);
-
-    return { store, persistor };
-}
+  return { store, persistor };
+};

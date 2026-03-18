@@ -25,8 +25,15 @@ const storage = multerS3({
         cb(null, { fieldName: file.fieldname });
     },
     key: (req, file, cb) => {
-        const uniqueName =
-            Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+        // Map field names to S3 folders
+        const folderMapping = {
+            'photo': 'images',
+            'profileImage': 'images',
+            'document': 'documents',
+        };
+
+        const folder = folderMapping[file.fieldname] || 'others';
+        const uniqueName = `${folder}/${Date.now()}-${file.originalname.replace(/\s+/g, '_')}`;
         cb(null, uniqueName);
     },
 });

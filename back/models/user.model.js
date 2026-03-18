@@ -16,17 +16,36 @@ const userSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true,
+        unique: true,
     },
     password: {
         type: String,
         required: true,
     },
-    otp:{
-        type:String,
-    },
     role: {
         type: String,
+        enum: ['Super_Admin', 'School_Admin', 'Teacher', 'Student', 'Parent', 'Accountant', 'Librarian', 'Transport_Manager'],
         required: true,
+    },
+    otp: {
+        type: String,
+    },
+    isActive: {
+        type: Boolean,
+        default: true,
+    },
+    refreshToken: {
+        type: String,
+    },
+    failedLoginAttempts: {
+        type: Number,
+        default: 0,
+    },
+    lockUntil: {
+        type: Date,
+    },
+    customPermissions: {
+        type: Object,
     },
     createdAt: {
         type: Date,
@@ -36,7 +55,12 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+});
 
+// Update the updatedAt field before saving
+userSchema.pre('save', function(next) {
+    this.updatedAt = Date.now();
+    next();
 });
 
 module.exports = mongoose.model('User', userSchema);
