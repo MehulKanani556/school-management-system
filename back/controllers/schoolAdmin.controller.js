@@ -4,6 +4,7 @@ const ClassSection = require('../models/classSection.model');
 const Subject = require('../models/subject.model');
 const Exam = require('../models/exam.model');
 const FeePayment = require('../models/feePayment.model');
+const FeeStructure = require('../models/feeStructure.model');
 const Attendance = require('../models/attendance.model');
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
@@ -325,18 +326,108 @@ exports.getFees = async (req, res) => {
 exports.createFee = async (req, res) => {
   try {
     const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(fee);
+    const populated = await FeePayment.findById(fee._id).populate('studentId', 'firstName lastName admissionNumber');
+    res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateFee = async (req, res) => {
   try {
+    const updateData = { ...req.body };
+    if (req.body.status === 'paid') {
+      const existing = await FeePayment.findById(req.params.id);
+      if (existing && existing.status !== 'paid') {
+        updateData.paidDate = new Date();
+      }
+    }
     const fee = await FeePayment.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      updateData, { new: true }
+    ).populate('studentId', 'firstName lastName admissionNumber');
+    
+    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
+    res.json(fee);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteFee = async (req, res) => {
+  try {
+    await FeePayment.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Fee record deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Fee Structures ────────────────────────────────────────────────────────────
+exports.getFeeStructures = async (req, res) => {
+  try {
+    const structures = await FeeStructure.find({ schoolId: getSchoolId(req) });
+    res.json(structures);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createFeeStructure = async (req, res) => {
+  try {
+    const sub = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
+    res.status(201).json(sub);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateFeeStructure = async (req, res) => {
+  try {
+    const sub = await FeeStructure.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       req.body, { new: true }
     );
-    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
-    res.json(fee);
+    if (!sub) return res.status(404).json({ message: 'Fee structure not found' });
+    res.json(sub);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteFeeStructure = async (req, res) => {
+  try {
+    await FeeStructure.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Fee structure deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Apply structure to students (Generate Fees)
+exports.applyFeeStructure = async (req, res) => {
+  try {
+    const { gradeLevel, dueDate, academicYear } = req.body;
+    const schoolId = getSchoolId(req);
+
+    const structure = await FeeStructure.findOne({ schoolId, gradeLevel, academicYear });
+    if (!structure) return res.status(404).json({ message: 'No structure found for this grade' });
+
+    // find students in this grade (needs populate or classId filter)
+    const students = await Student.find({ schoolId }).populate('classSection');
+    const filtered = students.filter(s => s.classSection?.gradeLevel === Number(gradeLevel));
+
+    if (!filtered.length) return res.status(404).json({ message: 'No students found in this grade' });
+
+    // Guard against duplicates
+    const existingPayments = await FeePayment.find({ schoolId, academicYear });
+    const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
+
+    const payments = filtered.flatMap(s => 
+      structure.feeItems
+        .filter(item => !existingKeys.has(`${s._id}-${item.name}`))
+        .map(item => ({
+          schoolId,
+          studentId: s._id,
+          amount: item.amount,
+          category: item.name,
+          academicYear,
+          feeStructureId: structure._id,
+          status: 'pending',
+          dueDate: new Date(dueDate)
+        }))
+    );
+
+    if (!payments.length) return res.status(400).json({ message: 'Fees already applied for all students in this grade' });
+
+    await FeePayment.insertMany(payments);
+    res.json({ message: `Successfully generated ${payments.length} fee records` });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

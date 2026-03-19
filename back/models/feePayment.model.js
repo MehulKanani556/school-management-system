@@ -8,6 +8,10 @@ const feePaymentSchema = new mongoose.Schema({
   status: { type: String, enum: ['paid', 'pending', 'overdue'], default: 'pending' },
   dueDate: { type: Date },
   paidDate: { type: Date },
+  academicYear: { type: String },
+  feeStructureId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeStructure' },
 }, { timestamps: true });
+
+feePaymentSchema.index({ schoolId: 1, studentId: 1, category: 1, academicYear: 1 }, { unique: true });
 
 module.exports = mongoose.model('FeePayment', feePaymentSchema);

@@ -16,6 +16,7 @@ export const fetchStudents  = asyncGet('sa/students',  '/students');
 export const fetchTeachers  = asyncGet('sa/teachers',  '/teachers');
 export const fetchClasses   = asyncGet('sa/classes',   '/classes');
 export const fetchSubjects  = asyncGet('sa/subjects',  '/subjects');
+export const fetchFeeStructures = asyncGet('sa/fee-structures', '/fee-structures');
 export const fetchFees      = asyncGet('sa/fees',      '/fees');
 export const fetchExams     = asyncGet('sa/exams',     '/exams');
 export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
@@ -60,6 +61,12 @@ export const deleteSubject = del('sa/deleteSubject', '/subjects');
 
 export const createFee = post('sa/createFee', '/fees');
 export const updateFee = put('sa/updateFee', '/fees');
+export const deleteFee = del('sa/deleteFee', '/fees');
+
+export const createFeeStructure = post('sa/createFeeStructure', '/fee-structures');
+export const updateFeeStructure = put('sa/updateFeeStructure', '/fee-structures');
+export const deleteFeeStructure = del('sa/deleteFeeStructure', '/fee-structures');
+export const applyFeeStructure  = post('sa/applyFeeStructure', '/apply-fee-structure');
 
 export const createExam = post('sa/createExam', '/exams');
 export const updateExam = put('sa/updateExam', '/exams');
@@ -78,7 +85,7 @@ export const deleteHoliday = del('sa/deleteHoliday', '/holidays');
 
 const initialState = {
   dashboard: null,
-  students: [], teachers: [], classes: [], subjects: [], fees: [], exams: [], attendance: [], holidays: [],
+  students: [], teachers: [], classes: [], subjects: [], feeStructures: [], fees: [], exams: [], attendance: [], holidays: [],
   loading: false, error: null,
 };
 
@@ -98,6 +105,7 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchTeachers.fulfilled, handleList('teachers'))
       .addCase(fetchClasses.fulfilled, handleList('classes'))
       .addCase(fetchSubjects.fulfilled, handleList('subjects'))
+      .addCase(fetchFeeStructures.fulfilled, handleList('feeStructures'))
       .addCase(fetchFees.fulfilled, handleList('fees'))
       .addCase(fetchExams.fulfilled, handleList('exams'))
       .addCase(fetchAttendance.fulfilled, handleList('attendance'))
@@ -110,6 +118,7 @@ const schoolAdminSlice = createSlice({
       .addCase(createExam.fulfilled, (state, a) => { state.exams.push(a.payload); state.loading = false; })
       .addCase(createSubject.fulfilled, (state, a) => { state.subjects.push(a.payload); state.loading = false; })
       .addCase(createHoliday.fulfilled, (state, a) => { state.holidays.push(a.payload); state.loading = false; })
+      .addCase(createFeeStructure.fulfilled, (state, a) => { state.feeStructures.push(a.payload); state.loading = false; })
       // update
       .addCase(updateStudent.fulfilled, (state, a) => { const i = state.students.findIndex(s => s._id === a.payload._id); if (i !== -1) state.students[i] = a.payload; state.loading = false; })
       .addCase(updateTeacher.fulfilled, (state, a) => { const i = state.teachers.findIndex(t => t._id === a.payload._id); if (i !== -1) state.teachers[i] = a.payload; state.loading = false; })
@@ -118,6 +127,7 @@ const schoolAdminSlice = createSlice({
       .addCase(updateExam.fulfilled, (state, a) => { const i = state.exams.findIndex(e => e._id === a.payload._id); if (i !== -1) state.exams[i] = a.payload; state.loading = false; })
       .addCase(updateSubject.fulfilled, (state, a) => { const i = state.subjects.findIndex(s => s._id === a.payload._id); if (i !== -1) state.subjects[i] = a.payload; state.loading = false; })
       .addCase(updateHoliday.fulfilled, (state, a) => { const i = state.holidays.findIndex(h => h._id === a.payload._id); if (i !== -1) state.holidays[i] = a.payload; state.loading = false; })
+      .addCase(updateFeeStructure.fulfilled, (state, a) => { const i = state.feeStructures.findIndex(s => s._id === a.payload._id); if (i !== -1) state.feeStructures[i] = a.payload; state.loading = false; })
       // delete
       .addCase(deleteStudent.fulfilled, (state, a) => { state.students = state.students.filter(s => s._id !== a.payload); state.loading = false; })
       .addCase(deleteTeacher.fulfilled, (state, a) => { state.teachers = state.teachers.filter(t => t._id !== a.payload); state.loading = false; })
@@ -126,13 +136,18 @@ const schoolAdminSlice = createSlice({
       .addCase(deleteExam.fulfilled, (state, a) => { state.exams = state.exams.filter(e => e._id !== a.payload); state.loading = false; })
       .addCase(deleteSubject.fulfilled, (state, a) => { state.subjects = state.subjects.filter(s => s._id !== a.payload); state.loading = false; })
       .addCase(deleteHoliday.fulfilled, (state, a) => { state.holidays = state.holidays.filter(h => h._id !== a.payload); state.loading = false; })
-      .addCase(saveAttendance.fulfilled, (state) => { state.loading = false; });
+      .addCase(saveAttendance.fulfilled, (state) => { state.loading = false; })
+      .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload); state.loading = false; })
+      .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload); state.loading = false; })
+      .addCase(applyFeeStructure.fulfilled, (state) => { state.loading = false; });
 
     // pending/rejected for all
-    [fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchSubjects, fetchFees, fetchExams, fetchAttendance, fetchHolidays,
-     createStudent, createTeacher, createClass, createSubject, createFee, createExam, createHoliday,
-     updateStudent, updateTeacher, updateClass, updateSubject, updateFee, updateExam, updateHoliday,
-     deleteStudent, deleteTeacher, deleteClass, deleteSubject, deleteExam, deleteHoliday, saveAttendance, toggleTeacherStatus
+    [
+      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, fetchAttendance, fetchHolidays,
+      createStudent, createTeacher, createClass, createSubject, createFeeStructure, createFee, createExam, createHoliday,
+      updateStudent, updateTeacher, updateClass, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
+      deleteStudent, deleteTeacher, deleteClass, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,
+      saveAttendance, toggleTeacherStatus, applyFeeStructure
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

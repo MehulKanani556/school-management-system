@@ -61,6 +61,14 @@ router.delete('/school-admin/subjects/:id', ...schoolAdmin, sa.deleteSubject);
 router.get('/school-admin/fees', ...schoolAdmin, sa.getFees);
 router.post('/school-admin/fees', ...schoolAdmin, sa.createFee);
 router.put('/school-admin/fees/:id', ...schoolAdmin, sa.updateFee);
+router.delete('/school-admin/fees/:id', ...schoolAdmin, sa.deleteFee);
+
+// Fee Structures
+router.get('/school-admin/fee-structures', ...schoolAdmin, sa.getFeeStructures);
+router.post('/school-admin/fee-structures', ...schoolAdmin, sa.createFeeStructure);
+router.put('/school-admin/fee-structures/:id', ...schoolAdmin, sa.updateFeeStructure);
+router.delete('/school-admin/fee-structures/:id', ...schoolAdmin, sa.deleteFeeStructure);
+router.post('/school-admin/apply-fee-structure', ...schoolAdmin, sa.applyFeeStructure);
 
 // Exams
 router.get('/school-admin/exams', ...schoolAdmin, sa.getExams);
@@ -107,4 +115,4 @@ router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
 router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
 router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);
 
-module.exports = router;
+module.exports = router;
