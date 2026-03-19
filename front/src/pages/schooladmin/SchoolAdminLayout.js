@@ -33,9 +33,9 @@ const SchoolAdminLayout = () => {
   };
 
   return (
-    <div className="min-h-screen bg-brand-background text-white flex font-inter">
+    <div className="h-screen overflow-hidden bg-brand-background text-white flex font-inter">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface/80 backdrop-blur-2xl border-r border-brand-border/40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:flex`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface/80 backdrop-blur-2xl border-r border-brand-border/40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-2xl shadow-black/40`}>
         {/* Logo */}
         <div className="px-7 py-8 flex items-center justify-between border-b border-brand-border/30">
           <div className="flex items-center gap-3">
@@ -45,13 +45,13 @@ const SchoolAdminLayout = () => {
               <p className="text-[10px] text-slate-500 font-bold tracking-wider uppercase">Management Panel</p>
             </div>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white transition-colors">
             <X size={20} />
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto custom-scrollbar">
           {navItems.map(({ to, icon: Icon, label, end }) => (
             <NavLink
               key={to}
@@ -59,36 +59,42 @@ const SchoolAdminLayout = () => {
               end={end}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
-                `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-200 group ${
+                `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
                   isActive
-                    ? 'bg-brand-primary text-white shadow-[0_8px_20px_-5px_rgba(37,99,235,0.4)]'
+                    ? 'bg-brand-primary text-white shadow-[0_8px_25px_-10px_rgba(37,99,235,0.6)]'
                     : 'text-slate-500 hover:bg-slate-800/40 hover:text-white'
                 }`
               }
             >
-              <Icon size={20} />
-              <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{label}</span>
-              <ChevronRight size={14} className="opacity-0 group-hover:opacity-60 transition-opacity" />
+              {({ isActive }) => (
+                <>
+                  <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
+                    <Icon size={18} />
+                  </div>
+                  <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{label}</span>
+                  <ChevronRight size={14} className={`transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`} />
+                </>
+              )}
             </NavLink>
           ))}
         </nav>
 
         {/* User Info */}
-        <div className="px-4 py-6 border-t border-brand-border/30">
-          <div className="flex items-center gap-3 px-4 py-3 bg-slate-800/30 rounded-2xl">
+        <div className="px-4 py-6 border-t border-brand-border/30 bg-brand-surface/20 backdrop-blur-sm">
+          <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/60 rounded-[1.5rem] border border-white/5 shadow-inner">
             {user?.photo ? (
               <img src={user.photo} alt="avatar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-primary/20" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-700 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/10 shadow-lg">
                 <User size={18} className="text-slate-400" />
               </div>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white truncate">{user?.firstName} {user?.lastName}</p>
-              <p className="text-[10px] text-brand-accent font-black uppercase tracking-widest opacity-80">School Admin</p>
+              <p className="text-sm font-black text-white truncate font-outfit uppercase tracking-tighter">{user?.firstName} {user?.lastName}</p>
+              <p className="text-[9px] text-brand-accent font-black uppercase tracking-[0.2em] opacity-80 leading-tight">Administrator</p>
             </div>
-            <button onClick={handleLogout} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all">
-              <LogOut size={16} />
+            <button onClick={handleLogout} className="p-2.5 rounded-xl hover:bg-luxury-rose/10 text-slate-500 hover:text-luxury-rose transition-all group active:scale-90">
+              <LogOut size={16} className="group-hover:-rotate-12 transition-transform" />
             </button>
           </div>
         </div>
@@ -96,11 +102,12 @@ const SchoolAdminLayout = () => {
 
       {/* Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+
         {/* Top bar (mobile) */}
         <header className="lg:hidden px-6 py-4 flex items-center justify-between bg-brand-surface/60 backdrop-blur-xl border-b border-brand-border/40">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-slate-800/40 text-slate-400 hover:text-white">
