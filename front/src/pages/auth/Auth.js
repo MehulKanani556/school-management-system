@@ -143,8 +143,8 @@ const Auth = () => {
 
                         <div className="space-y-4">
                             <div className="flex justify-between items-center ml-2">
-                                <label className="text-xs text-slate-400 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Security Key</label>
-                                <Link to="/forgot-password" size="sm" className={`text-[11px] ${loginRole === 'Student' ? 'text-luxury-emerald hover:text-emerald-400' : 'text-brand-accent hover:text-cyan-400'} font-black uppercase tracking-widest italic outline-none hover:underline decoration-2 underline-offset-4 transition-colors`}>Lost Protocol?</Link>
+                                <label className="text-xs text-slate-400 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Password</label>
+                                <Link to="/forgot-password" size="sm" className={`text-[11px] ${loginRole === 'Student' ? 'text-luxury-emerald hover:text-emerald-400' : 'text-brand-accent hover:text-cyan-400'} font-black uppercase tracking-widest italic outline-none hover:underline decoration-2 underline-offset-4 transition-colors`}>Lost Password?</Link>
                             </div>
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-brand-primary transition-colors">

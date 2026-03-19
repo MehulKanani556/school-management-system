@@ -1,9 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
-import { fetchAssignedClasses, fetchClassStudents, fetchExamsByClass, submitMarks, clearTeacherMessage } from '../../redux/slice/teacher.slice';
-import { motion } from 'framer-motion';
-import { Save, Search, ChevronDown, Activity, Award } from 'lucide-react';
+import { useFormik } from 'formik';
+import * as Yup from 'yup';
+import { 
+    fetchAssignedClasses, 
+    fetchClassStudents, 
+    fetchExamsByClass, 
+    fetchTeacherMarks,
+    submitMarks, 
+    clearTeacherMessage 
+} from '../../redux/slice/teacher.slice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Save, Search, ChevronDown, Activity, Award, BookOpen, User, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const AddMarks = () => {
@@ -12,30 +21,81 @@ const AddMarks = () => {
     const query = new URLSearchParams(location.search);
     const initialClassId = query.get('classId');
 
-    const { classes, students, exams, message, loading } = useSelector((state) => state.teacher);
-    const [selectedClass, setSelectedClass] = useState(initialClassId || '');
-    const [selectedExam, setSelectedExam] = useState('');
-    const [marksData, setMarksData] = useState({});
+    const { classes, students, exams, marks, message, loading } = useSelector((state) => state.teacher);
     const [searchTerm, setSearchTerm] = useState('');
+
+    const formik = useFormik({
+        initialValues: {
+            selectedClass: initialClassId || '',
+            selectedExam: '',
+            marksData: {} // { studentId: { score: '', remarks: '' } }
+        },
+        validationSchema: Yup.object({
+            selectedClass: Yup.string().required('Academic section required'),
+            selectedExam: Yup.string().required('Assessment node selection required'),
+        }),
+        onSubmit: (values) => {
+            const studentMarksArr = Object.entries(values.marksData).map(([studentId, data]) => ({
+                studentId,
+                score: data.score,
+                remarks: data.remarks
+            }));
+
+            if (studentMarksArr.length === 0) {
+                return toast.error("No assessment data detected for submission");
+            }
+
+            dispatch(submitMarks({ 
+                examId: values.selectedExam, 
+                studentMarks: studentMarksArr 
+            }));
+        }
+    });
 
     useEffect(() => {
         dispatch(fetchAssignedClasses());
     }, [dispatch]);
 
+    // Fetch dependencies when class changes
     useEffect(() => {
-        if (selectedClass) {
-            dispatch(fetchClassStudents(selectedClass));
-            dispatch(fetchExamsByClass(selectedClass));
+        if (formik.values.selectedClass) {
+            dispatch(fetchClassStudents(formik.values.selectedClass));
+            dispatch(fetchExamsByClass(formik.values.selectedClass));
+            formik.setFieldValue('selectedExam', ''); // Reset exam on class change
         }
-    }, [selectedClass, dispatch]);
+    }, [formik.values.selectedClass, dispatch]);
 
+    // Fetch existing marks when exam changes
+    useEffect(() => {
+        if (formik.values.selectedExam) {
+            dispatch(fetchTeacherMarks(formik.values.selectedExam));
+        }
+    }, [formik.values.selectedExam, dispatch]);
+
+    // Synchronize marksData when students or existing marks change
     useEffect(() => {
         if (students.length > 0) {
             const initial = {};
+            
+            // First pass: Default empty
             students.forEach(s => { initial[s._id] = { score: '', remarks: '' }; });
-            setMarksData(initial);
+
+            // Second pass: Apply existing marks if found
+            if (marks && marks.length > 0) {
+                marks.forEach(m => {
+                    const id = m.studentId?._id || m.studentId;
+                    if (id) {
+                        initial[id] = { 
+                            score: m.marksObtained !== undefined ? m.marksObtained : '', 
+                            remarks: m.remarks || '' 
+                        };
+                    }
+                });
+            }
+            
+            formik.setFieldValue('marksData', initial);
         }
-    }, [students]);
+    }, [students, marks]);
 
     useEffect(() => {
         if (message) {
@@ -44,65 +104,57 @@ const AddMarks = () => {
         }
     }, [message, dispatch]);
 
-    const handleMarkChange = (studentId, field, value) => {
-        setMarksData(prev => ({ 
-            ...prev, 
-            [studentId]: { ...prev[studentId], [field]: value } 
-        }));
-    };
-
-    const handleSave = () => {
-        if (!selectedExam) return toast.error('Please select an examination node');
-        
-        const studentMarks = Object.keys(marksData).map(id => ({
-            studentId: id,
-            score: marksData[id].score,
-            remarks: marksData[id].remarks
-        }));
-
-        dispatch(submitMarks({ examId: selectedExam, studentMarks }));
-    };
-
     const filteredStudents = students.filter(s => 
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit">Performance Registry</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide">Archiving numerical performance indicators across assigned academic nodes.</p>
+        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900/40 p-10 rounded-[3rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="w-12 h-[2px] bg-brand-primary rounded-full"></span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Evaluation HUB</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Performance Registry</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Digital archival of numerical & qualitative assessment results.</p>
                 </div>
+
                 <div className="flex flex-wrap gap-4">
-                    <div className="relative group min-w-[180px]">
-                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <div className="relative group min-w-[200px]">
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-focus-within:text-brand-primary transition-colors" />
+                        <BookOpen size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                         <select 
-                            value={selectedClass} 
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                            className="w-full bg-slate-800/40 border border-slate-700/50 h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
+                            name="selectedClass"
+                            value={formik.values.selectedClass}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            className={`w-full bg-slate-900/80 border ${formik.touched.selectedClass && formik.errors.selectedClass ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic`}
                         >
-                            <option value="" className="bg-slate-900 text-slate-500">Select Section</option>
+                            <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
                             {classes.map(cls => (
-                                <option key={cls._id} value={cls._id} className="bg-slate-900 text-white">
+                                <option key={cls._id} value={cls._id} className="bg-slate-950 text-white italic">
                                     Grade {cls.gradeLevel} - {cls.sectionLabel}
                                 </option>
                             ))}
                         </select>
                     </div>
 
-                    <div className="relative group min-w-[180px]">
-                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+                    <div className="relative group min-w-[200px]">
+                        <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-focus-within:text-brand-primary transition-colors" />
+                        <Award size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                         <select 
-                            value={selectedExam} 
-                            onChange={(e) => setSelectedExam(e.target.value)}
-                            disabled={!selectedClass}
-                            className="w-full bg-slate-800/40 border border-slate-700/50 h-12 px-6 rounded-2xl text-[10px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white disabled:opacity-40"
+                            name="selectedExam"
+                            value={formik.values.selectedExam}
+                            onChange={formik.handleChange}
+                            onBlur={formik.handleBlur}
+                            disabled={!formik.values.selectedClass}
+                            className={`w-full bg-slate-900/80 border ${formik.touched.selectedExam && formik.errors.selectedExam ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic disabled:opacity-40`}
                         >
-                            <option value="" className="bg-slate-900 text-slate-500">Select Exam</option>
+                            <option value="" className="bg-slate-950 text-slate-600">Select Assessment</option>
                             {exams.map(ex => (
-                                <option key={ex._id} value={ex._id} className="bg-slate-900 text-white">
-                                    {ex.name} ({ex.type})
+                                <option key={ex._id} value={ex._id} className="bg-slate-950 text-white italic uppercase tracking-tighter">
+                                    {ex.name} [{ex.type}]
                                 </option>
                             ))}
                         </select>
@@ -110,84 +162,98 @@ const AddMarks = () => {
                 </div>
             </header>
 
-            {selectedClass && selectedExam ? (
+            {formik.values.selectedClass && formik.values.selectedExam ? (
                 <div className="space-y-6">
-                    <div className="flex items-center justify-between px-2">
-                        <div className="relative group flex-1 max-w-sm">
-                            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4">
+                        <div className="relative group flex-1 max-w-md">
+                            <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="Locate student by name..." 
+                                placeholder="Identify student by name..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-900/60 border border-slate-800 focus:border-brand-primary/60 outline-none h-11 pl-11 pr-4 rounded-xl text-[11px] font-bold text-slate-100 shadow-2xl transition-all"
+                                className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-2xl text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
                             />
                         </div>
                         <button 
-                            onClick={handleSave}
+                            onClick={formik.handleSubmit}
                             disabled={loading || students.length === 0}
-                            className="flex items-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-8 h-11 rounded-xl font-black tracking-widest uppercase text-[10px] transition-all shadow-lg active:scale-95 disabled:opacity-50"
+                            className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-10 h-14 rounded-2xl font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
                         >
-                            {loading ? <Activity size={18} className="animate-spin" /> : <Save size={18} />}
-                            Archive Performance
+                            {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
+                            Synchronize Grades
                         </button>
                     </div>
 
-                    <div className="bg-slate-900/60 border border-slate-800 rounded-[2.5rem] shadow-2xl overflow-hidden">
+                    <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.4)] overflow-hidden backdrop-blur-3xl">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
-                                    <tr className="bg-slate-800/40 border-b border-slate-800/60">
-                                        <th className="px-8 py-5 text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Identity</th>
-                                        <th className="px-8 py-5 text-[9px] font-black text-slate-500 uppercase tracking-widest italic text-center">Score Entry</th>
-                                        <th className="px-8 py-5 text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Qualitative Feedback</th>
+                                    <tr className="bg-slate-900/60 border-b border-slate-800/50">
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Student Identity</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">Quantitative Performance</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Institutional Feedback</th>
                                     </tr>
                                 </thead>
-                                <tbody className="divide-y divide-slate-800/50">
-                                    {filteredStudents.map((student) => (
-                                        <tr key={student._id} className="group hover:bg-white/[0.01] transition-colors">
-                                            <td className="px-8 py-5">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-9 h-9 rounded-xl bg-slate-800 border border-slate-700/50 flex items-center justify-center font-black text-slate-500 text-xs overflow-hidden">
-                                                        {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <Award size={16} />}
+                                <tbody className="divide-y divide-slate-800/40">
+                                    <AnimatePresence mode='popLayout'>
+                                        {filteredStudents.map((student, idx) => (
+                                            <motion.tr 
+                                                key={student._id} 
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                transition={{ delay: idx * 0.05 }}
+                                                className="group hover:bg-white/[0.02] transition-colors"
+                                            >
+                                                <td className="px-12 py-7">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="w-14 h-14 rounded-[1.25rem] bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 text-sm overflow-hidden shadow-inner group-hover:border-brand-primary/40 transition-all duration-500">
+                                                            {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" /> : <User size={20} />}
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-base font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-2 group-hover:text-brand-primary transition-colors duration-500">{student.firstName} {student.lastName}</p>
+                                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Seat: #{student.rollNumber || '—'}</p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <p className="text-sm font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-1 group-hover:text-brand-primary transition-colors">{student.firstName} {student.lastName}</p>
-                                                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Roll: {student.rollNumber || '—'}</p>
+                                                </td>
+                                                <td className="px-12 py-7">
+                                                    <div className="flex justify-center">
+                                                        <div className="relative w-32 group-hover:scale-105 transition-transform duration-500">
+                                                            <input 
+                                                                type="number"
+                                                                placeholder="Score..."
+                                                                value={formik.values.marksData[student._id]?.score || ''}
+                                                                onChange={(e) => formik.setFieldValue(`marksData.${student._id}.score`, e.target.value)}
+                                                                className="w-full bg-slate-900/60 border border-slate-800 h-14 px-6 rounded-2xl text-center text-base font-black text-white outline-none focus:border-brand-primary focus:bg-slate-900 transition-all italic font-outfit shadow-lg placeholder:text-slate-800"
+                                                            />
+                                                            <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-slate-900 border border-slate-800 rounded-lg flex items-center justify-center">
+                                                                <CheckCircle size={10} className={formik.values.marksData[student._id]?.score ? 'text-luxury-emerald' : 'text-slate-800'} />
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5">
-                                                <div className="flex justify-center">
+                                                </td>
+                                                <td className="px-12 py-7">
                                                     <input 
-                                                        type="number"
-                                                        placeholder="Marks..."
-                                                        value={marksData[student._id]?.score || ''}
-                                                        onChange={(e) => handleMarkChange(student._id, 'score', e.target.value)}
-                                                        className="w-24 bg-slate-800/40 border border-slate-700/50 h-10 px-4 rounded-xl text-center text-sm font-black text-white outline-none focus:border-brand-primary transition-all"
+                                                        type="text"
+                                                        placeholder="Nomenclature observation..."
+                                                        value={formik.values.marksData[student._id]?.remarks || ''}
+                                                        onChange={(e) => formik.setFieldValue(`marksData.${student._id}.remarks`, e.target.value)}
+                                                        className="w-full bg-slate-900/40 border border-slate-800/50 h-14 px-8 rounded-2xl text-[12px] font-medium text-slate-300 outline-none focus:border-brand-primary focus:bg-slate-900/80 transition-all font-outfit italic tracking-wide shadow-lg placeholder:text-slate-800"
                                                     />
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-5">
-                                                <input 
-                                                    type="text"
-                                                    placeholder="Remarks / Indicators..."
-                                                    value={marksData[student._id]?.remarks || ''}
-                                                    onChange={(e) => handleMarkChange(student._id, 'remarks', e.target.value)}
-                                                    className="w-full bg-slate-800/40 border border-slate-700/50 h-10 px-4 rounded-xl text-[11px] font-medium text-slate-300 outline-none focus:border-brand-primary transition-all"
-                                                />
-                                            </td>
-                                        </tr>
-                                    ))}
+                                                </td>
+                                            </motion.tr>
+                                        ))}
+                                    </AnimatePresence>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-32 border-2 border-dashed border-slate-800 rounded-[3rem] bg-slate-900/40">
-                    <Award size={40} className="text-slate-700 mb-6 animate-pulse" />
-                    <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[11px] font-outfit">Select Section & Exam node to initiate performance entry</p>
+                <div className="flex flex-col items-center justify-center py-48 border-2 border-dashed border-slate-800/40 rounded-[4rem] bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
+                    <Award size={60} className="text-slate-800 mb-8 opacity-20 group-hover:text-brand-primary/20 group-hover:scale-110 transition-all duration-1000 animate-pulse underline" />
+                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Assessment Synchronization</p>
+                    <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase">Select an academic sector and assessment node to initiate registry</p>
                 </div>
             )}
         </motion.div>

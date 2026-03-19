@@ -35,6 +35,7 @@ import AcademicResults from './pages/Student/AcademicResults';
 import AssignmentsStudent from './pages/Student/Assignments';
 import Timetable from './pages/Student/Timetable';
 import StudentProfile from './pages/Student/StudentProfile';
+import Holidays from './pages/common/Holidays';
 
 const { store, persistor } = configureStore();
 
@@ -77,6 +78,7 @@ function AppRoutes() {
           <Route path="results" element={<AcademicResults />} />
           <Route path="assignments" element={<AssignmentsStudent />} />
           <Route path="timetable" element={<Timetable />} />
+          <Route path="holidays" element={<Holidays />} />
         </Route>
 
         {/* Teacher Panel */}
@@ -89,6 +91,7 @@ function AppRoutes() {
           <Route path="marks" element={<AddMarks />} />
           <Route path="assignments" element={<Assignments />} />
           <Route path="messages" element={<Communication />} />
+          <Route path="holidays" element={<Holidays />} />
         </Route>
 
         {/* School Admin Panel */}
@@ -103,6 +106,7 @@ function AppRoutes() {
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="subjects" element={<Subjects />} />
+          <Route path="holidays" element={<Holidays />} />
         </Route>
 
 

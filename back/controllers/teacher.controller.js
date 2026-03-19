@@ -23,7 +23,7 @@ exports.getAssignedClasses = async (req, res) => {
         { classTeacher: teacher._id },
         { assignedTeachers: teacher._id }
       ]
-    });
+    }).populate('subjects', 'name');
     res.json(classes);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -161,5 +161,50 @@ exports.getExamsByClass = async (req, res) => {
 
         const exams = await Exam.find({ classSection: classId });
         res.json(exams);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+// 8. Fetch existing attendance for editing ──────────────────────────────────
+exports.getAttendanceByClassAndDate = async (req, res) => {
+    try {
+        const { classId, date } = req.query;
+        const teacher = await getTeacher(req.user._id);
+
+        const isAssigned = await ClassSection.findOne({
+            _id: classId,
+            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+        });
+
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+
+        const att = await Attendance.find({ 
+            schoolId: teacher.schoolId._id, 
+            classSection: classId, 
+            date: new Date(date) 
+        });
+        res.json(att);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 9. Fetch existing marks for an exam ──────────────────────────────────────────
+exports.getMarksByExam = async (req, res) => {
+    try {
+        const { examId } = req.params;
+        const teacher = await getTeacher(req.user._id);
+
+        const exam = await Exam.findById(examId);
+        if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
+
+        const isAssigned = await ClassSection.findOne({
+            _id: exam.classSection,
+            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+        });
+
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+
+        const marks = await Mark.find({ 
+            schoolId: teacher.schoolId._id, 
+            examId 
+        });
+        res.json(marks);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

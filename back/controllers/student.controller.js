@@ -26,8 +26,8 @@ exports.getAttendance = async (req, res) => {
         const student = await getStudent(req.user._id);
         const attendance = await Attendance.find({ 
             classSection: student.classSection._id,
-            'records.student': student._id 
-        }).select('date records.$');
+            'records.studentId': student._id 
+        }).select('date records.$').sort({ date: -1 });
         
         // Format to only show this student's status for each date
         const formatted = attendance.map(a => ({

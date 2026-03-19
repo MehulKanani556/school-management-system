@@ -58,10 +58,27 @@ export const sendMessage = createAsyncThunk('teacher/sendMessage', async (formDa
         return rejectWithValue(error.response.data.message);
     }
 });
-
 export const fetchExamsByClass = createAsyncThunk('teacher/fetchExams', async (classId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/teacher/exams/${classId}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchTeacherAttendance = createAsyncThunk('teacher/fetchAttendance', async ({ classId, date }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/attendance?classId=${classId}&date=${date}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchTeacherMarks = createAsyncThunk('teacher/fetchMarks', async (examId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/marks/${examId}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -74,6 +91,8 @@ const teacherSlice = createSlice({
         classes: [],
         students: [],
         exams: [],
+        attendance: [],
+        marks: [],
         loading: false,
         error: null,
         message: null
@@ -95,10 +114,16 @@ const teacherSlice = createSlice({
             .addCase(fetchExamsByClass.fulfilled, (state, action) => {
                 state.exams = action.payload;
             })
-            .addCase(submitAttendance.fulfilled, (state) => { state.message = "Attendance marked"; })
-            .addCase(submitMarks.fulfilled, (state) => { state.message = "Marks submitted"; })
-            .addCase(uploadAssignment.fulfilled, (state) => { state.message = "Assignment published"; })
-            .addCase(sendMessage.fulfilled, (state) => { state.message = "Broadcast sent"; });
+            .addCase(fetchTeacherAttendance.fulfilled, (state, action) => {
+                state.attendance = action.payload;
+            })
+            .addCase(fetchTeacherMarks.fulfilled, (state, action) => {
+                state.marks = action.payload;
+            })
+            .addCase(submitAttendance.fulfilled, (state) => { state.message = "Attendance marked successfully"; })
+            .addCase(submitMarks.fulfilled, (state) => { state.message = "Marks submitted successfully"; })
+            .addCase(uploadAssignment.fulfilled, (state) => { state.message = "Assignment published successfully"; })
+            .addCase(sendMessage.fulfilled, (state) => { state.message = "Communication broadcasted successfully"; });
     }
 });
 

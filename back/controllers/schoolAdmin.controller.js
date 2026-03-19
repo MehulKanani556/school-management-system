@@ -343,7 +343,9 @@ exports.updateFee = async (req, res) => {
 // ─── Exams ────────────────────────────────────────────────────────────────────
 exports.getExams = async (req, res) => {
   try {
-    const exams = await Exam.find({ schoolId: getSchoolId(req) }).populate('classSection', 'gradeLevel sectionLabel');
+    const exams = await Exam.find({ schoolId: getSchoolId(req) })
+      .populate('classSection', 'gradeLevel sectionLabel')
+      .populate('subject', 'name code');
     res.json(exams);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -351,7 +353,11 @@ exports.getExams = async (req, res) => {
 exports.createExam = async (req, res) => {
   try {
     const exam = await Exam.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(exam);
+    const populated = await exam.populate([
+      { path: 'classSection', select: 'gradeLevel sectionLabel' },
+      { path: 'subject', select: 'name code' }
+    ]);
+    res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -360,7 +366,10 @@ exports.updateExam = async (req, res) => {
     const exam = await Exam.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       req.body, { new: true }
-    );
+    ).populate([
+      { path: 'classSection', select: 'gradeLevel sectionLabel' },
+      { path: 'subject', select: 'name code' }
+    ]);
     if (!exam) return res.status(404).json({ message: 'Exam not found' });
     res.json(exam);
   } catch (err) { res.status(500).json({ message: err.message }); }

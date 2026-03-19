@@ -26,21 +26,28 @@ const AttendanceHistory = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
         >
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Presence Node</h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Attendance telemetry & participation logs.</p>
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-[3rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3 mb-2">
+                        <span className="w-12 h-[2px] bg-luxury-emerald rounded-full"></span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald font-outfit">Presence Node</span>
+                    </div>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Attendance Analytics</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Secure discovery of institutional participation telemetry.</p>
                 </div>
-                <div className="bg-[#0f0f12] border border-slate-800 p-6 rounded-[2rem] flex items-center gap-8 shadow-2xl">
-                   <div className="text-center">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Success Rate</p>
-                        <p className="text-2xl font-black text-luxury-emerald italic font-outfit">{percentage}%</p>
-                   </div>
-                   <div className="w-px h-10 bg-slate-800"></div>
-                   <div className="text-center">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">Total Cycles</p>
-                        <p className="text-2xl font-black text-white italic font-outfit">{stats.total}</p>
-                   </div>
+
+                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-[2.5rem] shadow-inner backdrop-blur-sm">
+                    {[
+                        { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
+                        { label: 'Present', val: stats.present, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
+                        { label: 'Absent', val: stats.absent, color: 'text-luxury-rose', bg: 'bg-luxury-rose/10' },
+                        { label: 'Late', val: stats.late, color: 'text-amber-500', bg: 'bg-amber-500/10' },
+                    ].map((st, i) => (
+                        <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px]">
+                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>
+                            <p className={`text-2xl font-black ${st.color} font-outfit italic`}>{st.val}</p>
+                        </div>
+                    ))}
                 </div>
             </header>
 

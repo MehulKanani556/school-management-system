@@ -56,7 +56,7 @@ const AssignedClasses = () => {
                                         <td className="px-8 py-7">
                                             <div className="flex flex-wrap gap-2">
                                                 {cls.subjects.map(sub => (
-                                                    <span key={sub} className="px-3 py-1 bg-slate-800/60 border border-slate-700/50 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-wider italic">{sub}</span>
+                                                    <span key={sub._id} className="px-3 py-1 bg-slate-800/60 border border-slate-700/50 rounded-lg text-[9px] font-black text-slate-400 uppercase tracking-wider italic">{sub.name}</span>
                                                 ))}
                                             </div>
                                         </td>

@@ -22,6 +22,7 @@ const StudentLayout = () => {
         { icon: Award, label: 'Academic Results', path: '/student/results' },
         { icon: Download, label: 'Assignments', path: '/student/assignments' },
         { icon: Calendar, label: 'Timetable', path: '/student/timetable' },
+        { icon: Calendar, label: 'Holidays', path: '/student/holidays' },
     ];
 
     const handleLogout = () => {

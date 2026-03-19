@@ -9,6 +9,7 @@ const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
 const tc = require('../controllers/teacher.controller');
 const stc = require('../controllers/student.controller');
+const hc = require('../controllers/holiday.controller');
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
@@ -84,6 +85,8 @@ const teacher = [auth, requireRole('Teacher')];
 router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
 router.get('/teacher/assigned-students/:classId', ...teacher, tc.getAssignedClassStudents);
 router.get('/teacher/exams/:classId', ...teacher, tc.getExamsByClass);
+router.get('/teacher/attendance', ...teacher, tc.getAttendanceByClassAndDate);
+router.get('/teacher/marks/:examId', ...teacher, tc.getMarksByExam);
 router.post('/teacher/mark-attendance', ...teacher, tc.markAttendance);
 router.post('/teacher/add-marks', ...teacher, tc.addMarks);
 router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.uploadAssignment);
@@ -98,4 +101,10 @@ router.get('/student/results', ...student, stc.getResults);
 router.get('/student/assignments', ...student, stc.getAssignments);
 router.get('/student/timetable', ...student, stc.getTimetable);
 
-module.exports = router;
+// ─── Holiday Routes ───────────────────────────────────────────────────────────
+router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
+router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
+router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
+router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);
+
+module.exports = router;

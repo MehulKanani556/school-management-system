@@ -1,140 +1,203 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClasses, fetchStudents, fetchAttendance, saveAttendance } from '../../redux/slice/schoolAdmin.slice';
-import { motion } from 'framer-motion';
-import { Save, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Save, CheckCircle, XCircle, Clock, AlertCircle, Calendar, Users, Search } from 'lucide-react';
 
 const statusOptions = ['Present', 'Absent', 'Late', 'Excused'];
 const statusIcon = { Present: CheckCircle, Absent: XCircle, Late: Clock, Excused: AlertCircle };
 const statusColor = {
-  Present: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-  Absent: 'text-red-400 bg-red-400/10 border-red-400/20',
-  Late: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-  Excused: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
+    Present: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
+    Absent: 'text-red-400 bg-red-400/10 border-red-400/20',
+    Late: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+    Excused: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
 };
 
 const Attendance = () => {
-  const dispatch = useDispatch();
-  const { classes, students, loading } = useSelector((s) => s.schoolAdmin);
-  const [selectedClass, setSelectedClass] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [records, setRecords] = useState({});
-  const [saved, setSaved] = useState(false);
+    const dispatch = useDispatch();
+    const { classes, students, attendance, loading } = useSelector((s) => s.schoolAdmin);
+    const [selectedClass, setSelectedClass] = useState('');
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [records, setRecords] = useState({});
+    const [searchTerm, setSearchTerm] = useState('');
+    const [saved, setSaved] = useState(false);
 
-  useEffect(() => { dispatch(fetchClasses()); }, [dispatch]);
+    useEffect(() => {
+        dispatch(fetchClasses());
+        dispatch(fetchStudents());
+    }, [dispatch]);
 
-  useEffect(() => {
-    if (selectedClass) {
-      dispatch(fetchStudents()).then((res) => {
-        const classStudents = (res.payload || []).filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
-        const init = {};
-        classStudents.forEach(s => { init[s._id] = 'Present'; });
-        setRecords(init);
-      });
-    }
-  }, [selectedClass, dispatch]);
+    // Fetch existing attendance when class/date changes
+    useEffect(() => {
+        if (selectedClass && date) {
+            dispatch(fetchAttendance({ classSection: selectedClass, date })).then((res) => {
+                const existing = res.payload?.[0];
+                const currentStudents = students.filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
+                
+                const newRecords = {};
+                if (existing && existing.records) {
+                    existing.records.forEach(r => {
+                        const id = r.studentId?._id || r.studentId;
+                        if (id) newRecords[id] = r.status;
+                    });
+                } else {
+                    currentStudents.forEach(s => {
+                        newRecords[s._id] = 'Present';
+                    });
+                }
+                setRecords(newRecords);
+            });
+        }
+    }, [selectedClass, date, dispatch, students]);
 
-  const classStudents = students.filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
+    const classStudents = students.filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
+    
+    const filteredStudents = classStudents.filter(s => 
+        `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.admissionNumber?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-  const handleSave = async () => {
-    const recordsArr = Object.entries(records).map(([studentId, status]) => ({ studentId, status }));
-    await dispatch(saveAttendance({ classSection: selectedClass, date, records: recordsArr }));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
-  };
+    const handleSave = async () => {
+        const recordsArr = Object.entries(records).map(([studentId, status]) => ({ studentId, status }));
+        await dispatch(saveAttendance({ classSection: selectedClass, date, records: recordsArr }));
+        setSaved(true);
+        setTimeout(() => setSaved(false), 3000);
+    };
 
-  const summary = statusOptions.map(s => ({ status: s, count: Object.values(records).filter(r => r === s).length }));
+    const markAllPresent = () => {
+        const newRecords = { ...records };
+        filteredStudents.forEach(s => { newRecords[s._id] = 'Present'; });
+        setRecords(newRecords);
+    };
 
-  return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">Attendance</h1>
-          <p className="text-slate-400 text-sm mt-1">Mark and track student attendance</p>
-        </div>
-        {selectedClass && classStudents.length > 0 && (
-          <button onClick={handleSave} disabled={loading}
-            className="flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit">
-            <Save size={18} /> {saved ? 'Saved!' : 'Save Attendance'}
-          </button>
-        )}
-      </div>
+    const summary = statusOptions.map(s => ({ 
+        status: s, 
+        count: Object.values(records).filter(r => r === s).length 
+    }));
 
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit block mb-2">Select Class</label>
-          <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-            className="w-full bg-brand-surface/40 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none transition-all">
-            <option value="">Choose a class...</option>
-            {classes.map(c => <option key={c._id} value={c._id}>Grade {c.gradeLevel}-{c.sectionLabel}</option>)}
-          </select>
-        </div>
-        <div>
-          <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit block mb-2">Date</label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)}
-            className="w-full bg-brand-surface/40 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none transition-all" />
-        </div>
-      </div>
-
-      {selectedClass && (
-        <>
-          <div className="grid grid-cols-4 gap-3">
-            {summary.map(({ status, count }) => {
-              const Icon = statusIcon[status];
-              return (
-                <div key={status} className={`flex items-center gap-3 px-5 py-4 rounded-2xl border ${statusColor[status]}`}>
-                  <Icon size={18} />
-                  <div>
-                    <p className="text-xs font-black uppercase tracking-wider font-outfit">{status}</p>
-                    <p className="text-xl font-black font-outfit">{count}</p>
-                  </div>
+    return (
+        <div className="space-y-8">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit text-shadow-glow">Presence Node</h1>
+                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Institutional attendance telemetry & marking terminal.</p>
                 </div>
-              );
-            })}
-          </div>
+                {selectedClass && classStudents.length > 0 && (
+                    <div className="flex gap-4">
+                        <button onClick={markAllPresent} 
+                            className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all">
+                            Mass Presence
+                        </button>
+                        <button onClick={handleSave} disabled={loading}
+                            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                            {loading ? <AlertCircle className="animate-spin" size={18} /> : <Save size={18} />} {saved ? 'System Updated!' : 'Commit Attendance'}
+                        </button>
+                    </div>
+                )}
+            </header>
 
-          <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] overflow-hidden">
-            {classStudents.length === 0 ? (
-              <div className="py-16 text-center text-slate-500 italic">No students in this class</div>
-            ) : (
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b border-brand-border/30">
-                    {['Student', 'Admission No.', 'Status'].map(h => (
-                      <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {classStudents.map((s, i) => (
-                    <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
-                      className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
-                      <td className="px-6 py-4 font-semibold">{s.firstName} {s.lastName}</td>
-                      <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
-                      <td className="px-6 py-4">
-                        <div className="flex gap-2 flex-wrap">
-                          {statusOptions.map(status => (
-                            <button key={status} onClick={() => setRecords(r => ({ ...r, [s._id]: status }))}
-                              className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all font-outfit ${records[s._id] === status ? statusColor[status] : 'text-slate-600 bg-transparent border-slate-700 hover:border-slate-500'}`}>
-                              {status}
-                            </button>
-                          ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-1">Sector Assignment</label>
+                    <div className="relative">
+                        <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
+                            className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-pointer text-sm font-bold">
+                            <option value="">Select Academic Sector...</option>
+                            {classes.map(c => <option key={c._id} value={c._id}>Grade {c.gradeLevel} - Sector {c.sectionLabel}</option>)}
+                        </select>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-1">Temporal Date</label>
+                    <div className="relative">
+                        <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
+                        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+                            className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all text-sm font-bold" />
+                    </div>
+                </div>
+            </div>
+
+            {selectedClass ? (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {summary.map(({ status, count }) => {
+                            const Icon = statusIcon[status];
+                            return (
+                                <div key={status} className={`flex items-center gap-4 px-6 py-6 rounded-[2rem] border backdrop-blur-xl ${statusColor[status]}`}>
+                                    <div className="p-3 bg-white/5 rounded-xl"><Icon size={20} /></div>
+                                    <div>
+                                        <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">{status}</p>
+                                        <p className="text-2xl font-black font-outfit leading-none">{count}</p>
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="bg-[#0f0f12] border border-slate-800/60 rounded-[3.5rem] overflow-hidden shadow-2xl relative">
+                        <div className="p-8 border-b border-slate-800/40 flex items-center justify-between bg-black/20">
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Student Cluster - {filteredStudents.length} Nodes</h3>
+                            <div className="relative group">
+                                <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-brand-primary transition-colors" />
+                                <input type="text" placeholder="Filter IDs..." 
+                                    value={searchTerm}
+                                    onChange={e => setSearchTerm(e.target.value)}
+                                    className="bg-slate-900 border border-slate-800 rounded-xl py-2 pl-12 pr-4 text-[10px] font-bold text-white w-48 focus:outline-none focus:border-brand-primary/40 transition-all font-outfit" />
+                            </div>
                         </div>
-                      </td>
-                    </motion.tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-        </>
-      )}
 
-      {!selectedClass && (
-        <div className="py-20 text-center text-slate-500 italic">Select a class to mark attendance</div>
-      )}
-    </div>
-  );
+                        <div className="overflow-x-auto">
+                            {filteredStudents.length === 0 ? (
+                                <div className="py-24 text-center">
+                                    <Users size={48} className="text-slate-800 mx-auto mb-4 opacity-20 underline" />
+                                    <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] italic">No Student Nodes Detected in this Sector</p>
+                                </div>
+                            ) : (
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-900/30">
+                                            {['Student Identity', 'Admission Node', 'Verification Status'].map(h => (
+                                                <th key={h} className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit italic">{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800/40">
+                                        {filteredStudents.map((s, i) => (
+                                            <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
+                                                className="hover:bg-white/[0.02] transition-colors group">
+                                                <td className="px-10 py-6">
+                                                    <div className="font-bold text-white italic tracking-tight">{s.firstName} {s.lastName}</div>
+                                                </td>
+                                                <td className="px-10 py-6">
+                                                    <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/50 uppercase font-outfit italic">#{s.admissionNumber}</span>
+                                                </td>
+                                                <td className="px-10 py-6">
+                                                    <div className="flex gap-2 flex-wrap">
+                                                        {statusOptions.map(status => (
+                                                            <button key={status} onClick={() => setRecords(r => ({ ...r, [s._id]: status }))}
+                                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all font-outfit ${records[s._id] === status ? statusColor[status] : 'text-slate-600 bg-transparent border-slate-800 hover:border-slate-600'}`}>
+                                                                {status}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            )}
+                        </div>
+                    </div>
+                </motion.div>
+            ) : (
+                <div className="py-32 text-center border border-dashed border-slate-800 rounded-[4rem]">
+                    <Clock size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
+                    <p className="text-slate-500 font-bold italic uppercase tracking-[0.4em] text-[10px]">Awaiting Academic Sector Synchronization</p>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default Attendance;

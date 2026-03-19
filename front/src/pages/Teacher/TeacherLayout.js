@@ -4,7 +4,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, Users, BookOpen, ClipboardList, 
     Upload, MessageSquare, LogOut, ChevronRight,
-    Bell, User, Activity
+    Bell, User, Activity, Calendar
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -22,6 +22,7 @@ const TeacherLayout = () => {
         { icon: Activity, label: 'Add Marks', path: '/teacher/marks' },
         { icon: Upload, label: 'Upload Assignments', path: '/teacher/assignments' },
         { icon: MessageSquare, label: 'Communicate', path: '/teacher/messages' },
+        { icon: Calendar, label: 'Holidays', path: '/teacher/holidays' },
     ];
 
     const handleLogout = () => {
