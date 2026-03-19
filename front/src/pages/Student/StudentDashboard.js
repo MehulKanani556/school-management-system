@@ -1,6 +1,12 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentProfile } from '../../redux/slice/student.slice';
+import { 
+    fetchStudentProfile, 
+    fetchStudentAttendance, 
+    fetchStudentResults, 
+    fetchStudentAssignments,
+    fetchStudentTimetable
+} from '../../redux/slice/student.slice';
 import { motion } from 'framer-motion';
 import { Award, ClipboardList, Calendar, BookOpen, Clock, ArrowUpRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -8,16 +14,29 @@ import { Link } from 'react-router-dom';
 const StudentDashboard = () => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
-    const { profile, loading } = useSelector((state) => state.student);
+    const { profile, attendance, results, loading } = useSelector((state) => state.student);
 
     useEffect(() => {
         dispatch(fetchStudentProfile());
+        dispatch(fetchStudentAttendance());
+        dispatch(fetchStudentResults());
+        dispatch(fetchStudentAssignments());
+        dispatch(fetchStudentTimetable());
     }, [dispatch]);
 
+    // Derived Stats
+    const attPercent = attendance.length > 0 
+        ? ((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100).toFixed(0) 
+        : '0';
+
+    const gpa = results.length > 0
+        ? ((results.reduce((s, r) => s + (r.marksObtained / r.totalMarks), 0) / results.length) * 4.0).toFixed(1)
+        : '0.0';
+
     const stats = [
-        { label: 'Attendance', value: '94%', icon: ClipboardList, color: 'text-luxury-emerald' },
-        { label: 'GPA Node', value: '3.8', icon: Award, color: 'text-brand-primary' },
-        { label: 'Assigned', value: '08', icon: BookOpen, color: 'text-brand-secondary' },
+        { label: 'Attendance', value: `${attPercent}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
+        { label: 'GPA Node', value: gpa, icon: Award, color: 'text-brand-primary' },
+        { label: 'Assigned', value: `0${results.length}`, icon: BookOpen, color: 'text-brand-secondary' },
         { label: 'Schedule', value: '09:00', icon: Clock, color: 'text-brand-accent' },
     ];
 

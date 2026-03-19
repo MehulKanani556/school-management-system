@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { upload } = require('../middleware/upload');
-const { createUser, login, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
+const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
 const { auth, isSuperAdmin } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleCheck');
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
@@ -13,6 +13,7 @@ const stc = require('../controllers/student.controller');
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
 router.post('/login', login);
+router.post('/student-login', studentLogin);
 router.post('/forgot-password', forgotPassword);
 router.post('/verify', verifyOtp);
 router.post('/change-password', changePassword);

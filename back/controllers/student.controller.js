@@ -5,9 +5,9 @@ const Mark = require('../models/mark.model');
 const Assignment = require('../models/assignment.model');
 const ClassSection = require('../models/classSection.model');
 
-// Helper to get student by userId
-const getStudent = async (userId) => {
-    const student = await Student.findOne({ userId }).populate('classSection schoolId');
+// Helper to get student node
+const getStudent = async (studentId) => {
+    const student = await Student.findById(studentId).populate('classSection schoolId');
     if (!student) throw new Error('Student node not found');
     return student;
 };
