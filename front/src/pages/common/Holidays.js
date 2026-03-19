@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchHolidays, createHoliday, updateHoliday, deleteHoliday, clearError } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Plus, Edit2, Trash2, X, Save, Clock, Info, Search, Activity } from 'lucide-react';
+import { Calendar, Plus, Edit2, Trash2, X, Save, Clock, Info, Search, Activity, Sparkles, MapPin, AlertCircle, ArrowRight } from 'lucide-react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import toast from 'react-hot-toast';
@@ -36,23 +36,23 @@ const Holidays = () => {
             description: ''
         },
         validationSchema: Yup.object({
-            title: Yup.string().required('Title required'),
-            startDate: Yup.date().required('Start date required'),
-            endDate: Yup.date().min(Yup.ref('startDate'), "End date cannot be before start date").required('End date required'),
+            title: Yup.string().required('Required'),
+            startDate: Yup.date().required('Required'),
+            endDate: Yup.date().min(Yup.ref('startDate'), "Invalid termination node").required('Required'),
         }),
         onSubmit: (values) => {
             if (editingHoliday) {
                 dispatch(updateHoliday({ id: editingHoliday._id, data: values }))
                     .unwrap()
                     .then(() => {
-                        toast.success('Calendar entry synchronized');
+                        toast.success('Temporal node recalibrated');
                         closeModal();
                     });
             } else {
                 dispatch(createHoliday(values))
                     .unwrap()
                     .then(() => {
-                        toast.success('New holiday protocol initiated');
+                        toast.success('New break protocol initialized');
                         closeModal();
                     });
             }
@@ -82,10 +82,10 @@ const Holidays = () => {
     };
 
     const handleDelete = (id) => {
-        if (window.confirm('Confirm protocol termination for this calendar node?')) {
+        if (window.confirm('Terminate this temporal break node?')) {
             dispatch(deleteHoliday(id))
                 .unwrap()
-                .then(() => toast.success('Calendar node purged'));
+                .then(() => toast.success('Node purged from history'));
         }
     };
 
@@ -93,185 +93,260 @@ const Holidays = () => {
         h.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    return (
-        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900/40 p-10 rounded-[3rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="w-12 h-[2px] bg-brand-primary rounded-full"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Institutional Calendar</span>
-                    </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Academic Breaks</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Digital archival of global and institutional holiday protocols.</p>
-                </div>
+    const getNextHoliday = () => {
+        const future = holidays
+            .filter(h => new Date(h.startDate) > new Date())
+            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))[0];
+        return future;
+    };
 
-                <div className="flex items-center gap-4">
-                    <div className="relative group hidden md:block">
-                        <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
-                        <input 
-                            type="text" 
-                            placeholder="Identify break node..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-slate-950/50 border border-slate-800 h-12 pl-12 pr-6 rounded-2xl text-[11px] font-bold uppercase tracking-widest outline-none focus:border-brand-primary transition-all text-white w-64 italic font-outfit"
-                        />
+    const nextHoliday = getNextHoliday();
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="pb-20">
+            {/* More Compact Premium Header */}
+            <header className="relative mb-8 group">
+                <div className="absolute -top-6 -left-6 w-48 h-48 bg-brand-primary/10 rounded-full blur-[80px] opacity-40 group-hover:opacity-70 transition-opacity duration-1000"></div>
+                
+                <div className="relative z-10 bg-brand-surface/40 backdrop-blur-2xl border border-white/5 rounded-[3rem] p-1 shadow-xl overflow-hidden">
+                    <div className="bg-brand-background/40 rounded-[2.9rem] px-8 py-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
+                        
+                        <div className="space-y-4 max-w-xl">
+                            <div className="flex items-center gap-2">
+                                <div className="px-3 py-1 rounded-full bg-slate-900/80 border border-white/10 flex items-center gap-1.5 backdrop-blur-md shadow-md">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-accent animate-ping"></div>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 font-outfit">Global Calendar</span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <h1 className="text-3xl md:text-5xl font-extrabold text-white italic uppercase tracking-tight leading-tight font-outfit pr-6">
+                                    Institutional <br />
+                                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary via-brand-secondary to-brand-accent">Temporal Breaks</span>
+                                </h1>
+                                <p className="text-slate-500 font-medium text-xs md:text-sm max-w-md leading-normal italic tracking-wide">
+                                    Unified synchronization layer for tracking academic rest windows and holiday protocols.
+                                </p>
+                            </div>
+
+                            {nextHoliday && (
+                                <div className="flex items-center gap-4 pt-1">
+                                    <div className="flex -space-x-2">
+                                        {[1,2].map(i => (
+                                            <div key={i} className="w-7 h-7 rounded-full border border-brand-surface bg-slate-800 shadow-md"></div>
+                                        ))}
+                                    </div>
+                                    <div className="space-y-0.5">
+                                        <p className="text-[10px] font-bold text-white uppercase tracking-wider leading-none">
+                                            {nextHoliday.title} <span className="text-brand-primary italic ml-1">in {Math.ceil((new Date(nextHoliday.startDate) - new Date()) / (1000 * 60 * 60 * 24))} Days</span>
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row items-center gap-4 self-stretch xl:self-center">
+                            <div className="relative group w-full sm:w-64">
+                                <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors" />
+                                <input 
+                                    type="text" 
+                                    placeholder="Identify specific break..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full bg-slate-950/60 border border-white/10 h-14 pl-12 pr-6 rounded-2xl text-[12px] font-black uppercase tracking-widest outline-none focus:border-brand-accent/40 focus:bg-slate-950/80 transition-all text-white italic font-outfit"
+                                />
+                            </div>
+                            {isAdmin && (
+                                <button 
+                                    onClick={() => openModal()}
+                                    className="w-full sm:w-auto flex items-center justify-center gap-4 bg-brand-primary hover:bg-brand-primary/90 text-white px-8 h-14 rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition-all shadow-xl shadow-brand-primary/20 active:scale-95 font-outfit italic group overflow-hidden"
+                                >
+                                    <Plus size={18} className="group-hover:rotate-90 transition-transform duration-500" />
+                                    New Protocol
+                                </button>
+                            )}
+                        </div>
                     </div>
-                    {isAdmin && (
-                        <button 
-                            onClick={() => openModal()}
-                            className="flex items-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-8 h-12 rounded-2xl font-black tracking-[0.2em] uppercase text-[10px] transition-all shadow-lg active:scale-95 font-outfit italic"
-                        >
-                            <Plus size={18} />
-                            New Protocol
-                        </button>
-                    )}
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+
+            {/* Grid of Holidays */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
                 <AnimatePresence mode='popLayout'>
                     {filteredHolidays.map((holiday, idx) => (
                         <motion.div 
                             key={holiday._id}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="group relative bg-slate-900/40 border border-slate-800/60 rounded-[2.5rem] p-8 hover:border-brand-primary/40 transition-all duration-500 overflow-hidden shadow-2xl backdrop-blur-md"
+                            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
+                            transition={{ delay: idx * 0.08, duration: 0.5, ease: "circOut" }}
+                            className="group relative"
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 blur-[50px] group-hover:bg-brand-primary/10 transition-all"></div>
+                            {/* Card Glow Background */}
+                            <div className="absolute -inset-[1px] bg-gradient-to-br from-white/15 to-white/0 rounded-[3rem] opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             
-                            <div className="relative z-10 space-y-6">
-                                <div className="flex items-start justify-between">
-                                    <div className="w-14 h-14 rounded-2xl bg-slate-950 border border-slate-800 flex items-center justify-center text-brand-primary shadow-inner group-hover:scale-110 transition-transform duration-700">
-                                        <Calendar size={24} />
-                                    </div>
-                                    {isAdmin && (
-                                        <div className="flex gap-2">
-                                            <button onClick={() => openModal(holiday)} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-500 hover:text-brand-primary hover:border-brand-primary/40 transition-all shadow-lg">
-                                                <Edit2 size={14} />
-                                            </button>
-                                            <button onClick={() => handleDelete(holiday._id)} className="p-2.5 rounded-xl border border-slate-800 bg-slate-950 text-slate-500 hover:text-luxury-rose hover:border-luxury-rose/40 transition-all shadow-lg">
-                                                <Trash2 size={14} />
-                                            </button>
+                            <div className="relative bg-brand-surface/60 backdrop-blur-2xl border border-white/5 rounded-[2rem] p-1 shadow-2xl h-full overflow-hidden transition-all duration-500 group-hover:translate-y-[-8px] group-hover:border-brand-primary/30">
+                                {/* Inner Card Content */}
+                                <div className="bg-brand-background/40 rounded-[1.8rem] p-5 space-y-4 h-full">
+                                    <div className="flex items-start justify-between">
+                                        {/* Date Badge Leaf Style */}
+                                        <div className="flex flex-col items-center justify-center w-12 h-16 rounded-2xl bg-slate-900 border border-white/10 shadow-lg group-hover:border-brand-accent/50 transition-all group-hover:scale-105 duration-500 overflow-hidden relative">
+                                            <div className="absolute top-0 left-0 w-full h-1.5 bg-brand-accent"></div>
+                                            <span className="text-brand-accent text-[8px] font-black uppercase tracking-tighter opacity-80 mt-1">{new Date(holiday.startDate).toLocaleString('default', { month: 'short' })}</span>
+                                            <span className="text-white text-xl font-black font-outfit leading-tight">{new Date(holiday.startDate).getDate()}</span>
                                         </div>
-                                    )}
-                                </div>
 
-                                <div>
-                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit group-hover:text-brand-primary transition-colors">{holiday.title}</h3>
-                                    <div className="flex items-center gap-2 mt-2">
-                                        <Clock size={12} className="text-slate-600" />
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{new Date(holiday.startDate).toLocaleDateString()} — {new Date(holiday.endDate).toLocaleDateString()}</p>
+                                        {isAdmin && (
+                                            <div className="flex gap-2">
+                                                <button onClick={() => openModal(holiday)} className="w-9 h-9 rounded-xl bg-slate-900/50 border border-white/5 text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 hover:bg-slate-900 transition-all shadow-md flex items-center justify-center">
+                                                    <Edit2 size={14} />
+                                                </button>
+                                                <button onClick={() => handleDelete(holiday._id)} className="w-9 h-9 rounded-xl bg-slate-900/50 border border-white/5 text-slate-400 hover:text-luxury-rose hover:border-luxury-rose/40 hover:bg-slate-900 transition-all shadow-md flex items-center justify-center">
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
 
-                                {holiday.description && (
-                                    <div className="p-5 rounded-2xl bg-slate-950/50 border border-slate-800/40 border-dashed">
-                                        <p className="text-slate-400 text-xs font-medium leading-relaxed italic font-outfit">{holiday.description}</p>
+                                    <div className="space-y-3">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-1 opacity-60">
+                                                <MapPin size={10} className="text-brand-accent" />
+                                                <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-slate-400">Institutional</span>
+                                            </div>
+                                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter font-outfit group-hover:text-brand-accent transition-colors duration-500 leading-tight">{holiday.title}</h3>
+                                        </div>
+
+                                        {holiday.description && (
+                                            <div className="p-4 rounded-[1.5rem] bg-slate-950/40 border border-white/5 group-hover:border-white/10 transition-colors">
+                                                <p className="text-slate-400 text-[10px] font-medium leading-[1.5] italic font-outfit line-clamp-2 transition-all duration-700">{holiday.description}</p>
+                                            </div>
+                                        )}
                                     </div>
-                                )}
 
-                                <div className="flex items-center gap-3 pt-2">
-                                    <span className="px-3 py-1 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] italic">Active Break</span>
-                                    <span className="w-1 h-1 bg-slate-800 rounded-full"></span>
-                                    <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">Sector: Global</span>
+                                    <div className="pt-1 flex flex-col gap-3">
+                                        <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 border border-white/5 w-fit">
+                                            <Clock size={10} className="text-brand-secondary" />
+                                            <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest italic flex items-center gap-2">
+                                                {new Date(holiday.startDate).toLocaleDateString()}
+                                                <ArrowRight size={10} className="text-slate-600" />
+                                                {new Date(holiday.endDate).toLocaleDateString()}
+                                            </p>
+                                        </div>
+                                        
+                                        <div className="flex items-center gap-3">
+                                            <span className="h-1 w-1 rounded-full bg-luxury-emerald animate-pulse shadow-[0_0_8px_#10b981]"></span>
+                                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em]">Active Protocol</span>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
+
                         </motion.div>
                     ))}
                 </AnimatePresence>
 
                 {filteredHolidays.length === 0 && (
-                    <div className="col-span-full py-48 border-2 border-dashed border-slate-800/40 rounded-[4rem] bg-slate-900/20 flex flex-col items-center justify-center">
-                        <Activity size={48} className="text-slate-800 mb-6 opacity-20 animate-pulse" />
-                        <p className="text-slate-600 font-black uppercase tracking-[0.5em] text-[11px] italic font-outfit">No calendar nodes found in this sector</p>
+                    <div className="col-span-full py-40 rounded-[4rem] bg-brand-surface/20 border-2 border-dashed border-white/5 flex flex-col items-center justify-center gap-6 group">
+                        <div className="w-24 h-24 rounded-full bg-slate-900 flex items-center justify-center border border-white/5 group-hover:scale-110 transition-transform duration-700">
+                            <Activity size={40} className="text-slate-700 opacity-30 animate-pulse" />
+                        </div>
+                        <div className="text-center space-y-2">
+                            <h4 className="text-slate-500 font-black uppercase tracking-[0.6em] text-xs italic font-outfit">Void Vector</h4>
+                            <p className="text-slate-600 text-[10px] font-bold uppercase tracking-widest">No temporal break nodes detected in this sector</p>
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* Admin CRUD Modal */}
+            {/* Redesigned Admin Modal */}
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-2xl">
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-[20px] bg-black/60">
                         <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }} 
+                            initial={{ opacity: 0, scale: 0.9, y: 40 }} 
                             animate={{ opacity: 1, scale: 1, y: 0 }} 
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="w-full max-w-xl bg-slate-950 border border-slate-800/60 rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden"
+                            exit={{ opacity: 0, scale: 0.9, y: 40 }}
+                            className="w-full max-w-2xl bg-[#020617] border border-white/10 rounded-[4rem] shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden"
                         >
                             <form onSubmit={formik.handleSubmit}>
-                                <div className="p-10 space-y-8">
+                                <div className="px-12 pt-14 pb-12 space-y-10">
                                     <div className="flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit">{editingHoliday ? 'Update' : 'Initialize'} Calendar Node</h2>
-                                            <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest italic">Temporal synchronization protocol</p>
+                                        <div className="space-y-2">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-secondary/10 border border-brand-secondary/20 font-inter">
+                                                <AlertCircle size={12} className="text-brand-secondary" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest text-brand-secondary">Nexus Configuration</span>
+                                            </div>
+                                            <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter font-outfit leading-none">{editingHoliday ? 'Recalibrate' : 'Synchronize'} <span className="text-brand-accent">Node</span></h2>
                                         </div>
-                                        <button type="button" onClick={closeModal} className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white transition-all">
-                                            <X size={20} />
+                                        <button type="button" onClick={closeModal} className="w-14 h-14 rounded-3xl bg-slate-900 border border-white/10 flex items-center justify-center text-slate-500 hover:text-white hover:border-white/30 transition-all active:scale-95 shadow-lg">
+                                            <X size={24} />
                                         </button>
                                     </div>
 
-                                    <div className="space-y-6">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4 font-outfit italic">Node Title</label>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-6">
+                                        <div className="col-span-full space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Node Title</label>
+                                            <div className="relative">
+                                                <Info size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
+                                                <input 
+                                                    name="title"
+                                                    {...formik.getFieldProps('title')}
+                                                    placeholder="e.g. Winter Solstice Synchronisation"
+                                                    className="w-full bg-slate-900/50 border border-white/10 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-accent focus:bg-slate-900 transition-all italic font-outfit font-black tracking-tight"
+                                                />
+                                            </div>
+                                            {formik.touched.title && formik.errors.title && <p className="text-luxury-rose text-[9px] font-black uppercase tracking-widest ml-6 mt-1 animate-pulse">{formik.errors.title}</p>}
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Commencement</label>
                                             <input 
-                                                name="title"
-                                                {...formik.getFieldProps('title')}
-                                                placeholder="e.g. Winter Solstice Break"
-                                                className="w-full bg-slate-900/50 border border-slate-800 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-primary transition-all italic font-outfit font-black tracking-tight"
+                                                type="date"
+                                                name="startDate"
+                                                {...formik.getFieldProps('startDate')}
+                                                className="w-full bg-slate-900/50 border border-white/10 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-accent transition-all italic font-outfit font-black"
                                             />
-                                            {formik.touched.title && formik.errors.title && <p className="text-luxury-rose text-[9px] font-black uppercase tracking-widest ml-4 mt-2">{formik.errors.title}</p>}
+                                        </div>
+                                        <div className="space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Termination</label>
+                                            <input 
+                                                type="date"
+                                                name="endDate"
+                                                {...formik.getFieldProps('endDate')}
+                                                className="w-full bg-slate-900/50 border border-white/10 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-accent transition-all italic font-outfit font-black"
+                                            />
                                         </div>
 
-                                        <div className="grid grid-cols-2 gap-4">
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4 font-outfit italic">Commencement</label>
-                                                <input 
-                                                    type="date"
-                                                    name="startDate"
-                                                    {...formik.getFieldProps('startDate')}
-                                                    className="w-full bg-slate-900/50 border border-slate-800 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-primary transition-all italic font-outfit font-black"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4 font-outfit italic">Termination</label>
-                                                <input 
-                                                    type="date"
-                                                    name="endDate"
-                                                    {...formik.getFieldProps('endDate')}
-                                                    className="w-full bg-slate-900/50 border border-slate-800 h-16 px-8 rounded-2xl text-slate-100 outline-none focus:border-brand-primary transition-all italic font-outfit font-black"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] ml-4 font-outfit italic">Nomenclature Metadata</label>
+                                        <div className="col-span-full space-y-3">
+                                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Temporal Context</label>
                                             <textarea 
                                                 name="description"
                                                 {...formik.getFieldProps('description')}
-                                                placeholder="Additional details regarding this calendar break..."
-                                                className="w-full bg-slate-900/50 border border-slate-800 h-32 p-8 rounded-[2rem] text-slate-100 outline-none focus:border-brand-primary transition-all italic font-outfit font-black resize-none"
+                                                placeholder="Append metadata regarding this temporal break node..."
+                                                className="w-full bg-slate-900/50 border border-white/10 h-36 p-8 rounded-[2.5rem] text-slate-100 outline-none focus:border-brand-accent transition-all italic font-outfit font-black resize-none"
                                             ></textarea>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="p-8 bg-slate-900/30 border-t border-slate-800/60 flex gap-4">
+                                <div className="p-10 bg-slate-900/40 border-t border-white/5 flex gap-6">
                                     <button 
                                         type="button" 
                                         onClick={closeModal}
-                                        className="flex-1 h-16 rounded-2xl border border-slate-800 font-black tracking-[0.2em] uppercase text-[10px] text-slate-500 hover:bg-slate-900 transition-all font-outfit italic"
+                                        className="flex-1 h-16 rounded-[2rem] border border-white/10 font-black tracking-[0.3em] uppercase text-[10px] text-slate-500 hover:text-white hover:bg-slate-900 transition-all font-outfit italic active:scale-95"
                                     >
-                                        Terminate
+                                        Abort
                                     </button>
                                     <button 
                                         type="submit"
                                         disabled={loading}
-                                        className="flex-[2] h-16 rounded-2xl bg-brand-primary text-white font-black tracking-[0.2em] uppercase text-[10px] shadow-lg hover:bg-blue-600 transition-all active:scale-95 flex items-center justify-center gap-3 font-outfit italic"
+                                        className="flex-[2] h-16 rounded-[2rem] bg-gradient-to-r from-brand-accent to-brand-primary text-white font-black tracking-[0.3em] uppercase text-[11px] shadow-2xl shadow-brand-accent/20 hover:shadow-brand-accent/40 transition-all active:scale-95 flex items-center justify-center gap-4 font-outfit italic"
                                     >
-                                        {loading ? <Activity size={18} className="animate-spin" /> : <Save size={18} />}
-                                        Synchronize Node
+                                        {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
+                                        Initialize Protocol
                                     </button>
                                 </div>
                             </form>
@@ -284,3 +359,4 @@ const Holidays = () => {
 };
 
 export default Holidays;
+
