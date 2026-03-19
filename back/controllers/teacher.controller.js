@@ -23,7 +23,7 @@ exports.getAssignedClasses = async (req, res) => {
         { classTeacher: teacher._id },
         { assignedTeachers: teacher._id }
       ]
-    }).populate('subjects', 'name');
+    }).populate('standardId', 'gradeLevel').populate('subjects', 'name');
     res.json(classes);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -206,5 +206,45 @@ exports.getMarksByExam = async (req, res) => {
             examId 
         });
         res.json(marks);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 10. Homework (Assignment) Lifecycle Controls ──────────────────────────────────
+exports.getAssignments = async (req, res) => {
+    try {
+        const assignments = await Assignment.find({ createdBy: req.user._id })
+            .populate({
+                path: 'classSection',
+                select: 'sectionLabel standardId',
+                populate: { path: 'standardId', select: 'gradeLevel' }
+            })
+            .sort({ createdAt: -1 });
+        res.json(assignments);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { classSection, title, description, subject, dueDate } = req.body;
+        const updateData = { classSection, title, description, subject, dueDate: new Date(dueDate) };
+        if (req.file) updateData.fileUrl = req.file.location;
+
+        const assignment = await Assignment.findOneAndUpdate(
+            { _id: id, createdBy: req.user._id },
+            updateData,
+            { new: true }
+        );
+        if (!assignment) return res.status(404).json({ message: 'Homework node not found' });
+        res.json(assignment);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteAssignment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const assignment = await Assignment.findOneAndDelete({ _id: id, createdBy: req.user._id });
+        if (!assignment) return res.status(404).json({ message: 'Homework node not found' });
+        res.json({ message: 'Homework decommissioned successfully' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

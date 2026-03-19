@@ -20,7 +20,7 @@ const TeacherLayout = () => {
         { icon: BookOpen, label: 'Assigned Classes', path: '/teacher/classes' },
         { icon: ClipboardList, label: 'Mark Attendance', path: '/teacher/attendance' },
         { icon: Activity, label: 'Add Marks', path: '/teacher/marks' },
-        { icon: Upload, label: 'Upload Assignments', path: '/teacher/assignments' },
+        { icon: Upload, label: 'Homework Section', path: '/teacher/assignments' },
         { icon: Clock, label: 'Timetable', path: '/teacher/timetable' },
         { icon: MessageSquare, label: 'Communicate', path: '/teacher/messages' },
         { icon: Calendar, label: 'Holidays', path: '/teacher/holidays' },

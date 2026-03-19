@@ -112,6 +112,9 @@ router.get('/teacher/marks/:examId', ...teacher, tc.getMarksByExam);
 router.post('/teacher/mark-attendance', ...teacher, tc.markAttendance);
 router.post('/teacher/add-marks', ...teacher, tc.addMarks);
 router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.uploadAssignment);
+router.get('/teacher/assignments', ...teacher, tc.getAssignments);
+router.put('/teacher/assignments/:id', ...teacher, upload.single('file'), tc.updateAssignment);
+router.delete('/teacher/assignments/:id', ...teacher, tc.deleteAssignment);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
 router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 
