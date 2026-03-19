@@ -67,7 +67,24 @@ const AdminTimetable = () => {
         setSchedule({ ...schedule, [activeDay]: updatedPeriods });
     };
 
-    const handleSave = () => {
+    const applyTemplate = () => {
+        const templatePeriods = [
+            { startTime: '09:00', endTime: '10:00', type: 'Lecture', subject: '', teacher: '', room: '' },
+            { startTime: '10:00', endTime: '11:00', type: 'Lecture', subject: '', teacher: '', room: '' },
+            { startTime: '11:00', endTime: '11:15', type: 'Break',   subject: '', teacher: '', room: 'Recess' },
+            { startTime: '11:15', endTime: '12:15', type: 'Lecture', subject: '', teacher: '', room: '' },
+            { startTime: '12:15', endTime: '13:00', type: 'Break',   subject: '', teacher: '', room: 'Lunch' },
+            { startTime: '13:00', endTime: '14:00', type: 'Lecture', subject: '', teacher: '', room: '' },
+            { startTime: '14:00', endTime: '15:00', type: 'Lecture', subject: '', teacher: '', room: '' },
+        ];
+        setSchedule(prevSchedule => ({
+            ...prevSchedule,
+            [activeDay]: templatePeriods
+        }));
+        toast.success(`Applied Institutional Template to ${activeDay}`);
+    };
+
+    const handleSave = async () => {
         if (!selectedClass) return toast.error('Select a class sector to synchronize');
 
         const scheduleArray = Object.keys(schedule).map(day => ({
@@ -300,13 +317,22 @@ const AdminTimetable = () => {
                                                 {schedule[activeDay]?.length || 0} Pulse points
                                             </span>
                                         </div>
-                                        <button 
-                                            onClick={addPeriod}
-                                            className="group flex items-center gap-3 text-[10px] font-black uppercase tracking-widest text-brand-primary italic hover:gap-5 transition-all bg-brand-primary/5 px-6 py-3 rounded-xl border border-brand-primary/10 hover:border-brand-primary/40"
-                                        >
-                                            <Plus size={16} className="group-hover:rotate-90 transition-transform" /> 
-                                            Add Pedagogical Node
-                                        </button>
+                                    <div className="flex gap-4">
+                            <button 
+                                onClick={applyTemplate}
+                                className="flex items-center gap-3 px-8 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 active:scale-95 group"
+                            >
+                                <Layers size={16} className="group-hover:rotate-12 transition-transform" />
+                                Apply Structural Template
+                            </button>
+                            <button 
+                                onClick={addPeriod}
+                                className="flex items-center gap-3 px-8 h-16 rounded-2xl bg-brand-primary border border-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 active:scale-95 group"
+                            >
+                                <Plus size={16} className="group-hover:rotate-12 transition-transform" />
+                                Add Pedagogical Node
+                            </button>
+                        </div>
                                     </div>
 
                                     <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4 scrollbar-luxury">
@@ -323,11 +349,21 @@ const AdminTimetable = () => {
                                                     <div className="absolute top-0 right-0 w-60 h-60 bg-brand-primary/5 rounded-full blur-[100px] -mr-30 -mt-30 group-hover:bg-brand-primary/10 transition-colors"></div>
                                                     
                                                     <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-end relative z-10">
-                                                        {/* Time Sequence */}
+                                                        {/* Type & Time Sequence */}
                                                         <div className="xl:col-span-3 space-y-5">
                                                             <div className="flex items-center gap-2">
                                                                 <Clock size={12} className="text-brand-primary" />
                                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Temporal Slot</span>
+                                                            </div>
+                                                            <div className="flex bg-slate-900 border border-slate-800 p-2 rounded-2xl mb-2 items-center">
+                                                                <select 
+                                                                    value={period.type || 'Lecture'}
+                                                                    onChange={(e) => updatePeriod(idx, 'type', e.target.value)}
+                                                                    className="bg-transparent text-brand-primary text-[10px] font-black outline-none w-full font-outfit uppercase tracking-widest cursor-pointer"
+                                                                >
+                                                                    <option value="Lecture">Lecture</option>
+                                                                    <option value="Break">Break / Lunch</option>
+                                                                </select>
                                                             </div>
                                                             <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-inner group-hover:border-slate-700 transition-colors">
                                                                 <input 
@@ -347,18 +383,19 @@ const AdminTimetable = () => {
                                                         </div>
 
                                                         {/* Subject Node */}
-                                                        <div className="xl:col-span-4 space-y-5">
+                                                        <div className={`xl:col-span-4 space-y-5 ${period.type === 'Break' ? 'opacity-30 pointer-events-none' : ''}`}>
                                                             <div className="flex items-center gap-2">
-                                                                <BookOpen size={12} className="text-brand-primary" />
+                                                                <BookOpen size={12} className={period.type === 'Break' ? 'text-slate-600' : 'text-brand-primary'} />
                                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Knowledge Node</span>
                                                             </div>
                                                             <div className="relative">
                                                                 <select 
                                                                     value={period.subject}
+                                                                    disabled={period.type === 'Break'}
                                                                     onChange={(e) => updatePeriod(idx, 'subject', e.target.value)}
                                                                     className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit appearance-none italic shadow-inner group-hover:border-slate-700"
                                                                 >
-                                                                    <option value="">Identify Subject</option>
+                                                                    <option value="">{period.type === 'Break' ? 'N/A' : 'Identify Subject'}</option>
                                                                     {subjects.map(s => (
                                                                         <option key={s._id} value={s._id}>{s.name}</option>
                                                                     ))}
@@ -368,18 +405,19 @@ const AdminTimetable = () => {
                                                         </div>
 
                                                         {/* Teacher Node */}
-                                                        <div className="xl:col-span-3 space-y-5">
+                                                        <div className={`xl:col-span-3 space-y-5 ${period.type === 'Break' ? 'opacity-30 pointer-events-none' : ''}`}>
                                                             <div className="flex items-center gap-2">
-                                                                <Users size={12} className="text-brand-primary" />
+                                                                <Users size={12} className={period.type === 'Break' ? 'text-slate-600' : 'text-brand-primary'} />
                                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Assigned Educator</span>
                                                             </div>
                                                             <div className="relative">
                                                                 <select 
                                                                     value={period.teacher}
+                                                                    disabled={period.type === 'Break'}
                                                                     onChange={(e) => updatePeriod(idx, 'teacher', e.target.value)}
                                                                     className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit appearance-none italic shadow-inner group-hover:border-slate-700"
                                                                 >
-                                                                    <option value="">Assign Educator</option>
+                                                                    <option value="">{period.type === 'Break' ? 'N/A' : 'Assign Educator'}</option>
                                                                     {teachers.map(t => (
                                                                         <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
                                                                     ))}
@@ -396,7 +434,7 @@ const AdminTimetable = () => {
                                                                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Sector ID</span>
                                                                 </div>
                                                                 <input 
-                                                                    placeholder="C-101"
+                                                                    placeholder={period.type === 'Break' ? 'Lunch' : 'C-101'}
                                                                     value={period.room}
                                                                     onChange={(e) => updatePeriod(idx, 'room', e.target.value)}
                                                                     className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit italic shadow-inner group-hover:border-slate-700"

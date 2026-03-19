@@ -15,8 +15,9 @@ const timetableSchema = new mongoose.Schema({
         {
           startTime: { type: String, required: true }, // e.g. "09:00"
           endTime: { type: String, required: true },   // e.g. "09:45"
-          subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
-          teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
+          type: { type: String, enum: ['Lecture', 'Break'], default: 'Lecture' },
+          subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject' },
+          teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
           room: { type: String }
         }
       ]

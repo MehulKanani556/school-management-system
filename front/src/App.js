@@ -17,6 +17,7 @@ import Exams from './pages/schooladmin/Exams';
 import Attendance from './pages/schooladmin/Attendance';
 import Subjects from './pages/schooladmin/Subjects';
 import AdminTimetable from './pages/schooladmin/Timetable';
+import AdminCommunication from './pages/schooladmin/Communication';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
@@ -111,6 +112,7 @@ function AppRoutes() {
           <Route path="attendance" element={<Attendance />} />
           <Route path="subjects" element={<Subjects />} />
           <Route path="timetable" element={<AdminTimetable />} />
+          <Route path="communication" element={<AdminCommunication />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 

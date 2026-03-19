@@ -40,6 +40,39 @@ exports.upsertTimetable = async (req, res) => {
         if (!section) return res.status(404).json({ message: 'Class section not found' });
         const standardId = section.standardId;
 
+        // Conflict detection (Teacher overlap check)
+        const allTimetables = await Timetable.find({ schoolId, classSection: { $ne: classSection } });
+        
+        for (const daySchedule of schedule) {
+            const day = daySchedule.day;
+            for (const period of daySchedule.periods) {
+                if (period.type === 'Break' || !period.teacher) continue;
+                
+                const s1 = period.startTime;
+                const e1 = period.endTime;
+
+                for (const otherTT of allTimetables) {
+                    const otherDay = otherTT.schedule.find(s => s.day === day);
+                    if (!otherDay) continue;
+
+                    for (const otherPeriod of otherDay.periods) {
+                        if (otherPeriod.type === 'Break' || !otherPeriod.teacher) continue;
+                        if (String(otherPeriod.teacher) === String(period.teacher)) {
+                            const s2 = otherPeriod.startTime;
+                            const e2 = otherPeriod.endTime;
+                            
+                            // Check overlap: s1 < e2 && s2 < e1
+                            if (s1 < e2 && s2 < e1) {
+                                return res.status(400).json({ 
+                                    message: `Conflict detected: Teacher is already busy on ${day} from ${s2} to ${e2} in another room.`
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         let timetable = await Timetable.findOne({ classSection });
 
         if (timetable) {

@@ -127,7 +127,15 @@ router.get('/student/results', ...student, stc.getResults);
 router.get('/student/assignments', ...student, stc.getAssignments);
 router.get('/student/timetable', ...student, tbc.getStudentTimetable);
 
-// ─── Holiday Routes ───────────────────────────────────────────────────────────
+const mc = require('../controllers/message.controller');
+
+// ─── Communication Routes ───────────────────────────────────────────────────
+router.get('/school-admin/announcements', ...schoolAdmin, mc.getAnnouncements);
+router.post('/school-admin/announcements', ...schoolAdmin, upload.single('file'), mc.createAnnouncement);
+router.get('/school-admin/messages', ...schoolAdmin, mc.getMyMessages);
+router.post('/school-admin/messages', ...schoolAdmin, upload.single('file'), mc.sendMessage);
+router.delete('/school-admin/messages/:id', ...schoolAdmin, mc.deleteMessage);
+
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
 router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
 router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
