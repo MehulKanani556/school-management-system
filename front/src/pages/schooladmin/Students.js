@@ -171,7 +171,7 @@ const Students = () => {
               onChange={(e) => formik.setFieldValue('photo', e.target.files[0])} />
             
             <label htmlFor="photo-upload" className="relative group cursor-pointer block">
-              <div className={`w-full h-48 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
+              <div className={`w-full h-42 py-4 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
                 ${formik.values.photo ? 'border-brand-primary' : 'border-slate-700 hover:border-brand-primary bg-slate-800/40'}`}>
                 
                 {formik.values.photo ? (
@@ -186,7 +186,7 @@ const Students = () => {
                   </div>
                 ) : (
                   <>
-                    <div className="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                    <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                       <Upload className="text-slate-400 group-hover:text-brand-primary transition-colors" size={24} />
                     </div>
                     <div className="text-center">

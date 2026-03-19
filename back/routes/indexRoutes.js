@@ -49,6 +49,12 @@ router.post('/school-admin/classes', ...schoolAdmin, sa.createClass);
 router.put('/school-admin/classes/:id', ...schoolAdmin, sa.updateClass);
 router.delete('/school-admin/classes/:id', ...schoolAdmin, sa.deleteClass);
 
+// Subjects
+router.get('/school-admin/subjects', ...schoolAdmin, sa.getSubjects);
+router.post('/school-admin/subjects', ...schoolAdmin, sa.createSubject);
+router.put('/school-admin/subjects/:id', ...schoolAdmin, sa.updateSubject);
+router.delete('/school-admin/subjects/:id', ...schoolAdmin, sa.deleteSubject);
+
 // Fees
 router.get('/school-admin/fees', ...schoolAdmin, sa.getFees);
 router.post('/school-admin/fees', ...schoolAdmin, sa.createFee);

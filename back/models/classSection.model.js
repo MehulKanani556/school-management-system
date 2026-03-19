@@ -6,7 +6,7 @@ const classSectionSchema = new mongoose.Schema({
   sectionLabel: { type: String, required: true },
   classTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
   assignedTeachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }],
-  subjects: [{ type: String }],
+  subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }],
 }, { timestamps: true });
 
 module.exports = mongoose.model('ClassSection', classSectionSchema);

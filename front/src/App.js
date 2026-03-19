@@ -15,6 +15,7 @@ import Classes from './pages/schooladmin/Classes';
 import Fees from './pages/schooladmin/Fees';
 import Exams from './pages/schooladmin/Exams';
 import Attendance from './pages/schooladmin/Attendance';
+import Subjects from './pages/schooladmin/Subjects';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
@@ -101,6 +102,7 @@ function AppRoutes() {
           <Route path="fees" element={<Fees />} />
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
+          <Route path="subjects" element={<Subjects />} />
         </Route>
 
 

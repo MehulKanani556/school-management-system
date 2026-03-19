@@ -1,6 +1,7 @@
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 const ClassSection = require('../models/classSection.model');
+const Subject = require('../models/subject.model');
 const Exam = require('../models/exam.model');
 const FeePayment = require('../models/feePayment.model');
 const Attendance = require('../models/attendance.model');
@@ -274,7 +275,9 @@ exports.deleteTeacher = async (req, res) => {
 // ─── Classes ──────────────────────────────────────────────────────────────────
 exports.getClasses = async (req, res) => {
   try {
-    const classes = await ClassSection.find({ schoolId: getSchoolId(req) }).populate('classTeacher', 'firstName lastName');
+    const classes = await ClassSection.find({ schoolId: getSchoolId(req) })
+      .populate('classTeacher', 'firstName lastName')
+      .populate('subjects', 'name code');
     res.json(classes);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -282,7 +285,11 @@ exports.getClasses = async (req, res) => {
 exports.createClass = async (req, res) => {
   try {
     const cls = await ClassSection.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(cls);
+    const populated = await cls.populate([
+      { path: 'classTeacher', select: 'firstName lastName' },
+      { path: 'subjects', select: 'name code' }
+    ]);
+    res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -291,7 +298,10 @@ exports.updateClass = async (req, res) => {
     const cls = await ClassSection.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       req.body, { new: true }
-    );
+    ).populate([
+      { path: 'classTeacher', select: 'firstName lastName' },
+      { path: 'subjects', select: 'name code' }
+    ]);
     if (!cls) return res.status(404).json({ message: 'Class not found' });
     res.json(cls);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -387,5 +397,38 @@ exports.saveAttendance = async (req, res) => {
       { upsert: true, new: true }
     );
     res.json(attendance);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Subjects ─────────────────────────────────────────────────────────────────
+exports.getSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.find({ schoolId: getSchoolId(req) });
+    res.json(subjects);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createSubject = async (req, res) => {
+  try {
+    const sub = await Subject.create({ ...req.body, schoolId: getSchoolId(req) });
+    res.status(201).json(sub);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateSubject = async (req, res) => {
+  try {
+    const sub = await Subject.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      req.body, { new: true }
+    );
+    if (!sub) return res.status(404).json({ message: 'Subject not found' });
+    res.json(sub);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteSubject = async (req, res) => {
+  try {
+    await Subject.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Subject deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

@@ -15,6 +15,7 @@ export const fetchDashboard = asyncGet('sa/dashboard', '/dashboard');
 export const fetchStudents  = asyncGet('sa/students',  '/students');
 export const fetchTeachers  = asyncGet('sa/teachers',  '/teachers');
 export const fetchClasses   = asyncGet('sa/classes',   '/classes');
+export const fetchSubjects  = asyncGet('sa/subjects',  '/subjects');
 export const fetchFees      = asyncGet('sa/fees',      '/fees');
 export const fetchExams     = asyncGet('sa/exams',     '/exams');
 export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
@@ -53,6 +54,10 @@ export const createClass = post('sa/createClass', '/classes');
 export const updateClass = put('sa/updateClass', '/classes');
 export const deleteClass = del('sa/deleteClass', '/classes');
 
+export const createSubject = post('sa/createSubject', '/subjects');
+export const updateSubject = put('sa/updateSubject', '/subjects');
+export const deleteSubject = del('sa/deleteSubject', '/subjects');
+
 export const createFee = post('sa/createFee', '/fees');
 export const updateFee = put('sa/updateFee', '/fees');
 
@@ -64,7 +69,7 @@ export const saveAttendance = post('sa/saveAttendance', '/attendance');
 
 const initialState = {
   dashboard: null,
-  students: [], teachers: [], classes: [], fees: [], exams: [], attendance: [],
+  students: [], teachers: [], classes: [], subjects: [], fees: [], exams: [], attendance: [],
   loading: false, error: null,
 };
 
@@ -83,6 +88,7 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchStudents.fulfilled, handleList('students'))
       .addCase(fetchTeachers.fulfilled, handleList('teachers'))
       .addCase(fetchClasses.fulfilled, handleList('classes'))
+      .addCase(fetchSubjects.fulfilled, handleList('subjects'))
       .addCase(fetchFees.fulfilled, handleList('fees'))
       .addCase(fetchExams.fulfilled, handleList('exams'))
       .addCase(fetchAttendance.fulfilled, handleList('attendance'))
@@ -92,25 +98,28 @@ const schoolAdminSlice = createSlice({
       .addCase(createClass.fulfilled, (state, a) => { state.classes.push(a.payload); state.loading = false; })
       .addCase(createFee.fulfilled, (state, a) => { state.fees.push(a.payload); state.loading = false; })
       .addCase(createExam.fulfilled, (state, a) => { state.exams.push(a.payload); state.loading = false; })
+      .addCase(createSubject.fulfilled, (state, a) => { state.subjects.push(a.payload); state.loading = false; })
       // update
       .addCase(updateStudent.fulfilled, (state, a) => { const i = state.students.findIndex(s => s._id === a.payload._id); if (i !== -1) state.students[i] = a.payload; state.loading = false; })
       .addCase(updateTeacher.fulfilled, (state, a) => { const i = state.teachers.findIndex(t => t._id === a.payload._id); if (i !== -1) state.teachers[i] = a.payload; state.loading = false; })
       .addCase(updateClass.fulfilled, (state, a) => { const i = state.classes.findIndex(c => c._id === a.payload._id); if (i !== -1) state.classes[i] = a.payload; state.loading = false; })
       .addCase(updateFee.fulfilled, (state, a) => { const i = state.fees.findIndex(f => f._id === a.payload._id); if (i !== -1) state.fees[i] = a.payload; state.loading = false; })
       .addCase(updateExam.fulfilled, (state, a) => { const i = state.exams.findIndex(e => e._id === a.payload._id); if (i !== -1) state.exams[i] = a.payload; state.loading = false; })
+      .addCase(updateSubject.fulfilled, (state, a) => { const i = state.subjects.findIndex(s => s._id === a.payload._id); if (i !== -1) state.subjects[i] = a.payload; state.loading = false; })
       // delete
       .addCase(deleteStudent.fulfilled, (state, a) => { state.students = state.students.filter(s => s._id !== a.payload); state.loading = false; })
       .addCase(deleteTeacher.fulfilled, (state, a) => { state.teachers = state.teachers.filter(t => t._id !== a.payload); state.loading = false; })
       .addCase(toggleTeacherStatus.fulfilled, (state, a) => { const t = state.teachers.find(t => t._id === a.payload.id); if (t) t.isActive = a.payload.isActive; state.loading = false; })
       .addCase(deleteClass.fulfilled, (state, a) => { state.classes = state.classes.filter(c => c._id !== a.payload); state.loading = false; })
       .addCase(deleteExam.fulfilled, (state, a) => { state.exams = state.exams.filter(e => e._id !== a.payload); state.loading = false; })
+      .addCase(deleteSubject.fulfilled, (state, a) => { state.subjects = state.subjects.filter(s => s._id !== a.payload); state.loading = false; })
       .addCase(saveAttendance.fulfilled, (state) => { state.loading = false; });
 
     // pending/rejected for all
-    [fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchFees, fetchExams, fetchAttendance,
-     createStudent, createTeacher, createClass, createFee, createExam,
-     updateStudent, updateTeacher, updateClass, updateFee, updateExam,
-     deleteStudent, deleteTeacher, deleteClass, deleteExam, saveAttendance, toggleTeacherStatus
+    [fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchSubjects, fetchFees, fetchExams, fetchAttendance,
+     createStudent, createTeacher, createClass, createSubject, createFee, createExam,
+     updateStudent, updateTeacher, updateClass, updateSubject, updateFee, updateExam,
+     deleteStudent, deleteTeacher, deleteClass, deleteSubject, deleteExam, saveAttendance, toggleTeacherStatus
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });
