@@ -6,7 +6,7 @@ import {
   updateFeeStructure, deleteFeeStructure, applyFeeStructure 
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2 } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -27,6 +27,9 @@ const Fees = () => {
   const [modalType, setModalType] = useState(null); // 'fee', 'structure', 'apply'
   const [editing, setEditing] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [payingMap, setPayingMap] = useState({}); // { fee_id: internal_paying_now_amount }
+  const [formLoading, setFormLoading] = useState(false);
+  const [isAddingNew, setIsAddingNew] = useState(false);
 
   useEffect(() => { 
     dispatch(fetchFees()); 
@@ -41,24 +44,56 @@ const Fees = () => {
     initialValues: { studentId: '', amount: '', paidAmount: 0, payingNow: 0, category: '', status: 'pending', dueDate: '' },
     validationSchema: Yup.object({
       studentId: Yup.string().required('Required'),
-      amount: Yup.number().required('Required').min(1),
-      category: Yup.string().required('Required'),
-      status: Yup.string().required('Required'),
-      dueDate: Yup.date().required('Required'),
+      amount: Yup.number(),
+      category: Yup.string(),
+      status: Yup.string(),
+      dueDate: Yup.date(),
     }),
-    onSubmit: (values) => {
-      const finalPaidAmount = (Number(values.paidAmount) || 0) + (Number(values.payingNow) || 0);
-      const submissionData = { ...values, paidAmount: finalPaidAmount };
-      delete submissionData.payingNow;
+    onSubmit: async (values) => {
+      setFormLoading(true);
+      try {
+        const activeIds = Object.keys(payingMap).filter(id => Number(payingMap[id]) > 0);
+        let successCount = 0;
 
-      const action = editing ? updateFee({ id: editing, data: submissionData }) : createFee(submissionData);
-      dispatch(action).unwrap()
-        .then(() => {
-          toast.success(editing ? 'Record updated' : 'Record created');
-          closeModals();
-          dispatch(fetchFees());
-        })
-        .catch(err => toast.error(err?.message || 'Operation failed'));
+        // 1. Process Bulk Updates for EXISTING records (payingMap)
+        for (const id of activeIds) {
+          const rawForBulk = fees.find(f => f._id === id);
+          if (rawForBulk) {
+            const finalPaidBulk = (rawForBulk.paidAmount || 0) + Number(payingMap[id]);
+            await dispatch(updateFee({ id, data: { ...rawForBulk, paidAmount: finalPaidBulk } })).unwrap();
+            successCount++;
+          }
+        }
+
+        // 2. Process Current Formik Record (Single New record OR Separate Single Edit)
+        const isTryingToAddNewChargeButMissingData = isAddingNew && (!values.amount || !values.category);
+        if (isTryingToAddNewChargeButMissingData) {
+            toast.error('Please specify Reason and Amount for the new charge');
+        }
+
+        const isActuallyCreatingOrSpecificEditing = !isTryingToAddNewChargeButMissingData && values.amount && values.category && !activeIds.includes(editing);
+        if (isActuallyCreatingOrSpecificEditing) {
+            const finalPaidSingle = (Number(values.paidAmount) || 0) + (Number(values.payingNow) || 0);
+            const submissionData = { ...values, paidAmount: finalPaidSingle };
+            delete submissionData.payingNow;
+
+            const action = editing ? updateFee({ id: editing, data: submissionData }) : createFee(submissionData);
+            await dispatch(action).unwrap();
+            successCount++;
+        }
+
+        if (successCount > 0) {
+            toast.success(`${successCount} financial updates committed`);
+            closeModals();
+            dispatch(fetchFees());
+        } else {
+            toast.info('No payment or record data detected');
+        }
+      } catch (err) {
+        toast.error(err?.message || 'Transaction failed');
+      } finally {
+        setFormLoading(false);
+      }
     }
   });
 
@@ -110,6 +145,8 @@ const Fees = () => {
   const closeModals = () => {
     setModalType(null);
     setEditing(null);
+    setPayingMap({});
+    setIsAddingNew(false);
     feeFormik.resetForm();
     structureFormik.resetForm();
     applyFormik.resetForm();
@@ -117,6 +154,7 @@ const Fees = () => {
 
   const openEditFee = (f) => {
     setEditing(f._id);
+    setPayingMap({ [f._id]: 0 });
     feeFormik.setValues({
       studentId: f.studentId?._id || f.studentId,
       amount: f.amount,
@@ -143,6 +181,49 @@ const Fees = () => {
   // ─── Renderers ───────────────────────────────────────────────────────────────
 
   const filteredFees = filter === 'all' ? fees : fees.filter(f => f.status === filter);
+  
+  const combinedFees = React.useMemo(() => {
+    const grouped = filteredFees.reduce((acc, f) => {
+      const sid = f.studentId?._id || f.studentId;
+      if (!acc[sid]) {
+        acc[sid] = {
+          _id: sid,
+          studentId: f.studentId,
+          amount: 0,
+          paidAmount: 0,
+          category: [],
+          status: 'paid',
+          dueDate: f.dueDate,
+          _raw: []
+        };
+      }
+      acc[sid].amount += (f.amount || 0);
+      acc[sid].paidAmount += (f.paidAmount || 0);
+      if (f.category && !acc[sid].category.includes(f.category)) acc[sid].category.push(f.category);
+      acc[sid]._raw.push(f);
+      
+      // Status Priority: pending/overdue > partially_paid > paid
+      const s = f.status;
+      if (s === 'overdue' || (s === 'pending' && acc[sid].status !== 'overdue')) {
+        acc[sid].status = s;
+      } else if (s === 'partially_paid' && !['pending', 'overdue'].includes(acc[sid].status)) {
+        acc[sid].status = s;
+      }
+      
+      // Due Date: Use earliest date
+      if (f.dueDate && (!acc[sid].dueDate || new Date(f.dueDate) < new Date(acc[sid].dueDate))) {
+        acc[sid].dueDate = f.dueDate;
+      }
+      
+      return acc;
+    }, {});
+    
+    return Object.values(grouped).map(cf => ({
+      ...cf,
+      category: cf.category.join(', ')
+    }));
+  }, [filteredFees]);
+
   const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0);
   const totalPaid = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
 
@@ -221,39 +302,65 @@ const Fees = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredFees.map((f, i) => (
+                    {combinedFees.map((f, i) => (
                       <tr key={f._id} className="border-b border-brand-border/10 hover:bg-white/5 transition-colors group">
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary">
-                              {f.studentId?.firstName?.[0]}
+                              {f.studentId?.firstName?.[0] || 'U'}
                             </div>
                             <div>
-                              <p className="font-bold text-sm text-white">{f.studentId?.firstName} {f.studentId?.lastName}</p>
-                              <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">{f.studentId?.admissionNumber}</p>
+                              <p className="text-sm font-black text-white italic uppercase">{f.studentId?.firstName || 'Unknown'} {f.studentId?.lastName || ''}</p>
+                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{f.studentId?.admissionNumber || 'N/A'}</p>
                             </div>
                           </div>
                         </td>
-                        <td className="px-8 py-5 text-slate-300 text-sm font-medium">{f.category}</td>
                         <td className="px-8 py-5">
-                          <span className="font-black text-white italic tracking-tight text-lg">${f.amount?.toLocaleString()}</span>
+                          <p className="text-xs font-bold text-slate-300 uppercase truncate max-w-[150px]" title={f.category}>{f.category}</p>
+                          {f._raw.length > 1 && <p className="text-[8px] font-black text-brand-primary uppercase mt-0.5">{f._raw.length} Records Combined</p>}
+                        </td>
+                        <td className="px-8 py-5">
+                          <span className="font-black text-white italic tracking-tight text-lg">${(f.amount || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
                           <span className="font-black text-emerald-400 italic tracking-tight text-lg">${(f.paidAmount || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
-                          <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${STATUS_COLORS[f.status]}`}>
+                          <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${STATUS_COLORS[f.status] || 'border-slate-800 text-slate-500'}`}>
                             {f.status.replace('_', ' ')}
                           </span>
                         </td>
                         <td className="px-8 py-5 text-slate-400 text-xs font-bold">{f.dueDate ? new Date(f.dueDate).toLocaleDateString() : '—'}</td>
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-2">
-                            <button onClick={() => openEditFee(f)} className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100">
-                              <Pencil size={14} />
+                            {/* For combined rows, we show the Add Payment modal with the student selected */}
+                            <button 
+                              onClick={() => {
+                                setModalType('fee');
+                                setEditing(null);
+                                feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
+                              }} 
+                              className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-0 group-hover:opacity-100"
+                              title="Refine Payments"
+                            >
+                              <Wallet2 size={14} />
                             </button>
-                            <button onClick={() => dispatch(deleteFee(f._id))} className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all opacity-0 group-hover:opacity-100">
-                              <Trash2 size={14} />
+                            <button 
+                              onClick={() => {
+                                // Find the first record to edit if there's only one, otherwise keep as is or select first
+                                if (f._raw.length === 1) {
+                                  openEditFee(f._raw[0]);
+                                } else {
+                                  // For multiple, maybe just open the fee modal for this student
+                                  setModalType('fee');
+                                  setEditing(null);
+                                  feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
+                                }
+                              }} 
+                              className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                              title="Config Records"
+                            >
+                              <Settings2 size={14} />
                             </button>
                           </div>
                         </td>
@@ -357,173 +464,179 @@ const Fees = () => {
               <p className="text-[10px] text-red-400 mt-1 font-bold italic">{feeFormik.errors.studentId}</p>
             )}
             
-            {/* Display Outstanding Amount */}
-            {feeFormik.values.studentId && !editing && (() => {
-              const unpaidFees = fees.filter(f => {
-                const sid = f.studentId?._id || f.studentId;
-                return sid === feeFormik.values.studentId && f.status !== 'paid';
-              });
+            {/* Outstanding Records Section */}
+            {feeFormik.values.studentId && (() => {
+              const unpaidFees = fees.filter(f => (f.studentId?._id || f.studentId) === feeFormik.values.studentId && f.status !== 'paid');
               const totalUnpaid = unpaidFees.reduce((sum, f) => sum + (f.amount || 0) - (f.paidAmount || 0), 0);
-              
-              return totalUnpaid > 0 ? (
-                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 mt-3">
-                  <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-amber-500/80">Outstanding Balance:</span>
-                    <span className="text-sm font-black text-amber-500 italic">${totalUnpaid.toLocaleString()}</span>
-                  </div>
-                  <div className="px-1 space-y-2 max-h-40 overflow-y-auto">
-                    <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Unpaid Records (Click to auto-fill or use ✓):</p>
-                    {unpaidFees.map(uf => (
-                      <div key={uf._id} className="flex items-center justify-between p-2 bg-slate-900/40 rounded-xl border border-white/5 group hover:border-brand-primary/30 transition-all">
-                        <div className="flex-1 cursor-pointer" 
-                          onClick={() => {
-                            setEditing(uf._id);
-                            feeFormik.setValues({ 
-                              studentId: uf.studentId?._id || uf.studentId,
-                              amount: uf.amount, 
-                              paidAmount: uf.paidAmount || 0,
-                              payingNow: 0,
-                              category: uf.category, 
-                              status: uf.status,
-                              dueDate: uf.dueDate?.split('T')[0] || '' 
-                            });
-                          }}>
-                          <p className="text-[10px] font-bold text-slate-300 truncate">{uf.category}</p>
-                          <p className="text-[9px] font-black text-amber-500 italic">
-                            ${((uf.amount || 0) - (uf.paidAmount || 0)).toLocaleString()} {' '}
-                            {uf.status === 'partially_paid' && <span className="text-[7px] opacity-70 uppercase tracking-tighter">(Remaining)</span>}
-                          </p>
-                        </div>
-                        <button 
-                          type="button"
-                          onClick={() => {
-                            dispatch(updateFee({ id: uf._id, data: { ...uf, status: 'paid' } })).then(() => {
-                              toast.success(`${uf.category} marked as Paid`);
-                              dispatch(fetchFees());
-                            });
-                          }}
-                          className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white transition-all flex items-center justify-center"
-                          title="Quick Mark as Paid"
-                        >
-                          <CheckCircle2 size={14} />
-                        </button>
+              const bulkPayingTotal = Object.values(payingMap).reduce((s, v) => s + (Number(v) || 0), 0);
+
+              return (
+                <div className="space-y-4">
+                  {/* Balance Summary Header */}
+                  {totalUnpaid > 0 && (
+                    <div className="p-6 bg-slate-900/60 border border-brand-primary/20 rounded-[2rem] relative overflow-hidden group">
+                      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                        <Wallet2 size={60} className="rotate-12" />
                       </div>
-                    ))}
-                  </div>
-                </motion.div>
-              ) : feeFormik.values.studentId ? (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-xl">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 text-center">No outstanding balance</p>
-                </motion.div>
-              ) : null;
+                      <div className="relative z-10 flex items-center justify-between">
+                        <div>
+                          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Total Outstanding</p>
+                          <p className="text-4xl font-black font-outfit text-amber-500 italic tracking-tighter">${totalUnpaid.toLocaleString()}</p>
+                        </div>
+                        {bulkPayingTotal > 0 && (
+                          <div className="text-right">
+                             <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1">Paying This Session</p>
+                             <p className="text-2xl font-black font-outfit text-white italic">-${bulkPayingTotal.toLocaleString()}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of Debt Items */}
+                  {unpaidFees.length > 0 && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between px-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Active Debt Records</p>
+                        {unpaidFees.length > 2 && <p className="text-[10px] text-brand-primary font-bold uppercase tracking-widest">{unpaidFees.length} Items</p>}
+                      </div>
+                      
+                      <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
+                        {unpaidFees.map(uf => (
+                          <div key={uf._id} className={`p-4 bg-slate-800/40 rounded-3xl border transition-all ${editing === uf._id ? 'border-brand-primary bg-slate-800/80 shadow-xl' : 'border-white/5 hover:border-brand-primary/20'}`}>
+                            <div className="flex items-center justify-between mb-3">
+                              <div>
+                                <h5 className="text-sm font-black text-white italic uppercase tracking-tight">{uf.category}</h5>
+                                <p className="text-[9px] font-bold text-slate-500 uppercase flex items-center gap-1 mt-0.5">
+                                   Due: {uf.dueDate ? new Date(uf.dueDate).toLocaleDateString() : 'N/A'}
+                                </p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Remaining</p>
+                                <p className="text-sm font-black text-white italic tracking-tight">${((uf.amount || 0) - (uf.paidAmount || 0)).toLocaleString()}</p>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center gap-3">
+                              <div className="relative flex-1 group">
+                                <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-black transition-colors ${payingMap[uf._id] > 0 ? 'text-emerald-500' : 'text-slate-600'}`}>$</span>
+                                <input 
+                                  type="number" 
+                                  placeholder="How much for this specific record?"
+                                  max={(uf.amount || 0) - (uf.paidAmount || 0)}
+                                  value={payingMap[uf._id] || ''}
+                                  onChange={(e) => {
+                                    const maxAllowed = (uf.amount || 0) - (uf.paidAmount || 0);
+                                    let val = Number(e.target.value);
+                                    if (val > maxAllowed) {
+                                      val = maxAllowed;
+                                      toast.error(`Cannot exceed remaining balance of $${maxAllowed.toLocaleString()}`, { id: 'cap-toast' });
+                                    }
+                                    setPayingMap(prev => ({ ...prev, [uf._id]: val }));
+                                    if (editing === uf._id) feeFormik.setFieldValue('payingNow', val);
+                                  }}
+                                  className="w-full bg-slate-900/60 border border-white/5 focus:border-brand-primary rounded-2xl py-3 pl-8 pr-4 text-white outline-none text-xs font-black transition-all"
+                                />
+                              </div>
+                              <button 
+                                type="button"
+                                onClick={() => {
+                                  setEditing(uf._id === editing ? null : uf._id);
+                                  if (uf._id !== editing) {
+                                    feeFormik.setValues({
+                                      studentId: uf.studentId?._id || uf.studentId,
+                                      amount: uf.amount,
+                                      paidAmount: uf.paidAmount || 0,
+                                      payingNow: payingMap[uf._id] || 0,
+                                      category: uf.category,
+                                      status: uf.status,
+                                      dueDate: uf.dueDate?.split('T')[0] || ''
+                                    });
+                                  }
+                                }}
+                                className={`p-3 rounded-2xl border transition-all ${editing === uf._id ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-brand-primary'}`}
+                                title="Edit full details"
+                              >
+                                {editing === uf._id ? <CheckCircle2 size={16} /> : <Settings2 size={16} />}
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual Creation Toggle / Form */}
+                  {!editing && (
+                    <div className="pt-2 border-t border-white/5 mt-4">
+                      {!isAddingNew ? (
+                        <button 
+                          type="button" 
+                          onClick={() => setIsAddingNew(true)}
+                          className="w-full py-4 border-2 border-dashed border-slate-700 hover:border-brand-primary/50 rounded-3xl text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-brand-primary transition-all flex items-center justify-center gap-2"
+                        >
+                          <Plus size={14} /> Log Extra One-Time Charge
+                        </button>
+                      ) : (
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">Manual Record Creator</h4>
+                            <button type="button" onClick={() => setIsAddingNew(false)} className="text-[10px] font-black uppercase text-slate-500 hover:text-red-400">Cancel</button>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                               <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Reason / Category</label>
+                               <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="Exam Fee" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                            </div>
+                            <div>
+                               <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Total Charge</label>
+                               <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                            </div>
+                          </div>
+                          
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                               <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Initial Pay</label>
+                               <input name="paidAmount" type="number" value={feeFormik.values.paidAmount} onChange={feeFormik.handleChange} placeholder="0" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                            </div>
+                            <div>
+                               <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Due Cycle</label>
+                               <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange} className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              );
             })()}
+
+            {/* Total Footer Summary */}
+            {feeFormik.values.studentId && (
+              <div className="pt-4 border-t border-white/5 mt-4 space-y-4">
+                <div className="flex items-center justify-between p-7 bg-brand-primary text-white rounded-[2.5rem] shadow-2xl shadow-brand-primary/20 relative overflow-hidden group">
+                   <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                   <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Total Settlement Sum</p>
+                      <p className="text-xs font-bold opacity-80 mt-1 uppercase tracking-widest italic">{Object.keys(payingMap).filter(k=>payingMap[k]>0).length + (isAddingNew ? 1 : 0)} Financial Transactions</p>
+                   </div>
+                   <p className="text-4xl font-black font-outfit italic tracking-tighter">
+                     ${(Object.values(payingMap).reduce((s, v) => s + (Number(v) || 0), 0) + (isAddingNew ? Number(feeFormik.values.paidAmount || 0) : 0)).toLocaleString()}
+                   </p>
+                </div>
+
+                <button type="submit" disabled={loading || formLoading} 
+                  className="w-full py-5 bg-white text-black hover:bg-brand-primary hover:text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95"
+                >
+                  {loading || formLoading ? <div className="w-5 h-5 border-2 border-brand-primary border-t-transparent animate-spin rounded-full" /> : 'Confirm Financial Records'}
+                </button>
+              </div>
+            )}
           </div>
-
-          {editing ? (
-            /* Mode: Refine Existing Debt */
-            <div className="bg-slate-900/60 border border-white/5 rounded-[2rem] p-6 space-y-5">
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Record Context</p>
-                  <h4 className="text-lg font-black text-white italic transition-all group-hover:text-brand-primary">
-                    {feeFormik.values.category || 'Fee Breakdown'}
-                  </h4>
-                </div>
-                <div className="text-right">
-                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Obligation</p>
-                  <p className="text-lg font-black text-white font-outfit">${Number(feeFormik.values.amount).toLocaleString()}</p>
-                </div>
-              </div>
-
-              {/* Payment Progress Visualization */}
-              <div className="space-y-2">
-                <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden flex border border-white/5">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min((Number(feeFormik.values.paidAmount) / Number(feeFormik.values.amount)) * 100, 100)}%` }}
-                    className="h-full bg-brand-primary"
-                  />
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min((Number(feeFormik.values.payingNow) / Number(feeFormik.values.amount)) * 100, 100 - (Number(feeFormik.values.paidAmount) / Number(feeFormik.values.amount)) * 100)}%` }}
-                    className="h-full bg-emerald-500 transition-all"
-                  />
-                </div>
-                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest px-1">
-                  <span className="text-brand-primary">Paid: ${Number(feeFormik.values.paidAmount).toLocaleString()}</span>
-                  <span className="text-emerald-500">New: ${Number(feeFormik.values.payingNow).toLocaleString()}</span>
-                  <span className="text-slate-500">Debt: ${Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount) - Number(feeFormik.values.payingNow), 0).toLocaleString()}</span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
-                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Debt Left</p>
-                  <p className="text-sm font-black text-amber-500 italic">
-                    ${Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount), 0).toLocaleString()}
-                  </p>
-                </div>
-                <div className="col-span-2 relative group">
-                  <label className="absolute -top-2 left-4 px-2 bg-slate-900 text-[8px] font-black uppercase tracking-widest text-emerald-500 z-10">New Payment Amount</label>
-                  <input 
-                    name="payingNow" 
-                    type="number" 
-                    value={feeFormik.values.payingNow} 
-                    onChange={feeFormik.handleChange} 
-                    placeholder="0.00"
-                    className="w-full bg-emerald-500/5 border-2 border-emerald-500/20 focus:border-emerald-500 rounded-2xl py-4 px-5 text-emerald-400 outline-none text-lg font-black transition-all shadow-inner placeholder:text-emerald-500/30" 
-                  />
-                  <button 
-                    type="button"
-                    onClick={() => feeFormik.setFieldValue('payingNow', Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount), 0))}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-emerald-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20"
-                  >
-                    Pay Full
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            /* Mode: New Record Creation */
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Total Amount</label>
-                <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00"
-                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
-              </div>
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Initial Pay</label>
-                <input name="paidAmount" type="number" value={feeFormik.values.paidAmount} onChange={feeFormik.handleChange} placeholder="0.00"
-                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
-              </div>
-            </div>
-          )}
-
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Category / Reason</label>
-            <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="e.g. Tuition Q3, Exam Fee" 
-              className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Total Limit</label>
-              <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3 px-5 text-slate-500 outline-none text-xs transition-all shadow-inner opacity-50 focus:opacity-100" />
-            </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Due Cycle</label>
-              <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all appearance-none shadow-inner" />
-            </div>
-          </div>
-
-          <button type="submit" disabled={loading} className="w-full py-4 bg-brand-primary hover:bg-blue-600 rounded-[1.2rem] font-black text-sm uppercase tracking-widest transition-all font-outfit text-white shadow-xl shadow-brand-primary/20 mt-4">
-            {loading ? 'Processing...' : editing ? 'Commit Changes' : 'Record Payment'}
-          </button>
         </form>
       </Modal>
-
       {/* 2. Fee Structure Modal */}
       <Modal open={modalType === 'structure'} onClose={closeModals} title={editing ? 'Refine Structure' : 'Architect Fee Structure'}>
         <form onSubmit={structureFormik.handleSubmit} className="space-y-6">
