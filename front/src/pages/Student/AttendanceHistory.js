@@ -16,7 +16,6 @@ const AttendanceHistory = () => {
         total: attendance.length,
         present: attendance.filter(a => a.status === 'Present').length,
         absent: attendance.filter(a => a.status === 'Absent').length,
-        late: attendance.filter(a => a.status === 'Late').length,
     };
     const percentage = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : '0.0';
 
@@ -41,7 +40,6 @@ const AttendanceHistory = () => {
                         { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
                         { label: 'Present', val: stats.present, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
                         { label: 'Absent', val: stats.absent, color: 'text-luxury-rose', bg: 'bg-luxury-rose/10' },
-                        { label: 'Late', val: stats.late, color: 'text-amber-500', bg: 'bg-amber-500/10' },
                     ].map((st, i) => (
                         <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px]">
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>

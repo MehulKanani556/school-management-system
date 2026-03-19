@@ -49,3 +49,15 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 html {
   scroll-behavior: smooth;
 }
+
+@media print {
+  body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
+  .no-print { display: none !important; }
+  .print-only { display: block !important; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  @page { size: landscape; margin: 0.5cm; }
+  .shadow-glow, .backdrop-blur-xl, .bg-slate-950\/40 { background: white !important; box-shadow: none !important; backdrop-filter: none !important; border: 1px solid #eee !important; }
+  .text-brand-primary { color: #2563eb !important; }
+  .text-slate-500, .text-slate-600 { color: #666 !important; }
+}
+.print-only { display: none; }

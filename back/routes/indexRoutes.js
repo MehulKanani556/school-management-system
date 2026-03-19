@@ -10,6 +10,7 @@ const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool,
 const tc = require('../controllers/teacher.controller');
 const stc = require('../controllers/student.controller');
 const hc = require('../controllers/holiday.controller');
+const tbc = require('../controllers/timetable.controller');
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
@@ -28,7 +29,6 @@ router.put('/users/:id', updateUser);
 
 // ─── School Admin Routes ───────────────────────────────────────────────────────
 const schoolAdmin = [auth, requireRole('School_Admin')];
-const superAdmin = [auth, requireRole('Super_Admin')];
 
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
@@ -80,6 +80,14 @@ router.delete('/school-admin/exams/:id', ...schoolAdmin, sa.deleteExam);
 router.get('/school-admin/attendance', ...schoolAdmin, sa.getAttendance);
 router.post('/school-admin/attendance', ...schoolAdmin, sa.saveAttendance);
 
+// Timetable Routes
+router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);
+router.get('/school-admin/timetable/:classId', ...schoolAdmin, tbc.getTimetableByClass);
+router.post('/school-admin/timetable', ...schoolAdmin, tbc.upsertTimetable);
+
+// ─── Super admin Routes ───────────────────────────────────────────────────────────
+const superAdmin = [auth, requireRole('Super_Admin')];
+
 router.post('/superadmin/create-school', ...superAdmin, upload.single('logo'), createSchool);
 router.get('/superadmin/all-schools', ...superAdmin, getAllSchools);
 router.get('/superadmin/stats', ...superAdmin, getSchoolStats);
@@ -99,6 +107,7 @@ router.post('/teacher/mark-attendance', ...teacher, tc.markAttendance);
 router.post('/teacher/add-marks', ...teacher, tc.addMarks);
 router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.uploadAssignment);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
+router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 
 // ─── Student Routes ──────────────────────────────────────────────────────────
 const student = [auth, requireRole('Student')];
@@ -107,7 +116,7 @@ router.get('/student/profile', ...student, stc.getProfile);
 router.get('/student/attendance', ...student, stc.getAttendance);
 router.get('/student/results', ...student, stc.getResults);
 router.get('/student/assignments', ...student, stc.getAssignments);
-router.get('/student/timetable', ...student, stc.getTimetable);
+router.get('/student/timetable', ...student, tbc.getStudentTimetable);
 
 // ─── Holiday Routes ───────────────────────────────────────────────────────────
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated

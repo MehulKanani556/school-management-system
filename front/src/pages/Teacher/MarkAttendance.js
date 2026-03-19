@@ -105,7 +105,6 @@ const MarkAttendance = () => {
     const statusOptions = [
         { id: 'Present', icon: Check, color: 'text-luxury-emerald', bg: 'hover:bg-luxury-emerald/10' },
         { id: 'Absent', icon: X, color: 'text-luxury-rose', bg: 'hover:bg-luxury-rose/10' },
-        { id: 'Late', icon: Clock, color: 'text-amber-500', bg: 'hover:bg-amber-500/10' },
     ];
 
     return (
@@ -255,10 +254,55 @@ const MarkAttendance = () => {
                     </div>
                 </div>
             ) : (
-                <div className="flex flex-col items-center justify-center py-48 border-2 border-dashed border-slate-800/40 rounded-[4rem] bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
-                    <Activity size={60} className="text-slate-800 mb-8 opacity-20 group-hover:text-brand-primary/20 group-hover:scale-110 transition-all duration-1000 animate-pulse" />
-                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Sector Synchronization</p>
-                    <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase">Select an academic sector to initiate tracking terminal</p>
+                <div className="space-y-10">
+                    <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-slate-800/40 rounded-[4rem] bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
+                        <Activity size={60} className="text-slate-800 mb-8 opacity-20 group-hover:text-brand-primary/20 group-hover:scale-110 transition-all duration-1000 animate-pulse" />
+                        <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Sector Synchronization</p>
+                        <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase italic font-outfit">Select an academic sector to initiate tracking terminal</p>
+                    </div>
+
+                    {attendance && attendance.length > 0 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Historical Presence Logs</h3>
+                            <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3rem] overflow-hidden shadow-2xl backdrop-blur-xl group hover:border-brand-primary/20 transition-all duration-700">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-900/60">
+                                            {['Sector Node', 'Date Node', 'Verification Status'].map(h => (
+                                                <th key={h} className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit italic">{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800/40">
+                                        {attendance.slice(0, 5).map((log) => (
+                                            <tr key={log._id} className="hover:bg-white/[0.01] transition-colors group cursor-pointer" 
+                                                onClick={() => {
+                                                    formik.setFieldValue('selectedClass', log.classSection?._id || log.classSection);
+                                                    formik.setFieldValue('selectedDate', new Date(log.date).toISOString().split('T')[0]);
+                                                }}>
+                                                <td className="px-10 py-5">
+                                                    <span className="text-[10px] font-black uppercase text-brand-primary tracking-widest italic font-outfit shadow-glow">
+                                                        {log.classSection?.gradeLevel}-{log.classSection?.sectionLabel} Log
+                                                    </span>
+                                                </td>
+                                                <td className="px-10 py-5 text-[12px] font-bold text-slate-300 italic font-outfit tracking-tighter">
+                                                    {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </td>
+                                                <td className="px-10 py-5">
+                                                    <div className="flex items-center gap-2">
+                                                        <Activity size={12} className="text-luxury-emerald opacity-50 shadow-glow" />
+                                                        <span className="text-[11px] font-bold text-slate-500 italic font-outfit">
+                                                            {log.records?.filter(r => r.status === 'Present').length} / {log.records?.length} Nodes Verified
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
             )}
         </motion.div>

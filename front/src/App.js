@@ -16,6 +16,7 @@ import Fees from './pages/schooladmin/Fees';
 import Exams from './pages/schooladmin/Exams';
 import Attendance from './pages/schooladmin/Attendance';
 import Subjects from './pages/schooladmin/Subjects';
+import AdminTimetable from './pages/schooladmin/Timetable';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
@@ -28,6 +29,7 @@ import MarkAttendance from './pages/Teacher/MarkAttendance';
 import AddMarks from './pages/Teacher/AddMarks';
 import Assignments from './pages/Teacher/Assignments';
 import Communication from './pages/Teacher/Communication';
+import TeacherTimetable from './pages/Teacher/Timetable';
 import StudentLayout from './pages/Student/StudentLayout';
 import StudentDashboard from './pages/Student/StudentDashboard';
 import AttendanceHistory from './pages/Student/AttendanceHistory';
@@ -90,6 +92,7 @@ function AppRoutes() {
           <Route path="attendance" element={<MarkAttendance />} />
           <Route path="marks" element={<AddMarks />} />
           <Route path="assignments" element={<Assignments />} />
+          <Route path="timetable" element={<TeacherTimetable />} />
           <Route path="messages" element={<Communication />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
@@ -106,6 +109,7 @@ function AppRoutes() {
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="subjects" element={<Subjects />} />
+          <Route path="timetable" element={<AdminTimetable />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 

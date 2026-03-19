@@ -1,0 +1,93 @@
+const Timetable = require('../models/timetable.model');
+const Student = require('../models/student.model');
+const Teacher = require('../models/teacher.model');
+const ClassSection = require('../models/classSection.model');
+
+// 1. Get Timetable for a specific class
+exports.getTimetableByClass = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        
+        // If teacher, verify they teach in this class
+        if (req.user.role === 'Teacher') {
+            const teacher = await Teacher.findOne({ userId: req.user._id });
+            const classCheck = await ClassSection.findOne({ 
+                _id: classId, 
+                $or: [
+                    { classTeacher: teacher?._id },
+                    { assignedTeachers: teacher?._id }
+                ]
+            });
+            if (!classCheck) return res.status(403).json({ message: 'Unauthorized: Sector access restricted' });
+        }
+
+        const timetable = await Timetable.findOne({ classSection: classId })
+            .populate('schedule.periods.subject')
+            .populate('schedule.periods.teacher', 'firstName lastName');
+        res.json(timetable || { classSection: classId, schedule: [] });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// 2. Admin: Create/Update Timetable
+exports.upsertTimetable = async (req, res) => {
+    try {
+        const { classSection, schedule } = req.body;
+        const schoolId = req.user.schoolId._id || req.user.schoolId;
+
+        let timetable = await Timetable.findOne({ classSection });
+
+        if (timetable) {
+            timetable.schedule = schedule;
+            await timetable.save();
+        } else {
+            timetable = new Timetable({ schoolId, classSection, schedule });
+            await timetable.save();
+        }
+
+        const populated = await Timetable.findById(timetable._id)
+            .populate('schedule.periods.subject')
+            .populate('schedule.periods.teacher', 'firstName lastName');
+
+        res.json(populated);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// 3. Student: Get my class timetable
+exports.getStudentTimetable = async (req, res) => {
+    try {
+        const student = await Student.findOne({ userId: req.user._id });
+        if (!student) {
+            console.log(`[DEBUG] Student node missing for user: ${req.user._id}`);
+            return res.status(404).json({ message: 'Student not found' });
+        }
+
+        console.log(`[DEBUG] Fetching timetable for student section: ${student.classSection}`);
+        const timetable = await Timetable.findOne({ classSection: student.classSection })
+            .populate('schedule.periods.subject')
+            .populate('schedule.periods.teacher', 'firstName lastName');
+        
+        if (timetable) console.log(`[DEBUG] Timetable found with ${timetable.schedule?.length || 0} active days`);
+        else console.log(`[DEBUG] No timetable record found for section ${student.classSection}`);
+        res.json(timetable || { schedule: [] });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+// 4. Admin: Get all timetables (for overview)
+exports.getAllTimetables = async (req, res) => {
+    try {
+        const schoolId = req.user.schoolId._id || req.user.schoolId;
+        const timetables = await Timetable.find({ schoolId })
+            .populate('classSection')
+            .populate('schedule.periods.subject')
+            .populate('schedule.periods.teacher', 'firstName lastName');
+        res.json(timetables);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

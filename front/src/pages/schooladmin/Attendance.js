@@ -4,13 +4,11 @@ import { fetchClasses, fetchStudents, fetchAttendance, saveAttendance } from '..
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, CheckCircle, XCircle, Clock, AlertCircle, Calendar, Users, Search } from 'lucide-react';
 
-const statusOptions = ['Present', 'Absent', 'Late', 'Excused'];
-const statusIcon = { Present: CheckCircle, Absent: XCircle, Late: Clock, Excused: AlertCircle };
+const statusOptions = ['Present', 'Absent'];
+const statusIcon = { Present: CheckCircle, Absent: XCircle };
 const statusColor = {
     Present: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
     Absent: 'text-red-400 bg-red-400/10 border-red-400/20',
-    Late: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
-    Excused: 'text-blue-400 bg-blue-400/10 border-blue-400/20',
 };
 
 const Attendance = () => {
@@ -191,9 +189,57 @@ const Attendance = () => {
                     </div>
                 </motion.div>
             ) : (
-                <div className="py-32 text-center border border-dashed border-slate-800 rounded-[4rem]">
-                    <Clock size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
-                    <p className="text-slate-500 font-bold italic uppercase tracking-[0.4em] text-[10px]">Awaiting Academic Sector Synchronization</p>
+                <div className="space-y-8">
+                    <div className="py-32 text-center border border-dashed border-slate-800 rounded-[4rem] bg-slate-900/10">
+                        <Clock size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
+                        <p className="text-slate-500 font-bold italic uppercase tracking-[0.4em] text-[10px]">Awaiting Academic Sector Synchronization</p>
+                    </div>
+
+                    {attendance && attendance.length > 0 && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Historical Log Archive</h3>
+                            <div className="bg-[#0f0f12] border border-slate-800/60 rounded-[3rem] overflow-hidden shadow-2xl">
+                                <table className="w-full text-left border-collapse">
+                                    <thead>
+                                        <tr className="bg-slate-900/30">
+                                            {['Date Node', 'Sector', 'Persistence Status'].map(h => (
+                                                <th key={h} className="px-10 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit">{h}</th>
+                                            ))}
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-800/40">
+                                        {attendance.slice(0, 5).map((log) => (
+                                            <tr key={log._id} className="hover:bg-white/[0.01] transition-colors group cursor-pointer" 
+                                                onClick={() => {
+                                                    setSelectedClass(log.classSection?._id || log.classSection);
+                                                    setDate(new Date(log.date).toISOString().split('T')[0]);
+                                                }}>
+                                                <td className="px-10 py-5 text-sm font-bold text-slate-300 italic font-outfit">
+                                                    {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                                </td>
+                                                <td className="px-10 py-5">
+                                                    <span className="text-[10px] font-black uppercase text-brand-primary tracking-widest italic">
+                                                        Grade {log.classSection?.gradeLevel}-{log.classSection?.sectionLabel}
+                                                    </span>
+                                                </td>
+                                                <td className="px-10 py-5">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex -space-x-2">
+                                                            <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[10px] font-black text-emerald-400">P</div>
+                                                            <div className="w-6 h-6 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center text-[10px] font-black text-red-500">A</div>
+                                                        </div>
+                                                        <span className="text-[11px] font-bold text-slate-500">
+                                                            {log.records?.filter(r => r.status === 'Present').length} / {log.records?.length} Verified
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </motion.div>
+                    )}
                 </div>
             )}
         </div>

@@ -85,6 +85,15 @@ export const fetchTeacherMarks = createAsyncThunk('teacher/fetchMarks', async (e
     }
 });
 
+export const fetchTeacherTimetable = createAsyncThunk('teacher/fetchTimetable', async (classId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/timetable/${classId}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -93,6 +102,7 @@ const teacherSlice = createSlice({
         exams: [],
         attendance: [],
         marks: [],
+        timetable: null,
         loading: false,
         error: null,
         message: null
@@ -119,6 +129,9 @@ const teacherSlice = createSlice({
             })
             .addCase(fetchTeacherMarks.fulfilled, (state, action) => {
                 state.marks = action.payload;
+            })
+            .addCase(fetchTeacherTimetable.fulfilled, (state, action) => {
+                state.timetable = action.payload;
             })
             .addCase(submitAttendance.fulfilled, (state) => { state.message = "Attendance marked successfully"; })
             .addCase(submitMarks.fulfilled, (state) => { state.message = "Marks submitted successfully"; })

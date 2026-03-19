@@ -20,6 +20,8 @@ export const fetchFeeStructures = asyncGet('sa/fee-structures', '/fee-structures
 export const fetchFees      = asyncGet('sa/fees',      '/fees');
 export const fetchExams     = asyncGet('sa/exams',     '/exams');
 export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
+export const fetchTimetable = asyncGet('sa/timetable', '/timetable');
+export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -73,6 +75,7 @@ export const updateExam = put('sa/updateExam', '/exams');
 export const deleteExam = del('sa/deleteExam', '/exams');
 
 export const saveAttendance = post('sa/saveAttendance', '/attendance');
+export const saveTimetable = post('sa/saveTimetable', '/timetable');
 
 export const fetchHolidays = createAsyncThunk('sa/fetchHolidays', async (_, { rejectWithValue }) => {
   try { const res = await axiosInstance.get('/holidays'); return res.data; }
@@ -85,7 +88,7 @@ export const deleteHoliday = del('sa/deleteHoliday', '/holidays');
 
 const initialState = {
   dashboard: null,
-  students: [], teachers: [], classes: [], subjects: [], feeStructures: [], fees: [], exams: [], attendance: [], holidays: [],
+  students: [], teachers: [], classes: [], subjects: [], feeStructures: [], fees: [], exams: [], attendance: [], holidays: [], timetable: null, timetables: [],
   loading: false, error: null,
 };
 
@@ -110,6 +113,8 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchExams.fulfilled, handleList('exams'))
       .addCase(fetchAttendance.fulfilled, handleList('attendance'))
       .addCase(fetchHolidays.fulfilled, handleList('holidays'))
+      .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
+      .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
       // create
       .addCase(createStudent.fulfilled, (state, a) => { state.students.push(a.payload); state.loading = false; })
       .addCase(createTeacher.fulfilled, (state, a) => { state.teachers.push(a.payload); state.loading = false; })
@@ -139,11 +144,12 @@ const schoolAdminSlice = createSlice({
       .addCase(saveAttendance.fulfilled, (state) => { state.loading = false; })
       .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload); state.loading = false; })
       .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload); state.loading = false; })
-      .addCase(applyFeeStructure.fulfilled, (state) => { state.loading = false; });
+      .addCase(applyFeeStructure.fulfilled, (state) => { state.loading = false; })
+      .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; });
 
     // pending/rejected for all
     [
-      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, fetchAttendance, fetchHolidays,
+      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, fetchAttendance, fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,
