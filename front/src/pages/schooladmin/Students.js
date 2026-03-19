@@ -1,27 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, createStudent, updateStudent, deleteStudent } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
 import Modal from '../../components/Modal';
 
 const emptyValues = {
   firstName: '', lastName: '', admissionNumber: '',
   gender: 'male', dateOfBirth: '',
   guardianName: '', guardianContact: '', address: '',
+  photo: null, classSection: '',
 };
 
 const validationSchema = Yup.object({
   firstName:       Yup.string().min(2, 'Min 2 characters').required('First name is required'),
   lastName:        Yup.string().min(2, 'Min 2 characters').required('Last name is required'),
-  admissionNumber: Yup.string().required('Admission number is required'),
+  admissionNumber: Yup.string(),
   gender:          Yup.string().oneOf(['male', 'female', 'other']).required(),
   dateOfBirth:     Yup.date().nullable().max(new Date(), 'Date of birth cannot be in the future'),
   guardianName:    Yup.string(),
   guardianContact: Yup.string().matches(/^[0-9+\-\s()]{7,15}$/, 'Invalid contact number').nullable(),
   address:         Yup.string(),
+  photo:           Yup.mixed().nullable(),
+  classSection:    Yup.string(),
 });
 
 const ic = (touched, error) =>
@@ -32,24 +35,37 @@ const Err = ({ touched, error }) =>
 
 const Students = () => {
   const dispatch = useDispatch();
-  const { students, loading } = useSelector((s) => s.schoolAdmin);
+  const { students, classes, loading } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formValues, setFormValues] = useState(emptyValues);
 
-  useEffect(() => { dispatch(fetchStudents()); }, [dispatch]);
+  useEffect(() => { 
+    dispatch(fetchStudents());
+    dispatch(fetchClasses());
+  }, [dispatch]);
 
   const formik = useFormik({
     initialValues: formValues,
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
-      const data = { ...values, dateOfBirth: values.dateOfBirth || undefined };
+      const formData = new FormData();
+      Object.keys(values).forEach(key => {
+        if (key === 'photo') {
+          if (values[key] instanceof File) formData.append('photo', values[key]);
+        } else if (values[key] !== undefined && values[key] !== null) {
+          formData.append(key, values[key]);
+        }
+      });
+      if (values.dateOfBirth) formData.set('dateOfBirth', values.dateOfBirth);
+      if (!values.admissionNumber) formData.delete('admissionNumber');
+
       const action = editing
-        ? dispatch(updateStudent({ id: editing, data }))
-        : dispatch(createStudent(data));
+        ? dispatch(updateStudent({ id: editing, data: formData }))
+        : dispatch(createStudent(formData));
       const result = await action;
       if (!result.error) { setModal(false); resetForm(); }
     },
@@ -72,6 +88,8 @@ const Students = () => {
       guardianName:    s.guardianName || '',
       guardianContact: s.guardianContact || '',
       address:         s.address || '',
+      photo:           s.photo || '',
+      classSection:    s.classSection?._id || s.classSection || '',
     });
     setModal(true);
   };
@@ -104,25 +122,34 @@ const Students = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30">
-              {['Name', 'Admission No.', 'Gender', 'Guardian', 'Class', 'Actions'].map(h => (
+              {['Student', 'Admission No.', 'Gender', 'Guardian', 'Class', 'DOB', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {loading && filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
+              <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
+              <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
             ) : filtered.map((s, i) => (
               <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                 className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4 font-semibold">{s.firstName} {s.lastName}</td>
+                <td className="px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`} 
+                      className="w-10 h-10 rounded-xl object-cover bg-slate-800 border border-slate-700" alt="" />
+                    <div className="font-semibold">{s.firstName} {s.lastName}</div>
+                  </div>
+                </td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm capitalize">{s.gender}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{s.guardianName || '—'}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">
                   {s.classSection ? `Grade ${s.classSection.gradeLevel}-${s.classSection.sectionLabel}` : '—'}
+                </td>
+                <td className="px-6 py-4 text-slate-400 text-sm">
+                  {s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString('en-GB') : '—'}
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
@@ -139,6 +166,45 @@ const Students = () => {
       {/* Add / Edit Modal */}
       <Modal open={modal} onClose={handleClose} title={editing ? 'Edit Student' : 'Add Student'}>
         <form onSubmit={formik.handleSubmit} className="space-y-4">
+          <div className="py-2">
+            <input type="file" id="photo-upload" className="hidden" accept="image/*" 
+              onChange={(e) => formik.setFieldValue('photo', e.target.files[0])} />
+            
+            <label htmlFor="photo-upload" className="relative group cursor-pointer block">
+              <div className={`w-full h-48 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
+                ${formik.values.photo ? 'border-brand-primary' : 'border-slate-700 hover:border-brand-primary bg-slate-800/40'}`}>
+                
+                {formik.values.photo ? (
+                  <div className="relative w-full h-full">
+                    <img src={typeof formik.values.photo === 'string' ? formik.values.photo : URL.createObjectURL(formik.values.photo)} 
+                      className="w-full h-full object-cover" alt="Preview" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                      <div className="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center shadow-xl">
+                        <Upload size={24} className="text-white" />
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                      <Upload className="text-slate-400 group-hover:text-brand-primary transition-colors" size={24} />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 group-hover:text-slate-300 transition-colors">Select Student Photograph</p>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {formik.values.photo && (
+                <button type="button" onClick={(e) => { e.preventDefault(); formik.setFieldValue('photo', null); }} 
+                  className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-xl shadow-lg transition-all z-10">
+                  <X size={16} className="text-white" />
+                </button>
+              )}
+            </label>
+            <Err touched={formik.touched.photo} error={formik.errors.photo} />
+          </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">First Name</label>
@@ -152,11 +218,11 @@ const Students = () => {
             </div>
           </div>
 
-          <div>
+          {/* <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Admission Number</label>
-            <input {...formik.getFieldProps('admissionNumber')} placeholder="e.g. ADM-2024-001" className={ic(formik.touched.admissionNumber, formik.errors.admissionNumber)} />
+            <input {...formik.getFieldProps('admissionNumber')} placeholder="Auto-generated (e.g. ADM-2024-001)" className={ic(formik.touched.admissionNumber, formik.errors.admissionNumber)} />
             <Err touched={formik.touched.admissionNumber} error={formik.errors.admissionNumber} />
-          </div>
+          </div> */}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -185,6 +251,17 @@ const Students = () => {
               <input {...formik.getFieldProps('guardianContact')} placeholder="e.g. +91 9876543210" className={ic(formik.touched.guardianContact, formik.errors.guardianContact)} />
               <Err touched={formik.touched.guardianContact} error={formik.errors.guardianContact} />
             </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Class Section</label>
+            <select {...formik.getFieldProps('classSection')} className={ic(formik.touched.classSection, formik.errors.classSection)}>
+              <option value="">Select Class</option>
+              {classes.map(c => (
+                <option key={c._id} value={c._id}>Grade {c.gradeLevel} - {c.sectionLabel}</option>
+              ))}
+            </select>
+            <Err touched={formik.touched.classSection} error={formik.errors.classSection} />
           </div>
 
           <div>

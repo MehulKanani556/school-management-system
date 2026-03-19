@@ -1,7 +1,8 @@
 const mongoose = require('mongoose');
 
 const teacherSchema = new mongoose.Schema({
-  schoolId:       { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  schoolId:       { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  schoolAdminId:  { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   employeeId:     { type: String, unique: true },
   firstName:      { type: String, required: true },
@@ -18,7 +19,7 @@ teacherSchema.pre('save', async function (next) {
   if (this.employeeId) return next(); // already set, skip
 
   const last = await this.constructor
-    .findOne({}, { employeeId: 1 })
+    .findOne({ schoolId: this.schoolId }, { employeeId: 1 })
     .sort({ employeeId: -1 })
     .lean();
 

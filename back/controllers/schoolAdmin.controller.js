@@ -8,7 +8,8 @@ const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
-const getSchoolId = (req) => req.user._id;
+const getSchoolId = (req) => req.user.schoolId;
+const getSchoolAdminId = (req) => req.user._id;
 
 // ─── Mailer ───────────────────────────────────────────────────────────────────
 const sendTeacherWelcomeMail = async ({ email, firstName, lastName, employeeId, password, joiningDate }) => {
@@ -77,17 +78,44 @@ exports.getStudents = async (req, res) => {
 
 exports.createStudent = async (req, res) => {
   try {
-    const student = await Student.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(student);
+    const { dateOfBirth } = req.body;
+    const body = { ...req.body };
+    if (req.file) body.photo = req.file.location;
+
+    // Generate password from DOB (DDMMYY)
+    let plainPassword = '';
+    if (dateOfBirth) {
+      const d = new Date(dateOfBirth);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).substring(2);
+      plainPassword = `${day}${month}${year}`;
+    }
+
+    const hashedPassword = await bcrypt.hash(plainPassword || '123456', 10);
+
+    const student = await Student.create({ 
+      ...body, 
+      schoolId: getSchoolId(req),
+      schoolAdminId: getSchoolAdminId(req),
+      createdBy: req.user._id,
+      password: hashedPassword
+    });
+
+    const populated = await student.populate('classSection', 'gradeLevel sectionLabel');
+    res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateStudent = async (req, res) => {
   try {
+    const body = { ...req.body };
+    if (req.file) body.photo = req.file.location;
+
     const student = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
-      req.body, { new: true }
-    );
+      body, { new: true }
+    ).populate('classSection', 'gradeLevel sectionLabel');
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.json(student);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -167,6 +195,7 @@ exports.createTeacher = async (req, res) => {
       email: email.trim(),
       phone: phone.trim(),
       schoolId: getSchoolId(req),
+      schoolAdminId: getSchoolAdminId(req),
       userId: user._id,
       qualifications,
       joiningDate

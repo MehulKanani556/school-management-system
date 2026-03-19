@@ -32,8 +32,8 @@ router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
 // Students
 router.get('/school-admin/students', ...schoolAdmin, sa.getStudents);
-router.post('/school-admin/students', ...schoolAdmin, sa.createStudent);
-router.put('/school-admin/students/:id', ...schoolAdmin, sa.updateStudent);
+router.post('/school-admin/students', ...schoolAdmin, upload.single('photo'), sa.createStudent);
+router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'), sa.updateStudent);
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
 
 // Teachers

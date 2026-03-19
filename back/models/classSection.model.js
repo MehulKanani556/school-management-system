@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const classSectionSchema = new mongoose.Schema({
-  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   gradeLevel: { type: Number, required: true, min: 1, max: 12 },
   sectionLabel: { type: String, required: true },
   classTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
