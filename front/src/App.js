@@ -20,6 +20,20 @@ import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
 import Revenue from './pages/superadmin/Revenue';
 import Security from './pages/superadmin/Security';
+import TeacherLayout from './pages/Teacher/TeacherLayout';
+import TeacherDashboard from './pages/Teacher/TeacherDashboard';
+import AssignedClasses from './pages/Teacher/AssignedClasses';
+import MarkAttendance from './pages/Teacher/MarkAttendance';
+import AddMarks from './pages/Teacher/AddMarks';
+import Assignments from './pages/Teacher/Assignments';
+import Communication from './pages/Teacher/Communication';
+import StudentLayout from './pages/Student/StudentLayout';
+import StudentDashboard from './pages/Student/StudentDashboard';
+import AttendanceHistory from './pages/Student/AttendanceHistory';
+import AcademicResults from './pages/Student/AcademicResults';
+import AssignmentsStudent from './pages/Student/Assignments';
+import Timetable from './pages/Student/Timetable';
+import StudentProfile from './pages/Student/StudentProfile';
 
 const { store, persistor } = configureStore();
 
@@ -31,6 +45,8 @@ const RoleRoute = ({ children, role }) => {
   return children;
 };
 
+
+
 function AppRoutes() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
 
@@ -38,6 +54,8 @@ function AppRoutes() {
   const HomeRedirect = () => {
     if (!isAuthenticated) return <Navigate to="/login" />;
     if (user?.role === 'School_Admin') return <Navigate to="/school-admin" />;
+    if (user?.role === 'Teacher') return <Navigate to="/teacher" />;
+    if (user?.role === 'Student') return <Navigate to="/student" />;
     return <Home />;
   };
 
@@ -47,6 +65,30 @@ function AppRoutes() {
         <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         <Route path="/" element={<HomeRedirect />} />
+
+        {/* Student Panel */}
+        <Route path="/student" element={
+          <RoleRoute role="Student"><StudentLayout /></RoleRoute>
+        }>
+          <Route index element={<StudentDashboard />} />
+          <Route path="profile" element={<StudentProfile />} />
+          <Route path="attendance" element={<AttendanceHistory />} />
+          <Route path="results" element={<AcademicResults />} />
+          <Route path="assignments" element={<AssignmentsStudent />} />
+          <Route path="timetable" element={<Timetable />} />
+        </Route>
+
+        {/* Teacher Panel */}
+        <Route path="/teacher" element={
+          <RoleRoute role="Teacher"><TeacherLayout /></RoleRoute>
+        }>
+          <Route index element={<TeacherDashboard />} />
+          <Route path="classes" element={<AssignedClasses />} />
+          <Route path="attendance" element={<MarkAttendance />} />
+          <Route path="marks" element={<AddMarks />} />
+          <Route path="assignments" element={<Assignments />} />
+          <Route path="messages" element={<Communication />} />
+        </Route>
 
         {/* School Admin Panel */}
         <Route path="/school-admin" element={

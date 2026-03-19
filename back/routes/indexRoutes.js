@@ -7,6 +7,8 @@ const { requireRole } = require('../middleware/roleCheck');
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
 const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
+const tc = require('../controllers/teacher.controller');
+const stc = require('../controllers/student.controller');
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
@@ -68,5 +70,25 @@ router.get('/superadmin/stats', ...superAdmin, getSchoolStats);
 router.put('/superadmin/update-school/:id', ...superAdmin, upload.single('logo'), updateSchool); // NEW
 router.delete('/superadmin/delete-school/:id', ...superAdmin, deleteSchool);
 router.patch('/superadmin/update-status/:id', ...superAdmin, updateSchoolStatus);
+
+// ─── Teacher Routes ───────────────────────────────────────────────────────────
+const teacher = [auth, requireRole('Teacher')];
+
+router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
+router.get('/teacher/assigned-students/:classId', ...teacher, tc.getAssignedClassStudents);
+router.get('/teacher/exams/:classId', ...teacher, tc.getExamsByClass);
+router.post('/teacher/mark-attendance', ...teacher, tc.markAttendance);
+router.post('/teacher/add-marks', ...teacher, tc.addMarks);
+router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.uploadAssignment);
+router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
+
+// ─── Student Routes ──────────────────────────────────────────────────────────
+const student = [auth, requireRole('Student')];
+
+router.get('/student/profile', ...student, stc.getProfile);
+router.get('/student/attendance', ...student, stc.getAttendance);
+router.get('/student/results', ...student, stc.getResults);
+router.get('/student/assignments', ...student, stc.getAssignments);
+router.get('/student/timetable', ...student, stc.getTimetable);
 
 module.exports = router;
