@@ -28,7 +28,12 @@ const io = new Server(server, {
 socketManager.initializeSocket(io);
 
 connectDb(app);
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+}));
 app.use(bodyParser.json());
 app.use('/api/', authRoutes);
 app.listen(port, () => {

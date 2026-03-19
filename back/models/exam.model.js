@@ -1,0 +1,14 @@
+const mongoose = require('mongoose');
+
+const examSchema = new mongoose.Schema({
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  name: { type: String, required: true },
+  type: { type: String, enum: ['unit_test', 'midterm', 'final'], required: true },
+  classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
+  subject: { type: String },
+  maxMarks: { type: Number, default: 100 },
+  date: { type: Date, required: true },
+  isPublished: { type: Boolean, default: false },
+}, { timestamps: true });
+
+module.exports = mongoose.model('Exam', examSchema);
