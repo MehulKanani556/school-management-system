@@ -29,6 +29,7 @@ const emptyValues = { firstName: '', lastName: '', email: '', phone: '', qualifi
 const Teachers = () => {
   const dispatch = useDispatch();
   const { teachers, loading } = useSelector((s) => s.schoolAdmin);
+  const {user} = useSelector((s) => s.auth);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -47,6 +48,7 @@ const Teachers = () => {
         ...values,
         qualifications: values.qualifications.split(',').map(q => q.trim()).filter(Boolean),
         joiningDate: values.joiningDate || undefined,
+        schoolId: user.schoolId,
       };
       setServerError('');
       const action = editing

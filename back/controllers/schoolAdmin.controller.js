@@ -182,12 +182,14 @@ exports.createTeacher = async (req, res) => {
     const plainPassword = email.trim();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
+    console.log("asas",req.user);
     // create User record
     const user = await User.create({
       firstName, lastName,
       email: email.trim(),
       password: hashedPassword,
       role: 'Teacher',
+      schoolId: getSchoolId(req),
       photo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(`${firstName} ${lastName}`) + '&background=2563eb&color=fff',
     });
 
@@ -197,6 +199,7 @@ exports.createTeacher = async (req, res) => {
       email: email.trim(),
       phone: phone.trim(),
       schoolId: getSchoolId(req),
+
       schoolAdminId: getSchoolAdminId(req),
       userId: user._id,
       qualifications,
@@ -285,7 +288,20 @@ exports.getClasses = async (req, res) => {
 
 exports.createClass = async (req, res) => {
   try {
-    const cls = await ClassSection.create({ ...req.body, schoolId: getSchoolId(req) });
+    const { gradeLevel, sectionLabel, classTeacher } = req.body;
+    const schoolId = getSchoolId(req);
+
+    // Check if section already exists in this grade
+    const existingSection = await ClassSection.findOne({ schoolId, gradeLevel, sectionLabel });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for Grade ${gradeLevel}` });
+
+    // Check if teacher is already a class teacher for another section
+    if (classTeacher) {
+      const alreadyAssigned = await ClassSection.findOne({ schoolId, classTeacher });
+      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
+    }
+
+    const cls = await ClassSection.create({ ...req.body, schoolId });
     const populated = await cls.populate([
       { path: 'classTeacher', select: 'firstName lastName' },
       { path: 'subjects', select: 'name code' }
@@ -296,8 +312,27 @@ exports.createClass = async (req, res) => {
 
 exports.updateClass = async (req, res) => {
   try {
+    const { gradeLevel, sectionLabel, classTeacher } = req.body;
+    const schoolId = getSchoolId(req);
+
+    // Check for duplicate section
+    const existingSection = await ClassSection.findOne({ 
+      schoolId, gradeLevel, sectionLabel, 
+      _id: { $ne: req.params.id } 
+    });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for Grade ${gradeLevel}` });
+
+    // Check if teacher is already a class teacher elsewhere
+    if (classTeacher) {
+      const alreadyAssigned = await ClassSection.findOne({ 
+        schoolId, classTeacher, 
+        _id: { $ne: req.params.id } 
+      });
+      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
+    }
+
     const cls = await ClassSection.findOneAndUpdate(
-      { _id: req.params.id, schoolId: getSchoolId(req) },
+      { _id: req.params.id, schoolId },
       req.body, { new: true }
     ).populate([
       { path: 'classTeacher', select: 'firstName lastName' },
