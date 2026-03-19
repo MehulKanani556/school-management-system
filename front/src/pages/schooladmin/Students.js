@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
@@ -11,7 +11,7 @@ const emptyValues = {
   firstName: '', lastName: '', admissionNumber: '',
   gender: 'male', dateOfBirth: '',
   guardianName: '', guardianContact: '', address: '',
-  photo: null, classSection: '',
+  photo: null, standard: '', classSection: '',
 };
 
 const validationSchema = Yup.object({
@@ -24,7 +24,8 @@ const validationSchema = Yup.object({
   guardianContact: Yup.string().matches(/^[0-9+\-\s()]{7,15}$/, 'Invalid contact number').nullable(),
   address:         Yup.string(),
   photo:           Yup.mixed().nullable(),
-  classSection:    Yup.string(),
+  standard:        Yup.string().required('Standard is required'),
+  classSection:    Yup.string().required('Section is required'),
 });
 
 const ic = (touched, error) =>
@@ -35,7 +36,7 @@ const Err = ({ touched, error }) =>
 
 const Students = () => {
   const dispatch = useDispatch();
-  const { students, classes, loading } = useSelector((s) => s.schoolAdmin);
+  const { students, classes, standards, loading } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -45,6 +46,7 @@ const Students = () => {
   useEffect(() => { 
     dispatch(fetchStudents());
     dispatch(fetchClasses());
+    dispatch(fetchStandards());
   }, [dispatch]);
 
   const formik = useFormik({
@@ -89,6 +91,7 @@ const Students = () => {
       guardianContact: s.guardianContact || '',
       address:         s.address || '',
       photo:           s.photo || '',
+      standard:        s.standard?._id || s.standard || '',
       classSection:    s.classSection?._id || s.classSection || '',
     });
     setModal(true);
@@ -146,7 +149,7 @@ const Students = () => {
                 <td className="px-6 py-4 text-slate-400 text-sm capitalize">{s.gender}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{s.guardianName || '—'}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">
-                  {s.classSection ? `Grade ${s.classSection.gradeLevel}-${s.classSection.sectionLabel}` : '—'}
+                  {s.standard ? `Grade ${s.standard.level || '—'}-${s.classSection?.sectionLabel || '—'}` : '—'}
                 </td>
                 <td className="px-6 py-4 text-slate-400 text-sm">
                   {s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString('en-GB') : '—'}
@@ -253,15 +256,36 @@ const Students = () => {
             </div>
           </div>
 
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Class Section</label>
-            <select {...formik.getFieldProps('classSection')} className={ic(formik.touched.classSection, formik.errors.classSection)}>
-              <option value="">Select Class</option>
-              {classes.map(c => (
-                <option key={c._id} value={c._id}>Grade {c.gradeLevel} - {c.sectionLabel}</option>
-              ))}
-            </select>
-            <Err touched={formik.touched.classSection} error={formik.errors.classSection} />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
+              <select {...formik.getFieldProps('standard')} 
+                className={ic(formik.touched.standard, formik.errors.standard)}
+                onChange={(e) => {
+                  formik.setFieldValue('standard', e.target.value);
+                  formik.setFieldValue('classSection', '');
+                }}
+              >
+                <option value="">Select Standard</option>
+                {standards.map(std => (
+                  <option key={std._id} value={std._id}>Grade {std.level}</option>
+                ))}
+              </select>
+              <Err touched={formik.touched.standard} error={formik.errors.standard} />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Class Section</label>
+              <select {...formik.getFieldProps('classSection')} className={ic(formik.touched.classSection, formik.errors.classSection)}>
+                <option value="">Select Section</option>
+                {classes
+                  .filter(c => (c.standardId?._id || c.standardId) === formik.values.standard)
+                  .map(c => (
+                    <option key={c._id} value={c._id}>{c.sectionLabel}</option>
+                  ))
+                }
+              </select>
+              <Err touched={formik.touched.classSection} error={formik.errors.classSection} />
+            </div>
           </div>
 
           <div>

@@ -14,6 +14,7 @@ const studentSchema = new mongoose.Schema({
   guardianContact: { type: String },
   address: { type: String },
   photo: { type: String },
+  standard: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard' },
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
   password: { type: String },
   isActive: { type: Boolean, default: true },

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
-  fetchFees, fetchStudents, fetchFeeStructures, 
+  fetchFees, fetchStudents, fetchFeeStructures, fetchStandards,
   createFee, updateFee, deleteFee, createFeeStructure, 
   updateFeeStructure, deleteFeeStructure, applyFeeStructure 
 } from '../../redux/slice/schoolAdmin.slice';
@@ -21,7 +21,7 @@ const STATUS_COLORS = {
 
 const Fees = () => {
   const dispatch = useDispatch();
-  const { fees, students, feeStructures, loading } = useSelector((s) => s.schoolAdmin);
+  const { fees, students, feeStructures, standards, loading } = useSelector((s) => s.schoolAdmin);
   
   const [activeTab, setActiveTab] = useState('records');
   const [modalType, setModalType] = useState(null); // 'fee', 'structure', 'apply'
@@ -35,6 +35,7 @@ const Fees = () => {
     dispatch(fetchFees()); 
     dispatch(fetchStudents()); 
     dispatch(fetchFeeStructures());
+    dispatch(fetchStandards());
   }, [dispatch]);
 
   // ─── Form Handlers ───────────────────────────────────────────────────────────
@@ -99,9 +100,9 @@ const Fees = () => {
 
   // 2. Fee Structure Form
   const structureFormik = useFormik({
-    initialValues: { gradeLevel: '', academicYear: '2024-2025', dueDate: '', feeItems: [{ name: '', amount: 0 }] },
+    initialValues: { standardId: '', academicYear: '2024-2025', dueDate: '', feeItems: [{ name: '', amount: 0 }] },
     validationSchema: Yup.object({
-      gradeLevel: Yup.number().required('Required').min(1).max(12),
+      standardId: Yup.string().required('Required'),
       academicYear: Yup.string().required('Required'),
       dueDate: Yup.date().required('Due date is required'),
       feeItems: Yup.array().of(
@@ -125,9 +126,9 @@ const Fees = () => {
 
   // 3. Apply Structure Form
   const applyFormik = useFormik({
-    initialValues: { gradeLevel: '', academicYear: '2024-2025', dueDate: '' },
+    initialValues: { standardId: '', academicYear: '2024-2025', dueDate: '' },
     validationSchema: Yup.object({
-      gradeLevel: Yup.number().required('Required'),
+      standardId: Yup.string().required('Required'),
       academicYear: Yup.string().required('Required'),
       dueDate: Yup.date().required('Billing due date required'),
     }),
@@ -170,7 +171,7 @@ const Fees = () => {
   const openEditStructure = (s) => {
     setEditing(s._id);
     structureFormik.setValues({
-      gradeLevel: s.gradeLevel,
+      standardId: s.standardId?._id || s.standardId,
       academicYear: s.academicYear,
       dueDate: s.dueDate ? s.dueDate.split('T')[0] : '',
       feeItems: s.feeItems.map(i => ({ name: i.name, amount: i.amount }))
@@ -392,10 +393,10 @@ const Fees = () => {
 
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-14 h-14 rounded-3xl bg-brand-primary/20 flex items-center justify-center text-brand-primary font-black text-xl italic shadow-inner">
-                      G{s.gradeLevel}
+                      G{s.standardId?.level || '—'}
                     </div>
                     <div>
-                      <h3 className="text-2xl font-black font-outfit text-white uppercase tracking-tight">Grade Level {s.gradeLevel}</h3>
+                      <h3 className="text-2xl font-black font-outfit text-white uppercase tracking-tight">Grade Level {s.standardId?.level || '—'}</h3>
                       <div className="flex items-center gap-4 mt-1">
                         <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em]">{s.academicYear}</p>
                         {s.dueDate && (
@@ -424,7 +425,7 @@ const Fees = () => {
                     <button 
                       onClick={() => { 
                         applyFormik.setValues({
-                          gradeLevel: s.gradeLevel,
+                          standardId: s.standardId?._id || s.standardId,
                           academicYear: s.academicYear,
                           dueDate: s.dueDate ? s.dueDate.split('T')[0] : ''
                         }); 
@@ -642,9 +643,12 @@ const Fees = () => {
         <form onSubmit={structureFormik.handleSubmit} className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Grade Level</label>
-              <input name="gradeLevel" type="number" placeholder="1-12" value={structureFormik.values.gradeLevel} onChange={structureFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Standard (Grade)</label>
+              <select name="standardId" value={structureFormik.values.standardId} onChange={structureFormik.handleChange}
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all focus:ring-4 focus:ring-brand-primary/10 appearance-none">
+                <option value="">Select Standard...</option>
+                {standards.map(std => <option key={std._id} value={std._id} className="bg-slate-900">Grade {std.level}</option>)}
+              </select>
             </div>
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Academic Year</label>
@@ -685,6 +689,13 @@ const Fees = () => {
             </div>
           </div>
 
+          <div className="p-5 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Total Annual Calculation</span>
+            <span className="text-xl font-black text-white italic">
+              ${structureFormik.values.feeItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0).toLocaleString()}
+            </span>
+          </div>
+
           <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black hover:bg-brand-primary hover:text-white rounded-[1.2rem] font-black text-sm uppercase tracking-widest transition-all font-outfit shadow-xl mt-4">
             {loading ? 'Synthesizing...' : editing ? 'Save Blueprint' : 'Establish Structure'}
           </button>
@@ -697,7 +708,9 @@ const Fees = () => {
           <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-[1.5rem] mb-6">
             <p className="text-xs font-bold text-slate-300 leading-relaxed text-center">
               You are about to generate individual fee records for <span className="text-brand-primary font-black">ALL STUDENTS</span> in 
-              <span className="text-brand-primary font-black italic ml-1 underline decoration-2 underline-offset-4">Grade {applyFormik.values.gradeLevel}</span>. 
+              <span className="text-brand-primary font-black italic ml-1 underline decoration-2 underline-offset-4">
+                Grade {standards.find(s => s._id === applyFormik.values.standardId)?.level || '—'}
+              </span>. 
               This action will populate their financial profiles based on the defined structure.
             </p>
           </div>

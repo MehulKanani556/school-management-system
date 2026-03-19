@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchExams, fetchClasses, fetchSubjects, createExam, updateExam, deleteExam } from '../../redux/slice/schoolAdmin.slice';
+import { fetchExams, fetchClasses, fetchSubjects, fetchStandards, createExam, updateExam, deleteExam } from '../../redux/slice/schoolAdmin.slice';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Calendar, BookOpen, Clock, AlertCircle } from 'lucide-react';
 import Modal from '../../components/Modal';
@@ -12,7 +12,8 @@ const typeColor = { unit_test: 'text-blue-400 bg-blue-400/10', midterm: 'text-pu
 const validationSchema = Yup.object({
     name: Yup.string().required('Assessment label is required').min(3, 'Label too short'),
     type: Yup.string().required('Assessment type is required'),
-    classSection: Yup.string().required('Target sector is required'),
+    standardId: Yup.string().required('Standard is required'),
+    classSection: Yup.string().nullable(),
     subject: Yup.string().required('Subject node is required'),
     maxMarks: Yup.number().required('Precision marks required').positive().min(1),
     date: Yup.date().required('Temporal date is required'),
@@ -20,7 +21,7 @@ const validationSchema = Yup.object({
 
 const Exams = () => {
     const dispatch = useDispatch();
-    const { exams, classes, subjects, loading } = useSelector((s) => s.schoolAdmin);
+    const { exams, classes, subjects, standards, loading } = useSelector((s) => s.schoolAdmin);
     const [modal, setModal] = useState(false);
     const [editing, setEditing] = useState(null);
 
@@ -28,10 +29,11 @@ const Exams = () => {
         dispatch(fetchExams());
         dispatch(fetchClasses());
         dispatch(fetchSubjects());
+        dispatch(fetchStandards());
     }, [dispatch]);
 
     const formik = useFormik({
-        initialValues: { name: '', type: 'unit_test', classSection: '', subject: '', maxMarks: 100, date: '' },
+        initialValues: { name: '', type: 'unit_test', standardId: '', classSection: '', subject: '', maxMarks: 100, date: '' },
         validationSchema,
         onSubmit: (values) => {
             if (editing) dispatch(updateExam({ id: editing, data: values }));
@@ -48,6 +50,7 @@ const Exams = () => {
         formik.setValues({ 
             name: e.name,
             type: e.type,
+            standardId: e.standardId?._id || e.standardId || '',
             classSection: e.classSection?._id || e.classSection || '', 
             subject: e.subject?._id || e.subject || '',
             maxMarks: e.maxMarks,
@@ -107,7 +110,7 @@ const Exams = () => {
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-luxury-emerald"></div>
                                 <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                                    {e.classSection ? `Grade ${e.classSection.gradeLevel}-${e.classSection.sectionLabel}` : 'Global Sector'}
+                                    {e.standardId ? `Grade ${e.standardId.level}${e.classSection ? `-${e.classSection.sectionLabel}` : ' (Whole Grade)'}` : 'Global Sector'}
                                 </span>
                             </div>
                             <div className="flex items-center gap-2 text-slate-500">
@@ -145,22 +148,47 @@ const Exams = () => {
                         </div>
                     </div>
 
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Target Sector (Class)</label>
-                        <select name="classSection" value={formik.values.classSection} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                            className={`w-full bg-slate-900/50 border ${formik.touched.classSection && formik.errors.classSection ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-[1.2rem] py-4 px-6 text-white outline-none text-sm transition-all`}>
-                            <option value="">Select Sector...</option>
-                            {classes.map(c => <option key={c._id} value={c._id}>Grade {c.gradeLevel}-{c.sectionLabel}</option>)}
-                        </select>
-                        {formik.touched.classSection && formik.errors.classSection && <p className="text-[10px] text-red-500 font-bold italic ml-1">{formik.errors.classSection}</p>}
+                    <div className="grid grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Standard (Grade)</label>
+                            <select name="standardId" value={formik.values.standardId} 
+                                onChange={(e) => {
+                                    formik.handleChange(e);
+                                    formik.setFieldValue('classSection', '');
+                                }} 
+                                onBlur={formik.handleBlur}
+                                className={`w-full bg-slate-900/50 border ${formik.touched.standardId && formik.errors.standardId ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-[1.2rem] py-4 px-6 text-white outline-none text-sm transition-all appearance-none cursor-pointer`}>
+                                <option value="">Select Grade...</option>
+                                {standards.map(s => <option key={s._id} value={s._id} className="bg-slate-900">Grade {s.level}</option>)}
+                            </select>
+                            {formik.touched.standardId && formik.errors.standardId && <p className="text-[10px] text-red-500 font-bold italic ml-1">{formik.errors.standardId}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Class Section (Optional)</label>
+                            <select name="classSection" value={formik.values.classSection} onChange={formik.handleChange} onBlur={formik.handleBlur}
+                                className={`w-full bg-slate-900/50 border border-brand-border/40 focus:border-brand-primary rounded-[1.2rem] py-4 px-6 text-white outline-none text-sm transition-all appearance-none cursor-pointer ${!formik.values.standardId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                disabled={!formik.values.standardId}>
+                                <option value="">Whole Grade...</option>
+                                {classes
+                                    .filter(c => (c.standardId?._id || c.standardId) === formik.values.standardId)
+                                    .map(c => <option key={c._id} value={c._id} className="bg-slate-900">{c.sectionLabel}</option>)}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Subject Node</label>
                         <select name="subject" value={formik.values.subject} onChange={formik.handleChange} onBlur={formik.handleBlur}
-                            className={`w-full bg-slate-900/50 border ${formik.touched.subject && formik.errors.subject ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-[1.2rem] py-4 px-6 text-white outline-none text-sm transition-all`}>
+                            className={`w-full bg-slate-900/50 border ${formik.touched.subject && formik.errors.subject ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-[1.2rem] py-4 px-6 text-white outline-none text-sm transition-all appearance-none cursor-pointer ${!formik.values.standardId ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={!formik.values.standardId}>
                             <option value="">Select Subject Reference...</option>
-                            {subjects.map(s => <option key={s._id} value={s._id}>{s.name} ({s.code})</option>)}
+                            {standards
+                                .find(st => st._id === formik.values.standardId)
+                                ?.subjects?.map(s => (
+                                    <option key={s._id} value={s._id} className="bg-slate-900">{s.name} ({s.code})</option>
+                                ))
+                            }
                         </select>
                         {formik.touched.subject && formik.errors.subject && <p className="text-[10px] text-red-500 font-bold italic ml-1">{formik.errors.subject}</p>}
                     </div>

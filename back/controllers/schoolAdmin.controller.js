@@ -106,7 +106,9 @@ exports.deleteStandard = async (req, res) => {
 // ─── Students ─────────────────────────────────────────────────────────────────
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find({ schoolId: getSchoolId(req) }).populate('classSection', 'gradeLevel sectionLabel');
+    const students = await Student.find({ schoolId: getSchoolId(req) })
+      .populate('standard', 'level name')
+      .populate('classSection', 'sectionLabel');
     res.json(students);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -137,7 +139,10 @@ exports.createStudent = async (req, res) => {
       password: hashedPassword
     });
 
-    const populated = await student.populate('classSection', 'gradeLevel sectionLabel');
+    const populated = await student.populate([
+      { path: 'standard', select: 'level name' },
+      { path: 'classSection', select: 'sectionLabel' }
+    ]);
     res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -150,11 +155,10 @@ exports.updateStudent = async (req, res) => {
     const student = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       body, { new: true }
-    ).populate({
-      path: 'classSection',
-      select: 'sectionLabel',
-      populate: { path: 'standardId', select: 'level' }
-    });
+    ).populate([
+      { path: 'standard', select: 'level name' },
+      { path: 'classSection', select: 'sectionLabel' }
+    ]);
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.json(student);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -453,7 +457,7 @@ exports.deleteFee = async (req, res) => {
 // ─── Fee Structures ────────────────────────────────────────────────────────────
 exports.getFeeStructures = async (req, res) => {
   try {
-    const structures = await FeeStructure.find({ schoolId: getSchoolId(req) });
+    const structures = await FeeStructure.find({ schoolId: getSchoolId(req) }).populate('standardId', 'level name');
     res.json(structures);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -461,7 +465,8 @@ exports.getFeeStructures = async (req, res) => {
 exports.createFeeStructure = async (req, res) => {
   try {
     const sub = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(sub);
+    const populated = await sub.populate('standardId', 'level name');
+    res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -470,7 +475,7 @@ exports.updateFeeStructure = async (req, res) => {
     const sub = await FeeStructure.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       req.body, { new: true }
-    );
+    ).populate('standardId', 'level name');
     if (!sub) return res.status(404).json({ message: 'Fee structure not found' });
     res.json(sub);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -486,15 +491,14 @@ exports.deleteFeeStructure = async (req, res) => {
 // Apply structure to students (Generate Fees)
 exports.applyFeeStructure = async (req, res) => {
   try {
-    const { gradeLevel, dueDate, academicYear } = req.body;
+    const { standardId, dueDate, academicYear } = req.body;
     const schoolId = getSchoolId(req);
 
-    const structure = await FeeStructure.findOne({ schoolId, gradeLevel, academicYear });
-    if (!structure) return res.status(404).json({ message: 'No structure found for this grade' });
+    const structure = await FeeStructure.findOne({ schoolId, standardId, academicYear });
+    if (!structure) return res.status(404).json({ message: 'No structure found for this standard' });
 
-    // find students in this grade (needs populate or classId filter)
-    const students = await Student.find({ schoolId }).populate('classSection');
-    const filtered = students.filter(s => s.classSection?.gradeLevel === Number(gradeLevel));
+    // find students in this standard
+    const filtered = await Student.find({ schoolId, standard: standardId });
 
     if (!filtered.length) return res.status(404).json({ message: 'No students found in this grade' });
 
@@ -528,7 +532,8 @@ exports.applyFeeStructure = async (req, res) => {
 exports.getExams = async (req, res) => {
   try {
     const exams = await Exam.find({ schoolId: getSchoolId(req) })
-      .populate('classSection', 'gradeLevel sectionLabel')
+      .populate('standardId', 'level name')
+      .populate('classSection', 'sectionLabel')
       .populate('subject', 'name code');
     res.json(exams);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -536,9 +541,12 @@ exports.getExams = async (req, res) => {
 
 exports.createExam = async (req, res) => {
   try {
-    const exam = await Exam.create({ ...req.body, schoolId: getSchoolId(req) });
+    const body = { ...req.body };
+    if (!body.classSection) delete body.classSection; // Handle "whole grade"
+    const exam = await Exam.create({ ...body, schoolId: getSchoolId(req) });
     const populated = await exam.populate([
-      { path: 'classSection', select: 'gradeLevel sectionLabel' },
+      { path: 'standardId', select: 'level name' },
+      { path: 'classSection', select: 'sectionLabel' },
       { path: 'subject', select: 'name code' }
     ]);
     res.status(201).json(populated);
@@ -547,11 +555,14 @@ exports.createExam = async (req, res) => {
 
 exports.updateExam = async (req, res) => {
   try {
+    const body = { ...req.body };
+    if (!body.classSection) body.classSection = null; // Correctly unset if empty
     const exam = await Exam.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
-      req.body, { new: true }
+      body, { new: true }
     ).populate([
-      { path: 'classSection', select: 'gradeLevel sectionLabel' },
+      { path: 'standardId', select: 'level name' },
+      { path: 'classSection', select: 'sectionLabel' },
       { path: 'subject', select: 'name code' }
     ]);
     if (!exam) return res.status(404).json({ message: 'Exam not found' });
@@ -574,7 +585,8 @@ exports.getAttendance = async (req, res) => {
     if (classSection) filter.classSection = classSection;
     if (date) filter.date = new Date(date);
     const attendance = await Attendance.find(filter)
-      .populate('classSection', 'gradeLevel sectionLabel')
+      .populate('standardId', 'level')
+      .populate('classSection', 'sectionLabel')
       .populate('records.studentId', 'firstName lastName admissionNumber');
     res.json(attendance);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -582,11 +594,11 @@ exports.getAttendance = async (req, res) => {
 
 exports.saveAttendance = async (req, res) => {
   try {
-    const { classSection, date, records } = req.body;
+    const { standardId, classSection, date, records } = req.body;
     const schoolId = getSchoolId(req);
     const attendance = await Attendance.findOneAndUpdate(
-      { schoolId, classSection, date: new Date(date) },
-      { schoolId, classSection, date: new Date(date), records, submittedBy: req.user._id },
+      { schoolId, standardId, classSection, date: new Date(date) },
+      { schoolId, standardId, classSection, date: new Date(date), records, submittedBy: req.user._id },
       { upsert: true, new: true }
     );
     res.json(attendance);

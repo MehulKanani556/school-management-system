@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClasses, fetchStudents, fetchAttendance, saveAttendance } from '../../redux/slice/schoolAdmin.slice';
+import { fetchClasses, fetchStudents, fetchAttendance, saveAttendance, fetchStandards } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, CheckCircle, XCircle, Clock, AlertCircle, Calendar, Users, Search } from 'lucide-react';
 
@@ -13,7 +13,8 @@ const statusColor = {
 
 const Attendance = () => {
     const dispatch = useDispatch();
-    const { classes, students, attendance, loading } = useSelector((s) => s.schoolAdmin);
+    const { classes, students, attendance, standards, loading } = useSelector((s) => s.schoolAdmin);
+    const [selectedStandard, setSelectedStandard] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [records, setRecords] = useState({});
@@ -23,14 +24,16 @@ const Attendance = () => {
     useEffect(() => {
         dispatch(fetchClasses());
         dispatch(fetchStudents());
+        dispatch(fetchStandards());
+        dispatch(fetchAttendance({})); // Fetch all for historical log initially
     }, [dispatch]);
 
     // Fetch existing attendance when class/date changes
     useEffect(() => {
-        if (selectedClass && date) {
-            dispatch(fetchAttendance({ classSection: selectedClass, date })).then((res) => {
+        if (selectedStandard && selectedClass && date) {
+            dispatch(fetchAttendance({ standardId: selectedStandard, classSection: selectedClass, date })).then((res) => {
                 const existing = res.payload?.[0];
-                const currentStudents = students.filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
+                const currentStudents = students.filter(s => (s.classSection?._id || s.classSection) === selectedClass);
                 
                 const newRecords = {};
                 if (existing && existing.records) {
@@ -46,7 +49,7 @@ const Attendance = () => {
                 setRecords(newRecords);
             });
         }
-    }, [selectedClass, date, dispatch, students]);
+    }, [selectedStandard, selectedClass, date, dispatch, students]);
 
     const classStudents = students.filter(s => s.classSection?._id === selectedClass || s.classSection === selectedClass);
     
@@ -57,7 +60,7 @@ const Attendance = () => {
 
     const handleSave = async () => {
         const recordsArr = Object.entries(records).map(([studentId, status]) => ({ studentId, status }));
-        await dispatch(saveAttendance({ classSection: selectedClass, date, records: recordsArr }));
+        await dispatch(saveAttendance({ standardId: selectedStandard, classSection: selectedClass, date, records: recordsArr }));
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
     };
@@ -95,15 +98,30 @@ const Attendance = () => {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-1">Sector Assignment</label>
-                    <div className="relative">
-                        <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)}
-                            className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-pointer text-sm font-bold">
-                            <option value="">Select Academic Sector...</option>
-                            {classes.map(c => <option key={c._id} value={c._id}>Grade {c.gradeLevel} - Sector {c.sectionLabel}</option>)}
-                        </select>
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-1">Standard (Grade)</label>
+                        <div className="relative">
+                            <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
+                            <select value={selectedStandard} onChange={e => { setSelectedStandard(e.target.value); setSelectedClass(''); }}
+                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-pointer text-sm font-bold">
+                                <option value="">Select Grade...</option>
+                                {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
+                            </select>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-1">Class Sector</label>
+                        <div className="relative">
+                            <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
+                            <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} disabled={!selectedStandard}
+                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-not-allowed disabled:opacity-50 text-sm font-bold">
+                                <option value="">Select Sector...</option>
+                                {classes
+                                    .filter(c => (c.standardId?._id || c.standardId) === selectedStandard)
+                                    .map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
+                            </select>
+                        </div>
                     </div>
                 </div>
                 <div className="space-y-2">
@@ -219,7 +237,7 @@ const Attendance = () => {
                                                 </td>
                                                 <td className="px-10 py-5">
                                                     <span className="text-[10px] font-black uppercase text-brand-primary tracking-widest italic">
-                                                        Grade {log.classSection?.gradeLevel}-{log.classSection?.sectionLabel}
+                                                        {log.standardId ? `Grade ${log.standardId.level}-${log.classSection?.sectionLabel || '?'}` : `Grade ${log.classSection?.gradeLevel}-${log.classSection?.sectionLabel}`}
                                                     </span>
                                                 </td>
                                                 <td className="px-10 py-5">

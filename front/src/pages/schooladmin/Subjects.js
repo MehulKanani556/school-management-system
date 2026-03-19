@@ -80,7 +80,7 @@ const Subjects = () => {
         ) : subjects.map((sub, i) => (
           <motion.div key={sub._id} initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
             className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] p-7 hover:border-brand-primary/30 transition-all group overflow-hidden relative">
-            
+
             <div className="absolute -right-4 -bottom-4 text-slate-800/20 group-hover:text-brand-primary/10 transition-colors">
               <BookOpen size={100} />
             </div>
@@ -116,13 +116,13 @@ const Subjects = () => {
         <form onSubmit={formik.handleSubmit} className="space-y-4">
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Subject Name</label>
-            <input 
+            <input
               name="name"
-              value={formik.values.name} 
+              value={formik.values.name}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="e.g. Mathematics"
-              className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all`} 
+              className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.name && formik.errors.name ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all`}
             />
             {formik.touched.name && formik.errors.name && (
               <p className="text-[10px] text-red-500 mt-1 font-bold italic">{formik.errors.name}</p>
@@ -131,26 +131,26 @@ const Subjects = () => {
 
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Subject Code (Optional)</label>
-            <input 
+            <input
               name="code"
-              value={formik.values.code} 
+              value={formik.values.code}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="e.g. MATH101"
-              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all" 
+              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all"
             />
           </div>
 
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Description</label>
-            <textarea 
+            <textarea
               name="description"
               rows={3}
-              value={formik.values.description} 
+              value={formik.values.description}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="Brief overview of the subject..."
-              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all resize-none" 
+              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all resize-none"
             />
           </div>
 
