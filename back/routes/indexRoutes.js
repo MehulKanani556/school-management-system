@@ -1,15 +1,14 @@
-
 const express = require('express');
 const router = express.Router();
-
 const { upload } = require('../middleware/upload');
 const { createUser, login, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
-const { auth } = require('../middleware/auth');
+const { auth, isSuperAdmin } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleCheck');
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
 const sa = require('../controllers/schoolAdmin.controller');
+const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
 
-// auth
+// Auth Routes
 router.post('/register', upload.single("photo"), createUser);
 router.post('/login', login);
 router.post('/forgot-password', forgotPassword);
@@ -25,6 +24,7 @@ router.put('/users/:id', updateUser);
 
 // ─── School Admin Routes ───────────────────────────────────────────────────────
 const schoolAdmin = [auth, requireRole('School_Admin')];
+const superAdmin = [auth, requireRole('Super_Admin')];
 
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
@@ -61,5 +61,12 @@ router.delete('/school-admin/exams/:id', ...schoolAdmin, sa.deleteExam);
 // Attendance
 router.get('/school-admin/attendance', ...schoolAdmin, sa.getAttendance);
 router.post('/school-admin/attendance', ...schoolAdmin, sa.saveAttendance);
+
+router.post('/superadmin/create-school', ...superAdmin, upload.single('logo'), createSchool);
+router.get('/superadmin/all-schools', ...superAdmin, getAllSchools);
+router.get('/superadmin/stats', ...superAdmin, getSchoolStats);
+router.put('/superadmin/update-school/:id', ...superAdmin, upload.single('logo'), updateSchool); // NEW
+router.delete('/superadmin/delete-school/:id', ...superAdmin, deleteSchool);
+router.patch('/superadmin/update-status/:id', ...superAdmin, updateSchoolStatus);
 
 module.exports = router;

@@ -30,6 +30,7 @@ const storage = multerS3({
             'photo': 'images',
             'profileImage': 'images',
             'document': 'documents',
+            'logo': 'schoolLogo',
         };
 
         const folder = folderMapping[file.fieldname] || 'others';

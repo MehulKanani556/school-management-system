@@ -27,6 +27,11 @@ const userSchema = new mongoose.Schema({
         enum: ['Super_Admin', 'School_Admin', 'Teacher', 'Student', 'Parent', 'Accountant', 'Librarian', 'Transport_Manager'],
         required: true,
     },
+    schoolId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'School',
+        required: function() { return this.role !== 'Super_Admin'; } // Super Admin doesn't belong to a specific school
+    },
     otp: {
         type: String,
     },
@@ -57,7 +62,6 @@ const userSchema = new mongoose.Schema({
     },
 });
 
-// Update the updatedAt field before saving
 userSchema.pre('save', function(next) {
     this.updatedAt = Date.now();
     next();

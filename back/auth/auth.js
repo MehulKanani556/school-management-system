@@ -1,31 +1,27 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
-const nodemailer = require('nodemailer')
+const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
+
 const generateToken = async (id) => {
-    try {
-        const user = await User.findById(id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const accessToken = await jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        const refreshToken = await jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-        // user.accessToken = accessToken;
-        user.refreshToken = refreshToken;
-        await user.save();
-
-
-        return { accessToken, refreshToken };
-    } catch (error) {
-        return res.status(500).json({ message: error.message });
+    const user = await User.findById(id);
+    if (!user) {
+        throw new Error('User not found');
     }
+    const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const refreshToken = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    // user.accessToken = accessToken;
+    user.refreshToken = refreshToken;
+    await user.save();
 
 
+    return { accessToken, refreshToken };
 }
+
 exports.generateNewToken = async (req, res) => {
     try {
-        let token = req?.cookie?.refreshToken || req.header("Authorization").split(" ")[1];
+        let token = req?.cookies?.refreshToken || req.header("Authorization")?.split(" ")[1];
 
         if (!token) {
             return res.status(401).json({ message: "No token provided" });
@@ -88,7 +84,7 @@ exports.login = async (req, res) => {
         const { email, password } = req.body;
         const checkUser = await User.findOne({ email });
         if (!checkUser) {
-            res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "User not found" });
         }
         let comparePass = await bcrypt.compare(password, checkUser.password);
         if (!comparePass) {

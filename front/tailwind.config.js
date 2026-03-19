@@ -24,11 +24,37 @@ module.exports = {
         outfit: ['Outfit', 'sans-serif'],
         inter: ['Inter', 'sans-serif'],
       },
-      animation: {
-        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+      screens: {
+        xs: "320px",
+        sm375: "375px",
+        sm: "425px",
+        md600: "601px",
+        md: "768px",
+        lg: "1024px",
+        xl: "1280px",
+        "2xl": "1440px",
+        "3xl": "1920px",
+        "4xl": "2560px",
       },
-      backdropBlur: {
-        xs: '2px',
+      container: {
+        center: true, // Center the container by default
+        screens: {
+          sm: '420px',
+          md: '768px',
+          lg: '1024px',
+          xl: '1280px',
+          '2xl': '1536px',
+          '3xl': '1800px',
+        },
+      },
+      fontFamily: {
+        outfit: ['Outfit', 'sans-serif'],
+        inter: ['Inter', 'sans-serif'],
+      },
+      boxShadow: {
+        'card': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px -1px rgba(0, 0, 0, 0.1)',
+        'soft': '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+        'modal': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
       }
     },
   },

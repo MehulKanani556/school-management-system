@@ -1,5 +1,6 @@
 import React from 'react';
 import './App.css';
+import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useSelector } from 'react-redux';
 import { configureStore } from './redux/Store';
@@ -14,6 +15,11 @@ import Classes from './pages/schooladmin/Classes';
 import Fees from './pages/schooladmin/Fees';
 import Exams from './pages/schooladmin/Exams';
 import Attendance from './pages/schooladmin/Attendance';
+import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+import SuperAdminHome from './pages/superadmin/SuperAdminHome';
+import AllSchools from './pages/superadmin/AllSchools';
+import Revenue from './pages/superadmin/Revenue';
+import Security from './pages/superadmin/Security';
 
 const { store, persistor } = configureStore();
 
@@ -38,7 +44,7 @@ function AppRoutes() {
   return (
     <Router>
       <Routes>
-        <Route path="/login"  element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+        <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         <Route path="/" element={<HomeRedirect />} />
 
@@ -47,14 +53,28 @@ function AppRoutes() {
           <RoleRoute role="School_Admin"><SchoolAdminLayout /></RoleRoute>
         }>
           <Route index element={<Dashboard />} />
-          <Route path="students"   element={<Students />} />
-          <Route path="teachers"   element={<Teachers />} />
-          <Route path="classes"    element={<Classes />} />
-          <Route path="fees"       element={<Fees />} />
-          <Route path="exams"      element={<Exams />} />
+          <Route path="students" element={<Students />} />
+          <Route path="teachers" element={<Teachers />} />
+          <Route path="classes" element={<Classes />} />
+          <Route path="fees" element={<Fees />} />
+          <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
         </Route>
 
+
+        {/* Main Entry Point (Switchboard) */}
+        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
+
+        {/* Super Admin Domain (Nested Pages) */}
+        <Route path="/superadmin" element={isAuthenticated && user?.role === 'Super_Admin' ? <SuperAdminDashboard /> : <Navigate to="/" />}>
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<SuperAdminHome />} />
+          <Route path="schools" element={<AllSchools />} />
+          <Route path="revenue" element={<Revenue />} />
+          <Route path="security" element={<Security />} />
+        </Route>
+
+        {/* Catch-all Redirect */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
@@ -65,6 +85,33 @@ function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 4000,
+            style: {
+              background: '#0f172a',
+              color: '#fff',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '16px',
+              backdropFilter: 'blur(10px)',
+              fontWeight: '600',
+              fontSize: '14px',
+            },
+            success: {
+              iconTheme: {
+                primary: '#10b981',
+                secondary: '#fff',
+              },
+            },
+            error: {
+              iconTheme: {
+                primary: '#f43f5e',
+                secondary: '#fff',
+              },
+            },
+          }}
+        />
         <AppRoutes />
       </PersistGate>
     </Provider>
