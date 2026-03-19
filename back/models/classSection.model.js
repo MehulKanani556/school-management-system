@@ -3,29 +3,29 @@ const mongoose = require('mongoose');
 const classSectionSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   
-  // Grade Level (represents the "Standard")
-  gradeLevel: { type: Number, required: true, min: 1, max: 12 },
+  // Link to the Parent Standard (Grade Level)
+  standardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
   
-  // Classroom (represents the "Section" e.g., A, B, C)
+  // Section Label (Classroom e.g., A, B, C)
   sectionLabel: { type: String, required: true },
   
-  // Class Teacher (Particular teacher for this specific room)
+  // Particular Class Teacher for this section
   classTeacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
   
-  // Optional: List of teachers assigned to specific subjects in this room
+  // Teachers assigned to specific subjects in this particular room
   subjectAssignments: [{
     subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject' },
-    teacher: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }
+    teachers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }]
   }],
-  
-  // Standard list of subjects for this grade
+
+  // Cached subjects for this room (inherited from Standard but can be modified)
   subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }],
 }, { timestamps: true });
 
-// Ensure Grade + Section is unique for each school (e.g., Only one "Grade 1-A")
-classSectionSchema.index({ schoolId: 1, gradeLevel: 1, sectionLabel: 1 }, { unique: true });
+// Ensure Standard + Section combo is unique per school (e.g., Only one "Standard 1 - A")
+classSectionSchema.index({ schoolId: 1, standardId: 1, sectionLabel: 1 }, { unique: true });
 
-// Ensure a teacher is only a Class Teacher for one classroom at a time
+// Ensure a teacher is only a Class Teacher for one section at a time
 classSectionSchema.index({ schoolId: 1, classTeacher: 1 }, { unique: true });
 
 module.exports = mongoose.model('ClassSection', classSectionSchema);

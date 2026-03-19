@@ -45,6 +45,12 @@ router.put('/school-admin/teachers/:id', ...schoolAdmin, sa.updateTeacher);
 router.delete('/school-admin/teachers/:id', ...schoolAdmin, sa.deleteTeacher);
 router.patch('/school-admin/teachers/:id/toggle-status', ...schoolAdmin, sa.toggleTeacherStatus);
 
+// Standards
+router.get('/school-admin/standards', ...schoolAdmin, sa.getStandards);
+router.post('/school-admin/standards', ...schoolAdmin, sa.createStandard);
+router.put('/school-admin/standards/:id', ...schoolAdmin, sa.updateStandard);
+router.delete('/school-admin/standards/:id', ...schoolAdmin, sa.deleteStandard);
+
 // Classes
 router.get('/school-admin/classes', ...schoolAdmin, sa.getClasses);
 router.post('/school-admin/classes', ...schoolAdmin, sa.createClass);

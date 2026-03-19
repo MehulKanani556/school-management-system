@@ -1,6 +1,7 @@
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 const ClassSection = require('../models/classSection.model');
+const Standard = require('../models/standard.model');
 const Subject = require('../models/subject.model');
 const Exam = require('../models/exam.model');
 const FeePayment = require('../models/feePayment.model');
@@ -65,9 +66,41 @@ exports.getDashboardStats = async (req, res) => {
       Exam.countDocuments({ schoolId }),
     ]);
     res.json({ students, teachers, classes, pendingFees: fees, exams });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Standards ────────────────────────────────────────────────────────────────
+exports.getStandards = async (req, res) => {
+  try {
+    const standards = await Standard.find({ schoolId: getSchoolId(req) }).populate('subjects', 'name code');
+    res.json(standards);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createStandard = async (req, res) => {
+  try {
+    const standard = await Standard.create({ ...req.body, schoolId: getSchoolId(req) });
+    const populated = await standard.populate('subjects', 'name code');
+    res.status(201).json(populated);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateStandard = async (req, res) => {
+  try {
+    const standard = await Standard.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      req.body, { new: true }
+    ).populate('subjects', 'name code');
+    if (!standard) return res.status(404).json({ message: 'Standard not found' });
+    res.json(standard);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteStandard = async (req, res) => {
+  try {
+    await Standard.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Standard deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // ─── Students ─────────────────────────────────────────────────────────────────
@@ -117,7 +150,11 @@ exports.updateStudent = async (req, res) => {
     const student = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       body, { new: true }
-    ).populate('classSection', 'gradeLevel sectionLabel');
+    ).populate({
+      path: 'classSection',
+      select: 'sectionLabel',
+      populate: { path: 'standardId', select: 'level' }
+    });
     if (!student) return res.status(404).json({ message: 'Student not found' });
     res.json(student);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -280,20 +317,22 @@ exports.deleteTeacher = async (req, res) => {
 exports.getClasses = async (req, res) => {
   try {
     const classes = await ClassSection.find({ schoolId: getSchoolId(req) })
+      .populate('standardId', 'level name')
       .populate('classTeacher', 'firstName lastName')
-      .populate('subjects', 'name code');
+      .populate('subjectAssignments.subject', 'name code')
+      .populate('subjectAssignments.teachers', 'firstName lastName');
     res.json(classes);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createClass = async (req, res) => {
   try {
-    const { gradeLevel, sectionLabel, classTeacher } = req.body;
+    const { standardId, sectionLabel, classTeacher } = req.body;
     const schoolId = getSchoolId(req);
 
-    // Check if section already exists in this grade
-    const existingSection = await ClassSection.findOne({ schoolId, gradeLevel, sectionLabel });
-    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for Grade ${gradeLevel}` });
+    // Check if section already exists in this standard
+    const existingSection = await ClassSection.findOne({ schoolId, standardId, sectionLabel });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard` });
 
     // Check if teacher is already a class teacher for another section
     if (classTeacher) {
@@ -303,8 +342,10 @@ exports.createClass = async (req, res) => {
 
     const cls = await ClassSection.create({ ...req.body, schoolId });
     const populated = await cls.populate([
+      { path: 'standardId', select: 'level' },
       { path: 'classTeacher', select: 'firstName lastName' },
-      { path: 'subjects', select: 'name code' }
+      { path: 'subjectAssignments.subject', select: 'name code' },
+      { path: 'subjectAssignments.teachers', select: 'firstName lastName' }
     ]);
     res.status(201).json(populated);
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -312,15 +353,15 @@ exports.createClass = async (req, res) => {
 
 exports.updateClass = async (req, res) => {
   try {
-    const { gradeLevel, sectionLabel, classTeacher } = req.body;
+    const { standardId, sectionLabel, classTeacher } = req.body;
     const schoolId = getSchoolId(req);
 
     // Check for duplicate section
     const existingSection = await ClassSection.findOne({ 
-      schoolId, gradeLevel, sectionLabel, 
+      schoolId, standardId, sectionLabel, 
       _id: { $ne: req.params.id } 
     });
-    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for Grade ${gradeLevel}` });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard` });
 
     // Check if teacher is already a class teacher elsewhere
     if (classTeacher) {
@@ -335,8 +376,10 @@ exports.updateClass = async (req, res) => {
       { _id: req.params.id, schoolId },
       req.body, { new: true }
     ).populate([
+      { path: 'standardId', select: 'level' },
       { path: 'classTeacher', select: 'firstName lastName' },
-      { path: 'subjects', select: 'name code' }
+      { path: 'subjectAssignments.subject', select: 'name code' },
+      { path: 'subjectAssignments.teachers', select: 'firstName lastName' }
     ]);
     if (!cls) return res.status(404).json({ message: 'Class not found' });
     res.json(cls);
