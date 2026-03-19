@@ -21,15 +21,17 @@ const initialState = {
     users: [],
     loading: false,
     error: null,
+    message: null,
 };
 
 const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
-        clearUserError: (state) => {
-            state.error = null;
-        },
+        clearUserError: (state) => { state.error = null; },
+        clearUserMessage: (state) => { state.message = null; },
+        setUserError: (state, action) => { state.error = action.payload; },
+        setUserMessage: (state, action) => { state.message = action.payload; }
     },
     extraReducers: (builder) => {
         builder
@@ -48,5 +50,5 @@ const userSlice = createSlice({
     },
 });
 
-export const { clearUserError } = userSlice.actions;
+export const { clearUserError, clearUserMessage, setUserError, setUserMessage } = userSlice.actions;
 export default userSlice.reducer;

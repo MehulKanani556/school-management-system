@@ -10,8 +10,8 @@ export const SocketProvider = ({ children }) => {
     const socketRef = useRef(null);
 
     const getAuth = () => ({
-        userId: sessionStorage.getItem("userId") || localStorage.getItem("userId"),
-        token: sessionStorage.getItem("token") || localStorage.getItem("token"),
+        userId: localStorage.getItem("userId"),
+        token: localStorage.getItem("token"),
     });
 
     const { userId, token } = getAuth();

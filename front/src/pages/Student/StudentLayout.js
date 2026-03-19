@@ -27,7 +27,6 @@ const StudentLayout = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        toast.success('Student session terminated');
     };
 
     const isActive = (path) => location.pathname === path;

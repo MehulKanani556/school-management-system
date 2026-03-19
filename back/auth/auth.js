@@ -91,7 +91,7 @@ exports.studentLogin = async (req, res) => {
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
             .status(200).json({
                 user: studentUser,
-                message: "Student Access Granted",
+                message: "Student logged in successfully",
                 token: accessToken
             });
     } catch (error) {
@@ -117,7 +117,7 @@ exports.login = async (req, res) => {
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
             .status(200).json({
                 user: checkUser,
-                message: "Institutional Access Granted",
+                message: "Login successfully",
                 token: accessToken
             })
     } catch (error) {

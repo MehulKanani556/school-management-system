@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchSchools, fetchStats, createSchool, deleteSchool, updateSchool, clearSchoolError } from '../../redux/slice/school.slice';
+import { fetchSchools, fetchStats, createSchool, deleteSchool, updateSchool } from '../../redux/slice/school.slice';
 import {
     Plus, Trash2, School, Search, X, Upload, Check, Activity, AlertTriangle,
     Edit
@@ -8,11 +8,11 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import toast from 'react-hot-toast';
+import Pagination from '../../components/Pagination';
 
 const AllSchools = () => {
     const dispatch = useDispatch();
-    const { schools, loading, error } = useSelector((state) => state.school);
+    const { schools, loading, message } = useSelector((state) => state.school);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [modalMode, setModalMode] = useState('create');
@@ -20,17 +20,21 @@ const AllSchools = () => {
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [selectedSchool, setSelectedSchool] = useState(null);
     const [logoPreview, setLogoPreview] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         dispatch(fetchSchools());
     }, [dispatch]);
 
+    // Side effects for successful operations
     useEffect(() => {
-        if (error) {
-            toast.error(error);
-            dispatch(clearSchoolError());
+        if (message) {
+            if (isFormModalOpen) closeFormModal();
+            if (isDeleteModalOpen) setIsDeleteModalOpen(false);
+            dispatch(fetchStats());
         }
-    }, [error, dispatch]);
+    }, [message]);
 
     const formik = useFormik({
         initialValues: { name: '', subdomain: '', adminEmail: '', subscriptionTier: 'basic', logo: null },
@@ -50,19 +54,10 @@ const AllSchools = () => {
             });
 
             if (modalMode === 'create') {
-                const result = await dispatch(createSchool(formData));
-                if (createSchool.fulfilled.match(result)) {
-                    toast.success('School deployed');
-                    closeFormModal();
-                }
+                dispatch(createSchool(formData));
             } else {
-                const result = await dispatch(updateSchool({ id: selectedSchool._id, formData }));
-                if (updateSchool.fulfilled.match(result)) {
-                    toast.success('School updated');
-                    closeFormModal();
-                }
+                dispatch(updateSchool({ id: selectedSchool._id, formData }));
             }
-            dispatch(fetchStats());
         }
     });
 
@@ -99,16 +94,16 @@ const AllSchools = () => {
     };
 
     const confirmDelete = async () => {
-        const result = await dispatch(deleteSchool(selectedSchool._id));
-        if (deleteSchool.fulfilled.match(result)) {
-            toast.success('Instance decommissioned');
-            setIsDeleteModalOpen(false);
-            setSelectedSchool(null);
-            dispatch(fetchStats());
-        }
+        dispatch(deleteSchool(selectedSchool._id));
     };
 
     const filteredSchools = schools.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const totalPages = Math.ceil(filteredSchools.length / itemsPerPage);
+    const currentItems = filteredSchools.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    // Reset page when search changes
+    useEffect(() => { setCurrentPage(1); }, [searchTerm]);
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} >
@@ -144,7 +139,7 @@ const AllSchools = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-brand-border">
-                                {filteredSchools.map((school) => (
+                                {currentItems.map((school) => (
                                     <tr key={school._id} className="group hover:bg-brand-background/40 transition-colors">
                                         <td className="px-5 xs:px-6 py-5 xs:py-6">
                                             <div className="flex items-center gap-4">
@@ -181,6 +176,14 @@ const AllSchools = () => {
                         </table>
                     </div>
                 </div>
+
+                <Pagination 
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={setCurrentPage}
+                    itemsPerPage={itemsPerPage}
+                    totalItems={filteredSchools.length}
+                />
             </div>
 
             {/* School Form Modal (Create/Edit) */}

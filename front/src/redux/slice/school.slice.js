@@ -13,11 +13,9 @@ export const fetchSchools = createAsyncThunk('school/fetchAll', async (_, { reje
 export const createSchool = createAsyncThunk('school/create', async (formData, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.post('/superadmin/create-school', formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
-        return response.data.school;
+        return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }
@@ -26,11 +24,9 @@ export const createSchool = createAsyncThunk('school/create', async (formData, {
 export const updateSchool = createAsyncThunk('school/update', async ({ id, formData }, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.put(`/superadmin/update-school/${id}`, formData, {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
+            headers: { 'Content-Type': 'multipart/form-data' }
         });
-        return response.data.school;
+        return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }
@@ -38,8 +34,8 @@ export const updateSchool = createAsyncThunk('school/update', async ({ id, formD
 
 export const deleteSchool = createAsyncThunk('school/delete', async (id, { rejectWithValue }) => {
     try {
-        await axiosInstance.delete(`/superadmin/delete-school/${id}`);
-        return id;
+        const response = await axiosInstance.delete(`/superadmin/delete-school/${id}`);
+        return { id, ...response.data };
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }
@@ -64,12 +60,14 @@ const schoolSlice = createSlice({
             totalRevenue: 0
         },
         loading: false,
-        error: null
+        error: null,
+        message: null
     },
     reducers: {
-        clearSchoolError: (state) => {
-            state.error = null;
-        }
+        clearSchoolError: (state) => { state.error = null; },
+        clearSchoolMessage: (state) => { state.message = null; },
+        setSchoolError: (state, action) => { state.error = action.payload; },
+        setSchoolMessage: (state, action) => { state.message = action.payload; }
     },
     extraReducers: (builder) => {
         builder
@@ -83,22 +81,27 @@ const schoolSlice = createSlice({
                 state.error = action.payload;
             })
             .addCase(createSchool.fulfilled, (state, action) => {
-                state.schools.unshift(action.payload);
+                const school = action.payload.school || action.payload;
+                state.schools.unshift(school);
+                state.message = action.payload.message || "Institutional node deployed";
             })
             .addCase(createSchool.rejected, (state, action) => {
                 state.error = action.payload;
             })
             .addCase(updateSchool.fulfilled, (state, action) => {
-                const index = state.schools.findIndex(s => s._id === action.payload._id);
+                const school = action.payload.school || action.payload;
+                const index = state.schools.findIndex(s => s._id === school._id);
                 if (index !== -1) {
-                    state.schools[index] = action.payload;
+                    state.schools[index] = school;
                 }
+                state.message = action.payload.message || "Node mapping synchronized";
             })
             .addCase(updateSchool.rejected, (state, action) => {
                 state.error = action.payload;
             })
             .addCase(deleteSchool.fulfilled, (state, action) => {
-                state.schools = state.schools.filter(s => s._id !== action.payload);
+                state.schools = state.schools.filter(s => s._id !== action.payload.id);
+                state.message = action.payload.message || "Instance decommissioned";
             })
             .addCase(deleteSchool.rejected, (state, action) => {
                 state.error = action.payload;
@@ -109,5 +112,5 @@ const schoolSlice = createSlice({
     }
 });
 
-export const { clearSchoolError } = schoolSlice.actions;
+export const { clearSchoolError, clearSchoolMessage, setSchoolError, setSchoolMessage } = schoolSlice.actions;
 export default schoolSlice.reducer;

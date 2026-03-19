@@ -55,10 +55,14 @@ const studentSlice = createSlice({
         assignments: [],
         timetable: [],
         loading: false,
-        error: null
+        error: null,
+        message: null
     },
     reducers: {
-        clearStudentError: (state) => { state.error = null; }
+        clearStudentError: (state) => { state.error = null; },
+        clearStudentMessage: (state) => { state.message = null; },
+        setStudentError: (state, action) => { state.error = action.payload; },
+        setStudentMessage: (state, action) => { state.message = action.payload; }
     },
     extraReducers: (builder) => {
         builder
@@ -82,5 +86,5 @@ const studentSlice = createSlice({
     }
 });
 
-export const { clearStudentError } = studentSlice.actions;
+export const { clearStudentError, clearStudentMessage, setStudentError, setStudentMessage } = studentSlice.actions;
 export default studentSlice.reducer;

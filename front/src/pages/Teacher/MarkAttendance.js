@@ -8,11 +8,11 @@ import {
     fetchClassStudents, 
     fetchTeacherAttendance,
     submitAttendance, 
-    clearTeacherMessage 
+    clearTeacherMessage,
+    setTeacherError 
 } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Clock, Save, Search, ChevronDown, Activity, Calendar, Users } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const MarkAttendance = () => {
     const dispatch = useDispatch();
@@ -40,7 +40,7 @@ const MarkAttendance = () => {
             }));
 
             if (recordsArr.length === 0) {
-                return toast.error("No student nodes detected for commitment");
+                return dispatch(setTeacherError("No student nodes detected for commitment"));
             }
 
             dispatch(submitAttendance({ 
@@ -90,13 +90,6 @@ const MarkAttendance = () => {
             formik.setFieldValue('records', newRecords);
         }
     }, [students, attendance]);
-
-    useEffect(() => {
-        if (message) {
-            toast.success(message);
-            dispatch(clearTeacherMessage());
-        }
-    }, [message, dispatch]);
 
     const filteredStudents = students.filter(s => 
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())

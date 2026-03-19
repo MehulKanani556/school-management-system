@@ -38,7 +38,7 @@ const put = (name, path) =>
 
 const del = (name, path) =>
   createAsyncThunk(name, async (id, { rejectWithValue }) => {
-    try { await axiosInstance.delete(`${BASE}${path}/${id}`); return id; }
+    try { const res = await axiosInstance.delete(`${BASE}${path}/${id}`); return { id, ...res.data }; }
     catch (e) { return rejectWithValue(e.response?.data); }
   });
 
@@ -94,7 +94,7 @@ export const deleteHoliday = del('sa/deleteHoliday', '/holidays');
 const initialState = {
   dashboard: null,
   students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [], attendance: [], holidays: [], timetable: null, timetables: [],
-  loading: false, error: null,
+  loading: false, error: null, message: null
 };
 
 const handleList = (key) => (state, action) => { state[key] = action.payload; state.loading = false; };
@@ -102,7 +102,10 @@ const handleList = (key) => (state, action) => { state[key] = action.payload; st
 const schoolAdminSlice = createSlice({
   name: 'schoolAdmin',
   initialState,
-  reducers: { clearError: (state) => { state.error = null; } },
+  reducers: { 
+    clearError: (state) => { state.error = null; },
+    clearMessage: (state) => { state.message = null; }
+  },
   extraReducers: (builder) => {
     const pending = (state) => { state.loading = true; state.error = null; };
     const rejected = (state, action) => { state.loading = false; state.error = action.payload?.message || 'Error'; };
@@ -122,39 +125,140 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
       // create
-      .addCase(createStudent.fulfilled, (state, a) => { state.students.push(a.payload); state.loading = false; })
-      .addCase(createTeacher.fulfilled, (state, a) => { state.teachers.push(a.payload); state.loading = false; })
-      .addCase(createClass.fulfilled, (state, a) => { state.classes.push(a.payload); state.loading = false; })
-      .addCase(createStandard.fulfilled, (state, a) => { state.standards.push(a.payload); state.loading = false; })
-      .addCase(createFee.fulfilled, (state, a) => { state.fees.push(a.payload); state.loading = false; })
-      .addCase(createExam.fulfilled, (state, a) => { state.exams.push(a.payload); state.loading = false; })
-      .addCase(createSubject.fulfilled, (state, a) => { state.subjects.push(a.payload); state.loading = false; })
-      .addCase(createHoliday.fulfilled, (state, a) => { state.holidays.push(a.payload); state.loading = false; })
-      .addCase(createFeeStructure.fulfilled, (state, a) => { state.feeStructures.push(a.payload); state.loading = false; })
+      .addCase(createStudent.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.students.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Student node created"; 
+      })
+      .addCase(createTeacher.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.teachers.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Teacher node created"; 
+      })
+      .addCase(createClass.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.classes.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Academic section created"; 
+      })
+      .addCase(createStandard.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.standards.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Standard node created"; 
+      })
+      .addCase(createFee.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.fees.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Fee node created"; 
+      })
+      .addCase(createExam.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.exams.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Examination node created"; 
+      })
+      .addCase(createSubject.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.subjects.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Subject node created"; 
+      })
+      .addCase(createHoliday.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.holidays.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Holiday terminal entry created"; 
+      })
+      .addCase(createFeeStructure.fulfilled, (state, a) => { 
+          const item = a.payload.data || a.payload;
+          state.feeStructures.push(item); 
+          state.loading = false; 
+          state.message = a.payload.message || "Fee structure node created"; 
+      })
+
       // update
-      .addCase(updateStudent.fulfilled, (state, a) => { const i = state.students.findIndex(s => s._id === a.payload._id); if (i !== -1) state.students[i] = a.payload; state.loading = false; })
-      .addCase(updateTeacher.fulfilled, (state, a) => { const i = state.teachers.findIndex(t => t._id === a.payload._id); if (i !== -1) state.teachers[i] = a.payload; state.loading = false; })
-      .addCase(updateClass.fulfilled, (state, a) => { const i = state.classes.findIndex(c => c._id === a.payload._id); if (i !== -1) state.classes[i] = a.payload; state.loading = false; })
-      .addCase(updateStandard.fulfilled, (state, a) => { const i = state.standards.findIndex(s => s._id === a.payload._id); if (i !== -1) state.standards[i] = a.payload; state.loading = false; })
-      .addCase(updateFee.fulfilled, (state, a) => { const i = state.fees.findIndex(f => f._id === a.payload._id); if (i !== -1) state.fees[i] = a.payload; state.loading = false; })
-      .addCase(updateExam.fulfilled, (state, a) => { const i = state.exams.findIndex(e => e._id === a.payload._id); if (i !== -1) state.exams[i] = a.payload; state.loading = false; })
-      .addCase(updateSubject.fulfilled, (state, a) => { const i = state.subjects.findIndex(s => s._id === a.payload._id); if (i !== -1) state.subjects[i] = a.payload; state.loading = false; })
-      .addCase(updateHoliday.fulfilled, (state, a) => { const i = state.holidays.findIndex(h => h._id === a.payload._id); if (i !== -1) state.holidays[i] = a.payload; state.loading = false; })
-      .addCase(updateFeeStructure.fulfilled, (state, a) => { const i = state.feeStructures.findIndex(s => s._id === a.payload._id); if (i !== -1) state.feeStructures[i] = a.payload; state.loading = false; })
+      .addCase(updateStudent.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.students.findIndex(s => s._id === upd._id); 
+          if (i !== -1) state.students[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Student identity updated"; 
+      })
+      .addCase(updateTeacher.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.teachers.findIndex(t => t._id === upd._id); 
+          if (i !== -1) state.teachers[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Teacher identity updated"; 
+      })
+      .addCase(updateClass.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.classes.findIndex(c => c._id === upd._id); 
+          if (i !== -1) state.classes[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Academic section modified"; 
+      })
+      .addCase(updateStandard.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.standards.findIndex(s => s._id === upd._id); 
+          if (i !== -1) state.standards[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Standard node modified"; 
+      })
+      .addCase(updateFee.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const idx = state.fees.findIndex(f => f._id === upd._id); 
+          if (idx !== -1) state.fees[idx] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Fee node modified"; 
+      })
+      .addCase(updateExam.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.exams.findIndex(e => e._id === upd._id); 
+          if (i !== -1) state.exams[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Examination node modified"; 
+      })
+      .addCase(updateSubject.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.subjects.findIndex(s => s._id === upd._id); 
+          if (i !== -1) state.subjects[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Subject node modified"; 
+      })
+      .addCase(updateHoliday.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.holidays.findIndex(h => h._id === upd._id); 
+          if (i !== -1) state.holidays[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Holiday entry updated"; 
+      })
+      .addCase(updateFeeStructure.fulfilled, (state, a) => { 
+          const upd = a.payload.data || a.payload;
+          const i = state.feeStructures.findIndex(s => s._id === upd._id); 
+          if (i !== -1) state.feeStructures[i] = upd; 
+          state.loading = false; 
+          state.message = a.payload.message || "Fee structure modified"; 
+      })
+
       // delete
-      .addCase(deleteStudent.fulfilled, (state, a) => { state.students = state.students.filter(s => s._id !== a.payload); state.loading = false; })
-      .addCase(deleteTeacher.fulfilled, (state, a) => { state.teachers = state.teachers.filter(t => t._id !== a.payload); state.loading = false; })
-      .addCase(toggleTeacherStatus.fulfilled, (state, a) => { const t = state.teachers.find(t => t._id === a.payload.id); if (t) t.isActive = a.payload.isActive; state.loading = false; })
-      .addCase(deleteClass.fulfilled, (state, a) => { state.classes = state.classes.filter(c => c._id !== a.payload); state.loading = false; })
-      .addCase(deleteStandard.fulfilled, (state, a) => { state.standards = state.standards.filter(s => s._id !== a.payload); state.loading = false; })
-      .addCase(deleteExam.fulfilled, (state, a) => { state.exams = state.exams.filter(e => e._id !== a.payload); state.loading = false; })
-      .addCase(deleteSubject.fulfilled, (state, a) => { state.subjects = state.subjects.filter(s => s._id !== a.payload); state.loading = false; })
-      .addCase(deleteHoliday.fulfilled, (state, a) => { state.holidays = state.holidays.filter(h => h._id !== a.payload); state.loading = false; })
-      .addCase(saveAttendance.fulfilled, (state) => { state.loading = false; })
-      .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload); state.loading = false; })
-      .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload); state.loading = false; })
-      .addCase(applyFeeStructure.fulfilled, (state) => { state.loading = false; })
-      .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; });
+      .addCase(deleteStudent.fulfilled, (state, a) => { state.students = state.students.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Student decommissioned"; })
+      .addCase(deleteTeacher.fulfilled, (state, a) => { state.teachers = state.teachers.filter(t => t._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Teacher decommissioned"; })
+      .addCase(toggleTeacherStatus.fulfilled, (state, a) => { const t = state.teachers.find(t => t._id === a.payload.id); if (t) t.isActive = a.payload.isActive; state.loading = false; state.message = a.payload.message || "Teacher status toggled"; })
+      .addCase(deleteClass.fulfilled, (state, a) => { state.classes = state.classes.filter(c => c._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Class section decommissioned"; })
+      .addCase(deleteStandard.fulfilled, (state, a) => { state.standards = state.standards.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Standard node removed"; })
+      .addCase(deleteExam.fulfilled, (state, a) => { state.exams = state.exams.filter(e => e._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Examination node removed"; })
+      .addCase(deleteSubject.fulfilled, (state, a) => { state.subjects = state.subjects.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Subject removed from registry"; })
+      .addCase(deleteHoliday.fulfilled, (state, a) => { state.holidays = state.holidays.filter(h => h._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Holiday terminal entry removed"; })
+      .addCase(saveAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Sector attendance committed"; })
+      .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee node removed"; })
+      .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee structure removed"; })
+      .addCase(applyFeeStructure.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Fee structure applied successfully"; })
+      .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; });
 
     // pending/rejected for all
     [
@@ -169,5 +273,5 @@ const schoolAdminSlice = createSlice({
   },
 });
 
-export const { clearError } = schoolAdminSlice.actions;
+export const { clearError, clearMessage } = schoolAdminSlice.actions;
 export default schoolAdminSlice.reducer;

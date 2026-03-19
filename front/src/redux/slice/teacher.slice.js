@@ -139,7 +139,9 @@ const teacherSlice = createSlice({
     },
     reducers: {
         clearTeacherError: (state) => { state.error = null; },
-        clearTeacherMessage: (state) => { state.message = null; }
+        clearTeacherMessage: (state) => { state.message = null; },
+        setTeacherError: (state, action) => { state.error = action.payload; },
+        setTeacherMessage: (state, action) => { state.message = action.payload; }
     },
     extraReducers: (builder) => {
         builder
@@ -169,23 +171,25 @@ const teacherSlice = createSlice({
             })
             .addCase(updateAssignment.fulfilled, (state, action) => {
                 state.loading = false;
-                state.message = "Homework updated successfully";
-                state.assignments = state.assignments.map(a => a._id === action.payload._id ? action.payload : a);
+                state.message = action.payload?.message || "Homework updated successfully";
+                const upd = action.payload?.assignment || action.payload;
+                state.assignments = state.assignments.map(a => a._id === upd._id ? upd : a);
             })
             .addCase(deleteAssignment.fulfilled, (state, action) => {
                 state.loading = false;
-                state.message = "Homework decommissioned";
+                state.message = action.payload?.message || "Homework decommissioned";
                 state.assignments = state.assignments.filter(a => a._id !== action.meta.arg);
             })
-            .addCase(submitAttendance.fulfilled, (state) => { state.message = "Attendance marked successfully"; })
-            .addCase(submitMarks.fulfilled, (state) => { state.message = "Marks submitted successfully"; })
+            .addCase(submitAttendance.fulfilled, (state, action) => { state.message = action.payload?.message || "Attendance marked successfully"; })
+            .addCase(submitMarks.fulfilled, (state, action) => { state.message = action.payload?.message || "Marks submitted successfully"; })
             .addCase(uploadAssignment.fulfilled, (state, action) => { 
-                state.message = "Assignment published successfully"; 
-                state.assignments = [action.payload, ...state.assignments];
+                state.message = action.payload?.message || "Assignment published successfully"; 
+                const newAs = action.payload?.assignment || action.payload;
+                state.assignments = [newAs, ...state.assignments];
             })
-            .addCase(sendMessage.fulfilled, (state) => { state.message = "Communication broadcasted successfully"; });
+            .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; });
     }
 });
 
-export const { clearTeacherError, clearTeacherMessage } = teacherSlice.actions;
+export const { clearTeacherError, clearTeacherMessage, setTeacherError, setTeacherMessage } = teacherSlice.actions;
 export default teacherSlice.reducer;

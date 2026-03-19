@@ -38,6 +38,7 @@ import AssignmentsStudent from './pages/Student/Assignments';
 import Timetable from './pages/Student/Timetable';
 import StudentProfile from './pages/Student/StudentProfile';
 import Holidays from './pages/common/Holidays';
+import ToastManager from './ToastManager';
 
 const { store, persistor } = configureStore();
 
@@ -164,6 +165,7 @@ function App() {
             },
           }}
         />
+        <ToastManager />
         <AppRoutes />
       </PersistGate>
     </Provider>

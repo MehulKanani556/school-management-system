@@ -219,7 +219,7 @@ exports.createStandard = async (req, res) => {
   try {
     const standard = await Standard.create({ ...req.body, schoolId: getSchoolId(req) });
     const populated = await standard.populate('subjects', 'name code');
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Standard node created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -230,7 +230,7 @@ exports.updateStandard = async (req, res) => {
       req.body, { new: true }
     ).populate('subjects', 'name code');
     if (!standard) return res.status(404).json({ message: 'Standard not found' });
-    res.json(standard);
+    res.json({ message: 'Standard node modified successfully', data: standard });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -281,7 +281,7 @@ exports.createStudent = async (req, res) => {
       { path: 'standard', select: 'level name' },
       { path: 'classSection', select: 'sectionLabel' }
     ]);
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Student node provisioned successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -298,7 +298,7 @@ exports.updateStudent = async (req, res) => {
       { path: 'classSection', select: 'sectionLabel' }
     ]);
     if (!student) return res.status(404).json({ message: 'Student not found' });
-    res.json(student);
+    res.json({ message: 'Student identity updated successfully', data: student });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -393,7 +393,7 @@ exports.createTeacher = async (req, res) => {
       joiningDate: teacher.joiningDate,
     }).catch(err => console.error('Mail error:', err));
 
-    res.status(201).json(teacher);
+    res.status(201).json({ message: 'Teacher node provisioned successfully', data: teacher });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -427,7 +427,7 @@ exports.updateTeacher = async (req, res) => {
       });
     }
 
-    res.json(teacher);
+    res.json({ message: 'Teacher identity updated successfully', data: teacher });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -489,7 +489,7 @@ exports.createClass = async (req, res) => {
       { path: 'subjectAssignments.subject', select: 'name code' },
       { path: 'subjectAssignments.teachers', select: 'firstName lastName' }
     ]);
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Academic section created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -524,7 +524,7 @@ exports.updateClass = async (req, res) => {
       { path: 'subjectAssignments.teachers', select: 'firstName lastName' }
     ]);
     if (!cls) return res.status(404).json({ message: 'Class not found' });
-    res.json(cls);
+    res.json({ message: 'Academic section modified successfully', data: cls });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -547,7 +547,7 @@ exports.createFee = async (req, res) => {
   try {
     const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req) });
     const populated = await FeePayment.findById(fee._id).populate('studentId', 'firstName lastName admissionNumber');
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Fee node created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -581,7 +581,7 @@ exports.updateFee = async (req, res) => {
       updateData, { new: true }
     ).populate('studentId', 'firstName lastName admissionNumber');
     
-    res.json(fee);
+    res.json({ message: 'Fee node modified successfully', data: fee });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -604,7 +604,7 @@ exports.createFeeStructure = async (req, res) => {
   try {
     const sub = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
     const populated = await sub.populate('standardId', 'level name');
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Fee structure node created successfully', data: sub });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -615,7 +615,7 @@ exports.updateFeeStructure = async (req, res) => {
       req.body, { new: true }
     ).populate('standardId', 'level name');
     if (!sub) return res.status(404).json({ message: 'Fee structure not found' });
-    res.json(sub);
+    res.json({ message: 'Fee structure node modified successfully', data: sub });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -687,7 +687,7 @@ exports.createExam = async (req, res) => {
       { path: 'classSection', select: 'sectionLabel' },
       { path: 'subject', select: 'name code' }
     ]);
-    res.status(201).json(populated);
+    res.status(201).json({ message: 'Examination node created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -704,7 +704,7 @@ exports.updateExam = async (req, res) => {
       { path: 'subject', select: 'name code' }
     ]);
     if (!exam) return res.status(404).json({ message: 'Exam not found' });
-    res.json(exam);
+    res.json({ message: 'Examination node modified successfully', data: exam });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -739,7 +739,7 @@ exports.saveAttendance = async (req, res) => {
       { schoolId, standardId, classSection, date: new Date(date), records, submittedBy: req.user._id },
       { upsert: true, new: true }
     );
-    res.json(attendance);
+    res.json({ message: 'Attendance registry committed successfully', data: attendance });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -754,7 +754,7 @@ exports.getSubjects = async (req, res) => {
 exports.createSubject = async (req, res) => {
   try {
     const sub = await Subject.create({ ...req.body, schoolId: getSchoolId(req) });
-    res.status(201).json(sub);
+    res.status(201).json({ message: 'Subject node created successfully', data: sub });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -765,7 +765,7 @@ exports.updateSubject = async (req, res) => {
       req.body, { new: true }
     );
     if (!sub) return res.status(404).json({ message: 'Subject not found' });
-    res.json(sub);
+    res.json({ message: 'Subject node modified successfully', data: sub });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -13,7 +13,6 @@ const SuperAdminDashboard = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        toast.success('Session terminated successfully');
     };
 
     return (

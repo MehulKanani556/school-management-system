@@ -28,7 +28,6 @@ const TeacherLayout = () => {
 
     const handleLogout = () => {
         dispatch(logout());
-        toast.success('Secure session closed');
     };
 
     const isActive = (path) => location.pathname === path;

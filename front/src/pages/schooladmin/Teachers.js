@@ -6,6 +6,7 @@ import * as Yup from 'yup';
 import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Search, ToggleLeft, ToggleRight } from 'lucide-react';
 import Modal from '../../components/Modal';
+import Pagination from '../../components/Pagination';
 
 const validationSchema = Yup.object({
   firstName:      Yup.string().required('First name is required'),
@@ -36,6 +37,8 @@ const Teachers = () => {
   const [serverError, setServerError] = useState('');
   const [formValues, setFormValues] = useState(emptyValues);
   const [deleteTarget, setDeleteTarget] = useState(null); // { _id, firstName, lastName }
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => { dispatch(fetchTeachers()); }, [dispatch]);
 
@@ -96,6 +99,12 @@ const Teachers = () => {
     `${t.firstName} ${t.lastName} ${t.employeeId}`.toLowerCase().includes(search.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Reset page when search changes
+  useEffect(() => { setCurrentPage(1); }, [search]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -128,7 +137,7 @@ const Teachers = () => {
               <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No teachers found</td></tr>
-            ) : filtered.map((t, i) => (
+            ) : currentItems.map((t, i) => (
               <motion.tr key={t._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                 className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
                 <td className="px-6 py-4 font-semibold">{t.firstName} {t.lastName}</td>
@@ -157,6 +166,14 @@ const Teachers = () => {
           </tbody>
         </table>
       </div>
+
+      <Pagination 
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        totalItems={filtered.length}
+      />
 
       <Modal open={modal} onClose={handleClose} title={editing ? 'Edit Teacher' : 'Add Teacher'}>
         <form onSubmit={formik.handleSubmit} className="space-y-4">

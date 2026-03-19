@@ -47,7 +47,7 @@ exports.markAttendance = async (req, res) => {
       { schoolId: teacher.schoolId._id, classSection, date: new Date(date), records, submittedBy: req.user._id },
       { upsert: true, new: true }
     );
-    res.json(attendance);
+    res.json({ message: 'Attendance registry synchronized', attendance });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -103,7 +103,7 @@ exports.uploadAssignment = async (req, res) => {
       createdBy: req.user._id
     });
 
-    res.status(201).json(assignment);
+    res.status(201).json({ message: 'Homework module published', assignment });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -236,7 +236,7 @@ exports.updateAssignment = async (req, res) => {
             { new: true }
         );
         if (!assignment) return res.status(404).json({ message: 'Homework node not found' });
-        res.json(assignment);
+        res.json({ message: 'Homework node mapping updated', assignment });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

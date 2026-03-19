@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, studentLogin, clearMessage } from '../../redux/slice/auth.slice';
+import { login, studentLogin, clearAuthError, clearAuthMessage } from '../../redux/slice/auth.slice';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight, LogIn, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
-import toast from 'react-hot-toast';
 
 const Auth = () => {
     const dispatch = useDispatch();
@@ -20,17 +19,6 @@ const Auth = () => {
             navigate('/');
         }
     }, [isAuthenticated, navigate]);
-
-    useEffect(() => {
-        if (message) {
-            toast.success(message, { id: 'auth-success' });
-            dispatch(clearMessage());
-        }
-        if (error) {
-            toast.error(error, { id: 'auth-error' });
-            dispatch(clearMessage());
-        }
-    }, [message, error, dispatch]);
 
     // Login Formik
     const loginFormik = useFormik({

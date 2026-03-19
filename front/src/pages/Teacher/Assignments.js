@@ -6,7 +6,8 @@ import {
     fetchAssignments, 
     deleteAssignment,
     updateAssignment,
-    clearTeacherMessage 
+    clearTeacherMessage,
+    setTeacherError 
 } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -14,7 +15,6 @@ import {
     FileText, Calendar, Trash2, Edit3, 
     Plus, X, ExternalLink, School
 } from 'lucide-react';
-import toast from 'react-hot-toast';
 
 const Assignments = () => {
     const dispatch = useDispatch();
@@ -38,12 +38,10 @@ const Assignments = () => {
 
     useEffect(() => {
         if (message) {
-            toast.success(message);
-            dispatch(clearTeacherMessage());
             resetForm();
             setViewMode('list');
         }
-    }, [message, dispatch]);
+    }, [message]);
 
     const resetForm = () => {
         setFormData({ title: '', description: '', subject: '', dueDate: '', file: null });
@@ -69,8 +67,8 @@ const Assignments = () => {
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (!selectedClass) return toast.error('Academic Sector node required');
-        if (!formData.subject) return toast.error('Curriculum Subject identity required');
+        if (!selectedClass) return dispatch(setTeacherError('Academic Sector node required'));
+        if (!formData.subject) return dispatch(setTeacherError('Curriculum Subject identity required'));
 
         const submission = new FormData();
         submission.append('classSection', selectedClass);
