@@ -33,6 +33,23 @@ export const login = createAsyncThunk(
     }
 );
 
+export const studentLogin = createAsyncThunk(
+    'auth/studentLogin',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/student-login`, data);
+            if (response.data.token) {
+                sessionStorage.setItem('token', response.data.token);
+                sessionStorage.setItem('user', JSON.stringify(response.data.user));
+                sessionStorage.setItem('userId', response.data.user._id);
+            }
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, rejectWithValue);
+        }
+    }
+);
+
 export const register = createAsyncThunk(
     'auth/register',
     async (formData, { rejectWithValue }) => {
@@ -128,6 +145,26 @@ export const authSlice = createSlice({
                 state.isAuthenticated = false;
                 state.error = action.payload?.message || "Login Failed";
                 state.message = action.payload?.message || "Login Failed";
+            })
+            // Student Login
+            .addCase(studentLogin.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+                state.message = null;
+            })
+            .addCase(studentLogin.fulfilled, (state, action) => {
+                state.user = action.payload?.user || null;
+                state.token = action.payload?.token || null;
+                state.isAuthenticated = true;
+                state.loading = false;
+                state.error = null;
+                state.message = action.payload?.message || "Student Session Initialized";
+            })
+            .addCase(studentLogin.rejected, (state, action) => {
+                state.loading = false;
+                state.isAuthenticated = false;
+                state.error = action.payload?.message || "Student Access Denied";
+                state.message = action.payload?.message || "Student Access Denied";
             })
             // Register
             .addCase(register.pending, (state) => {

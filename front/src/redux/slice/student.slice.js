@@ -37,6 +37,15 @@ export const fetchStudentAssignments = createAsyncThunk('student/fetchAssignment
     }
 });
 
+export const fetchStudentTimetable = createAsyncThunk('student/fetchTimetable', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/timetable');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const studentSlice = createSlice({
     name: 'student',
     initialState: {
@@ -44,6 +53,7 @@ const studentSlice = createSlice({
         attendance: [],
         results: [],
         assignments: [],
+        timetable: [],
         loading: false,
         error: null
     },
@@ -65,6 +75,9 @@ const studentSlice = createSlice({
             })
             .addCase(fetchStudentAssignments.fulfilled, (state, action) => {
                 state.assignments = action.payload;
+            })
+            .addCase(fetchStudentTimetable.fulfilled, (state, action) => {
+                state.timetable = action.payload;
             });
     }
 });

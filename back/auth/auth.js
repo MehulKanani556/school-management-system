@@ -1,21 +1,20 @@
 const User = require('../models/user.model');
+const Student = require('../models/student.model');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 
-const generateToken = async (id) => {
-    const user = await User.findById(id);
-    if (!user) {
-        throw new Error('User not found');
+const generateToken = async (id, role = 'User') => {
+    const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    const refreshToken = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
+
+    if (role !== 'Student') {
+        const user = await User.findById(id);
+        if (user) {
+            user.refreshToken = refreshToken;
+            await user.save();
+        }
     }
-    const accessToken = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-    const refreshToken = jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-
-    // user.accessToken = accessToken;
-    user.refreshToken = refreshToken;
-    await user.save();
-
-
     return { accessToken, refreshToken };
 }
 
@@ -30,32 +29,31 @@ exports.generateNewToken = async (req, res) => {
         if (!decoded) {
             return res.status(401).json({ message: "Invalid token" });
         }
-        const user = await User.findById(decoded.id);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
+
+        let currentUser;
+        if (decoded.role === 'Student') {
+            currentUser = await Student.findById(decoded.id);
+        } else {
+            currentUser = await User.findById(decoded.id);
         }
-        const { accessToken, refreshToken } = await generateToken(user._id);
+
+        if (!currentUser) {
+            return res.status(404).json({ message: 'Identity not found' });
+        }
+
+        const { accessToken, refreshToken } = await generateToken(currentUser._id, decoded.role);
         return res
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
-            .cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: true,
-                maxAge: 15 * 24 * 60 * 60 * 1000,
-                sameSite: "Strict",
-            })
-            .status(200).json({ user, accessToken, refreshToken });
+            .status(200).json({ user: currentUser, accessToken, refreshToken });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
-
-
-
 }
 
 exports.createUser = async (req, res) => {
     try {
         const { firstName, lastName, email, password, role } = req.body;
-        const photo = req.file.location;
+        const photo = req.file?.location || '';
         const checkUser = await User.findOne({ email });
         if (checkUser) {
             return res.status(400).json({ message: 'User already exists' });
@@ -63,17 +61,39 @@ exports.createUser = async (req, res) => {
         const hashPassword = await bcrypt.hash(password, 10);
 
         const user = await User.create({ firstName, lastName, email, password: hashPassword, role, photo });
-        let { accessToken, refreshToken } = await generateToken(user._id);
+        let { accessToken, refreshToken } = await generateToken(user._id, user.role);
 
         return res
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
-            .cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: true,
-                maxAge: 15 * 24 * 60 * 60 * 1000,
-                sameSite: "Strict",
-            })
             .status(201).json({ user, message: 'User created successfully', accessToken, refreshToken });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+exports.studentLogin = async (req, res) => {
+    try {
+        const { admissionNumber, password } = req.body;
+        const student = await Student.findOne({ admissionNumber }).populate('schoolId');
+        if (!student) return res.status(404).json({ message: "Student record not found" });
+
+        const isMatch = await bcrypt.compare(password, student.password);
+        if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+
+        const { accessToken, refreshToken } = await generateToken(student._id, 'Student');
+        const studentUser = {
+            ...student._doc,
+            role: 'Student',
+            _id: student._id
+        };
+
+        return res
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
+            .status(200).json({
+                user: studentUser,
+                message: "Student Access Granted",
+                token: accessToken
+            });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -88,22 +108,16 @@ exports.login = async (req, res) => {
         }
         let comparePass = await bcrypt.compare(password, checkUser.password);
         if (!comparePass) {
-            return res.status(404).json({ status: 404, message: "Password Not Match" })
+            return res.status(401).json({ message: "Password Not Match" })
         }
 
-        const { accessToken, refreshToken } = await generateToken(checkUser._id);
+        const { accessToken, refreshToken } = await generateToken(checkUser._id, checkUser.role);
 
         return res
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
-            .cookie("refreshToken", refreshToken, {
-                httpOnly: true,
-                secure: true,
-                maxAge: 15 * 24 * 60 * 60 * 1000,
-                sameSite: "Strict",
-            })
             .status(200).json({
                 user: checkUser,
-                message: "User Login successfully",
+                message: "Institutional Access Granted",
                 token: accessToken
             })
     } catch (error) {

@@ -1,15 +1,16 @@
 const User = require("../models/user.model")
 const jwt = require('jsonwebtoken')
+const Student = require('../models/student.model');
 
-exports.auth = async(req,res,next)=>{
+exports.auth = async (req, res, next) => {
     try {
         const authHeader = req.header("Authorization")
-        if(!authHeader){
+        if (!authHeader) {
             return res.status(401).json({ status: 401, message: "Token Is Required" })
         }
-        
+
         let token = authHeader.split(' ')[1];
-        if(!token){
+        if (!token) {
             return res.status(401).json({ status: 401, message: "Token Is Required" })
         }
 
@@ -20,20 +21,32 @@ exports.auth = async(req,res,next)=>{
                     message: "Token invalid"
                 });
             }
-            
-            const USERS = await User.findOne({ _id: decoded.id });
-            if (!USERS) {
+
+            let currentUser;
+            if (decoded.role === 'Student') {
+                currentUser = await Student.findOne({ _id: decoded.id }).populate('schoolId');
+            } else {
+                currentUser = await User.findOne({ _id: decoded.id });
+            }
+
+            if (!currentUser) {
                 return res.status(404).json({
                     success: false,
-                    message: "User not found..!!"
+                    message: "Identity not found..!!"
                 });
             }
-            req.user = USERS;
+
+            // For students, ensure we have a role field for roleCheck middleware
+            if (decoded.role === 'Student' && !currentUser.role) {
+                currentUser = { ...currentUser._doc, role: 'Student' };
+            }
+
+            req.user = currentUser;
             next();
         });
-        
+
     } catch (error) {
-        res.status(500).json({message:error.message})
+        res.status(500).json({ message: error.message })
     }
 }
 
