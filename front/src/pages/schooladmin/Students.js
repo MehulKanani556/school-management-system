@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download } from 'lucide-react';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
 
@@ -37,6 +37,18 @@ const Err = ({ touched, error }) =>
 
 const Students = () => {
   const dispatch = useDispatch();
+  const handleImport = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const formData = new FormData();
+    formData.append('file', file);
+    await dispatch(importStudents(formData));
+    dispatch(fetchStudents());
+  };
+
+  const handleExport = () => {
+    dispatch(exportStudents());
+  };
   const { students, classes, standards, loading } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -119,9 +131,18 @@ const Students = () => {
           <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">Students</h1>
           <p className="text-slate-400 text-sm mt-1">{students.length} total students</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit">
-          <Plus size={18} /> Add Student
-        </button>
+        <div className="flex items-center gap-3">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
+            <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Export Data
+          </button>
+          <label className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider cursor-pointer transition-all font-outfit text-slate-400 hover:text-white group">
+            <Upload size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Import CSV
+            <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
+          </label>
+          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
+            <Plus size={18} /> Add Student
+          </button>
+        </div>
       </div>
 
       <div className="relative">

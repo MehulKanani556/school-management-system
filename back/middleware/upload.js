@@ -38,6 +38,17 @@ const storage = multerS3({
         cb(null, uniqueName);
     },
 });
+
+const localStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const dir = 'temp/';
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`);
+    }
+});
 const fileFilter = (req, file, cb) => {
     const allowedTypes = "*/*";
     if (true) {
@@ -62,5 +73,6 @@ async function getOgjectURL(key) {
 
 module.exports = {
   upload,
-    getOgjectURL,
+  localUpload: multer({ storage: localStorage }),
+  getOgjectURL,
 };

@@ -16,9 +16,32 @@ const Leave = require('../models/leave.model');
 const Review = require('../models/review.model');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
+const fs = require('fs');
+const csv = require('csv-parser');
+const { Parser } = require('json2csv');
 
 const getSchoolId = (req) => req.user.schoolId;
 const getSchoolAdminId = (req) => req.user._id;
+
+const parseCSVDate = (dateStr) => {
+  if (!dateStr) return undefined;
+  const d = new Date(dateStr);
+  if (!isNaN(d.getTime())) return d;
+
+  // Handle DD/MM/YYYY or DD-MM-YYYY
+  const parts = String(dateStr).split(/[/ -]/);
+  if (parts.length === 3) {
+    // If first part is 4 digits, assume YYYY-MM-DD
+    if (parts[0].length === 4) return new Date(parts[0], parts[1] - 1, parts[2]);
+    // Else assume DD/MM/YYYY
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    const date = new Date(year, month, day);
+    if (!isNaN(date.getTime())) return date;
+  }
+  return undefined;
+};
 
 // ─── Mailer ───────────────────────────────────────────────────────────────────
 const sendTeacherWelcomeMail = async ({ email, firstName, lastName, employeeId, password, joiningDate }) => {
@@ -92,7 +115,7 @@ exports.getDashboardStats = async (req, res) => {
       .sort({ date: -1 })
       .limit(7)
       .select('date records');
-    
+
     const attendanceTrends = last7Attendance.map(a => {
       const total = a.records.length;
       const present = a.records.filter(r => r.status === 'present').length;
@@ -105,8 +128,8 @@ exports.getDashboardStats = async (req, res) => {
     // 4. Fee Collection Trends (Last 6 months)
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
-    const recentPayments = await FeePayment.find({ 
-      schoolId, 
+    const recentPayments = await FeePayment.find({
+      schoolId,
       status: { $in: ['paid', 'partially_paid'] },
       paidDate: { $gte: sixMonthsAgo }
     }).select('paidAmount paidDate');
@@ -155,18 +178,18 @@ exports.getDashboardStats = async (req, res) => {
 
     // 7. Alerts
     const overdueFees = await FeePayment.countDocuments({ schoolId, status: 'overdue' });
-    const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
-    const endOfDay = new Date(); endOfDay.setHours(23,59,59,999);
-    const examsToday = await Exam.countDocuments({ 
-      schoolId, 
-      date: { $gte: startOfDay, $lte: endOfDay } 
+    const startOfDay = new Date(); startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(); endOfDay.setHours(23, 59, 59, 999);
+    const examsToday = await Exam.countDocuments({
+      schoolId,
+      date: { $gte: startOfDay, $lte: endOfDay }
     });
 
     // 8. Growth Metrics (Comparison)
     const now = new Date();
     const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-    
+
     const [newStudentsThisMonth, newStudentsLastMonth, newTeachersThisMonth] = await Promise.all([
       Student.countDocuments({ schoolId, createdAt: { $gte: startOfThisMonth } }),
       Student.countDocuments({ schoolId, createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } }),
@@ -174,7 +197,7 @@ exports.getDashboardStats = async (req, res) => {
     ]);
 
     const studentGrowth = newStudentsLastMonth === 0 ? (newStudentsThisMonth > 0 ? 100 : 0) : Math.round(((newStudentsThisMonth - newStudentsLastMonth) / newStudentsLastMonth) * 100);
-    
+
     // Growth Insight calculation
     let growthInsight = "Keep monitoring student engagement for better results.";
     if (recentExamsWithMarks.length >= 2) {
@@ -184,7 +207,7 @@ exports.getDashboardStats = async (req, res) => {
       if (diff > 0) growthInsight = `Overall student performance has improved by ${diff}% compared to previous assessments.`;
       else if (diff < 0) growthInsight = `Alert: Average marks have dipped by ${Math.abs(diff)}%. Reviewing curriculum recommended.`;
     }
-    console.log("aa",recentPayments);
+    console.log("aa", recentPayments);
 
     res.json({
       students: studentsCount,
@@ -272,8 +295,8 @@ exports.createStudent = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(plainPassword || '123456', 10);
 
-    const student = await Student.create({ 
-      ...body, 
+    const student = await Student.create({
+      ...body,
       schoolId: getSchoolId(req),
       schoolAdminId: getSchoolAdminId(req),
       createdBy: req.user._id,
@@ -364,7 +387,7 @@ exports.createTeacher = async (req, res) => {
     const plainPassword = email.trim();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    console.log("asas",req.user);
+    console.log("asas", req.user);
     // create User record
     const user = await User.create({
       firstName, lastName,
@@ -502,17 +525,17 @@ exports.updateClass = async (req, res) => {
     const schoolId = getSchoolId(req);
 
     // Check for duplicate section
-    const existingSection = await ClassSection.findOne({ 
-      schoolId, standardId, sectionLabel, 
-      _id: { $ne: req.params.id } 
+    const existingSection = await ClassSection.findOne({
+      schoolId, standardId, sectionLabel,
+      _id: { $ne: req.params.id }
     });
     if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard` });
 
     // Check if teacher is already a class teacher elsewhere
     if (classTeacher) {
-      const alreadyAssigned = await ClassSection.findOne({ 
-        schoolId, classTeacher, 
-        _id: { $ne: req.params.id } 
+      const alreadyAssigned = await ClassSection.findOne({
+        schoolId, classTeacher,
+        _id: { $ne: req.params.id }
       });
       if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
     }
@@ -583,7 +606,7 @@ exports.updateFee = async (req, res) => {
       req.params.id,
       updateData, { new: true }
     ).populate('studentId', 'firstName lastName admissionNumber');
-    
+
     res.json({ message: 'Fee node modified successfully', data: fee });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -647,7 +670,7 @@ exports.applyFeeStructure = async (req, res) => {
     const existingPayments = await FeePayment.find({ schoolId, academicYear });
     const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
 
-    const payments = filtered.flatMap(s => 
+    const payments = filtered.flatMap(s =>
       structure.feeItems
         .filter(item => !existingKeys.has(`${s._id}-${item.name}`))
         .map(item => ({
@@ -850,7 +873,7 @@ exports.updateLeaveStatus = async (req, res) => {
     leave.actionedBy = req.user._id;
     leave.actionedAt = new Date();
     await leave.save();
-    
+
     const populated = await leave.populate('teacherId', 'firstName lastName employeeId');
     res.json({ message: `Leave application ${status} successfully`, data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -900,5 +923,165 @@ exports.deleteReview = async (req, res) => {
   try {
     await Review.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
     res.json({ message: 'Performance review node removed' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.exportStudents = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const students = await Student.find({ schoolId })
+      .populate('standard', 'level')
+      .populate('classSection', 'sectionLabel');
+
+    const fields = [
+      { label: 'First Name', value: 'firstName' },
+      { label: 'Last Name', value: 'lastName' },
+      { label: 'Admission Number', value: 'admissionNumber' },
+      { label: 'Roll Number', value: 'rollNumber' },
+      { label: 'Date of Birth', value: (row) => row.dateOfBirth ? row.dateOfBirth.toISOString().split('T')[0] : '' },
+      { label: 'Gender', value: 'gender' },
+      { label: 'Standard', value: 'standard.level' },
+      { label: 'Section', value: 'classSection.sectionLabel' },
+      { label: 'Guardian Name', value: 'guardianName' },
+      { label: 'Guardian Contact', value: 'guardianContact' },
+      { label: 'Address', value: 'address' }
+    ];
+
+    const parser = new Parser({ fields });
+    const csvData = parser.parse(students);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`Students_${new Date().toISOString().split('T')[0]}.csv`);
+    return res.send(csvData);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.importStudents = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+    const schoolId = getSchoolId(req);
+    const results = [];
+    const standards = await Standard.find({ schoolId });
+    const sections = await ClassSection.find({ schoolId });
+
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        try {
+          const processed = [];
+          for (const row of results) {
+            const std = standards.find(s => String(s.level) === row.Standard);
+            const sec = std ? sections.find(s => s.sectionLabel === row.Section && String(s.standardId) === String(std._id)) : null;
+
+            let plainPassword = '123456';
+            const dob = parseCSVDate(row['Date of Birth']);
+            if (dob) {
+              plainPassword = `${String(dob.getDate()).padStart(2, '0')}${String(dob.getMonth() + 1).padStart(2, '0')}${String(dob.getFullYear()).substring(2)}`;
+            }
+            const hashedPassword = await bcrypt.hash(plainPassword, 10);
+
+            processed.push({
+              firstName: row['First Name'],
+              lastName: row['Last Name'],
+              admissionNumber: row['Admission Number'] || undefined,
+              rollNumber: row['Roll Number'],
+              dateOfBirth: dob,
+              gender: (row.Gender || 'other').toLowerCase(),
+              guardianName: row['Guardian Name'],
+              guardianContact: row['Guardian Contact'],
+              address: row.Address,
+              standard: std ? std._id : undefined,
+              classSection: sec ? sec._id : undefined,
+              schoolId,
+              schoolAdminId: req.user._id,
+              createdBy: req.user._id,
+              password: hashedPassword
+            });
+          }
+
+          await Student.insertMany(processed);
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          res.status(201).json({ message: `${processed.length} students imported successfully` });
+        } catch (err) { res.status(500).json({ message: err.message }); }
+      });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.exportTeachers = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const teachers = await Teacher.find({ schoolId });
+
+    const fields = [
+      { label: 'First Name', value: 'firstName' },
+      { label: 'Last Name', value: 'lastName' },
+      { label: 'Employee ID', value: 'employeeId' },
+      { label: 'Email', value: 'email' },
+      { label: 'Phone', value: 'phone' },
+      { label: 'Qualifications', value: (row) => row.qualifications?.join(', ') || '' },
+      { label: 'Joining Date', value: (row) => row.joiningDate ? row.joiningDate.toISOString().split('T')[0] : '' }
+    ];
+
+    const parser = new Parser({ fields });
+    const csvData = parser.parse(teachers);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`Teachers_${new Date().toISOString().split('T')[0]}.csv`);
+    return res.send(csvData);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.importTeachers = async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
+
+    const schoolId = getSchoolId(req);
+    const results = [];
+
+    fs.createReadStream(req.file.path)
+      .pipe(csv())
+      .on('data', (data) => results.push(data))
+      .on('end', async () => {
+        try {
+          let count = 0;
+          for (const row of results) {
+            const email = row.Email?.trim();
+            if (!email) continue;
+
+            const existing = await User.findOne({ email });
+            if (existing) continue;
+
+            const hashedPassword = await bcrypt.hash(email, 10);
+            const user = await User.create({
+              firstName: row['First Name'],
+              lastName: row['Last Name'],
+              email,
+              password: hashedPassword,
+              role: 'Teacher',
+              schoolId,
+              photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(row['First Name'] + ' ' + row['Last Name'])}&background=2563eb&color=fff`,
+            });
+
+            await Teacher.create({
+              firstName: row['First Name'],
+              lastName: row['Last Name'],
+              email,
+              phone: row.Phone,
+              employeeId: row['Employee ID'] || undefined,
+              schoolId,
+              schoolAdminId: req.user._id,
+              userId: user._id,
+              qualifications: row.Qualifications ? row.Qualifications.split(',').map(q => q.trim()) : [],
+              joiningDate: parseCSVDate(row['Joining Date'])
+            });
+            count++;
+          }
+
+          if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+          res.status(201).json({ message: `${count} teachers imported successfully` });
+        } catch (err) { res.status(500).json({ message: err.message }); }
+      });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

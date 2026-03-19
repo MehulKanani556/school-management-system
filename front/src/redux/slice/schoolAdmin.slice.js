@@ -12,20 +12,20 @@ const asyncGet = (name, path) =>
   });
 
 export const fetchDashboard = asyncGet('sa/dashboard', '/dashboard');
-export const fetchStudents  = asyncGet('sa/students',  '/students');
-export const fetchTeachers  = asyncGet('sa/teachers',  '/teachers');
-export const fetchClasses   = asyncGet('sa/classes',   '/classes');
+export const fetchStudents = asyncGet('sa/students', '/students');
+export const fetchTeachers = asyncGet('sa/teachers', '/teachers');
+export const fetchClasses = asyncGet('sa/classes', '/classes');
 export const fetchStandards = asyncGet('sa/standards', '/standards');
-export const fetchSubjects  = asyncGet('sa/subjects',  '/subjects');
+export const fetchSubjects = asyncGet('sa/subjects', '/subjects');
 export const fetchFeeStructures = asyncGet('sa/fee-structures', '/fee-structures');
-export const fetchFees      = asyncGet('sa/fees',      '/fees');
-export const fetchExams     = asyncGet('sa/exams',     '/exams');
+export const fetchFees = asyncGet('sa/fees', '/fees');
+export const fetchExams = asyncGet('sa/exams', '/exams');
 export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
 export const fetchTimetable = asyncGet('sa/timetable', '/timetable');
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
-export const fetchPayroll  = asyncGet('sa/payroll',  '/payroll');
-export const fetchLeaves    = asyncGet('sa/leaves',    '/leaves');
-export const fetchReviews   = asyncGet('sa/reviews',   '/reviews');
+export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
+export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
+export const fetchReviews = asyncGet('sa/reviews', '/reviews');
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -76,7 +76,7 @@ export const deleteFee = del('sa/deleteFee', '/fees');
 export const createFeeStructure = post('sa/createFeeStructure', '/fee-structures');
 export const updateFeeStructure = put('sa/updateFeeStructure', '/fee-structures');
 export const deleteFeeStructure = del('sa/deleteFeeStructure', '/fee-structures');
-export const applyFeeStructure  = post('sa/applyFeeStructure', '/apply-fee-structure');
+export const applyFeeStructure = post('sa/applyFeeStructure', '/apply-fee-structure');
 
 export const createExam = post('sa/createExam', '/exams');
 export const updateExam = put('sa/updateExam', '/exams');
@@ -103,6 +103,36 @@ export const updateLeaveStatus = put('sa/updateLeaveStatus', '/leaves');
 export const createReview = post('sa/createReview', '/reviews');
 export const updateReview = put('sa/updateReview', '/reviews');
 export const deleteReview = del('sa/deleteReview', '/reviews');
+export const importStudents = post('sa/importStudents', '/import-students');
+export const importTeachers = post('sa/importTeachers', '/import-teachers');
+
+export const exportStudents = createAsyncThunk('sa/exportStudents', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get('/school-admin/export-students', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Students_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { message: "Student Registry Exported" };
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const exportTeachers = createAsyncThunk('sa/exportTeachers', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get('/school-admin/export-teachers', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `Teachers_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { message: "Teacher Registry Exported" };
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
 
 const initialState = {
   dashboard: null,
@@ -116,7 +146,7 @@ const handleList = (key) => (state, action) => { state[key] = action.payload; st
 const schoolAdminSlice = createSlice({
   name: 'schoolAdmin',
   initialState,
-  reducers: { 
+  reducers: {
     clearError: (state) => { state.error = null; },
     clearMessage: (state) => { state.message = null; }
   },
@@ -139,124 +169,128 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
       // create
-      .addCase(createStudent.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.students.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Student node created"; 
+      .addCase(createStudent.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.students.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Student node created";
       })
-      .addCase(createTeacher.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.teachers.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Teacher node created"; 
+      .addCase(createTeacher.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.teachers.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Teacher node created";
       })
-      .addCase(createClass.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.classes.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Academic section created"; 
+      .addCase(createClass.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.classes.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Academic section created";
       })
-      .addCase(createStandard.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.standards.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Standard node created"; 
+      .addCase(createStandard.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.standards.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Standard node created";
       })
-      .addCase(createFee.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.fees.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Fee node created"; 
+      .addCase(createFee.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.fees.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Fee node created";
       })
-      .addCase(createExam.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.exams.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Examination node created"; 
+      .addCase(createExam.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.exams.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Examination node created";
       })
-      .addCase(createSubject.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.subjects.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Subject node created"; 
+      .addCase(createSubject.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.subjects.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Subject node created";
       })
-      .addCase(createHoliday.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.holidays.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Holiday terminal entry created"; 
+      .addCase(createHoliday.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.holidays.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Holiday terminal entry created";
       })
-      .addCase(createFeeStructure.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.feeStructures.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Fee structure node created"; 
+      .addCase(createFeeStructure.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.feeStructures.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Fee structure node created";
       })
+      .addCase(importStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(importTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(exportStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(exportTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
 
       // update
-      .addCase(updateStudent.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.students.findIndex(s => s._id === upd._id); 
-          if (i !== -1) state.students[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Student identity updated"; 
+      .addCase(updateStudent.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.students.findIndex(s => s._id === upd._id);
+        if (i !== -1) state.students[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Student identity updated";
       })
-      .addCase(updateTeacher.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.teachers.findIndex(t => t._id === upd._id); 
-          if (i !== -1) state.teachers[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Teacher identity updated"; 
+      .addCase(updateTeacher.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.teachers.findIndex(t => t._id === upd._id);
+        if (i !== -1) state.teachers[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Teacher identity updated";
       })
-      .addCase(updateClass.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.classes.findIndex(c => c._id === upd._id); 
-          if (i !== -1) state.classes[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Academic section modified"; 
+      .addCase(updateClass.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.classes.findIndex(c => c._id === upd._id);
+        if (i !== -1) state.classes[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Academic section modified";
       })
-      .addCase(updateStandard.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.standards.findIndex(s => s._id === upd._id); 
-          if (i !== -1) state.standards[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Standard node modified"; 
+      .addCase(updateStandard.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.standards.findIndex(s => s._id === upd._id);
+        if (i !== -1) state.standards[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Standard node modified";
       })
-      .addCase(updateFee.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const idx = state.fees.findIndex(f => f._id === upd._id); 
-          if (idx !== -1) state.fees[idx] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Fee node modified"; 
+      .addCase(updateFee.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const idx = state.fees.findIndex(f => f._id === upd._id);
+        if (idx !== -1) state.fees[idx] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Fee node modified";
       })
-      .addCase(updateExam.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.exams.findIndex(e => e._id === upd._id); 
-          if (i !== -1) state.exams[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Examination node modified"; 
+      .addCase(updateExam.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.exams.findIndex(e => e._id === upd._id);
+        if (i !== -1) state.exams[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Examination node modified";
       })
-      .addCase(updateSubject.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.subjects.findIndex(s => s._id === upd._id); 
-          if (i !== -1) state.subjects[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Subject node modified"; 
+      .addCase(updateSubject.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.subjects.findIndex(s => s._id === upd._id);
+        if (i !== -1) state.subjects[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Subject node modified";
       })
-      .addCase(updateHoliday.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.holidays.findIndex(h => h._id === upd._id); 
-          if (i !== -1) state.holidays[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Holiday entry updated"; 
+      .addCase(updateHoliday.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.holidays.findIndex(h => h._id === upd._id);
+        if (i !== -1) state.holidays[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Holiday entry updated";
       })
-      .addCase(updateFeeStructure.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.feeStructures.findIndex(s => s._id === upd._id); 
-          if (i !== -1) state.feeStructures[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Fee structure modified"; 
+      .addCase(updateFeeStructure.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.feeStructures.findIndex(s => s._id === upd._id);
+        if (i !== -1) state.feeStructures[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Fee structure modified";
       })
 
       // delete
@@ -273,57 +307,57 @@ const schoolAdminSlice = createSlice({
       .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee structure removed"; })
       .addCase(applyFeeStructure.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Fee structure applied successfully"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
-      
+
       // Payroll
       .addCase(fetchPayroll.fulfilled, handleList('payroll'))
-      .addCase(createPayroll.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.payroll.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Payroll record added"; 
+      .addCase(createPayroll.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.payroll.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Payroll record added";
       })
-      .addCase(updatePayroll.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.payroll.findIndex(p => p._id === upd._id); 
-          if (i !== -1) state.payroll[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Payroll record modified"; 
+      .addCase(updatePayroll.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.payroll.findIndex(p => p._id === upd._id);
+        if (i !== -1) state.payroll[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Payroll record modified";
       })
-      .addCase(deletePayroll.fulfilled, (state, a) => { 
-          state.payroll = state.payroll.filter(p => p._id !== a.payload.id); 
-          state.loading = false; 
-          state.message = a.payload.message || "Payroll record removed"; 
+      .addCase(deletePayroll.fulfilled, (state, a) => {
+        state.payroll = state.payroll.filter(p => p._id !== a.payload.id);
+        state.loading = false;
+        state.message = a.payload.message || "Payroll record removed";
       })
 
       // Leaves
       .addCase(fetchLeaves.fulfilled, handleList('leaves'))
-      .addCase(updateLeaveStatus.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.leaves.findIndex(l => l._id === upd._id); 
-          if (i !== -1) state.leaves[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Leave status updated"; 
+      .addCase(updateLeaveStatus.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.leaves.findIndex(l => l._id === upd._id);
+        if (i !== -1) state.leaves[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Leave status updated";
       })
 
       // Reviews
       .addCase(fetchReviews.fulfilled, handleList('reviews'))
-      .addCase(createReview.fulfilled, (state, a) => { 
-          const item = a.payload.data || a.payload;
-          state.reviews.push(item); 
-          state.loading = false; 
-          state.message = a.payload.message || "Performance review node created"; 
+      .addCase(createReview.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.reviews.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Performance review node created";
       })
-      .addCase(updateReview.fulfilled, (state, a) => { 
-          const upd = a.payload.data || a.payload;
-          const i = state.reviews.findIndex(r => r._id === upd._id); 
-          if (i !== -1) state.reviews[i] = upd; 
-          state.loading = false; 
-          state.message = a.payload.message || "Performance review modified"; 
+      .addCase(updateReview.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.reviews.findIndex(r => r._id === upd._id);
+        if (i !== -1) state.reviews[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Performance review modified";
       })
-      .addCase(deleteReview.fulfilled, (state, a) => { 
-          state.reviews = state.reviews.filter(r => r._id !== a.payload.id); 
-          state.loading = false; 
-          state.message = a.payload.message || "Performance review removed"; 
+      .addCase(deleteReview.fulfilled, (state, a) => {
+        state.reviews = state.reviews.filter(r => r._id !== a.payload.id);
+        state.loading = false;
+        state.message = a.payload.message || "Performance review removed";
       });
 
     // pending/rejected for all
@@ -332,7 +366,8 @@ const schoolAdminSlice = createSlice({
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,
-      saveAttendance, toggleTeacherStatus, applyFeeStructure
+      saveAttendance, toggleTeacherStatus, applyFeeStructure,
+      importStudents, importTeachers, exportStudents, exportTeachers
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

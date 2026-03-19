@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { upload } = require('../middleware/upload');
+const { upload, localUpload } = require('../middleware/upload');
 const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
 const { auth, isSuperAdmin } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleCheck');
@@ -37,6 +37,8 @@ router.get('/school-admin/students', ...schoolAdmin, sa.getStudents);
 router.post('/school-admin/students', ...schoolAdmin, upload.single('photo'), sa.createStudent);
 router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'), sa.updateStudent);
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
+router.get('/school-admin/export-students', ...schoolAdmin, sa.exportStudents);
+router.post('/school-admin/import-students', ...schoolAdmin, localUpload.single('file'), sa.importStudents);
 
 // Teachers
 router.get('/school-admin/teachers', ...schoolAdmin, sa.getTeachers);
@@ -44,6 +46,8 @@ router.post('/school-admin/teachers', ...schoolAdmin, sa.createTeacher);
 router.put('/school-admin/teachers/:id', ...schoolAdmin, sa.updateTeacher);
 router.delete('/school-admin/teachers/:id', ...schoolAdmin, sa.deleteTeacher);
 router.patch('/school-admin/teachers/:id/toggle-status', ...schoolAdmin, sa.toggleTeacherStatus);
+router.get('/school-admin/export-teachers', ...schoolAdmin, sa.exportTeachers);
+router.post('/school-admin/import-teachers', ...schoolAdmin, localUpload.single('file'), sa.importTeachers);
 
 // Standards
 router.get('/school-admin/standards', ...schoolAdmin, sa.getStandards);
