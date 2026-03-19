@@ -17,6 +17,7 @@ const validationSchema = Yup.object({
                     .required('Phone is required'),
   qualifications: Yup.string(),
   joiningDate:    Yup.date().nullable(),
+  baseSalary:     Yup.number().min(0, 'Salary must be positive').required('Salary is required'),
 });
 
 const inputClass = (touched, error) =>
@@ -25,7 +26,7 @@ const inputClass = (touched, error) =>
 const FieldError = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
 
-const emptyValues = { firstName: '', lastName: '', email: '', phone: '', qualifications: '', joiningDate: '' };
+const emptyValues = { firstName: '', lastName: '', email: '', phone: '', qualifications: '', joiningDate: '', baseSalary: 0 };
 
 const Teachers = () => {
   const dispatch = useDispatch();
@@ -89,6 +90,7 @@ const Teachers = () => {
       phone:          t.phone || '',
       qualifications: t.qualifications?.join(', ') || '',
       joiningDate:    t.joiningDate ? t.joiningDate.split('T')[0] : '',
+      baseSalary:     t.baseSalary || 0,
     });
     setModal(true);
   };
@@ -127,7 +129,7 @@ const Teachers = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30">
-              {['Name', 'Employee ID', 'Email', 'Phone', 'Qualifications', 'Status', 'Actions'].map(h => (
+              {['Name', 'Employee ID', 'Email', 'Phone', 'Salary', 'Status', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
               ))}
             </tr>
@@ -144,7 +146,7 @@ const Teachers = () => {
                 <td className="px-6 py-4 text-slate-400 text-sm font-mono">{t.employeeId}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{t.email || '—'}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{t.phone || '—'}</td>
-                <td className="px-6 py-4 text-slate-400 text-sm">{t.qualifications?.join(', ') || '—'}</td>
+                <td className="px-6 py-4 text-brand-primary text-sm font-bold">₹{t.baseSalary?.toLocaleString() || '0'}</td>
                 <td className="px-6 py-4">
                   <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${t.isActive ? 'text-emerald-400 bg-emerald-400/10' : 'text-slate-500 bg-slate-700/40'}`}>
                     {t.isActive ? 'Active' : 'Inactive'}
@@ -205,10 +207,17 @@ const Teachers = () => {
             <FieldError touched={formik.touched.qualifications} error={formik.errors.qualifications} />
           </div>
 
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Joining Date</label>
-            <input type="date" {...formik.getFieldProps('joiningDate')} className={inputClass(formik.touched.joiningDate, formik.errors.joiningDate)} />
-            <FieldError touched={formik.touched.joiningDate} error={formik.errors.joiningDate} />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Joining Date</label>
+              <input type="date" {...formik.getFieldProps('joiningDate')} className={inputClass(formik.touched.joiningDate, formik.errors.joiningDate)} />
+              <FieldError touched={formik.touched.joiningDate} error={formik.errors.joiningDate} />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Base Salary</label>
+              <input type="number" {...formik.getFieldProps('baseSalary')} placeholder="e.g. 50000" className={inputClass(formik.touched.baseSalary, formik.errors.baseSalary)} />
+              <FieldError touched={formik.touched.baseSalary} error={formik.errors.baseSalary} />
+            </div>
           </div>
 
           {serverError && (

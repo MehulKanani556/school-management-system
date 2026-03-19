@@ -123,6 +123,24 @@ export const fetchTeacherTimetable = createAsyncThunk('teacher/fetchTimetable', 
     }
 });
 
+export const applyLeave = createAsyncThunk('teacher/applyLeave', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/apply-leave', data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchMyLeaves = createAsyncThunk('teacher/fetchMyLeaves', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/my-leaves');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -133,6 +151,7 @@ const teacherSlice = createSlice({
         marks: [],
         timetable: null,
         assignments: [],
+        leaves: [],
         loading: false,
         error: null,
         message: null
@@ -186,6 +205,15 @@ const teacherSlice = createSlice({
                 state.message = action.payload?.message || "Assignment published successfully"; 
                 const newAs = action.payload?.assignment || action.payload;
                 state.assignments = [newAs, ...state.assignments];
+            })
+            .addCase(fetchMyLeaves.fulfilled, (state, action) => {
+                state.loading = false;
+                state.leaves = action.payload;
+            })
+            .addCase(applyLeave.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload?.message || "Leave application submitted";
+                state.leaves = [action.payload.leave || action.payload, ...state.leaves];
             })
             .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; });
     }

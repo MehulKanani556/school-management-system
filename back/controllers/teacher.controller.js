@@ -6,6 +6,7 @@ const Mark = require('../models/mark.model');
 const Assignment = require('../models/assignment.model');
 const Message = require('../models/message.model');
 const Student = require('../models/student.model');
+const Leave = require('../models/leave.model');
 
 // Helper to get teacher record by user ID
 const getTeacher = async (userId) => {
@@ -246,5 +247,32 @@ exports.deleteAssignment = async (req, res) => {
         const assignment = await Assignment.findOneAndDelete({ _id: id, createdBy: req.user._id });
         if (!assignment) return res.status(404).json({ message: 'Homework node not found' });
         res.json({ message: 'Homework decommissioned successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 11. Leave Management (Teacher Side) ──────────────────────────────────────────
+exports.applyLeave = async (req, res) => {
+    try {
+        const { type, startDate, endDate, reason } = req.body;
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
+
+        const leave = await Leave.create({
+            schoolId: teacher.schoolId._id,
+            teacherId: teacher._id,
+            type, startDate, endDate, reason
+        });
+
+        res.status(201).json({ message: 'Leave application submitted successfully', leave });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getMyLeaves = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
+
+        const leaves = await Leave.find({ teacherId: teacher._id }).sort({ createdAt: -1 });
+        res.json(leaves);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

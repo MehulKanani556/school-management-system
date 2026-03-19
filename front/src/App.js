@@ -18,6 +18,9 @@ import Attendance from './pages/schooladmin/Attendance';
 import Subjects from './pages/schooladmin/Subjects';
 import AdminTimetable from './pages/schooladmin/Timetable';
 import AdminCommunication from './pages/schooladmin/Communication';
+import Payroll from './pages/schooladmin/Payroll';
+import Leaves from './pages/schooladmin/Leaves';
+import Reviews from './pages/schooladmin/Reviews';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
@@ -31,6 +34,7 @@ import AddMarks from './pages/Teacher/AddMarks';
 import Assignments from './pages/Teacher/Assignments';
 import Communication from './pages/Teacher/Communication';
 import TeacherTimetable from './pages/Teacher/Timetable';
+import TeacherLeaves from './pages/Teacher/TeacherLeaves';
 import StudentLayout from './pages/Student/StudentLayout';
 import StudentDashboard from './pages/Student/StudentDashboard';
 import AttendanceHistory from './pages/Student/AttendanceHistory';
@@ -96,6 +100,7 @@ function AppRoutes() {
           <Route path="assignments" element={<Assignments />} />
           <Route path="timetable" element={<TeacherTimetable />} />
           <Route path="messages" element={<Communication />} />
+          <Route path="leaves" element={<TeacherLeaves />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 
@@ -113,6 +118,10 @@ function AppRoutes() {
           <Route path="subjects" element={<Subjects />} />
           <Route path="timetable" element={<AdminTimetable />} />
           <Route path="communication" element={<AdminCommunication />} />
+          <Route path="timetables" element={<AdminTimetable />} />
+          <Route path="payroll" element={<Payroll />} />
+          <Route path="leaves" element={<Leaves />} />
+          <Route path="reviews" element={<Reviews />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 

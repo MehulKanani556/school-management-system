@@ -91,6 +91,22 @@ router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);
 router.get('/school-admin/timetable/:classId', ...schoolAdmin, tbc.getTimetableByClass);
 router.post('/school-admin/timetable', ...schoolAdmin, tbc.upsertTimetable);
 
+// Payroll
+router.get('/school-admin/payroll', ...schoolAdmin, sa.getAllPayroll);
+router.post('/school-admin/payroll', ...schoolAdmin, sa.createPayroll);
+router.put('/school-admin/payroll/:id', ...schoolAdmin, sa.updatePayroll);
+router.delete('/school-admin/payroll/:id', ...schoolAdmin, sa.deletePayroll);
+
+// Leaves
+router.get('/school-admin/leaves', ...schoolAdmin, sa.getAllLeaves);
+router.put('/school-admin/leaves/:id', ...schoolAdmin, sa.updateLeaveStatus);
+
+// Reviews
+router.get('/school-admin/reviews', ...schoolAdmin, sa.getAllReviews);
+router.post('/school-admin/reviews', ...schoolAdmin, sa.createReview);
+router.put('/school-admin/reviews/:id', ...schoolAdmin, sa.updateReview);
+router.delete('/school-admin/reviews/:id', ...schoolAdmin, sa.deleteReview);
+
 // ─── Super admin Routes ───────────────────────────────────────────────────────────
 const superAdmin = [auth, requireRole('Super_Admin')];
 
@@ -115,6 +131,8 @@ router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.
 router.get('/teacher/assignments', ...teacher, tc.getAssignments);
 router.put('/teacher/assignments/:id', ...teacher, upload.single('file'), tc.updateAssignment);
 router.delete('/teacher/assignments/:id', ...teacher, tc.deleteAssignment);
+router.post('/teacher/apply-leave', ...teacher, tc.applyLeave);
+router.get('/teacher/my-leaves', ...teacher, tc.getMyLeaves);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
 router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 

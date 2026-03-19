@@ -11,6 +11,7 @@ const teacherSchema = new mongoose.Schema({
   phone:          { type: String, unique: true, sparse: true },
   qualifications: [{ type: String }],
   joiningDate:    { type: Date },
+  baseSalary:     { type: Number, default: 0 },
   isActive:       { type: Boolean, default: true },
 }, { timestamps: true });
 

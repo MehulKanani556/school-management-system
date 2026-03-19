@@ -11,6 +11,9 @@ const Attendance = require('../models/attendance.model');
 const User = require('../models/user.model');
 const Mark = require('../models/mark.model');
 const Holiday = require('../models/holiday.model');
+const Payroll = require('../models/payroll.model');
+const Leave = require('../models/leave.model');
+const Review = require('../models/review.model');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
@@ -773,5 +776,129 @@ exports.deleteSubject = async (req, res) => {
   try {
     await Subject.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
     res.json({ message: 'Subject deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Payroll ──────────────────────────────────────────────────────────────────
+exports.getAllPayroll = async (req, res) => {
+  try {
+    const payroll = await Payroll.find({ schoolId: getSchoolId(req) }).populate('teacherId', 'firstName lastName employeeId');
+    res.json(payroll);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createPayroll = async (req, res) => {
+  try {
+    const { teacherId, month, year, bonus, deductions, status, paymentDate, remarks } = req.body;
+    const teacher = await Teacher.findById(teacherId);
+    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+
+    const baseSalary = teacher.baseSalary || 0;
+    const totalAmount = baseSalary + (Number(bonus) || 0) - (Number(deductions) || 0);
+
+    const payroll = await Payroll.create({
+      schoolId: getSchoolId(req),
+      teacherId, month, year, baseSalary, bonus, deductions, totalAmount, status, paymentDate, remarks,
+      submittedBy: req.user._id
+    });
+    const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
+    res.status(201).json({ message: 'Payroll record created successfully', data: populated });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updatePayroll = async (req, res) => {
+  try {
+    const { bonus, deductions, status, paymentDate, remarks } = req.body;
+    const payroll = await Payroll.findOne({ _id: req.params.id, schoolId: getSchoolId(req) });
+    if (!payroll) return res.status(404).json({ message: 'Payroll record not found' });
+
+    payroll.bonus = bonus !== undefined ? Number(bonus) : payroll.bonus;
+    payroll.deductions = deductions !== undefined ? Number(deductions) : payroll.deductions;
+    payroll.status = status || payroll.status;
+    payroll.paymentDate = paymentDate || payroll.paymentDate;
+    payroll.remarks = remarks || payroll.remarks;
+    payroll.totalAmount = payroll.baseSalary + (Number(payroll.bonus) || 0) - (Number(payroll.deductions) || 0);
+
+    await payroll.save();
+    const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
+    res.json({ message: 'Payroll record modified successfully', data: populated });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deletePayroll = async (req, res) => {
+  try {
+    await Payroll.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Payroll record removed' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Leave Management ─────────────────────────────────────────────────────────
+exports.getAllLeaves = async (req, res) => {
+  try {
+    const leaves = await Leave.find({ schoolId: getSchoolId(req) }).populate('teacherId', 'firstName lastName employeeId').sort({ createdAt: -1 });
+    res.json(leaves);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateLeaveStatus = async (req, res) => {
+  try {
+    const { status } = req.body;
+    const leave = await Leave.findOne({ _id: req.params.id, schoolId: getSchoolId(req) });
+    if (!leave) return res.status(404).json({ message: 'Leave application not found' });
+
+    leave.status = status;
+    leave.actionedBy = req.user._id;
+    leave.actionedAt = new Date();
+    await leave.save();
+    
+    const populated = await leave.populate('teacherId', 'firstName lastName employeeId');
+    res.json({ message: `Leave application ${status} successfully`, data: populated });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Teacher Reviews ──────────────────────────────────────────────────────────
+exports.getAllReviews = async (req, res) => {
+  try {
+    const reviews = await Review.find({ schoolId: getSchoolId(req) })
+      .populate('teacherId', 'firstName lastName employeeId')
+      .populate('reviewerId', 'firstName lastName')
+      .sort({ createdAt: -1 });
+    res.json(reviews);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createReview = async (req, res) => {
+  try {
+    const review = await Review.create({
+      ...req.body,
+      schoolId: getSchoolId(req),
+      reviewerId: req.user._id
+    });
+    const populated = await review.populate([
+      { path: 'teacherId', select: 'firstName lastName employeeId' },
+      { path: 'reviewerId', select: 'firstName lastName' }
+    ]);
+    res.status(201).json({ message: 'Performance review node created', data: populated });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateReview = async (req, res) => {
+  try {
+    const review = await Review.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      req.body, { new: true }
+    ).populate([
+      { path: 'teacherId', select: 'firstName lastName employeeId' },
+      { path: 'reviewerId', select: 'firstName lastName' }
+    ]);
+    if (!review) return res.status(404).json({ message: 'Performance review not found' });
+    res.json({ message: 'Performance review node modified', data: review });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteReview = async (req, res) => {
+  try {
+    await Review.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    res.json({ message: 'Performance review node removed' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

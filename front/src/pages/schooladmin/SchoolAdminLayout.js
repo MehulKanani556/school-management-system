@@ -5,7 +5,8 @@ import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
-  Menu, X, User, ChevronRight, BookMarked, Calendar, Clock, MessageSquare
+ MessageSquare,Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
+  Banknote, CalendarDays, Rocket
 } from 'lucide-react';
 
 const navItems = [
@@ -19,6 +20,9 @@ const navItems = [
   { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance' },
   { to: '/school-admin/timetable',  icon: Clock,         label: 'Timetable' },
   { to: '/school-admin/communication', icon: MessageSquare, label: 'Communication' },
+  { to: '/school-admin/payroll',    icon: Banknote,      label: 'Payroll' },
+  { to: '/school-admin/leaves',     icon: CalendarDays,  label: 'Leaves' },
+  { to: '/school-admin/reviews',    icon: Rocket,        label: 'Reviews' },
   { to: '/school-admin/holidays',   icon: Calendar,      label: 'Holidays' },
 ];
 
