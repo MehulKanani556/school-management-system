@@ -13,6 +13,7 @@ const teacherSchema = new mongoose.Schema({
   joiningDate:    { type: Date },
   baseSalary:     { type: Number, default: 0 },
   isActive:       { type: Boolean, default: true },
+  deletedAt:      { type: Date, default: null },
 }, { timestamps: true });
 
 // Auto-generate employeeId in sequence: 0001, 0002, ...

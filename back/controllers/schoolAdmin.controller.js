@@ -90,8 +90,8 @@ exports.getDashboardStats = async (req, res) => {
 
     // 1. Basic Stats
     const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount] = await Promise.all([
-      Student.countDocuments({ schoolId, isActive: true }),
-      Teacher.countDocuments({ schoolId, isActive: true }),
+      Student.countDocuments({ schoolId, isActive: true, deletedAt: null }),
+      Teacher.countDocuments({ schoolId, isActive: true, deletedAt: null }),
       ClassSection.countDocuments({ schoolId }),
       FeePayment.countDocuments({ schoolId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
       Exam.countDocuments({ schoolId }),
@@ -99,8 +99,8 @@ exports.getDashboardStats = async (req, res) => {
 
     // 2. Recent Activity (Latest additions)
     const [recentStudents, recentTeachers, recentExams] = await Promise.all([
-      Student.find({ schoolId }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
-      Teacher.find({ schoolId }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
+      Student.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
+      Teacher.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
       Exam.find({ schoolId }).sort({ createdAt: -1 }).limit(3).populate('subject', 'name').select('title createdAt'),
     ]);
 
@@ -270,7 +270,7 @@ exports.deleteStandard = async (req, res) => {
 // ─── Students ─────────────────────────────────────────────────────────────────
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find({ schoolId: getSchoolId(req) })
+    const students = await Student.find({ schoolId: getSchoolId(req), deletedAt: null })
       .populate('standard', 'level name')
       .populate('classSection', 'sectionLabel');
     res.json(students);
@@ -330,8 +330,11 @@ exports.updateStudent = async (req, res) => {
 
 exports.deleteStudent = async (req, res) => {
   try {
-    await Student.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
-    res.json({ message: 'Student deleted' });
+    await Student.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      { deletedAt: new Date(), isActive: false }
+    );
+    res.json({ message: 'Student record deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -360,7 +363,7 @@ const validateTeacher = (body) => {
 // ─── Teachers ─────────────────────────────────────────────────────────────────
 exports.getTeachers = async (req, res) => {
   try {
-    const teachers = await Teacher.find({ schoolId: getSchoolId(req) });
+    const teachers = await Teacher.find({ schoolId: getSchoolId(req), deletedAt: null });
     res.json(teachers);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -476,8 +479,14 @@ exports.toggleTeacherStatus = async (req, res) => {
 
 exports.deleteTeacher = async (req, res) => {
   try {
-    await Teacher.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
-    res.json({ message: 'Teacher deleted' });
+    const teacher = await Teacher.findOneAndUpdate(
+      { _id: req.params.id, schoolId: getSchoolId(req) },
+      { deletedAt: new Date(), isActive: false }
+    );
+    if (teacher && teacher.userId) {
+      await User.findByIdAndUpdate(teacher.userId, { isActive: false });
+    }
+    res.json({ message: 'Teacher record deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -929,7 +938,7 @@ exports.deleteReview = async (req, res) => {
 exports.exportStudents = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const students = await Student.find({ schoolId })
+    const students = await Student.find({ schoolId, deletedAt: null })
       .populate('standard', 'level')
       .populate('classSection', 'sectionLabel');
 
@@ -1012,7 +1021,7 @@ exports.importStudents = async (req, res) => {
 exports.exportTeachers = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const teachers = await Teacher.find({ schoolId });
+    const teachers = await Teacher.find({ schoolId, deletedAt: null });
 
     const fields = [
       { label: 'First Name', value: 'firstName' },

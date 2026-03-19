@@ -18,6 +18,7 @@ const studentSchema = new mongoose.Schema({
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
   password: { type: String },
   isActive: { type: Boolean, default: true },
+  deletedAt: { type: Date, default: null },
 }, { timestamps: true });
 
 // Auto-generate admissionNumber in format: ADM-2024-001
