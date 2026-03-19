@@ -36,13 +36,18 @@ exports.upsertTimetable = async (req, res) => {
         const { classSection, schedule } = req.body;
         const schoolId = req.user.schoolId._id || req.user.schoolId;
 
+        const section = await ClassSection.findById(classSection);
+        if (!section) return res.status(404).json({ message: 'Class section not found' });
+        const standardId = section.standardId;
+
         let timetable = await Timetable.findOne({ classSection });
 
         if (timetable) {
             timetable.schedule = schedule;
+            timetable.standardId = standardId;
             await timetable.save();
         } else {
-            timetable = new Timetable({ schoolId, classSection, schedule });
+            timetable = new Timetable({ schoolId, standardId, classSection, schedule });
             await timetable.save();
         }
 

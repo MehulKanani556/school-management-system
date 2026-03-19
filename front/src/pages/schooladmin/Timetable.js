@@ -132,7 +132,9 @@ const AdminTimetable = () => {
                         >
                             <option value="">Identify Sector</option>
                             {classes.map(c => (
-                                <option key={c._id} value={c._id}>Grade {c.gradeLevel} - {c.sectionLabel} {getExistingTimetable(c._id) ? '✓' : '○'}</option>
+                                <option key={c._id} value={c._id}>
+                                    {c.standardId?.name || `Standard ${c.standardId?.level}`} - {c.sectionLabel} {getExistingTimetable(c._id) ? '✓' : '○'}
+                                </option>
                             ))}
                         </select>
                         <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
@@ -196,7 +198,9 @@ const AdminTimetable = () => {
                                                             <Layers size={20} />
                                                         </div>
                                                         <div>
-                                                            <div className="text-[13px] font-black text-white uppercase tracking-wider font-outfit italic">Grade {cls.gradeLevel} - {cls.sectionLabel}</div>
+                                                            <div className="text-[13px] font-black text-white uppercase tracking-wider font-outfit italic">
+                                                                {cls.standardId?.name || `Standard ${cls.standardId?.level}`} - {cls.sectionLabel}
+                                                            </div>
                                                             <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Institutional Unit Path</div>
                                                         </div>
                                                     </div>
@@ -457,7 +461,9 @@ const AdminTimetable = () => {
                         </div>
                         <div>
                             <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Target Sector</div>
-                            <div className="text-xl font-black text-white font-outfit italic uppercase">Grade {classes.find(c => c._id === selectedClass)?.gradeLevel} - {classes.find(c => c._id === selectedClass)?.sectionLabel}</div>
+                            <div className="text-xl font-black text-white font-outfit italic uppercase">
+                                {classes.find(c => c._id === selectedClass)?.standardId?.name} - {classes.find(c => c._id === selectedClass)?.sectionLabel}
+                            </div>
                         </div>
                     </div>
                     <div className="bg-slate-900/30 border border-slate-800/60 p-8 rounded-[2.5rem] flex items-center gap-8 group hover:border-emerald-500/20 transition-all">
@@ -487,7 +493,9 @@ const AdminTimetable = () => {
                 <div className="mb-12 border-b-2 border-slate-900 pb-8 flex justify-between items-end">
                     <div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter italic">Institutional Chronology</h1>
-                        <p className="text-sm font-bold text-slate-600 uppercase tracking-widest mt-2 italic">Sector: Grade {classes.find(c => c._id === selectedClass)?.gradeLevel || 'X'}-{classes.find(c => c._id === selectedClass)?.sectionLabel || 'A'}</p>
+                        <p className="text-sm font-bold text-slate-600 uppercase tracking-widest mt-2 italic">
+                            Sector: {classes.find(c => c._id === selectedClass)?.standardId?.name || 'Standard X'} - {classes.find(c => c._id === selectedClass)?.sectionLabel || 'A'}
+                        </p>
                     </div>
                     <div className="text-right">
                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Temporal Dispatch Archive</p>

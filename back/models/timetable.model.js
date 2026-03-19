@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const timetableSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  standardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection', required: true, unique: true },
   schedule: [
     {
