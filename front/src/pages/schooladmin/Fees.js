@@ -15,7 +15,8 @@ import toast from 'react-hot-toast';
 const STATUS_COLORS = { 
   paid: 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20', 
   pending: 'text-amber-400 bg-amber-400/10 border-amber-500/20', 
-  overdue: 'text-red-400 bg-red-400/10 border-red-500/20' 
+  overdue: 'text-red-400 bg-red-400/10 border-red-500/20',
+  partially_paid: 'text-blue-400 bg-blue-400/10 border-blue-500/20'
 };
 
 const Fees = () => {
@@ -37,7 +38,7 @@ const Fees = () => {
   
   // 1. Individual Fee Form
   const feeFormik = useFormik({
-    initialValues: { studentId: '', amount: '', category: '', status: 'pending', dueDate: '' },
+    initialValues: { studentId: '', amount: '', paidAmount: 0, payingNow: 0, category: '', status: 'pending', dueDate: '' },
     validationSchema: Yup.object({
       studentId: Yup.string().required('Required'),
       amount: Yup.number().required('Required').min(1),
@@ -46,15 +47,24 @@ const Fees = () => {
       dueDate: Yup.date().required('Required'),
     }),
     onSubmit: (values) => {
-      if (editing) dispatch(updateFee({ id: editing, data: values }));
-      else dispatch(createFee(values));
-      closeModals();
+      const finalPaidAmount = (Number(values.paidAmount) || 0) + (Number(values.payingNow) || 0);
+      const submissionData = { ...values, paidAmount: finalPaidAmount };
+      delete submissionData.payingNow;
+
+      const action = editing ? updateFee({ id: editing, data: submissionData }) : createFee(submissionData);
+      dispatch(action).unwrap()
+        .then(() => {
+          toast.success(editing ? 'Record updated' : 'Record created');
+          closeModals();
+          dispatch(fetchFees());
+        })
+        .catch(err => toast.error(err?.message || 'Operation failed'));
     }
   });
 
   // 2. Fee Structure Form
   const structureFormik = useFormik({
-    initialValues: { gradeLevel: '', academicYear: '2024-2025', dueDate: '', feeItems: [{ name: '', amount: '' }] },
+    initialValues: { gradeLevel: '', academicYear: '2024-2025', dueDate: '', feeItems: [{ name: '', amount: 0 }] },
     validationSchema: Yup.object({
       gradeLevel: Yup.number().required('Required').min(1).max(12),
       academicYear: Yup.string().required('Required'),
@@ -67,9 +77,14 @@ const Fees = () => {
       )
     }),
     onSubmit: (values) => {
-      if (editing) dispatch(updateFeeStructure({ id: editing, data: values }));
-      else dispatch(createFeeStructure(values));
-      closeModals();
+      const action = editing ? updateFeeStructure({ id: editing, data: values }) : createFeeStructure(values);
+      dispatch(action).unwrap()
+        .then(() => {
+          toast.success(editing ? 'Structure refined' : 'Structure established');
+          closeModals();
+          dispatch(fetchFeeStructures());
+        })
+        .catch(err => toast.error(err?.message || 'Operation failed'));
     }
   });
 
@@ -105,6 +120,8 @@ const Fees = () => {
     feeFormik.setValues({
       studentId: f.studentId?._id || f.studentId,
       amount: f.amount,
+      paidAmount: f.paidAmount || 0,
+      payingNow: 0,
       category: f.category,
       status: f.status,
       dueDate: f.dueDate ? f.dueDate.split('T')[0] : ''
@@ -127,7 +144,7 @@ const Fees = () => {
 
   const filteredFees = filter === 'all' ? fees : fees.filter(f => f.status === filter);
   const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0);
-  const totalPaid = fees.filter(f => f.status === 'paid').reduce((sum, f) => sum + (f.amount || 0), 0);
+  const totalPaid = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -198,7 +215,7 @@ const Fees = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-brand-border/30 bg-slate-800/20">
-                      {['Student', 'Category', 'Amount', 'Status', 'Due Date', 'Actions'].map(h => (
+                      {['Student', 'Category', 'Total', 'Paid', 'Status', 'Due Date', 'Actions'].map(h => (
                         <th key={h} className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-outfit">{h}</th>
                       ))}
                     </tr>
@@ -222,8 +239,11 @@ const Fees = () => {
                           <span className="font-black text-white italic tracking-tight text-lg">${f.amount?.toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
+                          <span className="font-black text-emerald-400 italic tracking-tight text-lg">${(f.paidAmount || 0).toLocaleString()}</span>
+                        </td>
+                        <td className="px-8 py-5">
                           <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${STATUS_COLORS[f.status]}`}>
-                            {f.status}
+                            {f.status.replace('_', ' ')}
                           </span>
                         </td>
                         <td className="px-8 py-5 text-slate-400 text-xs font-bold">{f.dueDate ? new Date(f.dueDate).toLocaleDateString() : '—'}</td>
@@ -341,9 +361,9 @@ const Fees = () => {
             {feeFormik.values.studentId && !editing && (() => {
               const unpaidFees = fees.filter(f => {
                 const sid = f.studentId?._id || f.studentId;
-                return sid === feeFormik.values.studentId && (f.status === 'pending' || f.status === 'overdue');
+                return sid === feeFormik.values.studentId && f.status !== 'paid';
               });
-              const totalUnpaid = unpaidFees.reduce((sum, f) => sum + (f.amount || 0), 0);
+              const totalUnpaid = unpaidFees.reduce((sum, f) => sum + (f.amount || 0) - (f.paidAmount || 0), 0);
               
               return totalUnpaid > 0 ? (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-2 mt-3">
@@ -356,9 +376,23 @@ const Fees = () => {
                     {unpaidFees.map(uf => (
                       <div key={uf._id} className="flex items-center justify-between p-2 bg-slate-900/40 rounded-xl border border-white/5 group hover:border-brand-primary/30 transition-all">
                         <div className="flex-1 cursor-pointer" 
-                          onClick={() => feeFormik.setValues({ ...feeFormik.values, amount: uf.amount, category: uf.category, dueDate: uf.dueDate?.split('T')[0] || '' })}>
+                          onClick={() => {
+                            setEditing(uf._id);
+                            feeFormik.setValues({ 
+                              studentId: uf.studentId?._id || uf.studentId,
+                              amount: uf.amount, 
+                              paidAmount: uf.paidAmount || 0,
+                              payingNow: 0,
+                              category: uf.category, 
+                              status: uf.status,
+                              dueDate: uf.dueDate?.split('T')[0] || '' 
+                            });
+                          }}>
                           <p className="text-[10px] font-bold text-slate-300 truncate">{uf.category}</p>
-                          <p className="text-[9px] font-black text-amber-500 italic">${uf.amount?.toLocaleString()}</p>
+                          <p className="text-[9px] font-black text-amber-500 italic">
+                            ${((uf.amount || 0) - (uf.paidAmount || 0)).toLocaleString()} {' '}
+                            {uf.status === 'partially_paid' && <span className="text-[7px] opacity-70 uppercase tracking-tighter">(Remaining)</span>}
+                          </p>
                         </div>
                         <button 
                           type="button"
@@ -385,33 +419,103 @@ const Fees = () => {
             })()}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Amount</label>
-              <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00"
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
+          {editing ? (
+            /* Mode: Refine Existing Debt */
+            <div className="bg-slate-900/60 border border-white/5 rounded-[2rem] p-6 space-y-5">
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Record Context</p>
+                  <h4 className="text-lg font-black text-white italic transition-all group-hover:text-brand-primary">
+                    {feeFormik.values.category || 'Fee Breakdown'}
+                  </h4>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total Obligation</p>
+                  <p className="text-lg font-black text-white font-outfit">${Number(feeFormik.values.amount).toLocaleString()}</p>
+                </div>
+              </div>
+
+              {/* Payment Progress Visualization */}
+              <div className="space-y-2">
+                <div className="h-3 w-full bg-slate-800 rounded-full overflow-hidden flex border border-white/5">
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((Number(feeFormik.values.paidAmount) / Number(feeFormik.values.amount)) * 100, 100)}%` }}
+                    className="h-full bg-brand-primary"
+                  />
+                  <motion.div 
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min((Number(feeFormik.values.payingNow) / Number(feeFormik.values.amount)) * 100, 100 - (Number(feeFormik.values.paidAmount) / Number(feeFormik.values.amount)) * 100)}%` }}
+                    className="h-full bg-emerald-500 transition-all"
+                  />
+                </div>
+                <div className="flex justify-between text-[8px] font-black uppercase tracking-widest px-1">
+                  <span className="text-brand-primary">Paid: ${Number(feeFormik.values.paidAmount).toLocaleString()}</span>
+                  <span className="text-emerald-500">New: ${Number(feeFormik.values.payingNow).toLocaleString()}</span>
+                  <span className="text-slate-500">Debt: ${Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount) - Number(feeFormik.values.payingNow), 0).toLocaleString()}</span>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-4 bg-white/5 rounded-2xl border border-white/5 text-center">
+                  <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Debt Left</p>
+                  <p className="text-sm font-black text-amber-500 italic">
+                    ${Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount), 0).toLocaleString()}
+                  </p>
+                </div>
+                <div className="col-span-2 relative group">
+                  <label className="absolute -top-2 left-4 px-2 bg-slate-900 text-[8px] font-black uppercase tracking-widest text-emerald-500 z-10">New Payment Amount</label>
+                  <input 
+                    name="payingNow" 
+                    type="number" 
+                    value={feeFormik.values.payingNow} 
+                    onChange={feeFormik.handleChange} 
+                    placeholder="0.00"
+                    className="w-full bg-emerald-500/5 border-2 border-emerald-500/20 focus:border-emerald-500 rounded-2xl py-4 px-5 text-emerald-400 outline-none text-lg font-black transition-all shadow-inner placeholder:text-emerald-500/30" 
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => feeFormik.setFieldValue('payingNow', Math.max(Number(feeFormik.values.amount) - Number(feeFormik.values.paidAmount), 0))}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 bg-emerald-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-emerald-500/20"
+                  >
+                    Pay Full
+                  </button>
+                </div>
+              </div>
             </div>
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Status</label>
-              <select name="status" value={feeFormik.values.status} onChange={feeFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all appearance-none">
-                <option value="pending" className="bg-slate-900">Pending</option>
-                <option value="paid" className="bg-slate-900">Paid</option>
-                <option value="overdue" className="bg-slate-900">Overdue</option>
-              </select>
+          ) : (
+            /* Mode: New Record Creation */
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Total Amount</label>
+                <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00"
+                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Initial Pay</label>
+                <input name="paidAmount" type="number" value={feeFormik.values.paidAmount} onChange={feeFormik.handleChange} placeholder="0.00"
+                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
+              </div>
             </div>
-          </div>
+          )}
 
           <div>
-             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Category / Reason</label>
-             <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="e.g. Tuition Q3, Exam Fee" 
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Category / Reason</label>
+            <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="e.g. Tuition Q3, Exam Fee" 
               className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all shadow-inner" />
           </div>
 
-          <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Due Date</label>
-            <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange}
-              className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all appearance-none shadow-inner" />
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Total Limit</label>
+              <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange}
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3 px-5 text-slate-500 outline-none text-xs transition-all shadow-inner opacity-50 focus:opacity-100" />
+            </div>
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Due Cycle</label>
+              <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange}
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all appearance-none shadow-inner" />
+            </div>
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 bg-brand-primary hover:bg-blue-600 rounded-[1.2rem] font-black text-sm uppercase tracking-widest transition-all font-outfit text-white shadow-xl shadow-brand-primary/20 mt-4">
@@ -447,7 +551,7 @@ const Fees = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Fee Items & Breakdowns</label>
               <button 
                 type="button" 
-                onClick={() => structureFormik.setFieldValue('feeItems', [...structureFormik.values.feeItems, { name: '', amount: '' }])}
+                onClick={() => structureFormik.setFieldValue('feeItems', [...structureFormik.values.feeItems, { name: '', amount: 0 }])}
                 className="text-brand-primary font-black text-[10px] uppercase tracking-widest hover:text-white transition-colors"
                 >
                 + Add Component

@@ -14,16 +14,19 @@ const feeStructureSchema = new mongoose.Schema({
   totalAmount: { type: Number, default: 0 }
 }, { timestamps: true });
 
+// Prevent duplicate structures for same grade/year
+feeStructureSchema.index({ schoolId: 1, gradeLevel: 1, academicYear: 1 }, { unique: true });
+
 // Auto-calculate totalAmount before saving
 feeStructureSchema.pre('save', function(next) {
-  this.totalAmount = this.feeItems.reduce((acc, item) => acc + item.amount, 0);
+  this.totalAmount = this.feeItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
   next();
 });
 
 feeStructureSchema.pre('findOneAndUpdate', function(next) {
   const update = this.getUpdate();
   if (update.feeItems) {
-    update.totalAmount = update.feeItems.reduce((acc, item) => acc + item.amount, 0);
+    update.totalAmount = update.feeItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0);
     this.setUpdate(update);
   }
   next();

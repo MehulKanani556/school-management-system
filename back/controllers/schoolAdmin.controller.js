@@ -61,7 +61,7 @@ exports.getDashboardStats = async (req, res) => {
       Student.countDocuments({ schoolId, isActive: true }),
       Teacher.countDocuments({ schoolId, isActive: true }),
       ClassSection.countDocuments({ schoolId }),
-      FeePayment.countDocuments({ schoolId, status: 'pending' }),
+      FeePayment.countDocuments({ schoolId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
       Exam.countDocuments({ schoolId }),
     ]);
     res.json({ students, teachers, classes, pendingFees: fees, exams });
@@ -368,19 +368,34 @@ exports.createFee = async (req, res) => {
 
 exports.updateFee = async (req, res) => {
   try {
+    const { paidAmount } = req.body;
+    const existing = await FeePayment.findOne({ _id: req.params.id, schoolId: getSchoolId(req) });
+    if (!existing) return res.status(404).json({ message: 'Fee record not found' });
+
     const updateData = { ...req.body };
-    if (req.body.status === 'paid') {
-      const existing = await FeePayment.findById(req.params.id);
-      if (existing && existing.status !== 'paid') {
+
+    // If paidAmount is provided, automatically update status
+    if (paidAmount !== undefined) {
+      if (paidAmount >= existing.amount) {
+        updateData.status = 'paid';
         updateData.paidDate = new Date();
+      } else if (paidAmount > 0) {
+        updateData.status = 'partially_paid';
+        updateData.paidDate = new Date();
+      } else {
+        updateData.status = 'pending';
       }
+    } else if (req.body.status === 'paid') {
+      // Manual status override to 'paid'
+      updateData.paidAmount = existing.amount;
+      updateData.paidDate = new Date();
     }
-    const fee = await FeePayment.findOneAndUpdate(
-      { _id: req.params.id, schoolId: getSchoolId(req) },
+
+    const fee = await FeePayment.findByIdAndUpdate(
+      req.params.id,
       updateData, { new: true }
     ).populate('studentId', 'firstName lastName admissionNumber');
     
-    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
     res.json(fee);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
