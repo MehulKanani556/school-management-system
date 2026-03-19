@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 const ClassSection = require('../models/classSection.model');
@@ -8,6 +9,8 @@ const FeePayment = require('../models/feePayment.model');
 const FeeStructure = require('../models/feeStructure.model');
 const Attendance = require('../models/attendance.model');
 const User = require('../models/user.model');
+const Mark = require('../models/mark.model');
+const Holiday = require('../models/holiday.model');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 
@@ -58,14 +61,149 @@ const sendTeacherWelcomeMail = async ({ email, firstName, lastName, employeeId, 
 exports.getDashboardStats = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const [students, teachers, classes, fees, exams] = await Promise.all([
+
+    // 1. Basic Stats
+    const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount] = await Promise.all([
       Student.countDocuments({ schoolId, isActive: true }),
       Teacher.countDocuments({ schoolId, isActive: true }),
       ClassSection.countDocuments({ schoolId }),
       FeePayment.countDocuments({ schoolId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
       Exam.countDocuments({ schoolId }),
     ]);
-    res.json({ students, teachers, classes, pendingFees: fees, exams });
+
+    // 2. Recent Activity (Latest additions)
+    const [recentStudents, recentTeachers, recentExams] = await Promise.all([
+      Student.find({ schoolId }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
+      Teacher.find({ schoolId }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
+      Exam.find({ schoolId }).sort({ createdAt: -1 }).limit(3).populate('subject', 'name').select('title createdAt'),
+    ]);
+
+    const activity = [
+      ...recentStudents.map(s => ({ type: 'student', name: `${s.firstName} ${s.lastName}`, date: s.createdAt, action: 'Added new student' })),
+      ...recentTeachers.map(t => ({ type: 'teacher', name: `${t.firstName} ${t.lastName}`, date: t.createdAt, action: 'Added new teacher' })),
+      ...recentExams.map(e => ({ type: 'exam', name: e.title || e.subject?.name, date: e.createdAt, action: 'Scheduled new exam' })),
+    ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
+
+    // 3. Attendance Trends (Last 7 records)
+    const last7Attendance = await Attendance.find({ schoolId })
+      .sort({ date: -1 })
+      .limit(7)
+      .select('date records');
+    
+    const attendanceTrends = last7Attendance.map(a => {
+      const total = a.records.length;
+      const present = a.records.filter(r => r.status === 'present').length;
+      return {
+        date: a.date.toISOString().split('T')[0],
+        percentage: total > 0 ? Math.round((present / total) * 100) : 0
+      };
+    }).reverse();
+
+    // 4. Fee Collection Trends (Last 6 months)
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+    const recentPayments = await FeePayment.find({ 
+      schoolId, 
+      status: { $in: ['paid', 'partially_paid'] },
+      paidDate: { $gte: sixMonthsAgo }
+    }).select('paidAmount paidDate');
+
+    const monthlyFees = {};
+    recentPayments.forEach(p => {
+      if (p.paidDate) {
+        const month = p.paidDate.toLocaleString('default', { month: 'short' });
+        monthlyFees[month] = (monthlyFees[month] || 0) + (p.paidAmount || 0);
+      }
+    });
+
+    // Ensure we have last 6 months even if no data
+    const last6Months = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const m = d.toLocaleString('default', { month: 'short' });
+      last6Months.push({ month: m, amount: monthlyFees[m] || 0 });
+    }
+
+    // 5. Calendar (Upcoming Exams & Holidays)
+    const today = new Date();
+    const [upcomingExams, upcomingHolidays] = await Promise.all([
+      Exam.find({ schoolId, date: { $gte: today } }).sort({ date: 1 }).limit(5).populate('subject', 'name'),
+      Holiday.find({ schoolId, startDate: { $gte: today } }).sort({ startDate: 1 }).limit(5),
+    ]);
+
+    const calendar = [
+      ...upcomingExams.map(e => ({ type: 'exam', title: e.title || `Exam: ${e.subject?.name}`, date: e.date })),
+      ...upcomingHolidays.map(h => ({ type: 'holiday', title: h.title, date: h.startDate, endDate: h.endDate })),
+    ].sort((a, b) => new Date(a.date) - new Date(b.date)).slice(0, 5);
+
+    // 6. Exam Performance (Avg marks for last 5 exams with results)
+    const recentExamsWithMarks = await Mark.aggregate([
+      { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+      { $group: { _id: '$examId', avg: { $avg: '$marksObtained' } } },
+      { $sort: { _id: -1 } },
+      { $limit: 5 },
+      { $lookup: { from: 'exams', localField: '_id', foreignField: '_id', as: 'exam' } },
+      { $unwind: '$exam' },
+      { $lookup: { from: 'subjects', localField: 'exam.subject', foreignField: '_id', as: 'subject' } },
+      { $unwind: '$subject' },
+      { $project: { title: { $ifNull: ['$exam.title', '$subject.name'] }, avg: { $round: ['$avg', 0] } } }
+    ]);
+
+    // 7. Alerts
+    const overdueFees = await FeePayment.countDocuments({ schoolId, status: 'overdue' });
+    const startOfDay = new Date(); startOfDay.setHours(0,0,0,0);
+    const endOfDay = new Date(); endOfDay.setHours(23,59,59,999);
+    const examsToday = await Exam.countDocuments({ 
+      schoolId, 
+      date: { $gte: startOfDay, $lte: endOfDay } 
+    });
+
+    // 8. Growth Metrics (Comparison)
+    const now = new Date();
+    const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    
+    const [newStudentsThisMonth, newStudentsLastMonth, newTeachersThisMonth] = await Promise.all([
+      Student.countDocuments({ schoolId, createdAt: { $gte: startOfThisMonth } }),
+      Student.countDocuments({ schoolId, createdAt: { $gte: startOfLastMonth, $lt: startOfThisMonth } }),
+      Teacher.countDocuments({ schoolId, createdAt: { $gte: startOfThisMonth } }),
+    ]);
+
+    const studentGrowth = newStudentsLastMonth === 0 ? (newStudentsThisMonth > 0 ? 100 : 0) : Math.round(((newStudentsThisMonth - newStudentsLastMonth) / newStudentsLastMonth) * 100);
+    
+    // Growth Insight calculation
+    let growthInsight = "Keep monitoring student engagement for better results.";
+    if (recentExamsWithMarks.length >= 2) {
+      const latestAvg = recentExamsWithMarks[0].avg;
+      const prevAvg = recentExamsWithMarks[1].avg;
+      const diff = latestAvg - prevAvg;
+      if (diff > 0) growthInsight = `Overall student performance has improved by ${diff}% compared to previous assessments.`;
+      else if (diff < 0) growthInsight = `Alert: Average marks have dipped by ${Math.abs(diff)}%. Reviewing curriculum recommended.`;
+    }
+    console.log("aa",recentPayments);
+
+    res.json({
+      students: studentsCount,
+      teachers: teachersCount,
+      classes: classesCount,
+      pendingFees: pendingFeesCount,
+      exams: examsCount,
+      activity,
+      attendanceTrends,
+      feeTrends: last6Months,
+      calendar,
+      examPerformance: recentExamsWithMarks,
+      alerts: {
+        overdueFees,
+        examsToday
+      },
+      metrics: {
+        studentGrowth,
+        newTeachers: newTeachersThisMonth,
+        growthInsight
+      }
+    });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
