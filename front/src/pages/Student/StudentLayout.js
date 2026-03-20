@@ -4,7 +4,8 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, User, ClipboardList, 
     Award, Download, Calendar, LogOut, 
-    Bell, Settings, ChevronRight
+    Bell, Settings, ChevronRight, CreditCard,
+    Megaphone, MessageSquare, BookOpen, Clock
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -22,7 +23,12 @@ const StudentLayout = () => {
         { icon: Award, label: 'Academic Results', path: '/student/results' },
         { icon: Download, label: 'Assignments', path: '/student/assignments' },
         { icon: Calendar, label: 'Timetable', path: '/student/timetable' },
-        { icon: Calendar, label: 'Holidays', path: '/student/holidays' },
+        { icon: Clock, label: 'Holidays', path: '/student/holidays' },
+        { icon: CreditCard, label: 'Financial Ledger', path: '/student/fees' },
+        { icon: Bell, label: 'Pulse Feed', path: '/student/notifications' },
+        { icon: Megaphone, label: 'Bulletin Terminal', path: '/student/announcements' },
+        { icon: MessageSquare, label: 'Neural Link', path: '/student/messages' },
+        { icon: BookOpen, label: 'Evaluation Matrix', path: '/student/exams' },
     ];
 
     const handleLogout = () => {
@@ -74,10 +80,10 @@ const StudentLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <button className="p-2.5 rounded-md bg-slate-800/40 border border-slate-700/50 text-slate-400 hover:text-luxury-emerald transition-all relative">
-                            <Bell size={18} />
+                        <Link to="/student/notifications" className="p-2.5 rounded-md bg-slate-800/40 border border-slate-700/50 text-slate-400 hover:text-luxury-emerald transition-all relative group">
+                            <Bell size={18} className="group-hover:rotate-12 transition-transform" />
                             <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-luxury-emerald rounded-md border-2 border-[#0a0a0c]"></span>
-                        </button>
+                        </Link>
                         
                         <div className="h-10 w-px bg-slate-800/60"></div>
 

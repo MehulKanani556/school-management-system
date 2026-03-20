@@ -53,6 +53,11 @@ import AcademicResults from './pages/Student/AcademicResults';
 import AssignmentsStudent from './pages/Student/Assignments';
 import Timetable from './pages/Student/Timetable';
 import StudentProfile from './pages/Student/StudentProfile';
+import FeesStudent from './pages/Student/Fees';
+import NotificationsStudent from './pages/Student/Notifications';
+import AnnouncementsStudent from './pages/Student/Announcements';
+import MessagesStudent from './pages/Student/Messages';
+import ExamsStudent from './pages/Student/Exams';
 
 // Common Pages
 import Holidays from './pages/common/Holidays';
@@ -115,6 +120,11 @@ function AppRoutes() {
           <Route path="assignments" element={<AssignmentsStudent />} />
           <Route path="timetable" element={<Timetable />} />
           <Route path="holidays" element={<Holidays />} />
+          <Route path="fees" element={<FeesStudent />} />
+          <Route path="notifications" element={<NotificationsStudent />} />
+          <Route path="announcements" element={<AnnouncementsStudent />} />
+          <Route path="messages" element={<MessagesStudent />} />
+          <Route path="exams" element={<ExamsStudent />} />
         </Route>
 
         {/* Teacher Panel */}

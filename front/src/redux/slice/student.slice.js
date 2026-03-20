@@ -36,10 +36,63 @@ export const fetchStudentAssignments = createAsyncThunk('student/fetchAssignment
         return rejectWithValue(error.response.data.message);
     }
 });
-
 export const fetchStudentTimetable = createAsyncThunk('student/fetchTimetable', async (_, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get('/student/timetable');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchStudentFees = createAsyncThunk('student/fetchFees', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/fees');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchStudentExams = createAsyncThunk('student/fetchExams', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/exams');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchMySubmissions = createAsyncThunk('student/fetchSubmissions', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/my-submissions');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const submitAssignment = createAsyncThunk('student/submitAssignment', async (formData, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/student/submit-assignment', formData);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const updateStudentProfile = createAsyncThunk('student/updateProfile', async (formData, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put('/student/profile', formData);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const changeStudentPassword = createAsyncThunk('student/changePassword', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/student/change-password', data);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -53,6 +106,9 @@ const studentSlice = createSlice({
         attendance: [],
         results: [],
         assignments: [],
+        submissions: [],
+        fees: [],
+        exams: [],
         timetable: [],
         loading: false,
         error: null,
@@ -82,7 +138,33 @@ const studentSlice = createSlice({
             })
             .addCase(fetchStudentTimetable.fulfilled, (state, action) => {
                 state.timetable = action.payload;
-            });
+            })
+            .addCase(fetchStudentFees.fulfilled, (state, action) => {
+                state.fees = action.payload;
+            })
+            .addCase(fetchStudentExams.fulfilled, (state, action) => {
+                state.exams = action.payload;
+            })
+            .addCase(fetchMySubmissions.fulfilled, (state, action) => {
+                state.submissions = action.payload;
+            })
+            .addCase(submitAssignment.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+            })
+            .addCase(updateStudentProfile.fulfilled, (state, action) => {
+                state.profile = action.payload.student;
+                state.message = "Profile synchronized successfully";
+            })
+            .addCase(changeStudentPassword.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+            })
+            .addMatcher(
+                (action) => action.type.endsWith('/rejected'),
+                (state, action) => {
+                    state.loading = false;
+                    state.error = action.payload;
+                }
+            );
     }
 });
 

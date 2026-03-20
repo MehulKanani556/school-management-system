@@ -97,7 +97,7 @@ exports.upsertTimetable = async (req, res) => {
 // 3. Student: Get my class timetable
 exports.getStudentTimetable = async (req, res) => {
     try {
-        const student = await Student.findOne({ userId: req.user._id });
+        const student = await Student.findById(req.user._id);
         if (!student) {
             console.log(`[DEBUG] Student node missing for user: ${req.user._id}`);
             return res.status(404).json({ message: 'Student not found' });

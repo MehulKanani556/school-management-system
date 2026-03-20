@@ -74,7 +74,12 @@ exports.createUser = async (req, res) => {
 exports.studentLogin = async (req, res) => {
     try {
         const { admissionNumber, password } = req.body;
-        const student = await Student.findOne({ admissionNumber }).populate('schoolId');
+        const student = await Student.findOne({ admissionNumber })
+            .populate({
+                path: 'classSection',
+                populate: { path: 'standardId' }
+            })
+            .populate('schoolId');
         if (!student) return res.status(404).json({ message: "Student record not found" });
 
         const isMatch = await bcrypt.compare(password, student.password);

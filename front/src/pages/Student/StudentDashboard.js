@@ -148,7 +148,7 @@ const StudentDashboard = () => {
                 <div className="bg-gradient-to-br from-[#0f0f12] to-luxury-emerald/5 p-10 rounded-md border border-slate-800/80 shadow-2xl relative group overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-48 h-48 bg-luxury-emerald/10 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                     <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3">Academic Sector</h4>
-                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-10 italic">Verifying node coordinates for <br/> Grade {profile?.classSection?.gradeLevel || '0'} - Section {profile?.classSection?.sectionLabel || 'A'}</p>
+                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-10 italic">Verifying node coordinates for <br/> Grade {profile?.classSection?.standardId?.level || 'N/A'} - Section {profile?.classSection?.sectionLabel || 'A'}</p>
                     <Link to="/student/timetable" className="inline-flex items-center gap-4 py-4 px-10 bg-slate-800 hover:bg-slate-700 rounded-md text-[10px] font-black uppercase tracking-[0.3em] transition-all text-slate-300 shadow-xl active:scale-95 italic">Synchronize Schedule <Calendar size={16}/></Link>
                 </div>
 

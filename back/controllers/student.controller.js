@@ -5,11 +5,21 @@ const Mark = require('../models/mark.model');
 const Assignment = require('../models/assignment.model');
 const ClassSection = require('../models/classSection.model');
 const Submission = require('../models/submission.model');
+const FeePayment = require('../models/feePayment.model');
+const Exam = require('../models/exam.model');
+const School = require('../models/school.model');
 const nc = require('./notification.controller');
+const PDFDocument = require('pdfkit');
+const bcrypt = require('bcrypt');
 
 // Helper to get student node
 const getStudent = async (studentId) => {
-    const student = await Student.findById(studentId).populate('classSection schoolId');
+    const student = await Student.findById(studentId)
+        .populate({
+            path: 'classSection',
+            populate: { path: 'standardId' }
+        })
+        .populate('schoolId');
     if (!student) throw new Error('Student node not found');
     return student;
 };
@@ -112,5 +122,267 @@ exports.getMySubmissions = async (req, res) => {
         const student = await getStudent(req.user._id);
         const submissions = await Submission.find({ studentId: student._id }).populate('assignmentId', 'title subject' );
         res.json(submissions);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 8. View Fees
+exports.getFees = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const fees = await FeePayment.find({ studentId: student._id }).sort({ month: 1 });
+        res.json(fees);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 9. Update Profile
+exports.updateProfile = async (req, res) => {
+    try {
+        const studentId = req.user._id;
+        const { firstName, lastName, gender, dateOfBirth, address, guardianName, guardianContact } = req.body;
+        
+        let updateData = { firstName, lastName, gender, dateOfBirth, address, guardianName, guardianContact };
+        if (req.file) {
+            updateData.photo = req.file.location || req.file.path;
+        }
+
+        const student = await Student.findByIdAndUpdate(studentId, updateData, { new: true })
+            .populate({
+                path: 'classSection',
+                populate: { path: 'standardId' }
+            })
+            .populate('schoolId');
+        res.json({ message: 'Profile updated successfully', student });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 10. Change Password
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const student = await Student.findById(req.user._id);
+
+        const isMatch = await bcrypt.compare(oldPassword, student.password);
+        if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
+
+        student.password = await bcrypt.hash(newPassword, 10);
+        await student.save();
+
+        res.json({ message: 'Security credentials updated successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 11. View Exams (Schedule)
+exports.getExams = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const exams = await Exam.find({ 
+            standardId: student.standard, 
+            schoolId: student.schoolId._id 
+        }).populate('subject');
+        res.json(exams);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 12. Download Report Card
+exports.downloadReportCard = async (req, res) => {
+    try {
+      const id = req.user._id;
+      const schoolId = req.user.schoolId._id || req.user.schoolId;
+  
+      const school = await School.findById(schoolId);
+      if (!school) return res.status(404).json({ message: 'School not found' });
+  
+      const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
+      if (!student) return res.status(404).json({ message: 'Student not found' });
+  
+      const marks = await Mark.find({ studentId: id, schoolId })
+        .populate({
+          path: 'examId',
+          match: { isPublished: true },
+          populate: { path: 'subject' }
+        });
+  
+      const validMarks = marks.filter(m => m.examId !== null);
+  
+      const doc = new PDFDocument({ margin: 40, size: 'A4' });
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename=ReportCard_${student.firstName}_${student.lastName}.pdf`);
+      doc.pipe(res);
+  
+      const primaryColor = '#2563eb';
+      const darkColor = '#1e293b';
+      const lightColor = '#f8fafc';
+      const borderColor = '#e2e8f0';
+  
+      // Header
+      doc.rect(0, 0, 595, 120).fill(darkColor);
+      doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
+      doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('OFFICIAL ACADEMIC REPORT CARD', 40, 75, { characterSpacing: 2 });
+      doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text('ANNUAL SESSION 2025-26', 430, 45, { align: 'right', width: 125 });
+  
+      let currentY = 150;
+  
+      // Student Information
+      doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('STUDENT INFORMATION', 40, currentY);
+      currentY += 15;
+      doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
+      currentY += 15;
+  
+      const col1 = 40;
+      const col2 = 300;
+      doc.fillColor(darkColor).fontSize(9).font('Helvetica-Bold');
+      doc.text('Student Name:', col1, currentY);
+      doc.font('Helvetica').text(`${student.firstName} ${student.lastName}`, col1 + 80, currentY);
+      doc.font('Helvetica-Bold').text('Admission No:', col2, currentY);
+      doc.font('Helvetica').text(student.admissionNumber || 'N/A', col2 + 80, currentY);
+      
+      currentY += 20;
+      doc.font('Helvetica-Bold').text('Standard/Grade:', col1, currentY);
+      doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'}`, col1 + 80, currentY);
+      doc.font('Helvetica-Bold').text('Class Section:', col2, currentY);
+      doc.font('Helvetica').text(student.classSection?.sectionLabel || 'N/A', col2 + 80, currentY);
+  
+      currentY += 40;
+  
+      // Performance Table
+      doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('ACADEMIC RECORD', 40, currentY);
+      currentY += 15;
+      doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
+      currentY += 15;
+  
+      const colSubject = 40;
+      const colExam = 240;
+      const colMarks = 400;
+      const colTotal = 480;
+  
+      doc.rect(40, currentY, 515, 25).fill(lightColor);
+      doc.fillColor(darkColor).font('Helvetica-Bold').fontSize(9);
+      doc.text('SUBJECT', colSubject + 10, currentY + 8);
+      doc.text('EXAMINATION', colExam + 10, currentY + 8);
+      doc.text('OBTAINED', colMarks + 10, currentY + 8);
+      doc.text('MAX MARKS', colTotal + 10, currentY + 8);
+  
+      currentY += 25;
+      let totalObtained = 0;
+      let totalMax = 0;
+  
+      validMarks.forEach((m, i) => {
+        if (currentY > 700) { doc.addPage(); currentY = 50; }
+        const subjectName = m.examId.subject?.name || 'Subject';
+        const examName = m.examId.name;
+        const obtained = m.marksObtained;
+        const max = m.examId.maxMarks || 100;
+        totalObtained += obtained;
+        totalMax += max;
+        doc.fillColor(darkColor).font('Helvetica').fontSize(9);
+        doc.text(subjectName.toUpperCase(), colSubject + 10, currentY + 8);
+        doc.text(examName, colExam + 10, currentY + 8);
+        doc.font('Helvetica-Bold').text(obtained.toString(), colMarks + 10, currentY + 8, { width: 60, align: 'center' });
+        doc.font('Helvetica').text(max.toString(), colTotal + 10, currentY + 8, { width: 60, align: 'center' });
+        doc.moveTo(40, currentY + 25).lineTo(555, currentY + 25).strokeColor(borderColor).lineWidth(0.5).stroke();
+        currentY += 25;
+      });
+  
+      currentY += 30;
+  
+      // Result Summary
+      const summaryX = 350;
+      doc.rect(summaryX, currentY, 205, 100).fill(lightColor).strokeColor(borderColor).stroke();
+      doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('FINAL SUMMARY', summaryX + 15, currentY + 15);
+      const percentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0;
+      let grade = 'F';
+      let color = '#ef4444';
+      if (percentage >= 90) { grade = 'A+'; color = '#10b981'; }
+      else if (percentage >= 80) { grade = 'A'; color = '#10b981'; }
+      else if (percentage >= 70) { grade = 'B'; color = '#2563eb'; }
+      else if (percentage >= 60) { grade = 'C'; color = '#f59e0b'; }
+      else if (percentage >= 40) { grade = 'D'; color = '#f59e0b'; }
+      doc.font('Helvetica').fontSize(9).fillColor(darkColor).text(`Total Marks: ${totalObtained} / ${totalMax}`, summaryX + 15, currentY + 35);
+      doc.text(`Percentage: ${percentage.toFixed(1)}%`, summaryX + 15, currentY + 50);
+      doc.fillColor(color).fontSize(28).font('Helvetica-Bold').text(grade, summaryX + 140, currentY + 35);
+      doc.fontSize(8).fillColor('#64748b').text('GRADE', summaryX + 140, currentY + 65, { width: 40, align: 'center' });
+  
+      // Footer
+      doc.fontSize(7).fillColor('#94a3b8').text(`${school.name} // Generated on ${new Date().toLocaleDateString()}`, 0, 810, { align: 'center', width: 595 });
+      doc.end();
+    } catch (err) { res.status(500).json({ message: err.message }); }
+  };
+
+// 13. Download Fee Receipt
+exports.downloadFeeReceipt = async (req, res) => {
+    try {
+        const { feeId } = req.params;
+        const student = await getStudent(req.user._id);
+        const fee = await FeePayment.findById(feeId);
+        
+        if (!fee || fee.studentId.toString() !== student._id.toString()) {
+            return res.status(404).json({ message: 'Fee record node not found' });
+        }
+
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Receipt_${fee.category}_${student.firstName}.pdf`);
+        doc.pipe(res);
+
+        // Styling
+        const darkColor = '#0f172a';
+        const brandColor = '#10b981';
+        const lightColor = '#f8fafc';
+
+        // Header Rect
+        doc.rect(0, 0, 595, 150).fill(darkColor);
+        doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(student.schoolId.name.toUpperCase(), 40, 50);
+        doc.fontSize(10).font('Helvetica').fillColor(brandColor).text('OFFICIAL FEE PAYMENT RECEIPT', 40, 85, { characterSpacing: 2 });
+        
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text(`RECEIPT NO: #${fee._id.toString().slice(-8).toUpperCase()}`, 400, 50, { align: 'right', width: 155 });
+        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text(`DATE: ${new Date(fee.paidDate || fee.updatedAt).toLocaleDateString()}`, 400, 65, { align: 'right', width: 155 });
+
+        let y = 180;
+
+        // Student Info
+        doc.fillColor(darkColor).fontSize(12).font('Helvetica-Bold').text('STUDENT DETAILS', 40, y);
+        y += 20;
+        doc.moveTo(40, y).lineTo(555, y).strokeColor('#e2e8f0').lineWidth(1).stroke();
+        y += 15;
+
+        doc.fontSize(10).font('Helvetica-Bold').text('Student Name:', 40, y);
+        doc.font('Helvetica').text(`${student.firstName} ${student.lastName}`, 140, y);
+        doc.font('Helvetica-Bold').text('Admission No:', 320, y);
+        doc.font('Helvetica').text(student.admissionNumber || 'N/A', 420, y);
+        y += 20;
+        doc.font('Helvetica-Bold').text('Grade/Sec:', 40, y);
+        doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'} / ${student.classSection?.sectionLabel || 'N/A'}`, 140, y);
+        doc.font('Helvetica-Bold').text('Academic Year:', 320, y);
+        doc.font('Helvetica').text(fee.academicYear || '2025-26', 420, y);
+        
+        y += 40;
+
+        // Payment Details
+        doc.fillColor(darkColor).fontSize(12).font('Helvetica-Bold').text('PAYMENT BREAKDOWN', 40, y);
+        y += 20;
+        doc.rect(40, y, 515, 30).fill(lightColor);
+        doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('DESCRIPTION', 50, y + 10);
+        doc.text('AMOUNT (INR)', 450, y + 10, { align: 'right', width: 100 });
+        
+        y += 40;
+        doc.font('Helvetica').fontSize(10).text(`${fee.category || 'Tuition Fee'}`, 50, y);
+        doc.font('Helvetica-Bold').text(`₹${(fee.totalAmount || fee.amount)?.toLocaleString()}`, 450, y, { align: 'right', width: 100 });
+        
+        y += 30;
+        doc.moveTo(40, y).lineTo(555, y).strokeColor('#e2e8f0').lineWidth(1).stroke();
+        y += 15;
+        
+        doc.fontSize(12).font('Helvetica-Bold').text('TOTAL PAID:', 350, y);
+        doc.fillColor(brandColor).fontSize(14).text(`₹${(fee.paidAmount || fee.totalAmount || fee.amount)?.toLocaleString()}`, 450, y - 2, { align: 'right', width: 100 });
+
+        y += 40;
+        doc.rect(40, y, 515, 60).fill('#ecfdf5');
+        doc.fillColor('#065f46').fontSize(10).font('Helvetica-Bold').text('PAYMENT STATUS: CONFIRMED', 50, y + 15);
+        doc.fontSize(9).font('Helvetica').text('Note: This is a system-generated receipt and does not require a physical signature.', 50, y + 35);
+
+        // Footer
+        doc.fontSize(8).fillColor('#94a3b8').text('© School Operations Network 2026 // Synchronized Ledger Entry', 0, 800, { align: 'center', width: 595 });
+
+        doc.end();
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

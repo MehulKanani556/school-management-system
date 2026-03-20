@@ -193,9 +193,17 @@ router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 const student = [auth, requireRole('Student')];
 
 router.get('/student/profile', ...student, stc.getProfile);
+router.put('/student/profile', ...student, upload.single('photo'), stc.updateProfile);
 router.get('/student/attendance', ...student, stc.getAttendance);
 router.get('/student/results', ...student, stc.getResults);
 router.get('/student/assignments', ...student, stc.getAssignments);
+router.post('/student/submit-assignment', ...student, upload.single('file'), stc.submitAssignment);
+router.get('/student/my-submissions', ...student, stc.getMySubmissions);
+router.get('/student/fees', ...student, stc.getFees);
+router.get('/student/exams', ...student, stc.getExams);
+router.get('/student/report-card', ...student, stc.downloadReportCard);
+router.get('/student/fees/:feeId/receipt', ...student, stc.downloadFeeReceipt);
+router.post('/student/change-password', ...student, stc.changePassword);
 router.get('/student/timetable', ...student, tbc.getStudentTimetable);
 
 const mc = require('../controllers/message.controller');
@@ -216,6 +224,7 @@ router.get('/announcements', auth, mc.getAnnouncements);
 router.get('/notices', auth, mc.getNotices);
 router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
+router.post('/my-messages', auth, mc.sendMessage);
 router.get('/contacts', auth, mc.getContacts);
 
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
