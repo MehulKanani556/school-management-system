@@ -16,17 +16,17 @@ const emptyValues = {
 };
 
 const validationSchema = Yup.object({
-  firstName:       Yup.string().min(2, 'Min 2 characters').required('First name is required'),
-  lastName:        Yup.string().min(2, 'Min 2 characters').required('Last name is required'),
+  firstName: Yup.string().min(2, 'Min 2 characters').required('First name is required'),
+  lastName: Yup.string().min(2, 'Min 2 characters').required('Last name is required'),
   admissionNumber: Yup.string(),
-  gender:          Yup.string().oneOf(['male', 'female', 'other']).required(),
-  dateOfBirth:     Yup.date().nullable().max(new Date(), 'Date of birth cannot be in the future'),
-  guardianName:    Yup.string(),
+  gender: Yup.string().oneOf(['male', 'female', 'other']).required(),
+  dateOfBirth: Yup.date().nullable().max(new Date(), 'Date of birth cannot be in the future'),
+  guardianName: Yup.string(),
   guardianContact: Yup.string().matches(/^[0-9+\-\s()]{7,15}$/, 'Invalid contact number').nullable(),
-  address:         Yup.string(),
-  photo:           Yup.mixed().nullable(),
-  standard:        Yup.string().required('Standard is required'),
-  classSection:    Yup.string().required('Section is required'),
+  address: Yup.string(),
+  photo: Yup.mixed().nullable(),
+  standard: Yup.string().required('Standard is required'),
+  classSection: Yup.string().required('Section is required'),
 });
 
 const ic = (touched, error) =>
@@ -56,14 +56,28 @@ const Students = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formValues, setFormValues] = useState(emptyValues);
   const [promoteModal, setPromoteModal] = useState(false);
-  const [promotionData, setPromotionData] = useState({
-    fromStandardId: '', fromClassSectionId: '',
-    toStandardId: '', toClassSectionId: ''
+  const promoteFormik = useFormik({
+    initialValues: {
+      fromStandardId: '', fromClassSectionId: '',
+      toStandardId: '', toClassSectionId: ''
+    },
+    validationSchema: Yup.object({
+      fromStandardId: Yup.string().required('Source standard is required'),
+      toStandardId: Yup.string()
+        .required('Target standard is required')
+        .notOneOf([Yup.ref('fromStandardId')], 'Cannot promote to the same grade'),
+    }),
+    onSubmit: async (values) => {
+      await dispatch(promoteStudents(values));
+      dispatch(fetchStudents());
+      setPromoteModal(false);
+      promoteFormik.resetForm();
+    }
   });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => { 
+  useEffect(() => {
     dispatch(fetchStudents());
     dispatch(fetchClasses());
     dispatch(fetchStandards());
@@ -102,26 +116,27 @@ const Students = () => {
   const openEdit = (s) => {
     setEditing(s._id);
     setFormValues({
-      firstName:       s.firstName || '',
-      lastName:        s.lastName || '',
+      firstName: s.firstName || '',
+      lastName: s.lastName || '',
       admissionNumber: s.admissionNumber || '',
-      gender:          s.gender || 'male',
-      dateOfBirth:     s.dateOfBirth ? s.dateOfBirth.split('T')[0] : '',
-      guardianName:    s.guardianName || '',
+      gender: s.gender || 'male',
+      dateOfBirth: s.dateOfBirth ? s.dateOfBirth.split('T')[0] : '',
+      guardianName: s.guardianName || '',
       guardianContact: s.guardianContact || '',
-      address:         s.address || '',
-      photo:           s.photo || '',
-      standard:        s.standard?._id || s.standard || '',
-      classSection:    s.classSection?._id || s.classSection || '',
+      address: s.address || '',
+      photo: s.photo || '',
+      standard: s.standard?._id || s.standard || '',
+      classSection: s.classSection?._id || s.classSection || '',
     });
     setModal(true);
   };
 
   const handleClose = () => { setModal(false); setFormValues(emptyValues); };
 
-  const filtered = students.filter(s =>
-    `${s.firstName} ${s.lastName} ${s.admissionNumber}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = students.filter(s => {
+    const searchString = `${s.firstName} ${s.lastName} ${s.admissionNumber} Grade ${s.standard?.level} ${s.classSection?.sectionLabel}`.toLowerCase();
+    return searchString.includes(search.toLowerCase());
+  });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -178,7 +193,7 @@ const Students = () => {
                 className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`} 
+                    <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`}
                       className="w-10 h-10 rounded-xl object-cover bg-slate-800 border border-slate-700" alt="" />
                     <div className="font-semibold">{s.firstName} {s.lastName}</div>
                   </div>
@@ -194,7 +209,7 @@ const Students = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
-                    <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))} 
+                    <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
                       className="p-2 rounded-xl hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
                     <button onClick={() => openEdit(s)} className="p-2 rounded-xl hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
                     <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
@@ -206,7 +221,7 @@ const Students = () => {
         </table>
       </div>
 
-      <Pagination 
+      <Pagination
         currentPage={currentPage}
         totalPages={totalPages}
         onPageChange={setCurrentPage}
@@ -218,16 +233,16 @@ const Students = () => {
       <Modal open={modal} onClose={handleClose} title={editing ? 'Edit Student' : 'Add Student'}>
         <form onSubmit={formik.handleSubmit} className="space-y-4">
           <div className="py-2">
-            <input type="file" id="photo-upload" className="hidden" accept="image/*" 
+            <input type="file" id="photo-upload" className="hidden" accept="image/*"
               onChange={(e) => formik.setFieldValue('photo', e.target.files[0])} />
-            
+
             <label htmlFor="photo-upload" className="relative group cursor-pointer block">
               <div className={`w-full h-42 py-4 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
                 ${formik.values.photo ? 'border-brand-primary' : 'border-slate-700 hover:border-brand-primary bg-slate-800/40'}`}>
-                
+
                 {formik.values.photo ? (
                   <div className="relative w-full h-full">
-                    <img src={typeof formik.values.photo === 'string' ? formik.values.photo : URL.createObjectURL(formik.values.photo)} 
+                    <img src={typeof formik.values.photo === 'string' ? formik.values.photo : URL.createObjectURL(formik.values.photo)}
                       className="w-full h-full object-cover" alt="Preview" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <div className="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center shadow-xl">
@@ -248,7 +263,7 @@ const Students = () => {
               </div>
 
               {formik.values.photo && (
-                <button type="button" onClick={(e) => { e.preventDefault(); formik.setFieldValue('photo', null); }} 
+                <button type="button" onClick={(e) => { e.preventDefault(); formik.setFieldValue('photo', null); }}
                   className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-xl shadow-lg transition-all z-10">
                   <X size={16} className="text-white" />
                 </button>
@@ -307,7 +322,7 @@ const Students = () => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
-              <select {...formik.getFieldProps('standard')} 
+              <select {...formik.getFieldProps('standard')}
                 className={ic(formik.touched.standard, formik.errors.standard)}
                 onChange={(e) => {
                   formik.setFieldValue('standard', e.target.value);
@@ -373,39 +388,42 @@ const Students = () => {
           </div>
         </div>
       </Modal>
-      
+
       {/* Promotion Modal */}
       <Modal open={promoteModal} onClose={() => setPromoteModal(false)} title="Promote Students">
-        <div className="space-y-6">
+        <form onSubmit={promoteFormik.handleSubmit} className="space-y-6">
           <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
             <p className="text-xs text-indigo-300 leading-relaxed font-medium">
               This cycle will migrate students from one grade level to another. Use this at the end of the academic year.
             </p>
           </div>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/40 rounded-3xl border border-slate-800">
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-2">Source Class (From)</div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
-                <select 
-                  className={ic()} 
-                  value={promotionData.fromStandardId}
-                  onChange={(e) => setPromotionData({...promotionData, fromStandardId: e.target.value, fromClassSectionId: ''})}
+                <select
+                  className={ic(promoteFormik.touched.fromStandardId, promoteFormik.errors.fromStandardId)}
+                  {...promoteFormik.getFieldProps('fromStandardId')}
+                  onChange={(e) => {
+                    promoteFormik.setFieldValue('fromStandardId', e.target.value);
+                    promoteFormik.setFieldValue('fromClassSectionId', '');
+                  }}
                 >
                   <option value="">Select Source</option>
                   {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
                 </select>
+                <Err touched={promoteFormik.touched.fromStandardId} error={promoteFormik.errors.fromStandardId} />
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Optional)</label>
-                <select 
-                  className={ic()} 
-                  value={promotionData.fromClassSectionId}
-                  onChange={(e) => setPromotionData({...promotionData, fromClassSectionId: e.target.value})}
+                <select
+                  className={ic()}
+                  {...promoteFormik.getFieldProps('fromClassSectionId')}
                 >
                   <option value="">Full Grade</option>
-                  {classes.filter(c => (c.standardId?._id || c.standardId) === promotionData.fromStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
+                  {classes.filter(c => (c.standardId?._id || c.standardId) === promoteFormik.values.fromStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
                 </select>
               </div>
             </div>
@@ -420,41 +438,40 @@ const Students = () => {
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-brand-primary border-b border-brand-primary/10 pb-2 mb-2">Target Grade (To)</div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
-                <select 
-                  className={ic()} 
-                  value={promotionData.toStandardId}
-                  onChange={(e) => setPromotionData({...promotionData, toStandardId: e.target.value, toClassSectionId: ''})}
+                <select
+                  className={ic(promoteFormik.touched.toStandardId, promoteFormik.errors.toStandardId)}
+                  {...promoteFormik.getFieldProps('toStandardId')}
+                  onChange={(e) => {
+                    promoteFormik.setFieldValue('toStandardId', e.target.value);
+                    promoteFormik.setFieldValue('toClassSectionId', '');
+                  }}
                 >
                   <option value="">Select Target</option>
                   {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
                 </select>
+                <Err touched={promoteFormik.touched.toStandardId} error={promoteFormik.errors.toStandardId} />
               </div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Recommended)</label>
-                <select 
-                  className={ic()} 
-                  value={promotionData.toClassSectionId}
-                  onChange={(e) => setPromotionData({...promotionData, toClassSectionId: e.target.value})}
+                <select
+                  className={ic()}
+                  {...promoteFormik.getFieldProps('toClassSectionId')}
                 >
                   <option value="">Assign Later</option>
-                  {classes.filter(c => (c.standardId?._id || c.standardId) === promotionData.toStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
+                  {classes.filter(c => (c.standardId?._id || c.standardId) === promoteFormik.values.toStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
                 </select>
               </div>
             </div>
           </div>
 
-          <button 
-            disabled={!promotionData.fromStandardId || !promotionData.toStandardId || loading}
-            onClick={async () => {
-              await dispatch(promoteStudents(promotionData));
-              dispatch(fetchStudents());
-              setPromoteModal(false);
-            }}
+          <button
+            type="submit"
+            disabled={!promoteFormik.isValid || loading}
             className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
           >
             {loading ? 'Processing cycle...' : 'Execute Promotion Cycle'}
           </button>
-        </div>
+        </form>
       </Modal>
     </div>
   );
