@@ -21,6 +21,9 @@ export const fetchFeeStructures = asyncGet('sa/fee-structures', '/fee-structures
 export const fetchFees = asyncGet('sa/fees', '/fees');
 export const fetchExams = asyncGet('sa/exams', '/exams');
 export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
+export const fetchAttendanceReport = asyncGet('sa/attendanceReport', '/attendance-report');
+export const fetchAttendanceAnalytics = asyncGet('sa/attendanceAnalytics', '/attendance-analytics');
+export const fetchAttendanceAlerts = asyncGet('sa/attendanceAlerts', '/attendance-alerts');
 export const fetchTimetable = asyncGet('sa/timetable', '/timetable');
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
@@ -136,7 +139,9 @@ export const exportTeachers = createAsyncThunk('sa/exportTeachers', async (_, { 
 
 const initialState = {
   dashboard: null,
-  students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [], attendance: [], holidays: [], timetable: null, timetables: [],
+  students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [], 
+  attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
+  holidays: [], timetable: null, timetables: [],
   payroll: [], leaves: [], reviews: [],
   loading: false, error: null, message: null
 };
@@ -165,6 +170,9 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchFees.fulfilled, handleList('fees'))
       .addCase(fetchExams.fulfilled, handleList('exams'))
       .addCase(fetchAttendance.fulfilled, handleList('attendance'))
+      .addCase(fetchAttendanceReport.fulfilled, handleList('attendanceReport'))
+      .addCase(fetchAttendanceAnalytics.fulfilled, handleList('attendanceAnalytics'))
+      .addCase(fetchAttendanceAlerts.fulfilled, handleList('attendanceAlerts'))
       .addCase(fetchHolidays.fulfilled, handleList('holidays'))
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
@@ -362,7 +370,9 @@ const schoolAdminSlice = createSlice({
 
     // pending/rejected for all
     [
-      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, fetchAttendance, fetchHolidays, fetchAllTimetables, fetchTimetable,
+      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, 
+      fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts,
+      fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,

@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
  MessageSquare,Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket
+  Banknote, CalendarDays, Rocket, BarChart3
 } from 'lucide-react';
 
 const navItems = [
@@ -18,6 +18,7 @@ const navItems = [
   { to: '/school-admin/fees',     icon: CreditCard,      label: 'Fees' },
   { to: '/school-admin/exams',    icon: ClipboardList,   label: 'Exams' },
   { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance' },
+  { to: '/school-admin/attendance-intelligence', icon: BarChart3, label: 'Attendance Intel' },
   { to: '/school-admin/timetable',  icon: Clock,         label: 'Timetable' },
   { to: '/school-admin/communication', icon: MessageSquare, label: 'Communication' },
   { to: '/school-admin/payroll',    icon: Banknote,      label: 'Payroll' },

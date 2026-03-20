@@ -15,6 +15,7 @@ import Classes from './pages/schooladmin/Classes';
 import Fees from './pages/schooladmin/Fees';
 import Exams from './pages/schooladmin/Exams';
 import Attendance from './pages/schooladmin/Attendance';
+import AttendanceAnalytics from './pages/schooladmin/AttendanceAnalytics';
 import Subjects from './pages/schooladmin/Subjects';
 import AdminTimetable from './pages/schooladmin/Timetable';
 import AdminCommunication from './pages/schooladmin/Communication';
@@ -115,6 +116,7 @@ function AppRoutes() {
           <Route path="fees" element={<Fees />} />
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
+          <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
           <Route path="subjects" element={<Subjects />} />
           <Route path="timetable" element={<AdminTimetable />} />
           <Route path="communication" element={<AdminCommunication />} />

@@ -778,6 +778,123 @@ exports.saveAttendance = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// Attendance Reports per Student
+exports.getAttendanceReport = async (req, res) => {
+  try {
+    const { classSection, startDate, endDate } = req.query;
+    const schoolId = getSchoolId(req);
+    const filter = { schoolId };
+    if (classSection) filter.classSection = new mongoose.Types.ObjectId(classSection);
+    
+    if (startDate && endDate) {
+      filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    }
+
+    const attendanceData = await Attendance.find(filter).lean();
+    const studentQuery = { schoolId };
+    if (classSection) studentQuery.classSection = classSection;
+    const students = await Student.find(studentQuery).select('firstName lastName admissionNumber photo').lean();
+
+    const report = students.map(student => {
+      const studentIdStr = student._id.toString();
+      let present = 0, absent = 0, late = 0, halfDay = 0, total = 0;
+      let lateTimes = [], earlyLeaves = [];
+
+      attendanceData.forEach(record => {
+        const studentRec = record.records.find(r => r.studentId.toString() === studentIdStr);
+        if (studentRec) {
+          total++;
+          if (studentRec.status === 'Present') present++;
+          else if (studentRec.status === 'Absent') absent++;
+          else if (studentRec.status === 'Late') { late++; present++; } 
+          else if (studentRec.status === 'Half-Day') { halfDay++; present += 0.5; }
+
+          if (studentRec.isLate) lateTimes.push({ date: record.date, time: studentRec.arrivalTime });
+          if (studentRec.isEarlyLeave) earlyLeaves.push({ date: record.date, time: studentRec.departureTime });
+        }
+      });
+
+      const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0;
+      return {
+        ...student,
+        stats: { present, absent, late, halfDay, total, percentage },
+        lateArrivals: lateTimes,
+        earlyLeaves: earlyLeaves
+      };
+    });
+
+    res.json(report);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Monthly/Weekly Attendance Analytics
+exports.getAttendanceAnalytics = async (req, res) => {
+  try {
+    const { type, classSection } = req.query; // type: 'weekly' or 'monthly'
+    const schoolId = getSchoolId(req);
+    const filter = { schoolId };
+    if (classSection) filter.classSection = new mongoose.Types.ObjectId(classSection);
+
+    const matchStage = { $match: filter };
+    const groupStage = {
+      $group: {
+        _id: type === 'monthly' ? { $month: '$date' } : { $week: '$date' },
+        present: { $sum: { $size: { $filter: { input: '$records', as: 'r', cond: { $in: ['$$r.status', ['Present', 'Late', 'Half-Day']] } } } } },
+        total: { $sum: { $size: '$records' } }
+      }
+    };
+
+    const analytics = await Attendance.aggregate([matchStage, groupStage, { $sort: { '_id': 1 } }]);
+    res.json(analytics);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Low Attendance Alerts
+exports.getLowAttendanceAlerts = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const threshold = 75; // 75% threshold
+
+        const students = await Student.find({ schoolId, isActive: true })
+            .select('firstName lastName classSection admissionNumber photo')
+            .populate('classSection', 'sectionLabel');
+        const attendanceData = await Attendance.find({ schoolId }).lean();
+
+        const alerts = [];
+        students.forEach(student => {
+            const studentIdStr = student._id.toString();
+            let present = 0, total = 0;
+            attendanceData.forEach(record => {
+                const studentRec = record.records.find(r => r.studentId.toString() === studentIdStr);
+                if (studentRec) {
+                    total++;
+                    if (['Present', 'Late'].includes(studentRec.status)) present++;
+                    else if (studentRec.status === 'Half-Day') present += 0.5;
+                }
+            });
+
+            const percentage = total > 0 ? (present / total) * 100 : 100;
+            if (total > 0 && percentage < threshold) {
+                alerts.push({
+                    _id: student._id,
+                    firstName: student.firstName,
+                    lastName: student.lastName,
+                    photo: student.photo,
+                    admissionNumber: student.admissionNumber,
+                    class: student.classSection?.sectionLabel,
+                    stats: {
+                        percentage: percentage.toFixed(2),
+                        presentCount: present,
+                        totalCount: total
+                    }
+                });
+            }
+        });
+
+        res.json(alerts);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Subjects ─────────────────────────────────────────────────────────────────
 exports.getSubjects = async (req, res) => {
   try {

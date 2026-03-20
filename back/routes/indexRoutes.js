@@ -89,6 +89,9 @@ router.delete('/school-admin/exams/:id', ...schoolAdmin, sa.deleteExam);
 // Attendance
 router.get('/school-admin/attendance', ...schoolAdmin, sa.getAttendance);
 router.post('/school-admin/attendance', ...schoolAdmin, sa.saveAttendance);
+router.get('/school-admin/attendance-report', ...schoolAdmin, sa.getAttendanceReport);
+router.get('/school-admin/attendance-analytics', ...schoolAdmin, sa.getAttendanceAnalytics);
+router.get('/school-admin/attendance-alerts', ...schoolAdmin, sa.getLowAttendanceAlerts);
 
 // Timetable Routes
 router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);

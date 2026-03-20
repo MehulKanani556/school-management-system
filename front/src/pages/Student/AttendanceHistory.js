@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentAttendance } from '../../redux/slice/student.slice';
 import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Clock, Calendar, Search } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, Calendar, Search, ChevronRight } from 'lucide-react';
 
 const AttendanceHistory = () => {
     const dispatch = useDispatch();
@@ -14,10 +14,18 @@ const AttendanceHistory = () => {
 
     const stats = {
         total: attendance.length,
-        present: attendance.filter(a => a.status === 'Present').length,
+        present: attendance.filter(a => ['Present', 'Late', 'Half-Day'].includes(a.status)).length,
         absent: attendance.filter(a => a.status === 'Absent').length,
+        late: attendance.filter(a => a.status === 'Late').length,
     };
-    const percentage = stats.total > 0 ? ((stats.present / stats.total) * 100).toFixed(1) : '0.0';
+    const percentage = stats.total > 0 ? (((stats.present) / stats.total) * 100).toFixed(1) : '0.0';
+
+    const statusConfig = {
+        'Present': { icon: CheckCircle, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10', border: 'border-luxury-emerald/20' },
+        'Absent': { icon: XCircle, color: 'text-luxury-rose', bg: 'bg-luxury-rose/10', border: 'border-luxury-rose/20' },
+        'Late': { icon: Clock, color: 'text-luxury-amber', bg: 'bg-luxury-amber/10', border: 'border-luxury-amber/20' },
+        'Half-Day': { icon: Clock, color: 'text-luxury-blue', bg: 'bg-luxury-blue/10', border: 'border-luxury-blue/20' },
+    };
 
     return (
         <motion.div 
@@ -37,9 +45,10 @@ const AttendanceHistory = () => {
 
                 <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-[2.5rem] shadow-inner backdrop-blur-sm">
                     {[
-                        { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
-                        { label: 'Present', val: stats.present, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10' },
-                        { label: 'Absent', val: stats.absent, color: 'text-luxury-rose', bg: 'bg-luxury-rose/10' },
+                        { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald' },
+                        { label: 'Present', val: stats.present, color: 'text-luxury-emerald' },
+                        { label: 'Late Logs', val: stats.late, color: 'text-luxury-amber' },
+                        { label: 'Absent', val: stats.absent, color: 'text-luxury-rose' },
                     ].map((st, i) => (
                         <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px]">
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>
@@ -69,40 +78,47 @@ const AttendanceHistory = () => {
                                 <tr className="bg-slate-900/30">
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date Node</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Institutional Status</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Telemetry (Arrival / Departure)</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic text-right">Verification</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/40">
                                 {attendance.length > 0 ? (
-                                    attendance.map((record, idx) => (
-                                        <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
-                                            <td className="px-8 py-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="p-3 bg-slate-900 rounded-xl group-hover:bg-slate-800 transition-colors">
-                                                        <Calendar size={18} className="text-slate-400" />
+                                    attendance.map((record, idx) => {
+                                        const config = statusConfig[record.status] || statusConfig['Absent'];
+                                        const Icon = config.icon;
+                                        return (
+                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="p-3 bg-slate-900 rounded-xl group-hover:bg-slate-800 transition-colors">
+                                                            <Calendar size={18} className="text-slate-400" />
+                                                        </div>
+                                                        <span className="font-bold text-slate-200 tracking-tight">{new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                                     </div>
-                                                    <span className="font-bold text-slate-200 tracking-tight">{new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6">
-                                                <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${
-                                                    record.status === 'Present' ? 'bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20' :
-                                                    record.status === 'Absent' ? 'bg-luxury-rose/10 text-luxury-rose border border-luxury-rose/20' :
-                                                    'bg-brand-secondary/10 text-brand-secondary border border-brand-secondary/20'
-                                                }`}>
-                                                    {record.status === 'Present' ? <CheckCircle size={14} /> : 
-                                                     record.status === 'Absent' ? <XCircle size={14} /> : <Clock size={14} />}
-                                                    {record.status}
-                                                </div>
-                                            </td>
-                                            <td className="px-8 py-6 text-right">
-                                                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">System Confirmed</span>
-                                            </td>
-                                        </tr>
-                                    ))
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.color} border ${config.border}`}>
+                                                        <Icon size={14} />
+                                                        {record.status}
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-xs font-bold text-slate-400 font-outfit uppercase italic">{record.arrivalTime || '—'}</span>
+                                                        <ChevronRight size={10} className="text-slate-700" />
+                                                        <span className="text-xs font-bold text-slate-400 font-outfit uppercase italic">{record.departureTime || '—'}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-8 py-6 text-right">
+                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Node Sync Confirmed</span>
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
                                 ) : (
                                     <tr>
-                                        <td colSpan="3" className="px-8 py-20 text-center">
+                                        <td colSpan="4" className="px-8 py-20 text-center">
                                             <div className="opacity-20 mb-4 inline-block"><Calendar size={48} /></div>
                                             <p className="text-slate-500 font-bold italic uppercase tracking-widest text-[10px]">No Attendance Records Found in this Sector</p>
                                         </td>
