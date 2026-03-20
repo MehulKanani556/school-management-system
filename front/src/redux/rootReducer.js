@@ -8,6 +8,7 @@ import studentReducer from './slice/student.slice';
 import notificationReducer from './slice/notification.slice';
 
 import communicationReducer from './slice/communication.slice';
+import parentReducer from './slice/parent.slice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -17,7 +18,8 @@ const rootReducer = combineReducers({
     teacher: teacherReducer,
     student: studentReducer,
     notifications: notificationReducer,
-    communication: communicationReducer
+    communication: communicationReducer,
+    parent: parentReducer
 });
 
 export default rootReducer;

@@ -12,6 +12,8 @@ import Home from './pages/Home';
 import SchoolAdminLayout from './pages/schooladmin/SchoolAdminLayout';
 import TeacherLayout from './pages/Teacher/TeacherLayout';
 import StudentLayout from './pages/Student/StudentLayout';
+import ParentLayout from './pages/Parent/ParentLayout';
+
 
 // School Admin Pages
 import Dashboard from './pages/schooladmin/Dashboard';
@@ -59,6 +61,20 @@ import AnnouncementsStudent from './pages/Student/Announcements';
 import MessagesStudent from './pages/Student/Messages';
 import ExamsStudent from './pages/Student/Exams';
 
+// Parent Pages
+import ParentDashboard from './pages/Parent/ParentDashboard';
+import ChildAttendance from './pages/Parent/ChildAttendance';
+import ChildResults from './pages/Parent/ChildResults';
+import ChildFees from './pages/Parent/ChildFees';
+import ChildTimetable from './pages/Parent/ChildTimetable';
+import ChildAssignments from './pages/Parent/ChildAssignments';
+import ChildExams from './pages/Parent/ChildExams';
+import ParentProfile from './pages/Parent/ParentProfile';
+import ParentNotifications from './pages/Parent/ParentNotifications';
+import ChildProfile from './pages/Parent/ChildProfile';
+
+
+
 // Common Pages
 import Holidays from './pages/common/Holidays';
 
@@ -99,6 +115,7 @@ function AppRoutes() {
     if (user?.role === 'School_Admin') return <Navigate to="/school-admin" />;
     if (user?.role === 'Teacher') return <Navigate to="/teacher" />;
     if (user?.role === 'Student') return <Navigate to="/student" />;
+    if (user?.role === 'Parent') return <Navigate to="/parent" />;
     return <Home />;
   };
 
@@ -151,6 +168,27 @@ function AppRoutes() {
           <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
           <Route path="noticeboard" element={<ClassNoticeboard />} />
         </Route>
+
+        {/* Parent Panel */}
+        <Route path="/parent" element={
+          <RoleRoute role="Parent"><ParentLayout /></RoleRoute>
+        }>
+          <Route index element={<ParentDashboard />} />
+          <Route path="attendance" element={<ChildAttendance />} />
+          <Route path="results" element={<ChildResults />} />
+          <Route path="assignments" element={<ChildAssignments />} />
+          <Route path="fees" element={<ChildFees />} />
+
+          <Route path="timetable" element={<ChildTimetable />} />
+          <Route path="exams" element={<ChildExams />} />
+          <Route path="announcements" element={<AnnouncementsStudent />} />
+          <Route path="messages" element={<MessagesStudent />} />
+          <Route path="holidays" element={<Holidays />} />
+          <Route path="profile" element={<ParentProfile />} />
+          <Route path="notifications" element={<ParentNotifications />} />
+          <Route path="child-profile" element={<ChildProfile />} />
+        </Route>
+
 
         {/* School Admin Panel */}
         <Route path="/school-admin" element={

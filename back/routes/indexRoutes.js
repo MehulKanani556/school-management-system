@@ -13,6 +13,8 @@ const stc = require('../controllers/student.controller');
 const hc = require('../controllers/holiday.controller');
 const tbc = require('../controllers/timetable.controller');
 const ttc = require('../controllers/timetableTemplate.controller');
+const pc = require('../controllers/parent.controller');
+
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
@@ -205,6 +207,28 @@ router.get('/student/report-card', ...student, stc.downloadReportCard);
 router.get('/student/fees/:feeId/receipt', ...student, stc.downloadFeeReceipt);
 router.post('/student/change-password', ...student, stc.changePassword);
 router.get('/student/timetable', ...student, tbc.getStudentTimetable);
+
+// ─── Parent Routes ─────────────────────────────────────────────────────────
+const parent = [auth, requireRole('Parent')];
+
+router.get('/parent/children', ...parent, pc.getMyChildren);
+router.get('/parent/child/:studentId/overview', ...parent, pc.getChildOverview);
+router.get('/parent/child/:studentId/attendance', ...parent, pc.getChildAttendance);
+router.get('/parent/child/:studentId/results', ...parent, pc.getChildResults);
+router.get('/parent/child/:studentId/fees', ...parent, pc.getChildFees);
+router.get('/parent/child/:studentId/timetable', ...parent, pc.getChildTimetable);
+router.get('/parent/child/:studentId/assignments', ...parent, pc.getChildAssignments);
+router.get('/parent/child/:studentId/exams', ...parent, pc.getChildExams);
+router.get('/parent/holidays', ...parent, pc.getHolidays);
+
+// Documents
+router.get('/parent/child/:studentId/report-card', ...parent, pc.downloadChildReportCard);
+router.get('/parent/receipt/:feeId', ...parent, pc.downloadChildFeeReceipt);
+
+// Settings
+router.put('/parent/profile', ...parent, upload.single('photo'), pc.updateParentProfile);
+router.post('/parent/change-password', ...parent, pc.changeParentPassword);
+
 
 const mc = require('../controllers/message.controller');
 

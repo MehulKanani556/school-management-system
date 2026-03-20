@@ -22,28 +22,28 @@ const ToastManager = () => {
 
     useEffect(() => {
         // Teacher Sector
-        if (teacher?.message) { toast.success(teacher.message); dispatch(clearTeacherMessage()); }
-        if (teacher?.error) { toast.error(teacher.error); dispatch(clearTeacherError()); }
+        if (teacher?.message) { toast.success(String(teacher.message)); dispatch(clearTeacherMessage()); }
+        if (teacher?.error) { toast.error(String(teacher.error)); dispatch(clearTeacherError()); }
 
         // Auth Entry Point
-        if (auth?.message) { toast.success(auth.message); dispatch(clearAuthMessage()); }
-        if (auth?.error) { toast.error(auth.error); dispatch(clearAuthError()); }
+        if (auth?.message) { toast.success(String(auth.message)); dispatch(clearAuthMessage()); }
+        if (auth?.error) { toast.error(String(auth.error)); dispatch(clearAuthError()); }
 
         // School Admin Registry
-        if (schoolAdmin?.message) { toast.success(schoolAdmin.message); dispatch(clearSchoolAdminMessage()); }
-        if (schoolAdmin?.error) { toast.error(schoolAdmin.error); dispatch(clearSchoolAdminError()); }
+        if (schoolAdmin?.message) { toast.success(String(schoolAdmin.message)); dispatch(clearSchoolAdminMessage()); }
+        if (schoolAdmin?.error) { toast.error(String(schoolAdmin.error)); dispatch(clearSchoolAdminError()); }
 
         // Student Portal
-        if (student?.message) { toast.success(student.message); dispatch(clearStudentMessage()); }
-        if (student?.error) { toast.error(student.error); dispatch(clearStudentError()); }
+        if (student?.message) { toast.success(String(student.message)); dispatch(clearStudentMessage()); }
+        if (student?.error) { toast.error(String(student.error)); dispatch(clearStudentError()); }
 
         // Super Admin Infrastructure
-        if (school?.message) { toast.success(school.message); dispatch(clearSchoolMessage()); }
-        if (school?.error) { toast.error(school.error); dispatch(clearSchoolError()); }
+        if (school?.message) { toast.success(String(school.message)); dispatch(clearSchoolMessage()); }
+        if (school?.error) { toast.error(String(school.error)); dispatch(clearSchoolError()); }
 
         // Global Security Registry
-        if (user?.message) { toast.success(user.message); dispatch(clearUserMessage()); } // If I add it
-        if (user?.error) { toast.error(user.error); dispatch(clearUserError()); }
+        if (user?.message) { toast.success(String(user.message)); dispatch(clearUserMessage()); } 
+        if (user?.error) { toast.error(String(user.error)); dispatch(clearUserError()); }
 
     }, [teacher, auth, schoolAdmin, student, school, user, dispatch]);
 

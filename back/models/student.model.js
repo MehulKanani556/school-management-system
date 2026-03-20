@@ -13,6 +13,7 @@ const studentSchema = new mongoose.Schema({
   guardianName: { type: String },
   guardianContact: { type: String },
   guardianEmail: { type: String },
+  parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   email: { type: String },
   address: { type: String },
   photo: { type: String },

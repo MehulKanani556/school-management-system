@@ -299,12 +299,34 @@ exports.createStudent = async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(plainPassword || '123456', 10);
 
+    // ─── Parent Node Provisioning ───
+    let parentId = null;
+    if (req.body.guardianEmail) {
+      let parentUser = await User.findOne({ email: req.body.guardianEmail });
+      if (!parentUser) {
+        // Create new Parent User
+        const parentPass = await bcrypt.hash('parent123', 10);
+        const nameParts = (req.body.guardianName || 'Parent').split(' ');
+        parentUser = await User.create({
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(' ') || 'Guardian',
+          email: req.body.guardianEmail,
+          password: parentPass,
+          role: 'Parent',
+          schoolId: getSchoolId(req),
+          photo: 'https://via.placeholder.com/150'
+        });
+      }
+      parentId = parentUser._id;
+    }
+
     const student = await Student.create({
       ...body,
       schoolId: getSchoolId(req),
       schoolAdminId: getSchoolAdminId(req),
       createdBy: req.user._id,
-      password: hashedPassword
+      password: hashedPassword,
+      parentId
     });
 
     const populated = await student.populate([
@@ -328,6 +350,24 @@ exports.updateStudent = async (req, res) => {
       const year = String(d.getFullYear()).substring(2); // YY format
       const plainPassword = `${day}${month}${year}`;
       body.password = await bcrypt.hash(plainPassword, 10);
+    }
+
+    // ─── Sync Parent Node Linkage ───
+    if (body.guardianEmail) {
+      let parentUser = await User.findOne({ email: body.guardianEmail });
+      if (!parentUser) {
+        const parentPass = await bcrypt.hash('parent123', 10);
+        const nameParts = (body.guardianName || 'Parent').split(' ');
+        parentUser = await User.create({
+          firstName: nameParts[0],
+          lastName: nameParts.slice(1).join(' ') || 'Guardian',
+          email: body.guardianEmail,
+          password: parentPass,
+          role: 'Parent',
+          schoolId: getSchoolId(req),
+        });
+      }
+      body.parentId = parentUser._id;
     }
 
     const student = await Student.findOneAndUpdate(
@@ -823,6 +863,7 @@ exports.applyFeeStructure = async (req, res) => {
                     studentId: student._id,
                     amount: item.amount,
                     discount: discount,
+                    totalAmount: item.amount - discount,
                     category: item.name,
                     academicYear,
                     feeStructureId: structure._id,

@@ -11,7 +11,7 @@ import Pagination from '../../components/Pagination';
 const emptyValues = {
   firstName: '', lastName: '', admissionNumber: '',
   gender: 'male', dateOfBirth: '',
-  guardianName: '', guardianContact: '', address: '',
+  guardianName: '', guardianEmail: '', guardianContact: '', address: '',
   photo: null, standard: '', classSection: '',
 };
 
@@ -22,6 +22,7 @@ const validationSchema = Yup.object({
   gender: Yup.string().oneOf(['male', 'female', 'other']).required(),
   dateOfBirth: Yup.date().nullable().max(new Date(), 'Date of birth cannot be in the future'),
   guardianName: Yup.string(),
+  guardianEmail: Yup.string().email('Invalid email format').required('Guardian email is required'),
   guardianContact: Yup.string().matches(/^[0-9+\-\s()]{7,15}$/, 'Invalid contact number').nullable(),
   address: Yup.string(),
   photo: Yup.mixed().nullable(),
@@ -126,6 +127,7 @@ const Students = () => {
       gender: s.gender || 'male',
       dateOfBirth: s.dateOfBirth ? s.dateOfBirth.split('T')[0] : '',
       guardianName: s.guardianName || '',
+      guardianEmail: s.guardianEmail || '',
       guardianContact: s.guardianContact || '',
       address: s.address || '',
       photo: s.photo || '',
@@ -464,10 +466,16 @@ const Students = () => {
               <Err touched={formik.touched.guardianName} error={formik.errors.guardianName} />
             </div>
             <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Guardian Contact</label>
-              <input {...formik.getFieldProps('guardianContact')} placeholder="e.g. +91 9876543210" className={ic(formik.touched.guardianContact, formik.errors.guardianContact)} />
-              <Err touched={formik.touched.guardianContact} error={formik.errors.guardianContact} />
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Guardian Email (Portal Login)</label>
+              <input {...formik.getFieldProps('guardianEmail')} placeholder="e.g. parent@example.com" className={ic(formik.touched.guardianEmail, formik.errors.guardianEmail)} />
+              <Err touched={formik.touched.guardianEmail} error={formik.errors.guardianEmail} />
             </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Guardian Contact</label>
+            <input {...formik.getFieldProps('guardianContact')} placeholder="e.g. +91 9876543210" className={ic(formik.touched.guardianContact, formik.errors.guardianContact)} />
+            <Err touched={formik.touched.guardianContact} error={formik.errors.guardianContact} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
