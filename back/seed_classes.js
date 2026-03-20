@@ -32,32 +32,38 @@ async function seedClasses() {
                 continue;
             }
 
-            const subjects = await Subject.find({ schoolId });
-            // Filter subjects if they are in standard.subjects array (in case we have more subjects in school)
-            // But for now, we'll use all subjects we created.
+            // Get subjects only defined for this standard
+            const standardSubjects = standard.subjects.map(sId => sId.toString());
+            const subjects = await Subject.find({ _id: { $in: standardSubjects } });
             
-            // Find teachers for this standard.
-            // My previous script used email format: firstname.lastname(level)@gmail.com
-            // Let's find teachers for this school first.
+            // Find teachers for this school first.
             const allTeachers = await Teacher.find({ schoolId });
-            const levelTeachers = allTeachers.filter(t => t.email && new RegExp(`${level}@gmail.com$`).test(t.email));
+            const levelTeachers = allTeachers.filter(t => t.email && (new RegExp(`${level}@gmail.com$`).test(t.email) || new RegExp(`teacher${level}`).test(t.email)));
 
-            if (levelTeachers.length < 2) {
-                console.error(`Not enough teachers for Standard ${level}. Found ${levelTeachers.length}, need at least 2.`);
+            if (levelTeachers.length === 0) {
+                console.error(`No teachers found for Standard ${level}. Skipping.`);
                 continue;
             }
 
             for (let i = 0; i < sectionLabels.length; i++) {
                 const label = sectionLabels[i];
-                const classTeacher = levelTeachers[i]; // A gets 0, B gets 1
+                // Rotate through level teachers for class teacher
+                const classTeacher = levelTeachers[i % levelTeachers.length];
 
                 // Build subject assignments
-                // Map each subject to one teacher from the levelTeachers pool
+                // Map each subject to two teachers from the levelTeachers pool if available
                 const subjectAssignments = subjects.map((sub, sIdx) => {
-                    // Rotate teachers for subjects: (sIdx % levelTeachers.length)
+                    const teachers = [];
+                    // Always pick at least one
+                    teachers.push(levelTeachers[sIdx % levelTeachers.length]._id);
+                    // Pick a second different teacher if available
+                    if (levelTeachers.length > 1) {
+                        teachers.push(levelTeachers[(sIdx + 1) % levelTeachers.length]._id);
+                    }
+                    
                     return {
                         subject: sub._id,
-                        teachers: [levelTeachers[sIdx % levelTeachers.length]._id]
+                        teachers: teachers
                     };
                 });
 

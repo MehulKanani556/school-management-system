@@ -45,6 +45,29 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
   color: #fff;
 }
 
+/* Global Select/Option Styles for consistent dark mode experience */
+select {
+  cursor: pointer;
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+select option {
+  background-color: #0f172a !important;
+  color: #f8fafc !important; /* slate-100 */
+  padding: 10px;
+}
+
+/* Fallback for system-determined dropdown colors in some browsers */
+select option:checked, 
+select option:hover {
+  background-color: #2563eb !important; /* brand-primary */
+  color: #ffffff !important;
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
@@ -60,4 +83,5 @@ html {
   .text-brand-primary { color: #2563eb !important; }
   .text-slate-500, .text-slate-600 { color: #666 !important; }
 }
+
 .print-only { display: none; }

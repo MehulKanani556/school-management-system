@@ -8,7 +8,9 @@ const asyncGet = (name, path) =>
     try {
       const res = await axiosInstance.get(`${BASE}${path}`, { params });
       return res.data;
-    } catch (e) { return rejectWithValue(e.response?.data); }
+    } catch (e) { 
+      return rejectWithValue(e.response?.data); 
+    }
   });
 
 export const fetchDashboard = asyncGet('sa/dashboard', '/dashboard');
@@ -54,7 +56,12 @@ export const exportAttendanceReport = createAsyncThunk('sa/exportAttendanceRepor
     return { success: true };
   } catch (e) { return rejectWithValue(e.response?.data); }
 });
-export const fetchTimetable = asyncGet('sa/timetable', '/timetable');
+export const fetchTimetable = createAsyncThunk('sa/timetable', async (classId, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get(`${BASE}/timetable/${classId}`);
+    return res.data;
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
@@ -63,6 +70,7 @@ export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', asyn
   try { const res = await axiosInstance.get(`/school-admin/exams/${id}/analytics`); return res.data; }
   catch (e) { return rejectWithValue(e.response?.data); }
 });
+export const fetchTimetableTemplates = asyncGet('sa/timetable-templates', '/timetable-templates');
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -140,6 +148,10 @@ export const updateLeaveStatus = put('sa/updateLeaveStatus', '/leaves');
 export const createReview = post('sa/createReview', '/reviews');
 export const updateReview = put('sa/updateReview', '/reviews');
 export const deleteReview = del('sa/deleteReview', '/reviews');
+
+export const createTimetableTemplate = post('sa/createTimetableTemplate', '/timetable-templates');
+export const updateTimetableTemplate = put('sa/updateTimetableTemplate', '/timetable-templates');
+export const deleteTimetableTemplate = del('sa/deleteTimetableTemplate', '/timetable-templates');
 export const importStudents = post('sa/importStudents', '/import-students');
 export const importTeachers = post('sa/importTeachers', '/import-teachers');
 export const promoteStudents = post('sa/promoteStudents', '/promote-students');
@@ -196,7 +208,7 @@ const initialState = {
   attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
   schoolPerformance: null, feeReport: null,
   holidays: [], timetable: null, timetables: [],
-  payroll: [], leaves: [], reviews: [],
+  payroll: [], leaves: [], reviews: [],timetableTemplates: [],
   examAnalytics: null,
   loading: false, error: null, message: null
 };
@@ -233,6 +245,7 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchHolidays.fulfilled, handleList('holidays'))
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
+      .addCase(fetchTimetableTemplates.fulfilled, handleList('timetableTemplates'))
       // create
       .addCase(createStudent.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
@@ -287,6 +300,12 @@ const schoolAdminSlice = createSlice({
         state.feeStructures.push(item);
         state.loading = false;
         state.message = a.payload.message || "Fee structure node created";
+      })
+      .addCase(createTimetableTemplate.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.timetableTemplates.push(item);
+        state.loading = false;
+        state.message = a.payload.message || "Timetable template created";
       })
       .addCase(importStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(importTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
@@ -359,6 +378,13 @@ const schoolAdminSlice = createSlice({
         state.loading = false;
         state.message = a.payload.message || "Fee structure modified";
       })
+      .addCase(updateTimetableTemplate.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.timetableTemplates.findIndex(s => s._id === upd._id);
+        if (i !== -1) state.timetableTemplates[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Timetable template modified";
+      })
 
       // delete
       .addCase(deleteStudent.fulfilled, (state, a) => { state.students = state.students.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Student decommissioned"; })
@@ -372,6 +398,7 @@ const schoolAdminSlice = createSlice({
       .addCase(saveAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Sector attendance committed"; })
       .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee node removed"; })
       .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee structure removed"; })
+      .addCase(deleteTimetableTemplate.fulfilled, (state, a) => { state.timetableTemplates = state.timetableTemplates.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Timetable template removed"; })
       .addCase(applyFeeStructure.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Fee structure applied successfully"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
       .addCase(toggleExamPublishStatus.fulfilled, (state, a) => { 
@@ -441,7 +468,7 @@ const schoolAdminSlice = createSlice({
       fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
-      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,
+      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,fetchTimetableTemplates,createTimetableTemplate,updateTimetableTemplate, deleteTimetableTemplate,
       saveAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard

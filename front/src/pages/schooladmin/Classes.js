@@ -107,17 +107,40 @@ const Classes = () => {
   };
 
   useEffect(() => {
-    if (formik.values.standardId && !editing) {
+    if (formik.values.standardId) {
       const selectedStd = standards.find(s => s._id === formik.values.standardId);
       if (selectedStd) {
-        const assignments = selectedStd.subjects?.map(sub => ({
-          subject: sub._id || sub,
-          teachers: []
-        })) || [];
-        formik.setFieldValue('subjectAssignments', assignments);
+        const stdSubjectIds = selectedStd.subjects?.map(sub => (sub._id || sub).toString()) || [];
+        const currentAssignments = formik.values.subjectAssignments || [];
+        
+        // 1. Maintain existing assignments only for subjects still in the standard
+        const reconciled = stdSubjectIds.map(sId => {
+          const existing = currentAssignments.find(a => (a.subject?._id || a.subject)?.toString() === sId);
+          if (existing) {
+            return {
+              subject: sId,
+              teachers: existing.teachers.map(t => t._id || t)
+            };
+          }
+          return { subject: sId, teachers: [] };
+        });
+
+        // 2. Check if reconciliation actually changed anything to avoid infinite loop
+        const currentSimple = JSON.stringify(currentAssignments.map(a => ({
+          subject: (a.subject?._id || a.subject)?.toString(),
+          teachers: a.teachers.map(t => (t._id || t)?.toString()).sort()
+        })));
+        const reconciledSimple = JSON.stringify(reconciled.map(a => ({
+          subject: a.subject,
+          teachers: a.teachers.map(t => t.toString()).sort()
+        })));
+
+        if (currentSimple !== reconciledSimple) {
+          formik.setFieldValue('subjectAssignments', reconciled);
+        }
       }
     }
-  }, [formik.values.standardId, standards, editing, formik.setFieldValue]);
+  }, [formik.values.standardId, standards, formik.setFieldValue]);
 
 
   const handleSectionChange = (e) => {

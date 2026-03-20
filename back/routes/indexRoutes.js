@@ -11,6 +11,7 @@ const tc = require('../controllers/teacher.controller');
 const stc = require('../controllers/student.controller');
 const hc = require('../controllers/holiday.controller');
 const tbc = require('../controllers/timetable.controller');
+const ttc = require('../controllers/timetableTemplate.controller');
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);
@@ -107,6 +108,12 @@ router.get('/school-admin/reports/fees-export', ...schoolAdmin, sa.exportFeeRepo
 router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);
 router.get('/school-admin/timetable/:classId', ...schoolAdmin, tbc.getTimetableByClass);
 router.post('/school-admin/timetable', ...schoolAdmin, tbc.upsertTimetable);
+
+// Timetable Template Routes
+router.get('/school-admin/timetable-templates', ...schoolAdmin, ttc.getTemplates);
+router.post('/school-admin/timetable-templates', ...schoolAdmin, ttc.createTemplate);
+router.put('/school-admin/timetable-templates/:id', ...schoolAdmin, ttc.updateTemplate);
+router.delete('/school-admin/timetable-templates/:id', ...schoolAdmin, ttc.deleteTemplate);
 
 // Payroll
 router.get('/school-admin/payroll', ...schoolAdmin, sa.getAllPayroll);

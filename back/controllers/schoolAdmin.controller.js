@@ -568,7 +568,30 @@ exports.createClass = async (req, res) => {
       if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
     }
 
-    const cls = await ClassSection.create({ ...req.body, schoolId });
+    // Fetch standard to ensure subjects match
+    const standard = await Standard.findById(standardId);
+    if (!standard) return res.status(404).json({ message: 'Standard not found' });
+
+    // Enforce standard subjects
+    const standardSubjectIds = standard.subjects.map(s => s.toString());
+    const incomingAssignments = req.body.subjectAssignments || [];
+    
+    // Filter and normalize assignments
+    const finalAssignments = standardSubjectIds.map(sId => {
+      const existing = incomingAssignments.find(a => (a.subject?._id || a.subject)?.toString() === sId);
+      return {
+        subject: sId,
+        teachers: existing ? (existing.teachers || []).map(t => t._id || t) : []
+      };
+    });
+
+    const cls = await ClassSection.create({ 
+      ...req.body, 
+      schoolId,
+      subjectAssignments: finalAssignments,
+      subjects: standardSubjectIds
+    });
+
     const populated = await cls.populate([
       { path: 'standardId', select: 'level' },
       { path: 'classTeacher', select: 'firstName lastName' },
@@ -600,9 +623,30 @@ exports.updateClass = async (req, res) => {
       if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
     }
 
+    // Fetch standard to ensure subjects match
+    const standard = await Standard.findById(standardId || req.body.standardId);
+    if (!standard) return res.status(404).json({ message: 'Standard not found' });
+
+    // Enforce standard subjects
+    const standardSubjectIds = standard.subjects.map(s => s.toString());
+    const incomingAssignments = req.body.subjectAssignments || [];
+
+    // Reconcile assignments
+    const finalAssignments = standardSubjectIds.map(sId => {
+      const existing = incomingAssignments.find(a => (a.subject?._id || a.subject)?.toString() === sId);
+      return {
+        subject: sId,
+        teachers: existing ? (existing.teachers || []).map(t => t._id || t) : []
+      };
+    });
+
     const cls = await ClassSection.findOneAndUpdate(
       { _id: req.params.id, schoolId },
-      req.body, { new: true }
+      { 
+        ...req.body, 
+        subjectAssignments: finalAssignments,
+        subjects: standardSubjectIds
+      }, { new: true }
     ).populate([
       { path: 'standardId', select: 'level' },
       { path: 'classTeacher', select: 'firstName lastName' },

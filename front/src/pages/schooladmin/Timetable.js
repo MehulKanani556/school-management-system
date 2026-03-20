@@ -1,27 +1,64 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, fetchAllTimetables, clearError } from '../../redux/slice/schoolAdmin.slice';
+import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, fetchAllTimetables, clearError, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer } from 'lucide-react';
+import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
+import Modal from '../../components/Modal';
 
 const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 const AdminTimetable = () => {
     const dispatch = useDispatch();
-    const { classes, subjects, teachers, timetable, timetables, loading, error } = useSelector((state) => state.schoolAdmin);
-
     const [selectedClass, setSelectedClass] = useState('');
     const [activeDay, setActiveDay] = useState('Monday');
     const [viewMode, setViewMode] = useState('editor'); // 'editor' | 'table'
     const [schedule, setSchedule] = useState({}); // { Monday: [periods], ... }
+    
+    // Template Management States
+    const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+    const [isTemplateEditModalOpen, setIsTemplateEditModalOpen] = useState(false);
+    const [currentTemplate, setCurrentTemplate] = useState(null);
+    const [templateName, setTemplateName] = useState('');
+    const [templatePeriods, setTemplatePeriods] = useState([]);
+    const [templateDurations, setTemplateDurations] = useState({
+        Lecture: 45,
+        Break: 15,
+        'Short Break': 10,
+        'Long Break': 30
+    });
+    const { classes, subjects, teachers, timetable, timetables, timetableTemplates, loading, error } = useSelector((state) => state.schoolAdmin);
 
     useEffect(() => {
         dispatch(fetchClasses());
         dispatch(fetchSubjects());
         dispatch(fetchTeachers());
         dispatch(fetchAllTimetables());
+        dispatch(fetchTimetableTemplates());
     }, [dispatch]);
+
+    const cascadePeriods = (periods, durations, startIndex = 0) => {
+        const updated = periods.map(p => ({ ...p }));
+        for (let i = startIndex; i < updated.length; i++) {
+            if (i > 0) {
+                updated[i].startTime = updated[i-1].endTime;
+            }
+            
+            const duration = durations[updated[i].type] || 45;
+            const [sh, sm] = updated[i].startTime.split(':').map(Number);
+            const totalMinutes = sh * 60 + sm + duration;
+            const nh = Math.floor(totalMinutes / 60) % 24;
+            const nm = totalMinutes % 60;
+            updated[i].endTime = `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+        }
+        return updated;
+    };
+
+    useEffect(() => {
+        if (templatePeriods.length > 0) {
+            setTemplatePeriods(cascadePeriods(templatePeriods, templateDurations));
+        }
+    }, [templateDurations]);
 
     useEffect(() => {
         if (selectedClass) {
@@ -49,7 +86,18 @@ const AdminTimetable = () => {
     }, [timetable, selectedClass]);
 
     const addPeriod = () => {
-        const newPeriod = { startTime: '09:00', endTime: '10:00', subject: '', teacher: '', room: '' };
+        const lastPeriod = activeDay && schedule[activeDay] && schedule[activeDay].length > 0 
+            ? schedule[activeDay][schedule[activeDay].length - 1] 
+            : null;
+        
+        const startTime = lastPeriod ? lastPeriod.endTime : '09:00';
+        let endTime = '10:00';
+        if (lastPeriod) {
+            const [h, m] = lastPeriod.endTime.split(':').map(Number);
+            endTime = `${String((h + 1) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        }
+
+        const newPeriod = { startTime, endTime, subject: '', teacher: '', room: '', type: 'Lecture' };
         setSchedule({
             ...schedule,
             [activeDay]: [...(schedule[activeDay] || []), newPeriod]
@@ -62,26 +110,112 @@ const AdminTimetable = () => {
     };
 
     const updatePeriod = (index, field, value) => {
-        const updatedPeriods = [...schedule[activeDay]];
-        updatedPeriods[index] = { ...updatedPeriods[index], [field]: value };
+        let updatedPeriods = [...schedule[activeDay]];
+        const updatedPeriod = { ...updatedPeriods[index], [field]: value };
+
+        // If subject changes, validate/reset teacher
+        if (field === 'subject') {
+            const currentClass = classes.find(c => c._id === selectedClass);
+            const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === value);
+            const allowedTeacherIds = assignment?.teachers?.map(t => t._id || t) || [];
+            
+            if (!allowedTeacherIds.includes(updatedPeriod.teacher)) {
+                updatedPeriod.teacher = '';
+            }
+        }
+
+        updatedPeriods[index] = updatedPeriod;
+        
+        // If changing type or startTime, we cascade the rest
+        if (field === 'type' || field === 'startTime') {
+            updatedPeriods = cascadePeriods(updatedPeriods, templateDurations, index);
+        }
+        
         setSchedule({ ...schedule, [activeDay]: updatedPeriods });
     };
 
-    const applyTemplate = () => {
-        const templatePeriods = [
-            { startTime: '09:00', endTime: '10:00', type: 'Lecture', subject: '', teacher: '', room: '' },
-            { startTime: '10:00', endTime: '11:00', type: 'Lecture', subject: '', teacher: '', room: '' },
-            { startTime: '11:00', endTime: '11:15', type: 'Break',   subject: '', teacher: '', room: 'Recess' },
-            { startTime: '11:15', endTime: '12:15', type: 'Lecture', subject: '', teacher: '', room: '' },
-            { startTime: '12:15', endTime: '13:00', type: 'Break',   subject: '', teacher: '', room: 'Lunch' },
-            { startTime: '13:00', endTime: '14:00', type: 'Lecture', subject: '', teacher: '', room: '' },
-            { startTime: '14:00', endTime: '15:00', type: 'Lecture', subject: '', teacher: '', room: '' },
-        ];
+    const handleApplyTemplate = (template) => {
         setSchedule(prevSchedule => ({
             ...prevSchedule,
-            [activeDay]: templatePeriods
+            [activeDay]: template.periods.map(p => ({
+                ...p,
+                subject: '',
+                teacher: '',
+                room: ''
+            }))
         }));
-        toast.success(`Applied Institutional Template to ${activeDay}`);
+        setIsTemplateModalOpen(false);
+        toast.success(`Applied ${template.name} to ${activeDay}`);
+    };
+
+    const handleOpenEditTemplate = (template = null) => {
+        if (template) {
+            setCurrentTemplate(template);
+            setTemplateName(template.name);
+            setTemplatePeriods(template.periods);
+        } else {
+            setCurrentTemplate(null);
+            setTemplateName('');
+            setTemplatePeriods([{ startTime: '09:00', endTime: '10:00', type: 'Lecture' }]);
+        }
+        setIsTemplateEditModalOpen(true);
+    };
+
+    const handleSaveTemplate = () => {
+        if (!templateName) return toast.error('Template name required');
+        
+        const data = { name: templateName, periods: templatePeriods };
+        
+        if (currentTemplate) {
+            dispatch(updateTimetableTemplate({ id: currentTemplate._id, data }))
+                .unwrap()
+                .then(() => {
+                    toast.success('Template modified');
+                    setIsTemplateEditModalOpen(false);
+                });
+        } else {
+            dispatch(createTimetableTemplate(data))
+                .unwrap()
+                .then(() => {
+                    toast.success('Template created');
+                    setIsTemplateEditModalOpen(false);
+                });
+        }
+    };
+
+    const handleDeleteTemplate = (id) => {
+        dispatch(deleteTimetableTemplate(id))
+            .unwrap()
+            .then(() => toast.success('Template decommissioned'));
+    };
+
+    const addTemplatePeriod = () => {
+        const lastPeriod = templatePeriods.length > 0 ? templatePeriods[templatePeriods.length - 1] : null;
+        const startTime = lastPeriod ? lastPeriod.endTime : '09:00';
+        const defaultType = lastPeriod ? lastPeriod.type : 'Lecture';
+        const duration = templateDurations[defaultType] || 45;
+
+        let endTime = '10:00';
+        if (startTime) {
+            const [h, m] = startTime.split(':').map(Number);
+            const totalMinutes = h * 60 + m + duration;
+            const nh = Math.floor(totalMinutes / 60) % 24;
+            const nm = totalMinutes % 60;
+            endTime = `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+        }
+
+        setTemplatePeriods([...templatePeriods, { startTime, endTime, type: defaultType }]);
+    };
+
+    const removeTemplatePeriod = (idx) => {
+        setTemplatePeriods(templatePeriods.filter((_, i) => i !== idx));
+    };
+
+    const updateTemplatePeriod = (idx, field, value) => {
+        let newPeriods = [...templatePeriods];
+        newPeriods[idx] = { ...newPeriods[idx], [field]: value };
+        newPeriods = cascadePeriods(newPeriods, templateDurations, idx);
+        setTemplatePeriods(newPeriods);
     };
 
     const handleSave = async () => {
@@ -89,7 +223,7 @@ const AdminTimetable = () => {
 
         const scheduleArray = Object.keys(schedule).map(day => ({
             day,
-            periods: schedule[day].filter(p => p.subject && p.teacher)
+            periods: (schedule[day] || []).filter(p => p.subject && p.teacher)
         }));
 
         dispatch(saveTimetable({ classSection: selectedClass, schedule: scheduleArray }))
@@ -106,82 +240,87 @@ const AdminTimetable = () => {
     };
 
     return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
-            <div className="no-print space-y-12">
-                <header className="flex flex-col xl:flex-row xl:items-end justify-between gap-10 bg-slate-900/40 p-12 rounded-[4rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl group relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-brand-primary/40 to-transparent"></div>
-                <div className="space-y-4 relative z-10">
-                    <div className="flex items-center gap-3 mb-2">
-                        <span className="w-16 h-[2px] bg-brand-primary rounded-full group-hover:w-24 transition-all duration-700"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-brand-primary font-outfit">Temporal Management Engine</span>
-                    </div>
-                    <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">
-                        Scheduling Terminal
-                    </h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-widest italic flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></div>
-                        Administrative archival of sector chronologies and pedagogical sequences.
-                    </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-6 relative z-10">
-                    <div className="flex bg-slate-950/60 p-1.5 rounded-2xl border border-slate-800">
-                        <button 
-                            onClick={() => setViewMode('editor')}
-                            className={`flex items-center gap-3 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'editor' ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
-                            <Edit2 size={14} /> Node Editor
-                        </button>
-                        <button 
-                            onClick={() => setViewMode('table')}
-                            className={`flex items-center gap-3 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'table' ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-500 hover:text-slate-300'}`}
-                        >
-                            <TableIcon size={14} /> Global Registry
-                        </button>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+            <div className="no-print space-y-4">
+                {/* ─── Neural Command Header ────────────────── */}
+                <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-[#030712]/80 p-8 rounded-2xl border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 via-transparent to-transparent opacity-50"></div>
+                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] animate-pulse"></div>
+                    
+                    <div className="space-y-2 relative z-10">
+                        <div className="flex items-center gap-2 mb-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-brand-primary shadow-glow"></div>
+                            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Sync System v2.0</span>
+                        </div>
+                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit group-hover:scale-[1.01] transition-transform duration-700">
+                            Scheduling Center
+                        </h1>
+                        <p className="text-slate-500 font-bold text-[10px] tracking-[0.2em] uppercase italic flex items-center gap-2">
+                            Structural Synchronization across {classes.length} academic sectors
+                        </p>
                     </div>
 
-                    <div className="relative group">
-                        <Layers size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-brand-primary group-focus-within:scale-110 transition-transform" />
-                        <select 
-                            value={selectedClass} 
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                            className="bg-slate-950/80 border border-slate-800 h-16 pl-16 pr-12 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] outline-none focus:border-brand-primary/50 transition-all text-white appearance-none cursor-pointer hover:bg-black font-outfit shadow-2xl"
-                        >
-                            <option value="">Identify Sector</option>
-                            {classes.map(c => (
-                                <option key={c._id} value={c._id}>
-                                    {c.standardId?.name || `Standard ${c.standardId?.level}`} - {c.sectionLabel} {getExistingTimetable(c._id) ? '✓' : '○'}
-                                </option>
+                    <div className="flex flex-wrap items-center gap-4 relative z-10">
+                        <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+                            {[
+                                { id: 'editor', icon: <Edit2 size={12} />, label: 'Node View' },
+                                { id: 'table', icon: <LayoutGrid size={12} />, label: 'Global Registry' }
+                            ].map((mode) => (
+                                <button
+                                    key={mode.id}
+                                    onClick={() => setViewMode(mode.id)}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-500 ${viewMode === mode.id ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-500 hover:text-slate-300'}`}
+                                >
+                                    {mode.icon} {mode.label}
+                                </button>
                             ))}
-                        </select>
-                        <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none text-slate-600">
-                            <ChevronDown size={14} />
+                        </div>
+
+                        <div className="h-10 w-[1px] bg-white/5 hidden xl:block"></div>
+
+                        <div className="flex items-center gap-3">
+                            <button 
+                                onClick={() => setIsTemplateModalOpen(true)}
+                                className="flex items-center gap-2 px-6 h-12 rounded-xl bg-slate-900/60 border border-white/5 text-slate-400 hover:border-brand-primary/40 hover:text-white hover:bg-slate-900 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group/btn shadow-inner"
+                            >
+                                <Settings size={14} className="group-hover/btn:rotate-90 transition-transform duration-700 text-brand-primary/60 group-hover/btn:text-brand-primary" />
+                                Infrastructure
+                            </button>
+
+                            <div className="relative group">
+                                <Layers size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-brand-primary/40 group-focus-within:text-brand-primary transition-colors pointer-events-none" />
+                                <select 
+                                    value={selectedClass} 
+                                    onChange={(e) => setSelectedClass(e.target.value)}
+                                    className="bg-slate-950 border border-white/5 h-12 pl-12 pr-10 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-brand-primary/30 transition-all text-white appearance-none cursor-pointer hover:bg-black font-outfit shadow-inner"
+                                >
+                                    <option value="">Select Sector</option>
+                                    {classes.map(c => (
+                                        <option key={c._id} value={c._id}>
+                                            {c.standardId?.name || `STD-${c.standardId?.level}`} : {c.sectionLabel} {getExistingTimetable(c._id) ? '●' : '○'}
+                                        </option>
+                                    ))}
+                                </select>
+                                <ChevronDown size={12} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 transition-transform group-hover:translate-y-[-40%] pointer-events-none" />
+                            </div>
+
+                            <button 
+                                onClick={handleSave}
+                                disabled={loading || !selectedClass}
+                                className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-20 text-white px-8 h-12 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-glow active:scale-95"
+                            >
+                                {loading ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save size={14} />}
+                                Sync Timeline
+                            </button>
                         </div>
                     </div>
-
-                    <button 
-                        onClick={() => window.print()}
-                        disabled={!selectedClass && viewMode === 'editor'}
-                        className="group flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-brand-primary/40 text-slate-400 hover:text-brand-primary px-8 h-16 rounded-2xl font-black tracking-[0.3em] uppercase text-[11px] transition-all active:scale-95 font-outfit italic"
-                    >
-                        <Printer size={20} className="group-hover:scale-110 transition-transform" />
-                        Broadcast
-                    </button>
-
-                    <button 
-                        onClick={handleSave}
-                        disabled={loading || !selectedClass}
-                        className="group flex items-center gap-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-30 disabled:hover:bg-brand-primary text-white px-10 h-16 rounded-2xl font-black tracking-[0.3em] uppercase text-[11px] transition-all shadow-glow active:scale-95 font-outfit italic"
-                    >
-                        {loading ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save size={20} className="group-hover:rotate-12 transition-transform" />}
-                        Sync Timeline
-                    </button>
-                </div>
-            </header>
+                </header>
+            </div>
 
             <AnimatePresence mode="wait">
                 {viewMode === 'table' ? (
                     <motion.div 
+                        key="registry"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -20 }}
@@ -192,7 +331,7 @@ const AdminTimetable = () => {
                             <span className="px-4 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[9px] font-black text-brand-primary uppercase tracking-widest italic">{timetables.length} Active Records</span>
                         </div>
 
-                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-[3rem] overflow-hidden backdrop-blur-xl shadow-2xl">
+                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-hidden backdrop-blur-xl shadow-xl">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-slate-800/60 bg-slate-900/40">
@@ -211,7 +350,7 @@ const AdminTimetable = () => {
                                             <tr key={cls._id} className="border-b border-slate-800/40 last:border-none group hover:bg-white/5 transition-all duration-500">
                                                 <td className="px-10 py-8">
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-all ${tt ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' : 'bg-slate-900/60 border-slate-800 text-slate-600'}`}>
+                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${tt ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' : 'bg-slate-900/60 border-slate-800 text-slate-600'}`}>
                                                             <Layers size={20} />
                                                         </div>
                                                         <div>
@@ -256,278 +395,341 @@ const AdminTimetable = () => {
                     </motion.div>
                 ) : (
                     <motion.div 
+                        key="editor"
                         initial={{ opacity: 0 }} 
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="space-y-8"
+                        className="space-y-6"
                     >
                         {selectedClass ? (
-                            <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-                                {/* Day Selection Sidebar */}
-                                <div className="space-y-6">
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic flex items-center gap-3">
-                                        <Calendar size={14} className="text-brand-primary" />
-                                        Temporal Node
-                                    </h3>
-                                    <div className="bg-slate-900/60 border border-slate-800/80 rounded-[3rem] p-5 shadow-2xl overflow-hidden backdrop-blur-md relative">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-full blur-3xl -mr-16 -mt-16"></div>
-                                        {days.map(day => (
-                                            <button
-                                                key={day}
-                                                onClick={() => setActiveDay(day)}
-                                                className={`w-full flex items-center justify-between px-8 py-6 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 mb-3 last:mb-0 relative z-10 ${
-                                                    activeDay === day 
-                                                    ? 'bg-brand-primary text-white shadow-glow translate-x-2' 
-                                                    : 'text-slate-500 hover:text-white hover:bg-slate-800/80 hover:translate-x-1'
-                                                }`}
-                                            >
-                                                {day}
-                                                <div className={`w-2.5 h-2.5 rounded-full border-2 ${activeDay === day ? 'bg-white border-white shadow-[0_0_12px_#fff]' : 'bg-transparent border-slate-700'}`}></div>
-                                            </button>
-                                        ))}
+                            <div className="flex flex-col gap-6">
+                                {/* ─── Phase Selector ────────────────── */}
+                                <div className="flex bg-[#030712]/60 p-1.5 rounded-xl border border-white/5 backdrop-blur-md sticky top-0 z-50 overflow-x-auto no-scrollbar shadow-lg">
+                                    {days.map(day => (
+                                        <button
+                                            key={day}
+                                            onClick={() => setActiveDay(day)}
+                                            className={`flex-1 flex flex-col items-center justify-center min-w-[100px] px-4 py-3 rounded-lg transition-all duration-700 relative group/day ${
+                                                activeDay === day 
+                                                ? 'bg-brand-primary text-white shadow-glow' 
+                                                : 'text-slate-500 hover:text-slate-200 hover:bg-white/5'
+                                            }`}
+                                        >
+                                            <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-outfit ${activeDay === day ? 'text-white' : 'text-slate-400 group-hover/day:text-white'}`}>{day}</span>
+                                            <div className="flex items-center gap-1 mt-1 opacity-40">
+                                                <div className={`w-1 h-1 rounded-full ${schedule[activeDay]?.length > 0 ? 'bg-current' : 'bg-transparent border border-current'}`}></div>
+                                                <span className="text-[7px] font-bold">{(schedule[day] || []).length} Nodes</span>
+                                            </div>
+                                            {activeDay === day && (
+                                                <motion.div layoutId="dayTab" className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-white rounded-full"></motion.div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                                
+                                <div className="flex items-center justify-between px-2">
+                                    <div className="flex items-center gap-4">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Node Sequence:</h3>
+                                        <span className="text-sm font-black text-white uppercase italic tracking-widest">{activeDay} Pulse</span>
                                     </div>
-                                    
-                                    {/* Quick Summary Card */}
-                                    <div className="bg-gradient-to-br from-brand-primary/20 to-transparent border border-brand-primary/20 rounded-[2.5rem] p-8 space-y-4">
-                                        <div className="text-[9px] font-black text-brand-primary uppercase tracking-[0.3em]">Sector Capacity</div>
-                                        <div className="text-3xl font-black text-white font-outfit italic tracking-tighter">
-                                            {schedule[activeDay]?.length || 0} / 8
-                                        </div>
-                                        <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${((schedule[activeDay]?.length || 0) / 8) * 100}%` }}
-                                                className="bg-brand-primary h-full shadow-glow"
-                                            ></motion.div>
-                                        </div>
-                                        <p className="text-[9px] text-slate-500 font-bold uppercase tracking-widest italic">Day sequences utilized in this sector</p>
+                                    <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => setIsTemplateModalOpen(true)}
+                                            className="flex items-center gap-2 px-6 h-10 rounded-lg bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-brand-primary/30 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group shadow-inner"
+                                        >
+                                            <Layers size={14} className="group-hover:rotate-12 transition-transform text-brand-primary/40 group-hover:text-brand-primary" />
+                                            Import Pattern
+                                        </button>
+                                        <button 
+                                            onClick={addPeriod}
+                                            className="flex items-center gap-2 px-6 h-10 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[9px] font-black uppercase tracking-widest shadow-glow active:scale-95 group"
+                                        >
+                                            <Plus size={14} className="group-hover:rotate-12 transition-transform" />
+                                            Add Node
+                                        </button>
                                     </div>
                                 </div>
 
-                                {/* Periods Editor */}
-                                <div className="lg:col-span-3 space-y-8">
-                                    <div className="flex items-center justify-between px-4">
-                                        <div className="flex items-center gap-6">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 font-outfit italic">Sequence Map:</span>
-                                                <span className="text-xl font-black text-white font-outfit italic uppercase tracking-widest">{activeDay}</span>
-                                            </div>
-                                            <div className="h-4 w-[1px] bg-slate-800"></div>
-                                            <span className="px-5 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[9px] font-black text-brand-primary uppercase tracking-widest italic shadow-inner">
-                                                {schedule[activeDay]?.length || 0} Pulse points
-                                            </span>
-                                        </div>
-                                    <div className="flex gap-4">
-                            <button 
-                                onClick={applyTemplate}
-                                className="flex items-center gap-3 px-8 h-16 rounded-2xl bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-indigo-500/10 active:scale-95 group"
-                            >
-                                <Layers size={16} className="group-hover:rotate-12 transition-transform" />
-                                Apply Structural Template
-                            </button>
-                            <button 
-                                onClick={addPeriod}
-                                className="flex items-center gap-3 px-8 h-16 rounded-2xl bg-brand-primary border border-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[11px] font-black uppercase tracking-widest shadow-lg shadow-brand-primary/20 active:scale-95 group"
-                            >
-                                <Plus size={16} className="group-hover:rotate-12 transition-transform" />
-                                Add Pedagogical Node
-                            </button>
-                        </div>
-                                    </div>
-
-                                    <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-4 scrollbar-luxury">
-                                        <AnimatePresence mode="popLayout">
-                                            {schedule[activeDay]?.map((period, idx) => (
-                                                <motion.div
-                                                    key={idx}
-                                                    layout
-                                                    initial={{ opacity: 0, x: -30 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.9, filter: 'blur(10px)' }}
-                                                    className="bg-slate-950/60 border border-slate-800/80 rounded-[3rem] p-10 group hover:border-brand-primary/40 transition-all duration-700 shadow-2xl backdrop-blur-2xl relative overflow-hidden"
-                                                >
-                                                    <div className="absolute top-0 right-0 w-60 h-60 bg-brand-primary/5 rounded-full blur-[100px] -mr-30 -mt-30 group-hover:bg-brand-primary/10 transition-colors"></div>
-                                                    
-                                                    <div className="grid grid-cols-1 xl:grid-cols-12 gap-10 items-end relative z-10">
-                                                        {/* Type & Time Sequence */}
-                                                        <div className="xl:col-span-3 space-y-5">
-                                                            <div className="flex items-center gap-2">
-                                                                <Clock size={12} className="text-brand-primary" />
-                                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Temporal Slot</span>
-                                                            </div>
-                                                            <div className="flex bg-slate-900 border border-slate-800 p-2 rounded-2xl mb-2 items-center">
-                                                                <select 
-                                                                    value={period.type || 'Lecture'}
-                                                                    onChange={(e) => updatePeriod(idx, 'type', e.target.value)}
-                                                                    className="bg-transparent text-brand-primary text-[10px] font-black outline-none w-full font-outfit uppercase tracking-widest cursor-pointer"
-                                                                >
-                                                                    <option value="Lecture">Lecture</option>
-                                                                    <option value="Break">Break / Lunch</option>
-                                                                </select>
-                                                            </div>
-                                                            <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 rounded-2xl shadow-inner group-hover:border-slate-700 transition-colors">
-                                                                <input 
-                                                                    type="time" 
-                                                                    value={period.startTime}
-                                                                    onChange={(e) => updatePeriod(idx, 'startTime', e.target.value)}
-                                                                    className="bg-transparent text-white text-[13px] font-black outline-none w-full font-outfit tracking-wider"
-                                                                />
-                                                                <div className="w-[1px] h-4 bg-slate-800"></div>
-                                                                <input 
-                                                                    type="time" 
-                                                                    value={period.endTime}
-                                                                    onChange={(e) => updatePeriod(idx, 'endTime', e.target.value)}
-                                                                    className="bg-transparent text-white text-[13px] font-black outline-none w-full font-outfit tracking-wider"
-                                                                />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Subject Node */}
-                                                        <div className={`xl:col-span-4 space-y-5 ${period.type === 'Break' ? 'opacity-30 pointer-events-none' : ''}`}>
-                                                            <div className="flex items-center gap-2">
-                                                                <BookOpen size={12} className={period.type === 'Break' ? 'text-slate-600' : 'text-brand-primary'} />
-                                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Knowledge Node</span>
-                                                            </div>
-                                                            <div className="relative">
-                                                                <select 
-                                                                    value={period.subject}
-                                                                    disabled={period.type === 'Break'}
-                                                                    onChange={(e) => updatePeriod(idx, 'subject', e.target.value)}
-                                                                    className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit appearance-none italic shadow-inner group-hover:border-slate-700"
-                                                                >
-                                                                    <option value="">{period.type === 'Break' ? 'N/A' : 'Identify Subject'}</option>
-                                                                    {subjects.map(s => (
-                                                                        <option key={s._id} value={s._id}>{s.name}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <ChevronDown size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Teacher Node */}
-                                                        <div className={`xl:col-span-3 space-y-5 ${period.type === 'Break' ? 'opacity-30 pointer-events-none' : ''}`}>
-                                                            <div className="flex items-center gap-2">
-                                                                <Users size={12} className={period.type === 'Break' ? 'text-slate-600' : 'text-brand-primary'} />
-                                                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Assigned Educator</span>
-                                                            </div>
-                                                            <div className="relative">
-                                                                <select 
-                                                                    value={period.teacher}
-                                                                    disabled={period.type === 'Break'}
-                                                                    onChange={(e) => updatePeriod(idx, 'teacher', e.target.value)}
-                                                                    className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit appearance-none italic shadow-inner group-hover:border-slate-700"
-                                                                >
-                                                                    <option value="">{period.type === 'Break' ? 'N/A' : 'Assign Educator'}</option>
-                                                                    {teachers.map(t => (
-                                                                        <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
-                                                                    ))}
-                                                                </select>
-                                                                <ChevronDown size={14} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
-                                                            </div>
-                                                        </div>
-
-                                                        {/* Room & Actions */}
-                                                        <div className="xl:col-span-2 flex items-center gap-5">
-                                                            <div className="flex-1 space-y-5">
-                                                                <div className="flex items-center gap-2">
-                                                                    <Layers size={12} className="text-brand-primary" />
-                                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em]">Sector ID</span>
-                                                                </div>
-                                                                <input 
-                                                                    placeholder={period.type === 'Break' ? 'Lunch' : 'C-101'}
-                                                                    value={period.room}
-                                                                    onChange={(e) => updatePeriod(idx, 'room', e.target.value)}
-                                                                    className="w-full bg-slate-900 border border-slate-800 h-16 px-8 rounded-2xl text-[12px] font-black uppercase text-white outline-none focus:border-brand-primary/60 transition-all font-outfit italic shadow-inner group-hover:border-slate-700"
-                                                                />
-                                                            </div>
-                                                            <button 
-                                                                onClick={() => removePeriod(idx)}
-                                                                className="w-16 h-16 mt-14 rounded-2xl border border-slate-800 bg-slate-900/60 text-slate-600 hover:text-luxury-rose hover:border-luxury-rose/30 hover:bg-luxury-rose/5 transition-all flex items-center justify-center shadow-xl active:scale-90 group/trash"
-                                                            >
-                                                                <Trash2 size={22} className="group-hover/trash:scale-110 transition-transform" />
-                                                            </button>
-                                                        </div>
+                                <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-2 scrollbar-luxury">
+                                    <AnimatePresence mode="popLayout">
+                                        {(schedule[activeDay] || []).map((period, idx) => (
+                                            <motion.div
+                                                key={idx}
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.98 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-[#030712]/40 border border-white/5 rounded-xl p-4 group hover:border-brand-primary/40 transition-all duration-700 shadow-lg relative overflow-hidden"
+                                            >
+                                                <div className="flex items-center gap-6 relative z-10">
+                                                    {/* Step Count */}
+                                                    <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover:text-brand-primary transition-colors">
+                                                        {String(idx + 1).padStart(2, '0')}
                                                     </div>
-                                                </motion.div>
-                                            ))}
-                                        </AnimatePresence>
 
-                                        {(!schedule[activeDay] || schedule[activeDay].length === 0) && (
-                                            <div className="py-48 border-2 border-dashed border-slate-800/40 rounded-[5rem] bg-slate-900/20 text-center flex flex-col items-center justify-center space-y-8 backdrop-blur-sm group/empty transition-all duration-1000 overflow-hidden relative">
-                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)]"></div>
-                                                <div className="relative">
-                                                    <Clock size={70} className="text-slate-800 opacity-20 animate-pulse-slow mb-8 mx-auto group-hover/empty:scale-110 group-hover/empty:text-brand-primary/20 transition-all duration-1000" />
-                                                    <div>
-                                                        <h4 className="text-slate-600 font-black uppercase tracking-[0.6em] text-[13px] italic font-outfit">Empty Temporal Node</h4>
-                                                        <p className="text-slate-700 text-[11px] mt-4 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-8 py-3 rounded-full border border-slate-800/50">Initialize pedagogical sequences for {activeDay}</p>
+                                                    <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
+                                                        <div className="md:col-span-3">
+                                                            <div className="bg-slate-900/60 p-2 rounded-lg border border-white/5">
+                                                                <div className="flex flex-col gap-1">
+                                                                    <select 
+                                                                        value={period.type || 'Lecture'}
+                                                                        disabled
+                                                                        className="bg-transparent text-brand-primary text-[8px] font-black outline-none font-outfit uppercase tracking-widest cursor-not-allowed opacity-80"
+                                                                    >
+                                                                        <option value="Lecture">Lecture</option>
+                                                                        <option value="Break">Break</option>
+                                                                        <option value="Short Break">Short Break</option>
+                                                                        <option value="Long Break">Long Break</option>
+                                                                    </select>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <input 
+                                                                            type="time" 
+                                                                            value={period.startTime} 
+                                                                            onChange={(e) => updatePeriod(idx, 'startTime', e.target.value)} 
+                                                                            readOnly={idx > 0}
+                                                                            className={`bg-transparent text-white text-[11px] font-black outline-none w-16 ${idx > 0 ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                                                                        />
+                                                                        <ChevronRight size={10} className="text-slate-600" />
+                                                                        <input 
+                                                                            type="time" 
+                                                                            value={period.endTime} 
+                                                                            readOnly 
+                                                                            className="bg-transparent text-white text-[11px] font-black outline-none w-16 opacity-50 cursor-not-allowed" 
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {period.type.includes('Break') ? (
+                                                            <div className="md:col-span-7 flex items-center justify-center">
+                                                                <div className="relative group/break w-full py-3 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 shadow-inner overflow-hidden flex items-center justify-center">
+                                                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-primary/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"></div>
+                                                                    <span className="text-[10px] font-black uppercase tracking-[0.8em] text-brand-primary/60 italic font-outfit relative z-10">
+                                                                        {period.type} Node
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            <>
+                                                                <div className="md:col-span-4">
+                                                                    <div className="relative group/sel">
+                                                                        <BookOpen size={12} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary/50 group-focus-within/sel:text-brand-primary" />
+                                                                        <select 
+                                                                            value={period.subject}
+                                                                            onChange={(e) => updatePeriod(idx, 'subject', e.target.value)}
+                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-lg text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
+                                                                        >
+                                                                            <option value="">Subject</option>
+                                                                            {(() => {
+                                                                                const currentClass = classes.find(c => c._id === selectedClass);
+                                                                                return currentClass?.subjectAssignments?.map(a => (
+                                                                                    <option key={a.subject?._id} value={a.subject?._id}>{a.subject?.name}</option>
+                                                                                )) || [];
+                                                                            })()}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="md:col-span-3">
+                                                                    <div className="relative group/sel">
+                                                                        <Users size={12} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary/50 group-focus-within/sel:text-brand-primary" />
+                                                                        <select 
+                                                                            value={period.teacher}
+                                                                            onChange={(e) => updatePeriod(idx, 'teacher', e.target.value)}
+                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-lg text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
+                                                                        >
+                                                                            <option value="">Educator</option>
+                                                                            {(() => {
+                                                                                const currentClass = classes.find(c => c._id === selectedClass);
+                                                                                const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === period.subject);
+                                                                                return assignment?.teachers?.map(t => (
+                                                                                    <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
+                                                                                )) || [];
+                                                                            })()}
+                                                                        </select>
+                                                                    </div>
+                                                                </div>
+                                                            </>
+                                                        )}
+
+                                                        <div className="md:col-span-2 flex items-center justify-end gap-2 text-right">
+                                                            <input 
+                                                                placeholder="RM"
+                                                                value={period.room}
+                                                                onChange={(e) => updatePeriod(idx, 'room', e.target.value)}
+                                                                className="w-12 bg-slate-900/60 border border-white/5 h-10 px-2 rounded-lg text-[10px] font-black uppercase text-center text-white outline-none focus:border-brand-primary/30"
+                                                            />
+                                                            <button onClick={() => removePeriod(idx)} className="p-2.5 text-slate-600 hover:text-red-400 transition-colors bg-slate-900 border border-white/5 rounded-lg active:scale-95"><Trash2 size={14} /></button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <button 
-                                                    onClick={addPeriod}
-                                                    className="relative bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-12 py-5 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20 hover:border-brand-primary/40 active:scale-95 group-hover/empty:shadow-glow"
-                                                >
-                                                    Apply First Pulse Points
-                                                </button>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+
+                                    {(!schedule[activeDay] || schedule[activeDay].length === 0) && (
+                                        <div className="py-24 border-2 border-dashed border-white/5 rounded-2xl bg-[#030712]/40 text-center flex flex-col items-center justify-center space-y-6 backdrop-blur-sm group/empty">
+                                            <Clock size={40} className="text-slate-800 opacity-20 group-hover/empty:scale-110 group-hover/empty:text-brand-primary/20 transition-all duration-1000" />
+                                            <div>
+                                                <h4 className="text-slate-600 font-black uppercase tracking-[0.6em] text-[10px] italic font-outfit">Empty Temporal Node</h4>
+                                                <p className="text-slate-700 text-[9px] mt-2 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-6 py-2 rounded-full border border-white/5">Initialize pedagogical sequences for {activeDay}</p>
                                             </div>
-                                        )}
-                                    </div>
+                                            <button 
+                                                onClick={addPeriod}
+                                                className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-8 py-3 rounded-lg text-[9px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20"
+                                            >
+                                                Apply First Pulse Points
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         ) : (
-                            <div className="py-72 flex flex-col items-center justify-center border-2 border-dashed border-slate-800/40 rounded-[6rem] bg-slate-900/20 backdrop-blur-md group hover:border-brand-primary/10 transition-all duration-1000 relative overflow-hidden">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.05)_0%,transparent_80%)] animate-pulse-slow"></div>
-                                <Calendar size={120} className="text-slate-800 mb-14 opacity-20 group-hover:scale-125 group-hover:rotate-6 group-hover:text-brand-primary/20 transition-all duration-1000 relative z-10" />
-                                <h3 className="text-4xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Sector Link Required</h3>
-                                <div className="mt-10 flex flex-col items-center gap-6 relative z-10">
-                                    <p className="text-slate-500 text-[13px] font-black tracking-[0.3em] uppercase italic border-t border-slate-800/60 pt-6">Select an academic sector to access institutional chronology</p>
-                                    <div className="flex gap-4">
-                                        {[1,2,3].map(i => <div key={i} className="w-2 h-2 rounded-full bg-brand-primary/20 animate-pulse" style={{ animationDelay: `${i * 200}ms` }}></div>)}
-                                    </div>
-                                </div>
+                            <div className="py-48 flex flex-col items-center justify-center border border-white/5 rounded-2xl bg-[#030712]/20 backdrop-blur-md group relative overflow-hidden">
+                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)] animate-pulse"></div>
+                                <LayoutGrid size={80} className="text-slate-800 mb-10 opacity-20 group-hover:scale-110 group-hover:text-brand-primary/10 transition-all duration-1000 relative z-10" />
+                                <h3 className="text-2xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Sector Link Required</h3>
+                                <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase italic mt-4 relative z-10">Select an academic sector to access institutional chronology</p>
                             </div>
                         )}
                     </motion.div>
                 )}
             </AnimatePresence>
 
-            {/* Footer Metrics */}
-            {selectedClass && (
-                <footer className="grid grid-cols-1 md:grid-cols-3 gap-8 pt-6">
-                    <div className="bg-slate-900/30 border border-slate-800/60 p-8 rounded-[2.5rem] flex items-center gap-8 group hover:border-brand-primary/20 transition-all">
-                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-950 flex items-center justify-center text-brand-primary border border-slate-800 group-hover:scale-110 transition-transform">
-                            <Layers size={24} />
-                        </div>
-                        <div>
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Target Sector</div>
-                            <div className="text-xl font-black text-white font-outfit italic uppercase">
-                                {classes.find(c => c._id === selectedClass)?.standardId?.name} - {classes.find(c => c._id === selectedClass)?.sectionLabel}
+            {/* Template Selection Modal */}
+            <Modal
+                open={isTemplateModalOpen}
+                onClose={() => setIsTemplateModalOpen(false)}
+                title="Structural Templates"
+                maxWidth="max-w-4xl"
+            >
+                <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest italic">Institutional patterns</p>
+                        <button 
+                            onClick={() => handleOpenEditTemplate()}
+                            className="flex items-center gap-2 px-4 h-10 rounded-lg bg-brand-primary text-white text-[9px] font-black uppercase tracking-widest"
+                        >
+                            <Plus size={12} /> New Infrastructure
+                        </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {timetableTemplates.map(template => (
+                            <div key={template._id} className="bg-slate-900 border border-white/5 p-5 rounded-xl group hover:border-indigo-500/30 transition-all flex flex-col justify-between h-full shadow-lg">
+                                <div>
+                                    <div className="flex items-center justify-between mb-3">
+                                        <h4 className="text-lg font-black text-white italic tracking-tighter uppercase font-outfit">{template.name}</h4>
+                                        <div className="flex gap-1">
+                                            <button onClick={() => handleOpenEditTemplate(template)} className="p-2 text-slate-500 hover:text-indigo-400 transition-colors"><Edit2 size={14} /></button>
+                                            <button onClick={() => handleDeleteTemplate(template._id)} className="p-2 text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2 mb-6 bg-black/40 p-4 rounded-xl border border-white/5 max-h-32 overflow-y-auto scrollbar-compact">
+                                        {template.periods.map((p, i) => (
+                                            <div key={i} className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 border-b border-white/5 last:border-none py-1">
+                                                <span>{p.startTime} - {p.endTime}</span>
+                                                <span className="text-brand-primary/60">{p.type}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => handleApplyTemplate(template)}
+                                    className="w-full h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
+                                >
+                                    Apply Configuration
+                                </button>
                             </div>
+                        ))}
+                    </div>
+                </div>
+            </Modal>
+
+            {/* Template Edit Modal */}
+            <Modal
+                open={isTemplateEditModalOpen}
+                onClose={() => setIsTemplateEditModalOpen(false)}
+                title={currentTemplate ? "Modify Infrastructure" : "Initialize Infrastructure"}
+                maxWidth="max-w-2xl"
+            >
+                <div className="space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pattern Identity</label>
+                        <input 
+                            placeholder="e.g., Morning Shift"
+                            value={templateName}
+                            onChange={(e) => setTemplateName(e.target.value)}
+                            className="w-full bg-slate-950 border border-white/5 h-10 px-4 rounded-lg text-white font-black uppercase tracking-widest outline-none focus:border-brand-primary/40 text-[11px]"
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-black/20 rounded-xl border border-white/5">
+                        {Object.entries(templateDurations).map(([type, duration]) => (
+                            <div key={type} className="space-y-1">
+                                <label className="text-[7px] font-black text-slate-600 uppercase tracking-tighter">{type}(m)</label>
+                                <input 
+                                    type="number"
+                                    value={duration}
+                                    onChange={(e) => setTemplateDurations({...templateDurations, [type]: parseInt(e.target.value) || 0})}
+                                    className="w-full bg-slate-950 border border-white/5 h-8 px-2 rounded-md text-white text-[9px] font-black outline-none focus:border-brand-primary/30"
+                                />
+                            </div>
+                        ))}
+                    </div>
+
+                    <div className="space-y-3">
+                        <div className="flex items-center justify-between px-1">
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Chronology Nodes</label>
+                            <button onClick={addTemplatePeriod} className="text-brand-primary flex items-center gap-1 text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-transform">
+                                <Plus size={12} /> Add Node
+                            </button>
+                        </div>
+                        <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 scrollbar-compact">
+                            {templatePeriods.map((period, idx) => (
+                                <div key={idx} className="flex items-center gap-3 bg-black/20 border border-white/5 p-3 rounded-xl">
+                                    <div className="flex-1 grid grid-cols-4 gap-3">
+                                        <select 
+                                            value={period.type} 
+                                            onChange={(e) => updateTemplatePeriod(idx, 'type', e.target.value)}
+                                            className="bg-transparent text-white text-[9px] font-black outline-none border border-white/5 rounded-md p-1.5 uppercase tracking-tighter"
+                                        >
+                                            <option value="Lecture">Lecture</option>
+                                            <option value="Break">Break</option>
+                                            <option value="Short Break">SB</option>
+                                            <option value="Long Break">LB</option>
+                                        </select>
+                                        <input 
+                                            type="time" 
+                                            value={period.startTime} 
+                                            onChange={(e) => updateTemplatePeriod(idx, 'startTime', e.target.value)}
+                                            readOnly={idx > 0}
+                                            className={`bg-transparent text-white text-[10px] font-black outline-none border border-white/5 rounded-md p-1 ${idx > 0 ? 'opacity-50' : ''}`}
+                                        />
+                                        <input 
+                                            type="time" 
+                                            value={period.endTime} 
+                                            readOnly
+                                            className="bg-transparent text-white text-[10px] font-black outline-none border border-white/5 rounded-md p-1 opacity-50"
+                                        />
+                                        <button onClick={() => removeTemplatePeriod(idx)} className="text-slate-600 hover:text-red-400 p-1"><Trash2 size={12} /></button>
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
-                    <div className="bg-slate-900/30 border border-slate-800/60 p-8 rounded-[2.5rem] flex items-center gap-8 group hover:border-emerald-500/20 transition-all">
-                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-950 flex items-center justify-center text-emerald-500 border border-slate-800 group-hover:scale-110 transition-transform">
-                            <Clock size={24} />
-                        </div>
-                        <div>
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Sync Latency</div>
-                            <div className="text-xl font-black text-white font-outfit italic uppercase">Real-Time</div>
-                        </div>
-                    </div>
-                    <div className="bg-slate-900/30 border border-slate-800/60 p-8 rounded-[2.5rem] flex items-center gap-8 group hover:border-brand-primary/20 transition-all">
-                        <div className="w-16 h-16 rounded-[1.5rem] bg-slate-950 flex items-center justify-center text-brand-primary border border-slate-800 group-hover:scale-110 transition-transform">
-                            <Check size={24} />
-                        </div>
-                        <div>
-                            <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Node Validation</div>
-                            <div className="text-xl font-black text-white font-outfit italic uppercase">Sector Secure</div>
-                        </div>
-                    </div>
-                </footer>
-            )}
-            </div>
+
+                    <button 
+                        onClick={handleSaveTemplate}
+                        className="w-full h-12 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest shadow-glow active:scale-95 transition-all text-[11px]"
+                    >
+                        Sync Global Configuration
+                    </button>
+                </div>
+            </Modal>
 
             {/* ─── Institutional Chronology Archival View (Print) ────────────────── */}
-            <div className="print-only w-full">
+            <div className="print-only w-full p-8 text-black">
                 <div className="mb-12 border-b-2 border-slate-900 pb-8 flex justify-between items-end">
                     <div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter italic">Institutional Chronology</h1>
@@ -549,18 +751,24 @@ const AdminTimetable = () => {
                             </div>
                             <div className="p-4 space-y-4 min-h-[600px]">
                                 {(schedule[day] || []).map((slot, idx) => (
-                                    <div key={idx} className="p-4 border border-slate-200 rounded-xl space-y-2">
+                                    <div key={idx} className={`p-4 border rounded-xl space-y-2 ${slot.type.includes('Break') ? 'border-slate-100 bg-slate-50' : 'border-slate-200'}`}>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[9px] font-black uppercase text-brand-primary italic">{slot.startTime}</span>
                                             <span className="text-[9px] font-bold text-slate-400 italic">TO {slot.endTime}</span>
                                         </div>
                                         <h4 className="text-[10px] font-black uppercase tracking-tighter italic leading-tight">
-                                            {subjects.find(s => s._id === slot.subject)?.name || 'Pedagogical Node'}
+                                            {slot.type.includes('Break') 
+                                                ? slot.type 
+                                                : (subjects.find(s => s._id === slot.subject)?.name || 'Pedagogical Node')}
                                         </h4>
-                                        <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest italic truncate">
-                                            {teachers.find(t => t._id === slot.teacher)?.firstName || 'Educator'}
-                                        </p>
-                                        <div className="text-[8px] font-black text-slate-400 uppercase italic">RM: {slot.room || 'Sector-A'}</div>
+                                        {!slot.type.includes('Break') && (
+                                            <>
+                                                <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest italic truncate">
+                                                    {teachers.find(t => t._id === slot.teacher)?.firstName || 'Educator'}
+                                                </p>
+                                                <div className="text-[8px] font-black text-slate-400 uppercase italic">RM: {slot.room || 'Sector-A'}</div>
+                                            </>
+                                        )}
                                     </div>
                                 ))}
                             </div>
