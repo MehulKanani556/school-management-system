@@ -1169,6 +1169,132 @@ exports.getLowAttendanceAlerts = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// ─── Reports & Analytics ──────────────────────────────────────────────────────
+exports.getSchoolWidePerformance = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        // published exams
+        const exams = await Exam.find({ schoolId, isPublished: true }).populate('subject standardId');
+        const examIds = exams.map(e => e._id);
+        const marks = await Mark.find({ examId: { $in: examIds }, schoolId }).lean();
+
+        const performance = {
+            totalExams: exams.length,
+            overallAverage: 0,
+            passRate: 0,
+            subjectWise: {},
+            gradeWise: {},
+            subjectChart: [],
+            gradeChart: []
+        };
+
+        if (marks.length > 0) {
+            let totalMarks = 0, totalPass = 0;
+            marks.forEach(m => {
+                const exam = exams.find(e => e._id.toString() === m.examId.toString());
+                if (!exam) return;
+                const percent = (m.marksObtained / (exam.maxMarks || 100)) * 100;
+                totalMarks += percent;
+                if (percent >= 40) totalPass++;
+
+                const subName = exam.subject?.name || 'Other';
+                if (!performance.subjectWise[subName]) performance.subjectWise[subName] = { total: 0, count: 0 };
+                performance.subjectWise[subName].total += percent;
+                performance.subjectWise[subName].count++;
+
+                const gradeName = `Grade ${exam.standardId?.level || 'N/A'}`;
+                if (!performance.gradeWise[gradeName]) performance.gradeWise[gradeName] = { total: 0, count: 0 };
+                performance.gradeWise[gradeName].total += percent;
+                performance.gradeWise[gradeName].count++;
+            });
+
+            performance.overallAverage = Number((totalMarks / marks.length).toFixed(1));
+            performance.passRate = Number(((totalPass / marks.length) * 100).toFixed(1));
+            performance.subjectChart = Object.keys(performance.subjectWise).map(s => ({
+                name: s, average: Number((performance.subjectWise[s].total / performance.subjectWise[s].count).toFixed(1))
+            }));
+            performance.gradeChart = Object.keys(performance.gradeWise).map(g => ({
+                name: g, average: Number((performance.gradeWise[g].total / performance.gradeWise[g].count).toFixed(1))
+            }));
+        }
+
+        res.json(performance);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getFeeCollectionReport = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const fees = await FeePayment.find({ schoolId }).lean();
+        
+        let totalExpected = 0, totalCollected = 0, totalOutstanding = 0;
+        fees.forEach(f => {
+            totalExpected += (f.amount || 0);
+            if (f.status === 'Paid') totalCollected += (f.amount || 0);
+            else totalOutstanding += (f.amount || 0);
+        });
+
+        res.json({
+            totalExpected, totalCollected, totalOutstanding,
+            collectionRate: totalExpected > 0 ? Number(((totalCollected / totalExpected) * 100).toFixed(1)) : 0
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.exportFeeReport = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const fees = await FeePayment.find({ schoolId }).populate('studentId standardId');
+        
+        const fields = [
+            { label: 'Student Name', value: (row) => `${row.studentId?.firstName || 'Unknown'} ${row.studentId?.lastName || ''}` },
+            { label: 'Admission No', value: 'studentId.admissionNumber' },
+            { label: 'Grade', value: 'standardId.level' },
+            { label: 'Month', value: 'month' },
+            { label: 'Amount', value: 'amount' },
+            { label: 'Status', value: 'status' },
+            { label: 'Payment Date', value: (row) => row.paymentDate ? row.paymentDate.toISOString().split('T')[0] : '' }
+        ];
+
+        const parser = new Parser({ fields });
+        const csvData = parser.parse(fees);
+
+        res.header('Content-Type', 'text/csv');
+        res.attachment(`FeeReport_${new Date().toISOString().split('T')[0]}.csv`);
+        return res.send(csvData);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.exportAttendanceReportCSV = async (req, res) => {
+    try {
+        const { classSection, startDate, endDate } = req.query;
+        const schoolId = getSchoolId(req);
+        const filter = { schoolId };
+        if (classSection) filter.classSection = classSection;
+        if (startDate && endDate) filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+
+        const attendance = await Attendance.find(filter).populate('records.studentId');
+        
+        const results = [];
+        attendance.forEach(record => {
+            record.records.forEach(r => {
+                results.push({
+                    date: record.date.toISOString().split('T')[0],
+                    studentName: `${r.studentId?.firstName || 'N/A'} ${r.studentId?.lastName || ''}`,
+                    admissionNumber: r.studentId?.admissionNumber || '',
+                    status: r.status
+                });
+            });
+        });
+
+        const parser = new Parser({ fields: ['date', 'studentName', 'admissionNumber', 'status'] });
+        const csvData = parser.parse(results);
+        res.header('Content-Type', 'text/csv');
+        res.attachment('AttendanceReport.csv');
+        res.send(csvData);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Subjects ─────────────────────────────────────────────────────────────────
 exports.getSubjects = async (req, res) => {
   try {

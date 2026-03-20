@@ -96,6 +96,12 @@ router.post('/school-admin/attendance', ...schoolAdmin, sa.saveAttendance);
 router.get('/school-admin/attendance-report', ...schoolAdmin, sa.getAttendanceReport);
 router.get('/school-admin/attendance-analytics', ...schoolAdmin, sa.getAttendanceAnalytics);
 router.get('/school-admin/attendance-alerts', ...schoolAdmin, sa.getLowAttendanceAlerts);
+router.get('/school-admin/attendance-export', ...schoolAdmin, sa.exportAttendanceReportCSV);
+
+// Reports & Analytics
+router.get('/school-admin/reports/performance', ...schoolAdmin, sa.getSchoolWidePerformance);
+router.get('/school-admin/reports/fees', ...schoolAdmin, sa.getFeeCollectionReport);
+router.get('/school-admin/reports/fees-export', ...schoolAdmin, sa.exportFeeReport);
 
 // Timetable Routes
 router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);

@@ -22,6 +22,7 @@ import AdminCommunication from './pages/schooladmin/Communication';
 import Payroll from './pages/schooladmin/Payroll';
 import Leaves from './pages/schooladmin/Leaves';
 import Reviews from './pages/schooladmin/Reviews';
+import Reports from './pages/schooladmin/Reports';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
@@ -124,6 +125,7 @@ function AppRoutes() {
           <Route path="payroll" element={<Payroll />} />
           <Route path="leaves" element={<Leaves />} />
           <Route path="reviews" element={<Reviews />} />
+          <Route path="reports" element={<Reports />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 

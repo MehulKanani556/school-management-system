@@ -24,6 +24,36 @@ export const fetchAttendance = asyncGet('sa/attendance', '/attendance');
 export const fetchAttendanceReport = asyncGet('sa/attendanceReport', '/attendance-report');
 export const fetchAttendanceAnalytics = asyncGet('sa/attendanceAnalytics', '/attendance-analytics');
 export const fetchAttendanceAlerts = asyncGet('sa/attendanceAlerts', '/attendance-alerts');
+export const fetchSchoolPerformance = asyncGet('sa/performance', '/reports/performance');
+export const fetchFeeReport = asyncGet('sa/feeReportStatus', '/reports/fees');
+
+export const exportFeeReport = createAsyncThunk('sa/exportFeeReport', async (_, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get('/school-admin/reports/fees-export', { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'FeeReport.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { success: true };
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const exportAttendanceReport = createAsyncThunk('sa/exportAttendanceReport', async (params, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get('/school-admin/attendance-export', { params, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'AttendanceReport.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { success: true };
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
 export const fetchTimetable = asyncGet('sa/timetable', '/timetable');
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
@@ -164,6 +194,7 @@ const initialState = {
   dashboard: null,
   students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [], 
   attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
+  schoolPerformance: null, feeReport: null,
   holidays: [], timetable: null, timetables: [],
   payroll: [], leaves: [], reviews: [],
   examAnalytics: null,
@@ -197,6 +228,8 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchAttendanceReport.fulfilled, handleList('attendanceReport'))
       .addCase(fetchAttendanceAnalytics.fulfilled, handleList('attendanceAnalytics'))
       .addCase(fetchAttendanceAlerts.fulfilled, handleList('attendanceAlerts'))
+      .addCase(fetchSchoolPerformance.fulfilled, (state, a) => { state.schoolPerformance = a.payload; state.loading = false; })
+      .addCase(fetchFeeReport.fulfilled, (state, a) => { state.feeReport = a.payload; state.loading = false; })
       .addCase(fetchHolidays.fulfilled, handleList('holidays'))
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
@@ -404,6 +437,7 @@ const schoolAdminSlice = createSlice({
     [
       fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, 
       fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts,
+      fetchSchoolPerformance, fetchFeeReport, exportFeeReport, exportAttendanceReport,
       fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
