@@ -185,6 +185,16 @@ router.get('/school-admin/messages', ...schoolAdmin, mc.getMyMessages);
 router.post('/school-admin/messages', ...schoolAdmin, upload.single('file'), mc.sendMessage);
 router.delete('/school-admin/messages/:id', ...schoolAdmin, mc.deleteMessage);
 
+// Notice Board
+router.get('/school-admin/notices', ...schoolAdmin, mc.getNotices);
+router.post('/school-admin/notices', ...schoolAdmin, upload.single('file'), mc.createNotice);
+
+// Global (for teachers/students to see)
+router.get('/announcements', auth, mc.getAnnouncements);
+router.get('/notices', auth, mc.getNotices);
+router.get('/my-messages', auth, mc.getMyMessages);
+router.get('/contacts', auth, mc.getContacts);
+
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
 router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
 router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);

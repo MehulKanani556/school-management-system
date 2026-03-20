@@ -6,13 +6,16 @@ import userReducer from './slice/user.slice';
 import teacherReducer from './slice/teacher.slice';
 import studentReducer from './slice/student.slice';
 
+import communicationReducer from './slice/communication.slice';
+
 const rootReducer = combineReducers({
     auth: authReducer,
     schoolAdmin: schoolAdminReducer,
     school: schoolReducer,
     user: userReducer,
     teacher: teacherReducer,
-    student: studentReducer
+    student: studentReducer,
+    communication: communicationReducer
 });
 
 export default rootReducer;

@@ -9,11 +9,13 @@ import {
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { resetUnreadCount } from '../../redux/slice/communication.slice';
 
 const TeacherLayout = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
+    const { unreadCount } = useSelector((state) => state.communication);
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/teacher' },
@@ -49,10 +51,18 @@ const TeacherLayout = () => {
                         <Link
                             key={item.path}
                             to={item.path}
+                            onClick={() => {
+                                if (item.label === 'Communicate') dispatch(resetUnreadCount());
+                            }}
                             className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${isActive(item.path) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-100'}`}
                         >
                             <item.icon size={20} className={isActive(item.path) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
                             <span className="text-[12px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
+                            {item.label === 'Communicate' && unreadCount > 0 && (
+                                <div className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-brand-primary text-[10px] font-black italic shadow-lg animate-bounce border border-white/20">
+                                    {unreadCount}
+                                </div>
+                            )}
                             {isActive(item.path) && <ChevronRight size={16} className="ml-auto" />}
                         </Link>
                     ))}

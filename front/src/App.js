@@ -48,6 +48,7 @@ import Timetable from './pages/Student/Timetable';
 import StudentProfile from './pages/Student/StudentProfile';
 import Holidays from './pages/common/Holidays';
 import ToastManager from './ToastManager';
+import { SocketProvider } from './context/SocketContext';
 
 const { store, persistor } = configureStore();
 
@@ -153,39 +154,42 @@ function AppRoutes() {
   );
 }
 
+
 function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <Toaster
-          position="top-center"
-          toastOptions={{
-            duration: 4000,
-            style: {
-              background: '#0f172a',
-              color: '#fff',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
-              borderRadius: '16px',
-              backdropFilter: 'blur(10px)',
-              fontWeight: '600',
-              fontSize: '14px',
-            },
-            success: {
-              iconTheme: {
-                primary: '#10b981',
-                secondary: '#fff',
+        <SocketProvider>
+          <Toaster
+            position="top-center"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#0f172a',
+                color: '#fff',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                backdropFilter: 'blur(10px)',
+                fontWeight: '600',
+                fontSize: '14px',
               },
-            },
-            error: {
-              iconTheme: {
-                primary: '#f43f5e',
-                secondary: '#fff',
+              success: {
+                iconTheme: {
+                  primary: '#10b981',
+                  secondary: '#fff',
+                },
               },
-            },
-          }}
-        />
-        <ToastManager />
-        <AppRoutes />
+              error: {
+                iconTheme: {
+                  primary: '#f43f5e',
+                  secondary: '#fff',
+                },
+              },
+            }}
+          />
+          <ToastManager />
+          <AppRoutes />
+        </SocketProvider>
       </PersistGate>
     </Provider>
   );

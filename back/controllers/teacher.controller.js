@@ -108,10 +108,12 @@ exports.uploadAssignment = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// 5. Communicate with students ───────────────────────────────────────────────—
+const socketManager = require('../socketManager/socketManager');
+
+// 5. Communicate with students/parents ───────────────────────────────────────—
 exports.sendMessage = async (req, res) => {
   try {
-    const { targetRole, classSection, subject, content, recipientId } = req.body;
+    const { targetRole, classSection, subject, content, recipient } = req.body;
     const teacher = await getTeacher(req.user._id);
     const fileUrl = req.file ? req.file.location : null;
 
@@ -119,13 +121,23 @@ exports.sendMessage = async (req, res) => {
     const message = await Message.create({
       schoolId: teacher.schoolId._id,
       sender: req.user._id,
-      recipient: recipientId || null,
+      recipient: recipient || null,
       targetRole: targetRole || 'Student',
+      type: recipient ? 'DirectMessage' : 'Announcement',
       classSection: classSection || null,
       subject, content, fileUrl
     });
 
-    res.status(201).json({ message: 'Communication broadcasted successfully', data: message });
+    const populated = await message.populate('sender', 'firstName lastName photo role');
+
+    // Real-time notification
+    if (recipient) {
+        socketManager.sendToUser(recipient, 'new_direct_message', populated);
+    } else {
+        socketManager.broadcastToRole(targetRole || 'Student', 'new_announcement', populated);
+    }
+
+    res.status(201).json({ message: 'Communication broadcasted successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

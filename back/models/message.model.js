@@ -4,7 +4,8 @@ const messageSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Specific student/parent/user
-  targetRole: { type: String, enum: ['Student', 'Parent', 'Teacher', 'All'] }, // Broad message
+  type: { type: String, enum: ['Announcement', 'DirectMessage', 'Notice'], default: 'Announcement' },
+  targetRole: { type: String, enum: ['Student', 'Parent', 'Teacher', 'All', 'Specific'] }, // Broad message or specific
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' }, // Message for a specific class
   subject: { type: String, required: true },
   content: { type: String, required: true },

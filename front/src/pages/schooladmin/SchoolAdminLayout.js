@@ -9,6 +9,7 @@ import {
   Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings
 } from 'lucide-react';
 import MainHeader from '../../components/MainHeader';
+import { resetUnreadCount } from '../../redux/slice/communication.slice';
 
 const navItems = [
   { to: '/school-admin',          icon: LayoutDashboard, label: 'Dashboard',  end: true },
@@ -34,6 +35,7 @@ const SchoolAdminLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user } = useSelector((state) => state.auth);
+  const { unreadCount } = useSelector((state) => state.communication);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = () => {
@@ -66,7 +68,10 @@ const SchoolAdminLayout = () => {
               key={to}
               to={to}
               end={end}
-              onClick={() => setSidebarOpen(false)}
+              onClick={() => {
+                setSidebarOpen(false);
+                if (label === 'Communication') dispatch(resetUnreadCount());
+              }}
               className={({ isActive }) =>
                 `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
                   isActive
@@ -81,6 +86,11 @@ const SchoolAdminLayout = () => {
                     <Icon size={18} />
                   </div>
                   <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{label}</span>
+                  {label === 'Communication' && (unreadCount > 0) && (
+                    <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-luxury-rose text-[10px] font-black italic shadow-lg animate-bounce border border-white/20">
+                      {unreadCount}
+                    </div>
+                  )}
                   <ChevronRight size={14} className={`transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`} />
                 </>
               )}

@@ -36,6 +36,6 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use('/api/', authRoutes);
-app.listen(port, () => {
+server.listen(port, () => {
     console.log(`Server + Socket.IO is running on port ${port}`);
 });
