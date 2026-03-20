@@ -1,20 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    fetchAssignedClasses, 
-    uploadAssignment, 
-    fetchAssignments, 
+import {
+    fetchAssignedClasses,
+    uploadAssignment,
+    fetchAssignments,
     deleteAssignment,
     updateAssignment,
     fetchSubmissions,
     gradeSubmissionThunk,
     clearTeacherMessage,
-    setTeacherError 
+    setTeacherError
 } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Upload, ChevronDown, Activity, Send, 
-    FileText, Calendar, Trash2, Edit3, 
+import {
+    Upload, ChevronDown, Activity, Send,
+    FileText, Calendar, Trash2, Edit3,
     Plus, X, ExternalLink, School, MessageCircle, FileCheck
 } from 'lucide-react';
 import Modal from '../../components/Modal';
@@ -22,9 +22,9 @@ import Modal from '../../components/Modal';
 const Assignments = () => {
     const dispatch = useDispatch();
     const { classes, assignments, submissions, loading, message } = useSelector((state) => state.teacher);
-    
+
     const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'submissions'
-    const [editMode, setEditMode] = useState(null); 
+    const [editMode, setEditMode] = useState(null);
     const [activeAssignment, setActiveAssignment] = useState(null);
     const [gradingSubmission, setGradingSubmission] = useState(null);
     const [gradeForm, setGradeForm] = useState({ score: '', feedback: '' });
@@ -117,10 +117,10 @@ const Assignments = () => {
                         Instructional material lifecycle management registry.
                     </p>
                 </div>
-                
-                <button 
+
+                <button
                     onClick={() => {
-                        if(viewMode !== 'list') resetForm();
+                        if (viewMode !== 'list') resetForm();
                         setViewMode(viewMode === 'list' ? 'form' : 'list');
                     }}
                     className={`flex items-center gap-3 px-8 py-3.5 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${viewMode === 'list' ? 'bg-brand-primary text-white hover:bg-blue-600' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
@@ -152,7 +152,7 @@ const Assignments = () => {
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Curriculum Subject</p>
                                     <div className="relative group">
                                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                                        <select value={formData.subject} onChange={(e) => setFormData({...formData, subject: e.target.value})} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white">
+                                        <select value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white">
                                             <option value="" className="bg-slate-900 text-slate-500">Select Subject</option>
                                             {(classes.find(c => c._id === selectedClass)?.subjects || []).map(sub => (
                                                 <option key={sub._id} value={sub.name} className="bg-slate-900 text-white">{sub.name}</option>
@@ -163,18 +163,18 @@ const Assignments = () => {
                             </div>
                             <div className="space-y-2.5">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Homework Module Title</p>
-                                <input type="text" placeholder="Task Header..." value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner" />
+                                <input type="text" placeholder="Task Header..." value={formData.title} onChange={(e) => setFormData({ ...formData, title: e.target.value })} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner" />
                             </div>
                             <div className="space-y-2.5">
                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Protocol & Data Range</p>
-                                <textarea placeholder="Specify task requirements..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} rows={4} className="w-full bg-slate-800/40 border border-slate-700/50 p-6 rounded-md text-[11px] font-medium text-slate-300 outline-none focus:border-brand-primary transition-all shadow-inner resize-none" />
+                                <textarea placeholder="Specify task requirements..." value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows={4} className="w-full bg-slate-800/40 border border-slate-700/50 p-6 rounded-md text-[11px] font-medium text-slate-300 outline-none focus:border-brand-primary transition-all shadow-inner resize-none" />
                             </div>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2.5">
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] ml-1 text-luxury-rose">Submission Limit</p>
                                     <div className="relative">
                                         <Calendar size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                                        <input type="date" value={formData.dueDate} onChange={(e) => setFormData({...formData, dueDate: e.target.value})} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 pl-14 pr-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner" />
+                                        <input type="date" value={formData.dueDate} onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 pl-14 pr-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner" />
                                     </div>
                                 </div>
                                 <div className="space-y-2.5">
@@ -184,7 +184,7 @@ const Assignments = () => {
                                         <span className={`${formData.file ? 'text-brand-primary' : 'text-slate-500'} text-[11px] font-black uppercase tracking-widest truncate max-w-[150px]`}>
                                             {formData.file ? formData.file.name : (editMode && editMode.fileUrl ? 'Re-upload File' : 'Select Identifier')}
                                         </span>
-                                        <input type="file" onChange={(e) => setFormData({...formData, file: e.target.files[0]})} className="hidden" />
+                                        <input type="file" onChange={(e) => setFormData({ ...formData, file: e.target.files[0] })} className="hidden" />
                                     </label>
                                 </div>
                             </div>
@@ -243,9 +243,9 @@ const Assignments = () => {
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {submissions.map((sub, idx) => (
-                                <motion.div key={sub._id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }} className="bg-slate-900/60 border border-slate-800/80 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm">
+                                <motion.div key={sub._id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: idx * 0.05 }} className="bg-slate-900/60 border border-slate-800/80 rounded-md p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm">
                                     <div className="flex items-center gap-6 mb-8">
-                                        <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700/50 flex items-center justify-center text-xl font-black text-brand-primary font-outfit uppercase shadow-xl group-hover:scale-110 transition-transform">{sub.studentId?.firstName.charAt(0)}</div>
+                                        <div className="w-14 h-14 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center text-xl font-black text-brand-primary font-outfit uppercase shadow-xl group-hover:scale-110 transition-transform">{sub.studentId?.firstName.charAt(0)}</div>
                                         <div>
                                             <h4 className="text-lg font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1">{sub.studentId?.firstName} {sub.studentId?.lastName}</h4>
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest">{sub.studentId?.studentId}</p>
@@ -256,8 +256,8 @@ const Assignments = () => {
                                         <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-slate-500"><span>Validation Status</span><span className={`px-3 py-1 rounded-full text-[9px] ${sub.status === 'Graded' ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/30' : 'bg-brand-primary/20 text-brand-primary border border-brand-primary/30'}`}>{sub.status}</span></div>
                                     </div>
                                     <div className="flex gap-4">
-                                        <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-4 bg-slate-800/80 hover:bg-slate-700 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-2 active:scale-95 shadow-lg"><ExternalLink size={14} /> Open</a>
-                                        <button onClick={() => { setGradingSubmission(sub); setGradeForm({ score: sub.marks || '', feedback: sub.feedback || '' }); }} className="flex-1 py-4 bg-brand-primary hover:bg-blue-600 rounded-xl text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"><FileCheck size={14} /> {sub.status === 'Graded' ? 'Update' : 'Grade'}</button>
+                                        <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-4 bg-slate-800/80 hover:bg-slate-700 rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-2 active:scale-95 shadow-lg"><ExternalLink size={14} /> Open</a>
+                                        <button onClick={() => { setGradingSubmission(sub); setGradeForm({ score: sub.marks || '', feedback: sub.feedback || '' }); }} className="flex-1 py-4 bg-brand-primary hover:bg-blue-600 rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"><FileCheck size={14} /> {sub.status === 'Graded' ? 'Update' : 'Grade'}</button>
                                     </div>
                                 </motion.div>
                             ))}
@@ -270,13 +270,13 @@ const Assignments = () => {
                 <form onSubmit={handleGrade} className="space-y-8">
                     <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Quantitative Metrics (Score)</label>
-                        <input type="number" value={gradeForm.score} onChange={(e) => setGradeForm({...gradeForm, score: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-brand-primary/50 transition-all font-bold" placeholder="Points awarded..." />
+                        <input type="number" value={gradeForm.score} onChange={(e) => setGradeForm({ ...gradeForm, score: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-md px-6 py-4 text-white focus:outline-none focus:border-brand-primary/50 transition-all font-bold" placeholder="Points awarded..." />
                     </div>
                     <div className="space-y-3">
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Qualitative Intelligence (Feedback)</label>
-                        <textarea rows={4} value={gradeForm.feedback} onChange={(e) => setGradeForm({...gradeForm, feedback: e.target.value})} className="w-full bg-slate-800 border border-slate-700 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-brand-primary/50 transition-all font-medium resize-none" placeholder="Feedback payload..." />
+                        <textarea rows={4} value={gradeForm.feedback} onChange={(e) => setGradeForm({ ...gradeForm, feedback: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-md px-6 py-4 text-white focus:outline-none focus:border-brand-primary/50 transition-all font-medium resize-none" placeholder="Feedback payload..." />
                     </div>
-                    <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"><FileCheck size={18} /> Commit Grade to Registry</button>
+                    <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"><FileCheck size={18} /> Commit Grade to Registry</button>
                 </form>
             </Modal>
         </motion.div>

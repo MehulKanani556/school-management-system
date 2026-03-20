@@ -37,8 +37,8 @@ const TeacherLeaves = () => {
     const { leaves, loading, message } = useSelector((s) => s.teacher);
     const [modal, setModal] = useState(false);
 
-    useEffect(() => { 
-        dispatch(fetchMyLeaves()); 
+    useEffect(() => {
+        dispatch(fetchMyLeaves());
     }, [dispatch]);
 
     useEffect(() => {
@@ -68,17 +68,17 @@ const TeacherLeaves = () => {
     };
 
     const quotaStats = [
-        { 
-            label: 'Sick Leaves', 
+        {
+            label: 'Sick Leaves',
             used: leaves.filter(l => l.type === 'sick' && l.status === 'approved')
-                        .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0), 
-            total: 12 
+                .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0),
+            total: 12
         },
-        { 
-            label: 'Casual Leaves', 
+        {
+            label: 'Casual Leaves',
             used: leaves.filter(l => l.type === 'casual' && l.status === 'approved')
-                        .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0), 
-            total: 15 
+                .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0),
+            total: 15
         },
     ];
 
@@ -99,13 +99,13 @@ const TeacherLeaves = () => {
                 <div className="lg:col-span-1 space-y-4">
                     <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-md">
                         <div className="flex items-center justify-between mb-4">
-                           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage (Days)</h3>
-                           <div className="relative group">
-                             <Info size={14} className="text-slate-600" />
-                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                Total approved days based on institutional calendar synchronization.
-                             </div>
-                           </div>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage (Days)</h3>
+                            <div className="relative group">
+                                <Info size={14} className="text-slate-600" />
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                    Total approved days based on institutional calendar synchronization.
+                                </div>
+                            </div>
                         </div>
                         <div className="space-y-4">
                             {quotaStats.map(item => (
@@ -140,7 +140,7 @@ const TeacherLeaves = () => {
                         </div>
                     ) : (
                         leaves.map((l, i) => (
-                            <motion.div 
+                            <motion.div
                                 key={l._id}
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -150,7 +150,7 @@ const TeacherLeaves = () => {
                                 <div className="absolute top-0 left-0 w-1 h-full bg-transparent group-hover:bg-brand-primary transition-all" />
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xl">
+                                        <div className="w-12 h-12 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xl">
                                             <CalendarDays size={20} />
                                         </div>
                                         <div>

@@ -27,13 +27,13 @@ const ChildProfile = () => {
     return (
         <div className="max-w-5xl mx-auto space-y-8">
             {/* Profile Header */}
-            <div className="relative group bg-brand-surface/40 border border-brand-border/40 rounded-2xl p-10 flex flex-col md:flex-row items-center gap-10 overflow-hidden">
+            <div className="relative group bg-brand-surface/40 border border-brand-border/40 rounded-md p-10 flex flex-col md:flex-row items-center gap-10 overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                
+
                 <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-40 h-40">
-                    <img src={selectedChild.photo || `https://ui-avatars.com/api/?name=${selectedChild.firstName}+${selectedChild.lastName}&background=random`} 
-                        className="w-full h-full rounded-2xl object-cover border-4 border-slate-800 shadow-2xl ring-2 ring-brand-primary/20" alt="" />
-                    <div className="absolute -bottom-2 -right-2 p-2.5 bg-brand-primary rounded-xl text-white shadow-xl">
+                    <img src={selectedChild.photo || `https://ui-avatars.com/api/?name=${selectedChild.firstName}+${selectedChild.lastName}&background=random`}
+                        className="w-full h-full rounded-md object-cover border-4 border-slate-800 shadow-2xl ring-2 ring-brand-primary/20" alt="" />
+                    <div className="absolute -bottom-2 -right-2 p-2.5 bg-brand-primary rounded-md text-white shadow-xl">
                         <GraduationCap size={18} />
                     </div>
                 </motion.div>
@@ -60,17 +60,17 @@ const ChildProfile = () => {
 
             {/* Profile Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-8 space-y-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8 space-y-6">
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-700/50">
                         <User size={20} className="text-brand-primary" />
                         <h3 className="text-lg font-black uppercase tracking-tight text-white font-outfit">Student Telemetry</h3>
                     </div>
-                    
+
                     <div className="space-y-6">
                         {info.slice(0, 4).map((item, i) => (
                             <div key={i} className="flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-slate-800/50 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
                                         {item.icon}
                                     </div>
                                     <span className="text-xs font-black uppercase tracking-widest text-slate-500">{item.label}</span>
@@ -81,17 +81,17 @@ const ChildProfile = () => {
                     </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-8 space-y-6">
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8 space-y-6">
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-700/50">
                         <MapPin size={20} className="text-indigo-400" />
                         <h3 className="text-lg font-black uppercase tracking-tight text-white font-outfit">Guardian Integration</h3>
                     </div>
-                    
+
                     <div className="space-y-6">
                         {info.slice(4).map((item, i) => (
                             <div key={i} className="flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-lg bg-slate-800/50 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-md bg-slate-800/50 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                                         {item.icon}
                                     </div>
                                     <span className="text-xs font-black uppercase tracking-widest text-slate-500">{item.label}</span>

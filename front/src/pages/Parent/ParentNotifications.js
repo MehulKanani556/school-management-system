@@ -63,10 +63,10 @@ const ParentNotifications = () => {
 
             {loading ? (
                 <div className="space-y-4 animate-pulse">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-800/20 rounded-xl" />)}
+                    {[1, 2, 3, 4].map(i => <div key={i} className="h-24 bg-slate-800/20 rounded-md" />)}
                 </div>
             ) : notifications.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-96 bg-slate-800/20 border border-slate-700/50 rounded-xl border-dashed">
+                <div className="flex flex-col items-center justify-center h-96 bg-slate-800/20 border border-slate-700/50 rounded-md border-dashed">
                     <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center text-slate-600 mb-6">
                         <Bell size={32} />
                     </div>
@@ -83,9 +83,9 @@ const ParentNotifications = () => {
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: i * 0.05 }}
-                                className={`group relative bg-brand-surface/40 hover:bg-brand-surface/60 border ${n.isRead ? 'border-brand-border/40' : 'border-brand-primary/40'} rounded-xl p-6 flex items-start gap-6 transition-all`}
+                                className={`group relative bg-brand-surface/40 hover:bg-brand-surface/60 border ${n.isRead ? 'border-brand-border/40' : 'border-brand-primary/40'} rounded-md p-6 flex items-start gap-6 transition-all`}
                             >
-                                <div className={`mt-1 w-10 h-10 rounded-lg flex items-center justify-center border ${n.isRead ? 'bg-slate-800/50 border-slate-700/50' : 'bg-brand-primary/10 border-brand-primary/20'}`}>
+                                <div className={`mt-1 w-10 h-10 rounded-md flex items-center justify-center border ${n.isRead ? 'bg-slate-800/50 border-slate-700/50' : 'bg-brand-primary/10 border-brand-primary/20'}`}>
                                     {getIcon(n.type)}
                                 </div>
 

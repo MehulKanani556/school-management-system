@@ -167,7 +167,7 @@ const Timetable = () => {
                             </div>
 
                             <div className="bg-luxury-emerald border border-white/10 p-1 rounded-md shadow-[0_0_50px_rgba(16,185,129,0.2)]">
-                                <button className="w-full py-5 bg-[#0f0f12] hover:bg-slate-900 rounded-[3px] text-luxury-emerald text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 italic group">
+                                <button className="w-full py-5 bg-[#0f0f12] hover:bg-slate-900 rounded-md text-luxury-emerald text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 italic group">
                                     Download Full Schedule <Download size={16} className="group-hover:translate-y-1 transition-transform" />
                                 </button>
                             </div>
@@ -193,7 +193,7 @@ const Timetable = () => {
                                             </div>
 
                                             {/* Period Card */}
-                                            <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md shadow-2xl hover:border-luxury-emerald/30 transition-all duration-700 relative overflow-hidden group/card shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+                                            <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md hover:border-luxury-emerald/30 transition-all duration-700 relative overflow-hidden group/card shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
                                                 <div className="absolute top-0 right-0 h-full w-[20%] bg-gradient-to-l from-white/5 to-transparent pointer-events-none opacity-0 group-hover/card:opacity-100 transition-opacity"></div>
 
                                                 <div className="flex flex-col md:flex-row gap-12 relative z-10">

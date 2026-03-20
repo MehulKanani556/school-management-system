@@ -81,10 +81,10 @@ const MainHeader = ({ onMenuClick }) => {
                 <img
                   src={user.photo}
                   alt="Avatar"
-                  className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg"
+                  className="w-12 h-12 rounded-md object-cover border border-white/10 shadow-lg"
                 />
               ) : (
-                <div className="w-12 h-12 rounded-xl bg-brand-primary flex items-center justify-center border border-white/10 shadow-lg shadow-brand-primary/30">
+                <div className="w-12 h-12 rounded-md bg-brand-primary flex items-center justify-center border border-white/10 shadow-lg shadow-brand-primary/30">
                   <span className="text-white font-bold text-lg">
                     {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
                   </span>

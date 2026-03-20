@@ -1,11 +1,11 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-    Send, 
-    Bell, 
-    MessageSquare, 
-    Users, 
-    User, 
-    Search, 
+import {
+    Send,
+    Bell,
+    MessageSquare,
+    Users,
+    User,
+    Search,
     Filter,
     Calendar,
     ArrowUpRight,
@@ -50,7 +50,7 @@ const Communication = () => {
 
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
-    
+
     // Paginated Chat History
     const [chatMessages, setChatMessages] = useState([]);
     const [chatPage, setChatPage] = useState(1);
@@ -77,7 +77,7 @@ const Communication = () => {
 
     useEffect(() => {
         if (!socket || typeof socket.on !== 'function') return;
-        
+
         const handleNewMessage = (data) => {
             if (data.type === 'Announcement') {
                 setSentMessages(prev => [data, ...prev]);
@@ -87,7 +87,7 @@ const Communication = () => {
                 const recipientId = (data.recipient?._id || data.recipient)?.toString();
                 const meId = currentUser?._id?.toString();
                 const partnerId = senderId === meId ? recipientId : senderId;
-                
+
                 // If active chat, append using ref
                 if (partnerId === selectedChatRef.current) {
                     setChatMessages(prev => [...prev, data]);
@@ -101,7 +101,7 @@ const Communication = () => {
                     const mPartnerId = m.sender?._id === currentUser?._id ? m.recipient?._id || m.recipient : m.sender?._id;
                     return m.type !== 'DirectMessage' || mPartnerId !== partnerId;
                 })]);
-                
+
                 toast.success(`Direct Signal: ${data.sender?.firstName || 'User'}`);
             } else if (data.type === 'Notice') {
                 setNotices(prev => [data, ...prev]);
@@ -113,7 +113,7 @@ const Communication = () => {
         socket.on('new_direct_message', handleNewMessage);
         socket.on('new_notice', handleNewMessage);
 
-        return () => { 
+        return () => {
             if (socket && typeof socket.off === 'function') {
                 socket.off('new_announcement', handleNewMessage);
                 socket.off('new_direct_message', handleNewMessage);
@@ -146,7 +146,7 @@ const Communication = () => {
         try {
             const res = await axiosInstance.get(`/chat-history/${partnerId}?page=${page}`);
             const newMsgs = res.data.reverse();
-            
+
             if (newMsgs.length < 50) setHasMore(false);
             else setHasMore(true);
 
@@ -236,7 +236,7 @@ const Communication = () => {
                     type: 'DirectMessage'
                 });
             }
-            
+
             setMessageInput('');
             // No fetchData() needed for direct messages as socket update handles it
         } catch (err) {
@@ -257,7 +257,7 @@ const Communication = () => {
             if (!groups[pId]) groups[pId] = { partner, messages: [] };
             groups[pId].messages.push(msg);
         });
-        return Object.values(groups).sort((a,b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
+        return Object.values(groups).sort((a, b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
     }, [sentMessages, currentUser]);
 
     const activeConversation = useMemo(() => {
@@ -285,8 +285,8 @@ const Communication = () => {
                         </h1>
                         <p className="text-slate-500 font-bold text-[8px] tracking-wider uppercase">
                             {activeTab === 'feed' ? 'Broadcasting authorized institutional directives.' :
-                             activeTab === 'chat' ? 'Secured point-to-point institutional messaging matrix.' :
-                             'Public domain bulletin and regional academic advisory.'}
+                                activeTab === 'chat' ? 'Secured point-to-point institutional messaging matrix.' :
+                                    'Public domain bulletin and regional academic advisory.'}
                         </p>
                     </div>
                 </div>
@@ -296,7 +296,7 @@ const Communication = () => {
                 {activeTab === 'chat' ? (
                     <>
                         <div className={`lg:col-span-4 flex flex-col min-h-0 bg-slate-900 border border-slate-800/60 rounded-md backdrop-blur-3xl overflow-hidden shadow-2xl ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
-                             <div className="p-4 border-b border-white/5 space-y-3 shrink-0 bg-slate-900/60">
+                            <div className="p-4 border-b border-white/5 space-y-3 shrink-0 bg-slate-900/60">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-[10px] font-black text-white uppercase tracking-widest italic flex items-center gap-2 leading-none">
                                         <Activity size={14} className="text-brand-primary" />
@@ -308,7 +308,7 @@ const Communication = () => {
                                 </div>
                                 <div className="relative group">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-brand-primary transition-colors" />
-                                    <input 
+                                    <input
                                         placeholder="SCAN ARCHIVE..."
                                         className="w-full h-10 bg-slate-950/50 border border-slate-800 rounded-md pl-10 pr-4 text-[9px] font-black text-white italic tracking-widest outline-none focus:border-brand-primary transition-all placeholder:text-slate-800 uppercase"
                                     />
@@ -317,7 +317,7 @@ const Communication = () => {
                             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mb-2 italic">Active Sessions</p>
                                 {conversations.map(conv => (
-                                    <button 
+                                    <button
                                         key={conv.partner._id}
                                         onClick={() => setSelectedChat(conv.partner._id)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border ${selectedChat === conv.partner._id ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
@@ -341,7 +341,7 @@ const Communication = () => {
 
                                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mt-4 mb-2 italic">Available Contacts</p>
                                 {contacts.filter(t => !conversations.some(c => (c.partner._id || c.partner) === t._id)).map(t => (
-                                    <button 
+                                    <button
                                         key={t._id}
                                         onClick={() => setSelectedChat(t._id)}
                                         className="w-full flex items-center gap-3 p-2.5 rounded-md transition-all border border-transparent hover:bg-slate-800/30 group"
@@ -385,7 +385,7 @@ const Communication = () => {
                                         </div>
                                     </div>
 
-                                    <div 
+                                    <div
                                         ref={chatContainerRef}
                                         onScroll={handleScroll}
                                         className="flex-1 overflow-y-auto p-4 lg:p-5 space-y-4 custom-scrollbar bg-slate-950/20 flex flex-col"
@@ -395,12 +395,12 @@ const Communication = () => {
                                                 <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-glow"></div>
                                             </div>
                                         )}
-                                        
+
                                         <div className="flex flex-col gap-3">
                                             {chatMessages.map((m, i) => {
                                                 const senderId = (m.sender?._id || m.sender)?.toString();
                                                 const isMe = senderId === currentUser?._id?.toString();
-                                                const showDate = i === 0 || new Date(chatMessages[i-1].createdAt).toDateString() !== new Date(m.createdAt).toDateString();
+                                                const showDate = i === 0 || new Date(chatMessages[i - 1].createdAt).toDateString() !== new Date(m.createdAt).toDateString();
 
                                                 return (
                                                     <React.Fragment key={m._id}>
@@ -412,14 +412,14 @@ const Communication = () => {
                                                                 </span>
                                                             </div>
                                                         )}
-                                                        
+
                                                         <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                                                             <div className={`max-w-[85%] lg:max-w-[75%] relative flex flex-col group ${isMe ? 'items-end' : 'items-start'}`}>
-                                                                <div className={`px-3 py-2 rounded-lg text-[12px] font-bold shadow-xl transition-all relative ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
+                                                                <div className={`px-3 py-2 rounded-md text-[12px] font-bold shadow-xl transition-all relative ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
                                                                     <p className="italic leading-relaxed whitespace-pre-wrap uppercase tracking-tight">{m.content}</p>
                                                                     <div className={`absolute top-0 w-2.5 h-2.5 ${isMe ? '-right-1 bg-brand-primary clip-path-right' : '-left-1 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
                                                                 </div>
-                                                                
+
                                                                 <div className={`flex items-center gap-1.5 mt-1 opacity-50 group-hover:opacity-100 transition-opacity mx-1`}>
                                                                     <span className="text-[7px] font-black uppercase tracking-widest italic text-slate-600">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                                                     {isMe && <div className="w-1 h-1 rounded-md bg-slate-800"></div>}
@@ -433,17 +433,17 @@ const Communication = () => {
                                     </div>
 
                                     <div className="p-2 bg-slate-900 shadow-2xl border-t border-white/5 shrink-0">
-                                        <form 
+                                        <form
                                             onSubmit={(e) => { e.preventDefault(); handleSendPrivate(selectedChat); }}
                                             className="flex items-center gap-2 bg-slate-950 p-1 rounded-md border border-slate-800/80 focus-within:border-brand-primary/30 transition-all shadow-inner pl-4"
                                         >
-                                            <input 
+                                            <input
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
                                                 placeholder="PAYLOAD..."
                                                 className="flex-1 bg-transparent border-none text-white text-[11px] font-black italic tracking-widest outline-none placeholder:text-slate-800 uppercase h-10"
                                             />
-                                            <button 
+                                            <button
                                                 type="submit"
                                                 className="bg-brand-primary text-white p-2.5 rounded-md shadow-lg shadow-brand-primary/20 hover:scale-105 active:scale-95 transition-all"
                                             >
@@ -482,26 +482,26 @@ const Communication = () => {
                                                 <button
                                                     key={role}
                                                     type="button"
-                                                    onClick={() => setAnnouncementInput({...announcementInput, targetRole: role})}
+                                                    onClick={() => setAnnouncementInput({ ...announcementInput, targetRole: role })}
                                                     className={`py-3 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all ${announcementInput.targetRole === role ? 'bg-brand-primary/10 border-brand-primary text-brand-primary' : 'bg-slate-950 border-slate-800 text-slate-700'}`}
                                                 >
                                                     {role}
                                                 </button>
                                             ))}
                                         </div>
-                                        <input 
+                                        <input
                                             required
                                             placeholder="SIGNAL SUBJECT..."
                                             value={announcementInput.subject}
-                                            onChange={(e) => setAnnouncementInput({...announcementInput, subject: e.target.value})}
+                                            onChange={(e) => setAnnouncementInput({ ...announcementInput, subject: e.target.value })}
                                             className="w-full h-11 bg-slate-950 border border-slate-800 rounded-md px-4 text-white text-[11px] font-black uppercase outline-none focus:border-brand-primary transition-all italic"
                                         />
-                                        <textarea 
+                                        <textarea
                                             required
                                             rows={4}
                                             placeholder="COMPOSE DIRECTIVE..."
                                             value={announcementInput.content}
-                                            onChange={(e) => setAnnouncementInput({...announcementInput, content: e.target.value})}
+                                            onChange={(e) => setAnnouncementInput({ ...announcementInput, content: e.target.value })}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-brand-primary transition-all italic resize-none uppercase"
                                         />
                                         <button type="submit" className="w-full py-4 rounded-md bg-brand-primary text-white flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95">
@@ -525,14 +525,14 @@ const Communication = () => {
                             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                                 <AnimatePresence mode="popLayout">
                                     {sentMessages.filter(m => m.type === 'Announcement').map((msg, idx) => (
-                                        <motion.div 
-                                            key={msg._id} 
+                                        <motion.div
+                                            key={msg._id}
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
                                             className="bg-slate-900 border border-slate-800 rounded-md p-5 hover:border-brand-primary/20 backdrop-blur-2xl shadow-xl border-l-[3px] border-l-brand-primary/40 group relative"
                                         >
                                             <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
+                                                <button
                                                     onClick={() => handleDeleteAnnouncement(msg._id)}
                                                     className="p-1.5 bg-red-500/10 text-red-500 rounded-md border border-red-500/20 hover:bg-red-500 hover:text-white transition-all"
                                                 >
@@ -547,7 +547,7 @@ const Communication = () => {
                                                     <h4 className="text-white font-black text-sm uppercase tracking-tighter italic leading-none truncate mb-2">{msg.subject}</h4>
                                                     <div className="flex items-center gap-3">
                                                         <span className="text-[7px] font-black uppercase tracking-widest px-2 py-1 rounded bg-slate-950 border border-slate-800 text-slate-500">{msg.targetRole || 'ALL'}</span>
-                                                        <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-1"><Calendar size={10}/>{new Date(msg.createdAt).toLocaleDateString()}</span>
+                                                        <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-1"><Calendar size={10} />{new Date(msg.createdAt).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -561,7 +561,7 @@ const Communication = () => {
                     </>
                 ) : ( // activeTab === 'notices'
                     <div className="lg:col-span-12 flex flex-col gap-4 min-h-0">
-                         <div className="flex items-center justify-between px-2 shrink-0">
+                        <div className="flex items-center justify-between px-2 shrink-0">
                             <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
                                 <Layout size={16} className="text-emerald-500" />
                                 INSTITUTIONAL BULLETIN
@@ -570,9 +570,9 @@ const Communication = () => {
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar p-1">
-                             <AnimatePresence mode="popLayout">
+                            <AnimatePresence mode="popLayout">
                                 {notices.map((not, idx) => (
-                                    <motion.div 
+                                    <motion.div
                                         key={not._id}
                                         initial={{ opacity: 0, scale: 0.95 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -597,13 +597,13 @@ const Communication = () => {
                                         </div>
                                     </motion.div>
                                 ))}
-                             </AnimatePresence>
+                            </AnimatePresence>
 
-                             {notices.length === 0 && !fetching && (
-                                 <div className="col-span-full py-20 text-center opacity-10 italic font-black uppercase tracking-widest text-lg">
-                                     Void Archive
-                                 </div>
-                             )}
+                            {notices.length === 0 && !fetching && (
+                                <div className="col-span-full py-20 text-center opacity-10 italic font-black uppercase tracking-widest text-lg">
+                                    Void Archive
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

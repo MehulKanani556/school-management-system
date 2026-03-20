@@ -33,7 +33,7 @@ const TeacherAttendanceAnalytics = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-slate-900/40 border border-slate-800/80 rounded-[2.5rem] p-8 shadow-2xl backdrop-blur-sm">
+                    <div className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center justify-between mb-10 px-2">
                             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit">Temporal Trend Matrix</h3>
                             <div className="flex items-center gap-2">
@@ -46,28 +46,28 @@ const TeacherAttendanceAnalytics = () => {
                                 <AreaChart data={timeline}>
                                     <defs>
                                         <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3}/>
-                                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0}/>
+                                            <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
+                                            <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-                                    <XAxis 
-                                        dataKey="date" 
-                                        stroke="#475569" 
-                                        fontSize={10} 
+                                    <XAxis
+                                        dataKey="date"
+                                        stroke="#475569"
+                                        fontSize={10}
                                         tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
                                         axisLine={false}
                                         tickLine={false}
                                     />
-                                    <YAxis 
-                                        stroke="#475569" 
-                                        fontSize={10} 
-                                        domain={[0, 100]} 
+                                    <YAxis
+                                        stroke="#475569"
+                                        fontSize={10}
+                                        domain={[0, 100]}
                                         axisLine={false}
                                         tickLine={false}
                                         tickFormatter={(val) => `${val}%`}
                                     />
-                                    <Tooltip 
+                                    <Tooltip
                                         contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '12px', fontSize: '10px', color: '#fff' }}
                                         itemStyle={{ color: '#3B82F6', fontWeight: 'bold' }}
                                     />
@@ -79,16 +79,16 @@ const TeacherAttendanceAnalytics = () => {
                 </div>
 
                 <div className="space-y-8">
-                    <div className="bg-slate-900/40 border border-slate-800/80 rounded-[2.5rem] p-8 shadow-2xl">
+                    <div className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit mb-8 px-2">Sector Performance</h3>
                         <div className="space-y-6">
                             {classWise.map((c, idx) => (
-                                <motion.div 
+                                <motion.div
                                     key={c.section}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className="p-6 bg-slate-800/30 rounded-2xl border border-slate-700/30 group hover:border-brand-primary/40 transition-all shadow-lg"
+                                    className="p-6 bg-slate-800/30 rounded-md border border-slate-700/30 group hover:border-brand-primary/40 transition-all shadow-lg"
                                 >
                                     <div className="flex items-center justify-between mb-4">
                                         <span className="text-[11px] font-black text-white uppercase tracking-widest italic">{c.section}</span>
@@ -97,7 +97,7 @@ const TeacherAttendanceAnalytics = () => {
                                         </span>
                                     </div>
                                     <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: `${c.percentage}%` }}
                                             transition={{ duration: 1, delay: idx * 0.1 }}
@@ -109,7 +109,7 @@ const TeacherAttendanceAnalytics = () => {
                         </div>
                     </div>
 
-                    <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group">
+                    <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-md p-8 shadow-2xl relative overflow-hidden group">
                         <TrendingUp size={48} className="absolute -bottom-4 -right-4 text-brand-primary/10 group-hover:scale-110 transition-transform" />
                         <h4 className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] mb-4">Insight Protocol</h4>
                         <p className="text-slate-300 font-medium text-xs leading-relaxed italic">

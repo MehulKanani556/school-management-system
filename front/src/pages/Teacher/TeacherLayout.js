@@ -1,8 +1,8 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, Link, useLocation } from 'react-router-dom';
-import { 
-    LayoutDashboard, Users, BookOpen, ClipboardList, 
+import {
+    LayoutDashboard, Users, BookOpen, ClipboardList,
     Upload, MessageSquare, LogOut, ChevronRight, ChevronDown,
     Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout,
     Megaphone, Shield
@@ -23,7 +23,7 @@ const TeacherLayout = () => {
     const { unreadCount: notifCount } = useSelector((state) => state.notifications);
     const { socket } = useSocket();
     const [isNotifOpen, setIsNotifOpen] = React.useState(false);
-    
+
     React.useEffect(() => {
         dispatch(fetchNotifications());
     }, [dispatch]);
@@ -119,7 +119,7 @@ const TeacherLayout = () => {
     };
 
     React.useEffect(() => {
-        const activeItem = menuItems.find(item => 
+        const activeItem = menuItems.find(item =>
             item.children?.some(child => isActive(child.path))
         );
         if (activeItem) setExpandedMenu(activeItem.label);
@@ -128,7 +128,7 @@ const TeacherLayout = () => {
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 flex font-inter antialiased">
             {/* Sidebar */}
-            <aside className="hidden lg:flex w-72 flex-col bg-slate-900 border-r border-slate-800/60 sticky top-0 h-screen z-20">
+            <aside className="hidden lg:flex w-72 rounded-mdg-slate-900 border-r border-slate-800/60 sticky top-0 h-screen z-20">
                 <div className="p-8">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SM</div>
@@ -215,16 +215,16 @@ const TeacherLayout = () => {
 
                     <div className="flex items-center gap-6">
                         <div className="relative">
-                            <button 
+                            <button
                                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                                className={`p-2.5 rounded-xl border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+                                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
                             >
                                 <Bell size={18} />
                                 {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
                             </button>
                             <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
                         </div>
-                        
+
                         <div className="h-10 w-px bg-slate-800/60"></div>
 
                         <div className="flex items-center gap-4">

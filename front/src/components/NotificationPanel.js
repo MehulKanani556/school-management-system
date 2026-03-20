@@ -24,11 +24,11 @@ const NotificationPanel = ({ isOpen, onClose }) => {
             {isOpen && (
                 <>
                     <div className="fixed inset-0 z-40" onClick={onClose} />
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: -20, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                        className="absolute top-20 right-8 w-[420px] bg-slate-900 border border-slate-800 rounded-3xl shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] z-50 overflow-hidden flex flex-col max-h-[600px] backdrop-blur-2xl"
+                        className="absolute top-20 right-8 w-[420px] bg-slate-900 border border-slate-800 rounded-md shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] z-50 overflow-hidden flex flex-col max-h-[600px] backdrop-blur-2xl"
                     >
                         <header className="p-6 border-b border-slate-800/60 bg-slate-800/20 flex items-center justify-between">
                             <div>
@@ -37,15 +37,15 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                             </div>
                             <div className="flex items-center gap-3">
                                 {unreadCount > 0 && (
-                                    <button 
+                                    <button
                                         onClick={() => dispatch(markAllRead())}
-                                        className="p-2.5 rounded-xl bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all border border-brand-primary/20 shadow-xl"
+                                        className="p-2.5 rounded-md bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all border border-brand-primary/20 shadow-xl"
                                         title="Synchronize All"
                                     >
                                         <Check size={16} />
                                     </button>
                                 )}
-                                <button onClick={onClose} className="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-700 shadow-xl">
+                                <button onClick={onClose} className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-white transition-all border border-slate-700 shadow-xl">
                                     <X size={16} />
                                 </button>
                             </div>
@@ -53,16 +53,16 @@ const NotificationPanel = ({ isOpen, onClose }) => {
 
                         <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
                             {items.length > 0 ? items.map((notif) => (
-                                <motion.div 
+                                <motion.div
                                     key={notif._id}
                                     layoutId={notif._id}
-                                    className={`p-5 rounded-2xl border transition-all cursor-pointer group relative overflow-hidden ${notif.isRead ? 'bg-slate-800/20 border-slate-800/40 opacity-70' : 'bg-slate-800/40 border-brand-primary/20 shadow-xl shadow-brand-primary/5 hover:border-brand-primary/40'}`}
+                                    className={`p-5 rounded-md border transition-all cursor-pointer group relative overflow-hidden ${notif.isRead ? 'bg-slate-800/20 border-slate-800/40 opacity-70' : 'bg-slate-800/40 border-brand-primary/20 shadow-xl shadow-brand-primary/5 hover:border-brand-primary/40'}`}
                                     onClick={() => !notif.isRead && dispatch(markRead(notif._id))}
                                 >
                                     {!notif.isRead && <div className="absolute top-0 right-0 w-12 h-12 bg-brand-primary/10 rounded-bl-[2rem] blur-xl pointer-events-none" />}
-                                    
+
                                     <div className="flex gap-5 relative z-10">
-                                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-lg border ${notif.isRead ? 'bg-slate-800 border-slate-700/50' : 'bg-slate-700 border-brand-primary/30'}`}>
+                                        <div className={`w-12 h-12 rounded-md flex items-center justify-center shrink-0 shadow-lg border ${notif.isRead ? 'bg-slate-800 border-slate-700/50' : 'bg-slate-700 border-brand-primary/30'}`}>
                                             {getTypeIcon(notif.type)}
                                         </div>
                                         <div className="flex-1 min-w-0">
@@ -71,7 +71,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                                                 <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
                                             <p className="text-[11px] text-slate-400 font-medium leading-relaxed mb-4">{notif.message}</p>
-                                            
+
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">
                                                     <div className="w-5 h-5 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden flex items-center justify-center">
@@ -79,10 +79,10 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                                                     </div>
                                                     <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{notif.sender?.role || 'System'} Registry</span>
                                                 </div>
-                                                
+
                                                 {notif.link && (
-                                                    <Link 
-                                                        to={notif.link} 
+                                                    <Link
+                                                        to={notif.link}
                                                         onClick={(e) => { e.stopPropagation(); onClose(); }}
                                                         className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-widest hover:text-white transition-all group/link"
                                                     >
@@ -102,7 +102,7 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                         </div>
 
                         <footer className="p-4 border-t border-slate-800/60 bg-slate-800/10">
-                            <button className="w-full py-3 rounded-xl bg-slate-800 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:bg-slate-700 hover:text-white transition-all border border-slate-700 shadow-xl active:scale-95">
+                            <button className="w-full py-3 rounded-md bg-slate-800 text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:bg-slate-700 hover:text-white transition-all border border-slate-700 shadow-xl active:scale-95">
                                 View Full Intelligence Registry
                             </button>
                         </footer>

@@ -76,12 +76,12 @@ const ParentProfile = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Profile Overview */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-8 text-center relative overflow-hidden group">
+                    <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8 text-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="relative w-24 h-24 mx-auto mb-6">
                             <img src={user?.photo || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random`}
-                                className="w-full h-full rounded-2xl object-cover border-2 border-brand-primary/20 shadow-xl" alt="" />
-                            <div className="absolute -bottom-2 -right-2 p-2 bg-brand-primary rounded-lg text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                                className="w-full h-full rounded-md object-cover border-2 border-brand-primary/20 shadow-xl" alt="" />
+                            <div className="absolute -bottom-2 -right-2 p-2 bg-brand-primary rounded-md text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
                                 <Camera size={14} />
                             </div>
                         </div>
@@ -91,17 +91,17 @@ const ParentProfile = () => {
                         </div>
                     </div>
 
-                    <div className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-6 space-y-4">
+                    <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-6 space-y-4">
                         <div className="flex items-center gap-4 text-slate-400">
-                            <div className="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center text-brand-primary"><Mail size={14} /></div>
+                            <div className="w-8 h-8 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary"><Mail size={14} /></div>
                             <div className="text-xs truncate">{user?.email}</div>
                         </div>
                         <div className="flex items-center gap-4 text-slate-400">
-                            <div className="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center text-brand-primary"><Phone size={14} /></div>
+                            <div className="w-8 h-8 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary"><Phone size={14} /></div>
                             <div className="text-xs">{user?.phone || 'Not provided'}</div>
                         </div>
                         <div className="flex items-center gap-4 text-slate-400">
-                            <div className="w-8 h-8 rounded-lg bg-slate-800/50 flex items-center justify-center text-brand-primary"><MapPin size={14} /></div>
+                            <div className="w-8 h-8 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary"><MapPin size={14} /></div>
                             <div className="text-xs truncate">{user?.address || 'City, Country'}</div>
                         </div>
                     </div>
@@ -109,7 +109,7 @@ const ParentProfile = () => {
 
                 {/* Edit Section */}
                 <div className="lg:col-span-2 space-y-8">
-                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-8">
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8">
                         <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-700/50">
                             <User size={20} className="text-brand-primary" />
                             <h3 className="text-lg font-black uppercase tracking-tight text-white font-outfit">Identity Delta</h3>
@@ -139,7 +139,7 @@ const ParentProfile = () => {
                         </form>
                     </motion.div>
 
-                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-xl p-8">
+                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8">
                         <div className="flex items-center gap-3 mb-8 pb-4 border-b border-slate-700/50">
                             <Lock size={20} className="text-indigo-400" />
                             <h3 className="text-lg font-black uppercase tracking-tight text-white font-outfit">Security Protocol</h3>

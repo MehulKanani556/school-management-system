@@ -1,13 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { 
-    Send, 
-    Bell, 
-    MessageSquare, 
-    Users, 
-    User, 
-    Trash2, 
-    Search, 
+import {
+    Send,
+    Bell,
+    MessageSquare,
+    Users,
+    User,
+    Trash2,
+    Search,
     Filter,
     Calendar,
     ArrowUpRight,
@@ -37,7 +37,7 @@ const Communication = () => {
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedChat, setSelectedChat] = useState(null); // userId of the other person
-    
+
     // Paginated Chat History
     const [chatMessages, setChatMessages] = useState([]);
     const [chatPage, setChatPage] = useState(1);
@@ -50,7 +50,7 @@ const Communication = () => {
     useEffect(() => {
         selectedChatRef.current = selectedChat;
     }, [selectedChat]);
-    
+
     // Sync activeTab with URL params
     useEffect(() => {
         const tab = searchParams.get('tab');
@@ -64,7 +64,7 @@ const Communication = () => {
         setSearchParams({ tab: tabId });
         setSelectedChat(null);
     };
-    
+
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
 
@@ -93,7 +93,7 @@ const Communication = () => {
             const recipientId = (data.recipient?._id || data.recipient)?.toString();
             const meId = currentUser?._id?.toString();
             const partnerId = senderId === meId ? recipientId : senderId;
-            
+
             // If it's the active chat, add it to chatMessages
             if (partnerId === selectedChatRef.current) {
                 setChatMessages(prev => [...prev, data]);
@@ -104,13 +104,13 @@ const Communication = () => {
                     }
                 }, 100);
             }
-            
+
             // Update the conversations list preview
             setMessages(prev => [data, ...prev.filter(m => {
                 const mPartnerId = m.sender?._id === currentUser?._id ? m.recipient?._id || m.recipient : m.sender?._id;
                 return mPartnerId !== partnerId;
             })]);
-            
+
             toast.success(`Direct Proton Received: ${data.subject}`);
         };
 
@@ -158,7 +158,7 @@ const Communication = () => {
         try {
             const res = await axiosInstance.get(`/chat-history/${partnerId}?page=${page}`);
             const newMsgs = res.data.reverse(); // backend returns newest first, we want oldest first for state
-            
+
             if (newMsgs.length < 50) setHasMore(false);
             else setHasMore(true);
 
@@ -215,14 +215,14 @@ const Communication = () => {
         try {
             let url = '';
             let payload = { ...formData };
-            
+
             if (activeTab === 'announcements') {
                 url = '/school-admin/announcements';
                 await axiosInstance.post(url, payload);
             }
             else if (activeTab === 'messages') {
                 if (customTarget) payload = { ...payload, recipient: customTarget, subject: 'Direct Response' };
-                
+
                 // Real-time sending via socket as requested (not API call)
                 if (socket) {
                     socket.emit('send_direct_message', {
@@ -272,7 +272,7 @@ const Communication = () => {
             if (!groups[pId]) groups[pId] = { partner, messages: [] };
             groups[pId].messages.push(msg);
         });
-        return Object.values(groups).sort((a,b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
+        return Object.values(groups).sort((a, b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
     }, [messages, currentUser]);
 
     const activeConversation = useMemo(() => {
@@ -299,9 +299,9 @@ const Communication = () => {
                             )}
                         </h1>
                         <p className="text-slate-500 font-bold text-[9px] lg:text-[10px] tracking-wider uppercase">
-                            {activeTab === 'announcements' ? 'Unified administrative broadcast and relay.' : 
-                             activeTab === 'messages' ? 'Secured point-to-point institutional messaging.' : 
-                             'Public domain bulletin and regional advisory.'}
+                            {activeTab === 'announcements' ? 'Unified administrative broadcast and relay.' :
+                                activeTab === 'messages' ? 'Secured point-to-point institutional messaging.' :
+                                    'Public domain bulletin and regional advisory.'}
                         </p>
                     </div>
 
@@ -319,7 +319,7 @@ const Communication = () => {
                                 <div className="p-4 border-b border-slate-800/60">
                                     <div className="relative group">
                                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-brand-primary transition-colors" size={16} />
-                                        <input 
+                                        <input
                                             placeholder="SCAN DATABASE..."
                                             className="w-full bg-slate-950/50 border border-slate-800 h-10 pl-11 pr-4 rounded-md text-[9px] font-black uppercase tracking-widest text-white outline-none focus:border-brand-primary placeholder:text-slate-700 italic"
                                         />
@@ -331,7 +331,7 @@ const Communication = () => {
                                         const p = conv.partner;
                                         const isActive = selectedChat === (p._id || p);
                                         return (
-                                            <button 
+                                            <button
                                                 key={p._id || p}
                                                 onClick={() => setSelectedChat(p._id || p)}
                                                 className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border group ${isActive ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
@@ -351,10 +351,10 @@ const Communication = () => {
                                             </button>
                                         );
                                     })}
-                                    
+
                                     <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mt-8 mb-4 italic">Available Contacts</p>
                                     {contacts.filter(t => !conversations.some(c => (c.partner._id || c.partner) === t._id)).map(t => (
-                                        <button 
+                                        <button
                                             key={t._id}
                                             onClick={() => setSelectedChat(t._id)}
                                             className="w-full flex items-center gap-3 p-3 rounded-md transition-all border border-transparent hover:bg-slate-800/30 group"
@@ -379,7 +379,7 @@ const Communication = () => {
                                     {/* Chat Header */}
                                     <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
                                         <div className="flex items-center gap-4">
-                                            <button onClick={() => setSelectedChat(null)} className="lg:hidden p-2 rounded-md bg-slate-800/60 text-slate-400 mr-1"><ArrowLeft size={18}/></button>
+                                            <button onClick={() => setSelectedChat(null)} className="lg:hidden p-2 rounded-md bg-slate-800/60 text-slate-400 mr-1"><ArrowLeft size={18} /></button>
                                             <div className="w-11 h-11 rounded-md bg-slate-800 overflow-hidden border border-brand-primary/20 shadow-xl shadow-brand-primary/5">
                                                 {activeConversation?.partner.photo ? <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
                                             </div>
@@ -400,7 +400,7 @@ const Communication = () => {
                                     </div>
 
                                     {/* Chat Messages */}
-                                    <div 
+                                    <div
                                         ref={chatContainerRef}
                                         onScroll={handleScroll}
                                         className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar bg-slate-950/20 flex flex-col"
@@ -410,11 +410,11 @@ const Communication = () => {
                                                 <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse"></div>
                                             </div>
                                         )}
-                                        
+
                                         {chatMessages.map((msg, i) => {
                                             const isMe = msg.sender?._id === currentUser?._id;
-                                            const showDate = i === 0 || new Date(chatMessages[i-1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
-                                            
+                                            const showDate = i === 0 || new Date(chatMessages[i - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+
                                             return (
                                                 <React.Fragment key={msg._id}>
                                                     {showDate && (
@@ -425,19 +425,19 @@ const Communication = () => {
                                                             </span>
                                                         </div>
                                                     )}
-                                                    
-                                                    <motion.div 
+
+                                                    <motion.div rounded-md
                                                         initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                                         className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                                                     >
                                                         <div className={`max-w-[85%] lg:max-w-[75%] relative ${isMe ? 'items-end' : 'items-start'} flex flex-col group`}>
-                                                            <div className={`px-4 py-2.5 rounded-xl text-[12px] font-bold shadow-xl relative transition-all hover:shadow-2xl ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
+                                                            <div className={`px-4 py-2.5 rounded-md text-[12px] font-bold shadow-xl relative transition-all hover:shadow-2xl ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
                                                                 <p className="italic leading-relaxed whitespace-pre-wrap">{msg.content}</p>
                                                                 {/* Triangle/Tail (WhatsApp Style) */}
                                                                 <div className={`absolute top-0 w-3 h-3 ${isMe ? '-right-1.5 bg-brand-primary clip-path-right' : '-left-1.5 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
                                                             </div>
-                                                            
+
                                                             {/* Time Outside of Div */}
                                                             <div className={`flex items-center gap-1.5 mt-1 opacity-50 group-hover:opacity-100 transition-opacity mx-1`}>
                                                                 <span className="text-[7px] font-black uppercase tracking-widest italic text-slate-500">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -448,7 +448,7 @@ const Communication = () => {
                                                 </React.Fragment>
                                             );
                                         })}
-                                        
+
                                         {chatMessages.length === 0 && !fetchingChat && (
                                             <div className="h-full flex flex-col items-center justify-center opacity-30 gap-6">
                                                 <div className="w-16 h-16 rounded-md border-2 border-dashed border-slate-700 flex items-center justify-center rotate-45 group-hover:rotate-0 transition-transform duration-700">
@@ -463,15 +463,15 @@ const Communication = () => {
                                     <div className="p-5 border-t border-white/5 bg-slate-900 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
                                         <form onSubmit={(e) => { e.preventDefault(); handleSend(null, selectedChat); }} className="flex items-center gap-3 bg-slate-950/50 border border-slate-800 rounded-md p-1.5 focus-within:border-brand-primary transition-all">
                                             <button type="button" className="p-3 rounded-md text-slate-600 hover:text-white transition-colors"><Paperclip size={18} /></button>
-                                            <input 
+                                            <input
                                                 required
                                                 placeholder="COMMAND INPUT..."
                                                 value={formData.content}
-                                                onChange={(e) => setFormData({...formData, content: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                                 className="flex-1 bg-transparent h-11 px-3 text-[13px] font-black text-white outline-none italic placeholder:text-slate-800 uppercase tracking-tighter"
                                             />
                                             <button type="button" className="p-3 rounded-md text-slate-600 hover:text-white transition-colors"><Smile size={18} /></button>
-                                            <button 
+                                            <button
                                                 type="submit"
                                                 className="bg-brand-primary text-white p-3 rounded-md shadow-lg shadow-brand-primary/20 hover:scale-105 transition-all group active:scale-95"
                                             >
@@ -506,7 +506,7 @@ const Communication = () => {
                         <div className="lg:col-span-5 flex flex-col min-h-0 min-w-0">
                             <div className="bg-slate-900/40 border border-slate-800/60 rounded-md p-6 lg:p-8 backdrop-blur-3xl relative overflow-hidden group shadow-2xl flex-1 flex flex-col min-h-0">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-md blur-[100px] -mr-32 -mt-32 transition-transform group-hover:scale-110 duration-1000"></div>
-                                
+
                                 <div className="relative z-10 space-y-6 flex flex-col h-full">
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-black text-white uppercase italic tracking-tight flex items-center gap-4">
@@ -518,7 +518,7 @@ const Communication = () => {
 
                                     <form onSubmit={handleSend} className="space-y-6 flex-1 flex flex-col min-h-0 pr-1 custom-scrollbar overflow-y-auto">
                                         {activeTab === 'announcements' && (
-                                        <div className="space-y-3">
+                                            <div className="space-y-3">
                                                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
                                                     <Users size={11} className="text-brand-primary" /> Target Demographic
                                                 </label>
@@ -527,7 +527,7 @@ const Communication = () => {
                                                         <button
                                                             key={role}
                                                             type="button"
-                                                            onClick={() => setFormData({...formData, targetRole: role})}
+                                                            onClick={() => setFormData({ ...formData, targetRole: role })}
                                                             className={`py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${formData.targetRole === role ? 'bg-brand-primary/10 border-brand-primary text-brand-primary shadow-lg shadow-brand-primary/5 scale-[1.02]' : 'bg-slate-950/60 border-slate-800 text-slate-600 hover:border-slate-700'}`}
                                                         >
                                                             {role}
@@ -541,11 +541,11 @@ const Communication = () => {
                                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
                                                 <Bell size={11} className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} /> Subject Line
                                             </label>
-                                            <input 
+                                            <input
                                                 required
                                                 placeholder="ENTER HEADER..."
                                                 value={formData.subject}
-                                                onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                                 className={`w-full bg-slate-950/60 border border-slate-800 rounded-md p-4 text-white text-[13px] font-black uppercase tracking-tighter outline-none focus:border-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'} transition-all placeholder:text-slate-800 italic`}
                                             />
                                         </div>
@@ -554,16 +554,16 @@ const Communication = () => {
                                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
                                                 <MessageSquare size={11} className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} /> Signal Payload
                                             </label>
-                                            <textarea 
+                                            <textarea
                                                 required
                                                 placeholder="COMPOSE DIRECTIVE..."
                                                 value={formData.content}
-                                                onChange={(e) => setFormData({...formData, content: e.target.value})}
+                                                onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                                 className={`flex-1 w-full bg-slate-950/60 border border-slate-800 rounded-md p-5 text-white text-[13px] font-bold outline-none focus:border-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'} transition-all placeholder:text-slate-800 italic resize-none uppercase tracking-tighter`}
                                             />
                                         </div>
 
-                                        <button 
+                                        <button
                                             type="submit"
                                             className={`w-full py-4 rounded-md flex items-center justify-center gap-3 text-[12px] font-black uppercase tracking-[0.3em] transition-all shadow-2xl active:scale-95 group ${activeTab === 'announcements' ? 'bg-brand-primary text-white shadow-brand-primary/20 hover:bg-brand-primary/90' : 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600'}`}
                                         >
@@ -597,16 +597,16 @@ const Communication = () => {
                             <div className="flex-1 space-y-6 overflow-y-auto pr-4 custom-scrollbar">
                                 <AnimatePresence mode="popLayout">
                                     {(activeTab === 'announcements' ? announcements : notices).map((item, idx) => (
-                                        <motion.div 
+                                        <motion.div
                                             initial={{ opacity: 0, y: 30 }}
                                             animate={{ opacity: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.95 }}
                                             transition={{ delay: idx * 0.05 }}
-                                            key={item._id} 
+                                            key={item._id}
                                             className={`bg-slate-900/30 border border-slate-800/60 rounded-md p-6 lg:p-8 hover:border-white/20 transition-all group relative overflow-hidden backdrop-blur-2xl shadow-xl ${activeTab === 'notices' ? 'border-l-4 border-l-emerald-500/40' : 'border-l-4 border-l-brand-primary/40'}`}
                                         >
                                             <div className="absolute top-0 right-0 w-32 h-32 bg-white/[0.02] rounded-md -mr-16 -mt-16"></div>
-                                            
+
                                             <div className="flex flex-col md:flex-row justify-between items-start gap-4 mb-5 relative z-10">
                                                 <div className="flex items-center gap-4">
                                                     <div className={`w-12 h-12 rounded-md flex items-center justify-center border border-white/5 shadow-2xl ${activeTab === 'announcements' ? 'bg-brand-primary/10 text-brand-primary shadow-brand-primary/5' : 'bg-emerald-500/10 text-emerald-500 shadow-emerald-500/5'}`}>
@@ -628,9 +628,9 @@ const Communication = () => {
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>
-                                            
+
                                             <p className="text-slate-400 text-xs lg:text-sm leading-relaxed font-bold italic border-l-2 border-slate-800/80 pl-6 mb-6 relative z-10 max-w-4xl uppercase tracking-tighter opacity-90">{item.content}</p>
-                                            
+
                                             <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 italic relative z-10 pt-4 border-t border-white/[0.03]">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-1.5 h-1.5 rounded-md ${activeTab === 'announcements' ? 'bg-brand-primary' : 'bg-emerald-500'} animate-pulse`}></div>

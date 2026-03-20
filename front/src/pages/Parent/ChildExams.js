@@ -35,10 +35,10 @@ const ChildExams = () => {
 
             {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-pulse">
-                    {[1, 2, 3].map(i => <div key={i} className="h-48 bg-slate-800/20 rounded-xl" />)}
+                    {[1, 2, 3].map(i => <div key={i} className="h-48 bg-slate-800/20 rounded-md" />)}
                 </div>
             ) : exams.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-64 bg-slate-800/20 border border-slate-700/50 rounded-xl border-dashed">
+                <div className="flex flex-col items-center justify-center h-64 bg-slate-800/20 border border-slate-700/50 rounded-md border-dashed">
                     <Calendar size={48} className="text-slate-600 mb-4" />
                     <p className="text-slate-500 font-medium">No upcoming examinations published yet</p>
                 </div>
@@ -50,10 +50,10 @@ const ChildExams = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
-                            className="group relative bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-xl p-6 transition-all"
+                            className="group relative bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-md p-6 transition-all"
                         >
                             <div className="flex justify-between items-start mb-6">
-                                <div className="w-12 h-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <div className="w-12 h-12 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
                                     <BookOpen size={24} />
                                 </div>
                                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/80 px-2 py-1 rounded">

@@ -252,13 +252,13 @@ const Students = () => {
               <button
                 key={std._id}
                 onClick={() => handleStandardClick(std)}
-                className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-xl text-left transition-all duration-300 overflow-hidden"
+                className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-md text-left transition-all duration-300 overflow-hidden"
               >
                 <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                   <GraduationCap size={120} />
                 </div>
                 <div className="flex justify-between items-start mb-4">
-                  <div className="w-12 h-12 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                  <div className="w-12 h-12 rounded-md bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
                     <GraduationCap size={24} />
                   </div>
                   <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
@@ -288,13 +288,13 @@ const Students = () => {
                 <button
                   key={sec._id}
                   onClick={() => handleSectionClick(sec)}
-                  className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-xl text-left transition-all duration-300 overflow-hidden"
+                  className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-md text-left transition-all duration-300 overflow-hidden"
                 >
                   <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                     <School size={120} />
                   </div>
                   <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
                       <School size={24} />
                     </div>
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/50 px-2 py-1 rounded">

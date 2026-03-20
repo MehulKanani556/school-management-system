@@ -25,7 +25,7 @@ const ClassStudents = () => {
         <div className="space-y-8">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="flex items-center gap-6">
-                    <Link to="/teacher/classes" className="p-3 bg-slate-800/60 border border-slate-700/50 rounded-2xl text-slate-400 hover:text-white transition-all hover:scale-105 shadow-xl">
+                    <Link to="/teacher/classes" className="p-3 bg-slate-800/60 border border-slate-700/50 rounded-md text-slate-400 hover:text-white transition-all hover:scale-105 shadow-xl">
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
@@ -37,19 +37,19 @@ const ClassStudents = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {students.map((student, idx) => (
-                    <motion.div 
+                    <motion.div
                         key={student._id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="bg-slate-900/40 border border-slate-800/80 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm"
+                        className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm"
                     >
                         <div className="flex items-center gap-6 mb-8">
-                            <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
+                            <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
                                 {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-600 font-outfit uppercase">{student.firstName.charAt(0)}</div>}
                             </div>
                             <div>
-                                <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1">{student.firstName} <br/> {student.lastName}</h4>
+                                <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1">{student.firstName} <br /> {student.lastName}</h4>
                                 <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId}</p>
                             </div>
                         </div>
@@ -61,9 +61,9 @@ const ClassStudents = () => {
                             </div>
                         </div>
 
-                        <button 
+                        <button
                             onClick={() => handleViewDetail(student._id)}
-                            className="w-full py-4 bg-slate-800/80 hover:bg-brand-primary rounded-[1.25rem] text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                            className="w-full py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-3 shadow-xl active:scale-95"
                         >
                             <Info size={14} /> Intelligence Profile
                         </button>
@@ -79,8 +79,8 @@ const ClassStudents = () => {
                     </div>
                 ) : (
                     <div className="space-y-10">
-                        <section className="flex items-center gap-8 p-6 bg-slate-800/30 rounded-[2rem] border border-slate-700/30 shadow-inner">
-                            <div className="w-24 h-24 rounded-[1.5rem] bg-slate-800 border-2 border-slate-700/50 overflow-hidden shadow-2xl">
+                        <section className="flex items-center gap-8 p-6 bg-slate-800/30 rounded-md border border-slate-700/30 shadow-inner">
+                            <div className="w-24 h-24 rounded-md bg-slate-800 border-2 border-slate-700/50 overflow-hidden shadow-2xl">
                                 {studentDetail.student.photo ? <img src={studentDetail.student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-slate-700 font-outfit uppercase">{studentDetail.student.firstName.charAt(0)}</div>}
                             </div>
                             <div>
@@ -102,9 +102,9 @@ const ClassStudents = () => {
                                         </div>
                                     ))}
                                 </div>
-                                <Link 
+                                <Link
                                     to={`/teacher/student-attendance/${selectedStudent}`}
-                                    className="w-full mt-6 py-4 bg-slate-800/80 hover:bg-brand-primary rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-white text-[9px] font-black uppercase tracking-[0.2em] border border-slate-700/50 shadow-xl transition-all active:scale-[0.98]"
+                                    className="w-full mt-6 py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md flex items-center justify-center gap-3 text-slate-400 hover:text-white text-[9px] font-black uppercase tracking-[0.2em] border border-slate-700/50 shadow-xl transition-all active:scale-[0.98]"
                                 >
                                     Full Telemetry Log <TrendingUp size={14} />
                                 </Link>
@@ -114,7 +114,7 @@ const ClassStudents = () => {
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-3 italic"> <Award size={14} className="text-brand-secondary" /> Examination Metrics</h3>
                                 <div className="space-y-3">
                                     {studentDetail.exams.length > 0 ? studentDetail.exams.map((e, i) => (
-                                        <div key={i} className="p-4 bg-slate-800/40 rounded-2xl border border-slate-700/30 flex justify-between items-center shadow-lg">
+                                        <div key={i} className="p-4 bg-slate-800/40 rounded-md border border-slate-700/30 flex justify-between items-center shadow-lg">
                                             <div>
                                                 <p className="text-[10px] font-black uppercase text-white tracking-widest mb-1">{e.subject}</p>
                                                 <p className="text-[9px] font-bold text-slate-500 uppercase">{e.title}</p>
@@ -130,9 +130,9 @@ const ClassStudents = () => {
                             <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic">Submission Pipeline (Latest)</h3>
                             <div className="space-y-4">
                                 {studentDetail.submissions.length > 0 ? studentDetail.submissions.slice(0, 3).map((s, i) => (
-                                    <div key={i} className="p-5 bg-slate-800/20 rounded-2xl border border-slate-700/30 flex items-center justify-between group hover:border-brand-primary/30 transition-all shadow-xl">
+                                    <div key={i} className="p-5 bg-slate-800/20 rounded-md border border-slate-700/30 flex items-center justify-between group hover:border-brand-primary/30 transition-all shadow-xl">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-brand-primary shadow-lg border border-slate-700">
+                                            <div className="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center text-brand-primary shadow-lg border border-slate-700">
                                                 <Users size={16} />
                                             </div>
                                             <div>
@@ -142,7 +142,7 @@ const ClassStudents = () => {
                                         </div>
                                         <div className="flex items-center gap-4">
                                             <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${s.status === 'Graded' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-primary/10 text-brand-primary'}`}>{s.status}</span>
-                                            {s.fileUrl && <a href={s.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-xl transition-all active:scale-90"> <Info size={14} /> </a>}
+                                            {s.fileUrl && <a href={s.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-xl transition-all active:scale-90"> <Info size={14} /> </a>}
                                         </div>
                                     </div>
                                 )) : <p className="text-[10px] text-slate-600 font-bold uppercase py-4">No submission data available in this sector</p>}
