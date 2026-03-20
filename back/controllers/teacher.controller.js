@@ -125,20 +125,22 @@ exports.getAssignedClasses = async (req, res) => {
 // 2. Mark attendance ─────────────────────────────────────────────────────────—
 exports.markAttendance = async (req, res) => {
   try {
-    const { classSection, date, records } = req.body;
+    const { classSection, classSectionId, date, records } = req.body;
+    const targetClass = classSection || classSectionId;
     const teacher = await getTeacher(req.user._id);
+    
 
     // Verify teacher is assigned to this class
     const isAssigned = await ClassSection.findOne({
-      _id: classSection,
-      $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+      _id: targetClass,
+      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
     });
 
     if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
     const attendance = await Attendance.findOneAndUpdate(
-      { schoolId: teacher.schoolId._id, classSection, date: new Date(date) },
-      { schoolId: teacher.schoolId._id, classSection, date: new Date(date), records, submittedBy: req.user._id },
+      { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date) },
+      { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), records, submittedBy: req.user._id },
       { upsert: true, new: true }
     );
     res.json({ message: 'Attendance registry synchronized', attendance });
@@ -157,7 +159,7 @@ exports.addMarks = async (req, res) => {
     // Verify teacher is assigned to the exam's class
     const isAssigned = await ClassSection.findOne({
       _id: exam.classSection,
-      $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
     });
 
     if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
@@ -195,7 +197,7 @@ exports.uploadAssignment = async (req, res) => {
     // Verify assignment
     const isAssigned = await ClassSection.findOne({
       _id: classSection,
-      $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
     });
 
     if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
@@ -265,7 +267,7 @@ exports.getAssignedClassStudents = async (req, res) => {
 
         const isAssigned = await ClassSection.findOne({
             _id: classId,
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
@@ -286,7 +288,7 @@ exports.getStudentDetail = async (req, res) => {
         // Verify teacher belongs to the same class or is a subject teacher
         const isAssigned = await ClassSection.findOne({
             _id: student.classSection._id,
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: Target student not in assigned sectors' });
@@ -334,7 +336,7 @@ exports.getExamsByClass = async (req, res) => {
 
         const isAssigned = await ClassSection.findOne({
             _id: classId,
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
@@ -346,19 +348,20 @@ exports.getExamsByClass = async (req, res) => {
 // 8. Fetch existing attendance for editing ──────────────────────────────────
 exports.getAttendanceByClassAndDate = async (req, res) => {
     try {
-        const { classId, date } = req.query;
+        const { classId, classSection, sectionId, date } = req.query;
+        const targetRef = classId || classSection || sectionId;
         const teacher = await getTeacher(req.user._id);
 
         const isAssigned = await ClassSection.findOne({
-            _id: classId,
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            _id: targetRef,
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
         const att = await Attendance.find({ 
             schoolId: teacher.schoolId._id, 
-            classSection: classId, 
+            classSection: targetRef, 
             date: new Date(date) 
         });
         res.json(att);
@@ -376,7 +379,7 @@ exports.getMarksByExam = async (req, res) => {
 
         const isAssigned = await ClassSection.findOne({
             _id: exam.classSection,
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
@@ -513,7 +516,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
         if (!teacher) return res.status(404).json({ message: 'Teacher profile node not found' });
 
         const assignedClasses = await ClassSection.find({
-            $or: [{ classTeacher: teacher._id }, { assignedTeachers: teacher._id }]
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const classIds = assignedClasses.map(c => c._id);
 

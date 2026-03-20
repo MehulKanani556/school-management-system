@@ -29,23 +29,36 @@ exports.getMyChildren = async (req, res) => {
 exports.getChildOverview = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const student = await Student.findOne({ _id: studentId, parentId: req.user._id })
-            .populate('standard', 'level')
+        const student = await Student.findOne({ _id: studentId })
+            .populate('standardId', 'level')
             .populate('classSection', 'sectionLabel');
         if (!student) return res.status(404).json({ message: "Child link not found" });
 
-        const totalClasses = await Attendance.countDocuments({ studentId });
-        const presentClasses = await Attendance.countDocuments({ studentId, status: 'Present' });
-        const attendancePercentage = totalClasses > 0 ? ((presentClasses / totalClasses) * 100).toFixed(1) : 0;
+        // Correctly calculate attendance from nested records
+        const attendanceDocs = await Attendance.find({ 'records.studentId': studentId }).lean();
+        const total = attendanceDocs.length;
+        const present = attendanceDocs.filter(doc => 
+            doc.records.find(r => r.studentId.toString() === studentId && ['Present', 'Late', 'Half-Day'].includes(r.status))
+        ).length;
+        const attendancePercentage = total > 0 ? ((present / total) * 100).toFixed(1) : 0;
 
-        const recentMarks = await Mark.find({ studentId })
+        const marksDocs = await Mark.find({ studentId })
             .sort({ createdAt: -1 })
             .limit(5)
-            .populate('subjectId', 'name')
-            .populate('examId', 'title')
+            .populate({
+                path: 'examId',
+                populate: { path: 'subject' }
+            })
             .lean();
 
-        const pendingFees = await FeePayment.find({ studentId, status: 'Pending' }).lean();
+        const recentMarks = marksDocs.map(m => ({
+            ...m,
+            totalMarks: m.examId?.maxMarks || 100,
+            subjectId: m.examId?.subject,
+            examId: { ...m.examId, title: m.examId?.name }
+        }));
+
+        const pendingFees = await FeePayment.find({ studentId, status: 'pending' }).lean();
 
         res.status(200).json({
             attendancePercentage,
@@ -61,10 +74,18 @@ exports.getChildOverview = async (req, res) => {
 exports.getChildAttendance = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const history = await Attendance.find({ studentId })
+        const attendanceRecords = await Attendance.find({ 'records.studentId': studentId })
             .sort({ date: -1 })
-            .populate('subjectId', 'name')
             .lean();
+        
+        const history = attendanceRecords.map(record => {
+            const myRecord = record.records.find(r => r.studentId.toString() === studentId);
+            return {
+                ...record,
+                status: myRecord?.status || 'N/A'
+            };
+        });
+
         res.status(200).json(history);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -73,10 +94,24 @@ exports.getChildResults = async (req, res) => {
     try {
         const { studentId } = req.params;
         const marks = await Mark.find({ studentId })
-            .populate('subjectId', 'name')
-            .populate('examId', 'title totalMarks')
+            .populate({
+                path: 'examId',
+                populate: { path: 'subject' }
+            })
             .lean();
-        res.status(200).json(marks);
+        
+        // Map to match frontend expectations
+        const formatted = marks.map(m => ({
+            ...m,
+            totalMarks: m.examId?.maxMarks || 100,
+            examId: {
+                ...m.examId,
+                title: m.examId?.name // Frontend expects 'title'
+            },
+            subjectId: m.examId?.subject // Frontend expects 'subjectId'
+        }));
+
+        res.status(200).json(formatted);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -210,6 +210,7 @@ function AppRoutes() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<SchoolProfile />} />
+          <Route path="holidays" element={<Holidays />} />
         </Route>
 
         {/* Super Admin Panel */}
