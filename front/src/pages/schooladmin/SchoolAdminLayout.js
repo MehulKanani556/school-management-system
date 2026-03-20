@@ -117,16 +117,8 @@ const SchoolAdminLayout = () => {
       {/* Main */}
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
 
-        {/* Top bar (mobile) */}
-        <header className="no-print lg:hidden px-6 py-4 flex items-center justify-between bg-brand-surface/60 backdrop-blur-xl border-b border-brand-border/40">
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-slate-800/40 text-slate-400 hover:text-white">
-            <Menu size={22} />
-          </button>
-          <span className="font-black text-sm uppercase tracking-widest font-outfit">School Admin</span>
-          <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center">
-            {user?.photo ? <img src={user.photo} alt="avatar" className="w-full h-full rounded-xl object-cover" /> : <User size={16} className="text-slate-400" />}
-          </div>
-        </header>
+        {/* Main Header */}
+        <MainHeader onMenuClick={() => setSidebarOpen(true)} />
 
         <main className="flex-1 p-6 lg:p-8 overflow-auto">
           <Outlet />
