@@ -3,10 +3,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { 
   fetchFees, fetchStudents, fetchFeeStructures, fetchStandards,
   createFee, updateFee, deleteFee, createFeeStructure, 
-  updateFeeStructure, deleteFeeStructure, applyFeeStructure 
+  updateFeeStructure, deleteFeeStructure, applyFeeStructure,
+  fetchFeeSummary, sendFeeReminders
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -21,11 +22,12 @@ const STATUS_COLORS = {
 
 const Fees = () => {
   const dispatch = useDispatch();
-  const { fees, students, feeStructures, standards, loading } = useSelector((s) => s.schoolAdmin);
+  const { fees, students, feeStructures, standards, feeSummary, loading } = useSelector((s) => s.schoolAdmin);
   
   const [activeTab, setActiveTab] = useState('records');
-  const [modalType, setModalType] = useState(null); // 'fee', 'structure', 'apply'
+  const [modalType, setModalType] = useState(null); // 'fee', 'structure', 'apply', 'receipt'
   const [editing, setEditing] = useState(null);
+  const [receiptData, setReceiptData] = useState(null);
   const [filter, setFilter] = useState('all');
   const [payingMap, setPayingMap] = useState({}); // { fee_id: internal_paying_now_amount }
   const [formLoading, setFormLoading] = useState(false);
@@ -36,7 +38,17 @@ const Fees = () => {
     dispatch(fetchStudents()); 
     dispatch(fetchFeeStructures());
     dispatch(fetchStandards());
+    dispatch(fetchFeeSummary());
   }, [dispatch]);
+
+  const showReceipt = (data) => {
+    setReceiptData(data);
+    setModalType('receipt');
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
 
   // ─── Form Handlers ───────────────────────────────────────────────────────────
   
@@ -146,6 +158,7 @@ const Fees = () => {
   const closeModals = () => {
     setModalType(null);
     setEditing(null);
+    setReceiptData(null);
     setPayingMap({});
     setIsAddingNew(false);
     feeFormik.resetForm();
@@ -221,7 +234,9 @@ const Fees = () => {
     
     return Object.values(grouped).map(cf => ({
       ...cf,
-      category: cf.category.join(', ')
+      category: cf.category.join(', '),
+      lateFees: cf._raw.reduce((s, r) => s + (r.lateFees || 0), 0),
+      discount: cf._raw.reduce((s, r) => s + (r.discount || 0), 0)
     }));
   }, [filteredFees]);
 
@@ -229,7 +244,7 @@ const Fees = () => {
   const totalPaid = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 no-print">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
@@ -254,6 +269,12 @@ const Fees = () => {
             ))}
           </div>
           <button 
+            onClick={() => dispatch(sendFeeReminders())}
+            className="flex items-center gap-2 px-5 py-3.5 bg-brand-surface/60 hover:bg-brand-primary/10 border border-brand-border/40 text-slate-300 hover:text-white rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-sm"
+          >
+            <Mail size={18} /> Reminders
+          </button>
+          <button 
             onClick={() => setModalType(activeTab === 'records' ? 'fee' : 'structure')}
             className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20 text-white"
           >
@@ -266,11 +287,12 @@ const Fees = () => {
         {activeTab === 'records' ? (
           <motion.div key="records" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
             {/* Stats */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-5">
               {[
-                { label: 'Total Billed', val: totalBilled, ic: LayoutGrid, col: 'brand-primary' },
-                { label: 'Collected', val: totalPaid, ic: CheckCircle2, col: 'emerald-500' },
-                { label: 'Outstanding', val: totalBilled - totalPaid, ic: Settings2, col: 'amber-500' }
+                { label: 'Collated Net', val: feeSummary?.totalInvoiced || totalBilled, ic: PieChart, col: 'brand-primary' },
+                { label: 'Treasury Sum', val: feeSummary?.totalCollected || totalPaid, ic: CheckCircle2, col: 'emerald-500' },
+                { label: 'Overdue Debt', val: feeSummary?.totalPending || (totalBilled - totalPaid), ic: Info, col: 'amber-500' },
+                { label: 'Institutional Discount', val: feeSummary?.totalDiscount || 0, ic: Sparkles, col: 'fuchsia-500' }
               ].map(s => (
                 <div key={s.label} className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] p-7 transition-all hover:border-brand-primary/20 group">
                   <div className={`w-10 h-10 rounded-xl bg-${s.col}/10 flex items-center justify-center text-${s.col} mb-4 group-hover:scale-110 transition-transform`}>
@@ -297,7 +319,7 @@ const Fees = () => {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-brand-border/30 bg-slate-800/20">
-                      {['Student', 'Category', 'Total', 'Paid', 'Status', 'Due Date', 'Actions'].map(h => (
+                      {['Student', 'Category', 'Total', 'Adj (Disc/Late)', 'Paid', 'Status', 'Due Date', 'Actions'].map(h => (
                         <th key={h} className="px-8 py-5 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-outfit">{h}</th>
                       ))}
                     </tr>
@@ -324,6 +346,13 @@ const Fees = () => {
                           <span className="font-black text-white italic tracking-tight text-lg">${(f.amount || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
+                          <div className="flex flex-col gap-0.5">
+                            {f.discount > 0 && <p className="text-[10px] font-black text-fuchsia-400">-{f.discount.toLocaleString()}</p>}
+                            {f.lateFees > 0 && <p className="text-[10px] font-black text-red-400">+{f.lateFees.toLocaleString()}</p>}
+                            {f.discount === 0 && f.lateFees === 0 && <p className="text-[10px] font-bold text-slate-600">—</p>}
+                          </div>
+                        </td>
+                        <td className="px-8 py-5">
                           <span className="font-black text-emerald-400 italic tracking-tight text-lg">${(f.paidAmount || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
@@ -334,35 +363,49 @@ const Fees = () => {
                         <td className="px-8 py-5 text-slate-400 text-xs font-bold">{f.dueDate ? new Date(f.dueDate).toLocaleDateString() : '—'}</td>
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-2">
+                             <button 
+                               onClick={() => showReceipt(f)} 
+                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
+                               title="Download Receipt"
+                             >
+                               <Download size={14} />
+                             </button>
+                             <button 
+                               onClick={() => dispatch(sendFeeReminders({ studentId: f.studentId?._id }))} 
+                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                               title="Dispatch Reminder"
+                             >
+                               <Mail size={14} />
+                             </button>
                             {/* For combined rows, we show the Add Payment modal with the student selected */}
                             <button 
-                              onClick={() => {
-                                setModalType('fee');
-                                setEditing(null);
-                                feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
-                              }} 
-                              className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-0 group-hover:opacity-100"
-                              title="Refine Payments"
-                            >
-                              <Wallet2 size={14} />
-                            </button>
+                               onClick={() => {
+                                 setModalType('fee');
+                                 setEditing(null);
+                                 feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
+                               }} 
+                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-0 group-hover:opacity-100"
+                               title="Refine Payments"
+                             >
+                               <Wallet2 size={14} />
+                             </button>
                             <button 
-                              onClick={() => {
-                                // Find the first record to edit if there's only one, otherwise keep as is or select first
-                                if (f._raw.length === 1) {
-                                  openEditFee(f._raw[0]);
-                                } else {
-                                  // For multiple, maybe just open the fee modal for this student
-                                  setModalType('fee');
-                                  setEditing(null);
-                                  feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
-                                }
-                              }} 
-                              className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
-                              title="Config Records"
-                            >
-                              <Settings2 size={14} />
-                            </button>
+                               onClick={() => {
+                                 // Find the first record to edit if there's only one, otherwise keep as is or select first
+                                 if (f._raw.length === 1) {
+                                   openEditFee(f._raw[0]);
+                                 } else {
+                                   // For multiple, maybe just open the fee modal for this student
+                                   setModalType('fee');
+                                   setEditing(null);
+                                   feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
+                                 }
+                               }} 
+                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                               title="Config Records"
+                             >
+                               <Settings2 size={14} />
+                             </button>
                           </div>
                         </td>
                       </tr>
@@ -732,6 +775,99 @@ const Fees = () => {
             {loading ? 'Executing Protocol...' : 'Confirm & Apply Billing'}
           </button>
         </form>
+      </Modal>
+
+      {/* 4. Receipt Preview Modal */}
+      <Modal open={modalType === 'receipt'} onClose={closeModals} title="Document Preview">
+        {receiptData && (
+          <div className="space-y-8">
+            <div id="receipt-printable" className="bg-white text-slate-900 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden font-outfit border border-slate-200">
+               {receiptData.status === 'paid' && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-35deg] text-[120px] font-black text-slate-100 select-none pointer-events-none tracking-tighter uppercase opacity-50">PAID</div>}
+               <div className="relative z-10">
+                 <div className="flex justify-between items-start border-b-2 border-dashed border-slate-200 pb-6 mb-8">
+                   <div>
+                     <div className="bg-brand-primary w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-xl mb-3">S</div>
+                     <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">Financial Voucher</h2>
+                     <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Reference ID: {receiptData._id?.slice(-12).toUpperCase()}</p>
+                   </div>
+                   <div className="text-right">
+                     <p className="text-xs font-black text-slate-900">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                     <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Official Treasury Record</p>
+                   </div>
+                 </div>
+
+                 <div className="grid grid-cols-2 gap-10 mb-10">
+                   <div>
+                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Student Associate</label>
+                     <span className="text-sm font-black text-slate-900 block">{receiptData.studentId?.firstName} {receiptData.studentId?.lastName}</span>
+                     <span className="text-[10px] font-bold text-slate-500 block mt-1">Adm: {receiptData.studentId?.admissionNumber}</span>
+                   </div>
+                   <div className="text-right">
+                     <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Accounting Status</label>
+                     <span className={`text-[10px] font-black py-1 px-3 rounded-full uppercase inline-block ${receiptData.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                       {receiptData.status}
+                     </span>
+                     <span className="text-[10px] font-bold text-slate-500 block mt-2">Fiscal Session: 2026-27</span>
+                   </div>
+                 </div>
+
+                 <div className="rounded-3xl border border-slate-100 overflow-hidden mb-8">
+                   <table className="w-full text-left">
+                     <thead>
+                       <tr className="bg-slate-50 border-b border-slate-100">
+                         <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-slate-400">Description</th>
+                         <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-slate-400">Adjustments</th>
+                         <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest text-slate-400">Net Final</th>
+                       </tr>
+                     </thead>
+                     <tbody>
+                       <tr>
+                         <td className="px-6 py-5">
+                            <span className="text-xs font-black text-slate-900 block">{receiptData.category}</span>
+                            <span className="text-[10px] text-slate-400 block mt-0.5">Base: ${receiptData.amount?.toLocaleString()}</span>
+                         </td>
+                         <td className="px-6 py-5">
+                           <div className="space-y-1">
+                             {receiptData.discount > 0 && <div className="text-[10px] font-bold text-pink-600 flex items-center justify-between">Scholarship: <span>-${receiptData.discount}</span></div>}
+                             {receiptData.lateFees > 0 && <div className="text-[10px] font-bold text-red-600 flex items-center justify-between">Late Penalty: <span>+${receiptData.lateFees}</span></div>}
+                             {!receiptData.discount && !receiptData.lateFees && <span className="text-[10px] text-slate-300">No Adjustments</span>}
+                           </div>
+                         </td>
+                         <td className="px-6 py-5 text-right font-black text-slate-900 italic tracking-tighter">
+                           ${(receiptData.amount - receiptData.discount + receiptData.lateFees).toLocaleString()}
+                         </td>
+                       </tr>
+                     </tbody>
+                   </table>
+                 </div>
+
+                 <div className="flex flex-col items-end gap-3 border-t-2 border-slate-900 pt-6">
+                   <div className="flex items-center gap-10">
+                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Institutional Collection</span>
+                     <span className="text-xl font-black text-emerald-600 tracking-tighter italic">${receiptData.paidAmount?.toLocaleString()}</span>
+                   </div>
+                   <div className="flex items-center gap-10">
+                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">Outstanding Liability</span>
+                     <span className={`text-xl font-black tracking-tighter italic ${receiptData.amount - receiptData.discount + receiptData.lateFees - receiptData.paidAmount > 0 ? 'text-red-500' : 'text-slate-400'}`}>
+                       ${Math.max(0, receiptData.amount - receiptData.discount + receiptData.lateFees - receiptData.paidAmount).toLocaleString()}
+                     </span>
+                   </div>
+                 </div>
+
+                 <div className="mt-12 text-center pt-6 border-t border-slate-100">
+                    <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">Institutional Revenue Hub Terminal Record</p>
+                 </div>
+               </div>
+            </div>
+
+            <button 
+              onClick={handlePrint}
+              className="no-print w-full py-5 bg-slate-900 text-white hover:bg-brand-primary rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl"
+            >
+              <Download size={18} /> Print Official Document
+            </button>
+          </div>
+        )}
       </Modal>
     </div>
   );

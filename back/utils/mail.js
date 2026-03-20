@@ -64,3 +64,43 @@ exports.sendWelcomeMail = async (options) => {
     html,
   });
 };
+
+exports.sendFeeReminderMail = async (options) => {
+  const { to, studentName, amount, dueDate, category, schoolName } = options;
+
+  const formattedDate = new Date(dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:520px;margin:auto;background:#0f1117;color:#e2e8f0;border-radius:16px;overflow:hidden;border:1px solid #334155;">
+      <div style="background:linear-gradient(135deg,#f43f5e,#9d174d);padding:32px;text-align:center;">
+        <h1 style="margin:0;font-size:24px;color:#fff;letter-spacing:2px;">FEE PAYMENT REMINDER</h1>
+        <p style="margin:8px 0 0;color:#fecdd3;font-size:13px;">${schoolName} - Official Notification</p>
+      </div>
+      <div style="padding:40px;">
+        <p style="font-size:18px;margin-bottom:24px;">Dear Parent/Guardian of <strong>${studentName}</strong>,</p>
+        <p style="color:#94a3b8;line-height:1.6;">This is a friendly reminder that the <strong>${category}</strong> fee for your ward is pending. To avoid automated late-fee calculation, please ensure payment is completed by the due date.</p>
+        
+        <div style="background:#1e293b;border-radius:16px;padding:32px;margin:32px 0;border:1px solid #334155;text-align:center;">
+          <p style="margin:0;font-size:12px;color:#64748b;text-transform:uppercase;letter-spacing:2px;font-weight:bold;">Pending Amount</p>
+          <p style="margin:8px 0;font-size:42px;font-weight:900;color:#f8fafc;">₹${amount}</p>
+          <div style="display:inline-block;padding:8px 20px;background:#ef444420;border:1px solid #ef444440;border-radius:100px;color:#f87171;font-size:11px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;margin-top:10px;">
+            DUE: ${formattedDate}
+          </div>
+        </div>
+
+        <p style="color:#64748b;font-size:12px;text-align:center;">Please ignore if already paid. If you have any queries, contact the school accounts department.</p>
+        
+        <div style="margin-top:48px;padding-top:24px;border-top:1px solid #1e293b;text-align:center;">
+          <p style="color:#475569;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin:0;">Institutional Revenue Management Terminal</p>
+        </div>
+      </div>
+    </div>
+  `;
+
+  return transporter.sendMail({
+    from: `"Finance Dept | ${schoolName}" <${process.env.EMAIL_USER}>`,
+    to,
+    subject: `Fee Payment Reminder - ${category}`,
+    html,
+  });
+};

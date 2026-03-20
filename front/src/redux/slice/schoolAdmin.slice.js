@@ -71,6 +71,7 @@ export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', asyn
   catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const fetchTimetableTemplates = asyncGet('sa/timetable-templates', '/timetable-templates');
+export const fetchFeeSummary = asyncGet('sa/feeSummary', '/fee-summary');
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -122,6 +123,7 @@ export const createFeeStructure = post('sa/createFeeStructure', '/fee-structures
 export const updateFeeStructure = put('sa/updateFeeStructure', '/fee-structures');
 export const deleteFeeStructure = del('sa/deleteFeeStructure', '/fee-structures');
 export const applyFeeStructure = post('sa/applyFeeStructure', '/apply-fee-structure');
+export const sendFeeReminders = post('sa/sendFeeReminders', '/send-fee-reminders');
 
 export const createExam = post('sa/createExam', '/exams');
 export const updateExam = put('sa/updateExam', '/exams');
@@ -210,6 +212,7 @@ const initialState = {
   holidays: [], timetable: null, timetables: [],
   payroll: [], leaves: [], reviews: [],timetableTemplates: [],
   examAnalytics: null,
+  feeSummary: null,
   loading: false, error: null, message: null
 };
 
@@ -400,6 +403,8 @@ const schoolAdminSlice = createSlice({
       .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee structure removed"; })
       .addCase(deleteTimetableTemplate.fulfilled, (state, a) => { state.timetableTemplates = state.timetableTemplates.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Timetable template removed"; })
       .addCase(applyFeeStructure.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Fee structure applied successfully"; })
+      .addCase(fetchFeeSummary.fulfilled, (state, a) => { state.feeSummary = a.payload; state.loading = false; })
+      .addCase(sendFeeReminders.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Reminders dispatched"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
       .addCase(toggleExamPublishStatus.fulfilled, (state, a) => { 
         const exam = state.exams.find(e => e._id === a.payload.id);
@@ -471,7 +476,8 @@ const schoolAdminSlice = createSlice({
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,fetchTimetableTemplates,createTimetableTemplate,updateTimetableTemplate, deleteTimetableTemplate,
       saveAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
-      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard
+      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard,        
+      fetchFeeSummary, sendFeeReminders
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

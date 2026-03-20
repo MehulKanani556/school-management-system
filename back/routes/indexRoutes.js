@@ -72,6 +72,8 @@ router.delete('/school-admin/subjects/:id', ...schoolAdmin, sa.deleteSubject);
 
 // Fees
 router.get('/school-admin/fees', ...schoolAdmin, sa.getFees);
+router.get('/school-admin/fee-summary', ...schoolAdmin, sa.getFeeCollectionSummary);
+router.post('/school-admin/send-fee-reminders', ...schoolAdmin, sa.sendFeeReminders);
 router.post('/school-admin/fees', ...schoolAdmin, sa.createFee);
 router.put('/school-admin/fees/:id', ...schoolAdmin, sa.updateFee);
 router.delete('/school-admin/fees/:id', ...schoolAdmin, sa.deleteFee);

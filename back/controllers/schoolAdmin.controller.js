@@ -14,12 +14,13 @@ const Holiday = require('../models/holiday.model');
 const Payroll = require('../models/payroll.model');
 const Leave = require('../models/leave.model');
 const Review = require('../models/review.model');
+const School = require('../models/school.model');
+const { sendFeeReminderMail } = require('../utils/mail');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const csv = require('csv-parser');
 const PDFDocument = require('pdfkit');
-const School = require('../models/school.model');
 const { Parser } = require('json2csv');
 
 const getSchoolId = (req) => req.user.schoolId;
@@ -668,7 +669,31 @@ exports.deleteClass = async (req, res) => {
 // ─── Fees ─────────────────────────────────────────────────────────────────────
 exports.getFees = async (req, res) => {
   try {
-    const fees = await FeePayment.find({ schoolId: getSchoolId(req) }).populate('studentId', 'firstName lastName admissionNumber');
+    const schoolId = getSchoolId(req);
+    const today = new Date();
+    
+    // Auto-check overdue and calculate late fees (e.g., 10 per day)
+    const overduePayments = await FeePayment.find({ 
+        schoolId, 
+        status: { $in: ['pending', 'overdue', 'partially_paid'] },
+        dueDate: { $lt: today }
+    });
+    
+    for (const payment of overduePayments) {
+        const daysLate = Math.floor((today - new Date(payment.dueDate)) / (1000 * 60 * 60 * 24));
+        if (daysLate > 0) {
+            const calculatedLateFees = daysLate * 10; // 10 per day
+            if (payment.lateFees !== calculatedLateFees) {
+                payment.lateFees = calculatedLateFees;
+                payment.status = 'overdue';
+                await payment.save(); // triggers pre-save for totalAmount
+            }
+        }
+    }
+
+    const fees = await FeePayment.find({ schoolId })
+      .sort({ createdAt: -1 })
+      .populate('studentId', 'firstName lastName admissionNumber');
     res.json(fees);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -683,13 +708,13 @@ exports.createFee = async (req, res) => {
 
 exports.updateFee = async (req, res) => {
   try {
-    const { paidAmount } = req.body;
-    const existing = await FeePayment.findOne({ _id: req.params.id, schoolId: getSchoolId(req) });
-    if (!existing) return res.status(404).json({ message: 'Fee record not found' });
-
+    const { paidAmount, status, paymentMethod, transactionId } = req.body;
+    const schoolId = getSchoolId(req);
+    const fee = await FeePayment.findOne({ _id: req.params.id, schoolId });
+    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
     const updateData = { ...req.body };
+    const existing = fee;
 
-    // If paidAmount is provided, automatically update status
     if (paidAmount !== undefined) {
       if (paidAmount >= existing.amount) {
         updateData.status = 'paid';
@@ -706,18 +731,29 @@ exports.updateFee = async (req, res) => {
       updateData.paidDate = new Date();
     }
 
-    const fee = await FeePayment.findByIdAndUpdate(
+    // sync school revenue if payment changed
+    if (paidAmount !== undefined && paidAmount !== existing.paidAmount) {
+        const diff = paidAmount - (existing.paidAmount || 0);
+        await School.findByIdAndUpdate(schoolId, { $inc: { revenue: diff } });
+    }
+
+    const updated = await FeePayment.findByIdAndUpdate(
       req.params.id,
       updateData, { new: true }
     ).populate('studentId', 'firstName lastName admissionNumber');
 
-    res.json({ message: 'Fee node modified successfully', data: fee });
+    res.json({ message: 'Fee node modified successfully', data: updated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.deleteFee = async (req, res) => {
   try {
-    await FeePayment.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+    const schoolId = getSchoolId(req);
+    const fee = await FeePayment.findOne({ _id: req.params.id, schoolId });
+    if (fee && fee.paidAmount > 0) {
+        await School.findByIdAndUpdate(schoolId, { $inc: { revenue: -fee.paidAmount } });
+    }
+    await FeePayment.deleteOne({ _id: req.params.id, schoolId });
     res.json({ message: 'Fee record deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -767,27 +803,34 @@ exports.applyFeeStructure = async (req, res) => {
 
     // find students in this standard
     const filtered = await Student.find({ schoolId, standard: standardId });
-
     if (!filtered.length) return res.status(404).json({ message: 'No students found in this grade' });
 
     // Guard against duplicates
     const existingPayments = await FeePayment.find({ schoolId, academicYear });
     const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
 
-    const payments = filtered.flatMap(s =>
-      structure.feeItems
-        .filter(item => !existingKeys.has(`${s._id}-${item.name}`))
-        .map(item => ({
-          schoolId,
-          studentId: s._id,
-          amount: item.amount,
-          category: item.name,
-          academicYear,
-          feeStructureId: structure._id,
-          status: 'pending',
-          dueDate: new Date(dueDate)
-        }))
-    );
+    const payments = [];
+    for (const student of filtered) {
+        // Calculate scholarship discount
+        const scholarship = student.scholarshipPercentage || 0;
+        
+        for (const item of structure.feeItems) {
+            if (!existingKeys.has(`${student._id}-${item.name}`)) {
+                const discount = (item.amount * scholarship) / 100;
+                payments.push({
+                    schoolId,
+                    studentId: student._id,
+                    amount: item.amount,
+                    discount: discount,
+                    category: item.name,
+                    academicYear,
+                    feeStructureId: structure._id,
+                    status: 'pending',
+                    dueDate: new Date(dueDate)
+                });
+            }
+        }
+    }
 
     if (!payments.length) return res.status(400).json({ message: 'Fees already applied for all students in this grade' });
 
@@ -1750,5 +1793,63 @@ exports.importTeachers = async (req, res) => {
           });
         } catch (err) { res.status(500).json({ message: err.message }); }
       });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Fee Analytics
+exports.getFeeCollectionSummary = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const summary = await FeePayment.aggregate([
+      { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+      {
+        $group: {
+          _id: null,
+          totalInvoiced: { $sum: "$totalAmount" },
+          totalCollected: { $sum: "$paidAmount" },
+          totalDiscount: { $sum: "$discount" },
+          totalLateFees: { $sum: "$lateFees" },
+          pendingCount: { $sum: { $cond: [{ $in: ["$status", ["pending", "overdue", "partially_paid"]] }, 1, 0] } }
+        }
+      }
+    ]);
+
+    const data = summary[0] || { totalInvoiced: 0, totalCollected: 0, totalDiscount: 0, totalLateFees: 0, totalPending: 0 };
+    data.totalPending = data.totalInvoiced - data.totalCollected;
+    
+    res.json(data);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Send Bulk Reminders
+exports.sendFeeReminders = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const { studentId } = req.body || {}; // optional filter
+    
+    const query = { 
+        schoolId, 
+        status: { $in: ['pending', 'overdue', 'partially_paid'] } 
+    };
+    if (studentId) query.studentId = studentId;
+
+    const overdueFees = await FeePayment.find(query).populate('studentId');
+    
+    let sentCount = 0;
+    for (const fee of overdueFees) {
+      if (fee.studentId && fee.studentId.guardianEmail) {
+        await sendFeeReminderMail({
+          to: fee.studentId.guardianEmail,
+          studentName: `${fee.studentId.firstName} ${fee.studentId.lastName}`,
+          category: fee.category,
+          amount: fee.totalAmount - fee.paidAmount,
+          dueDate: fee.dueDate,
+          schoolName: "Your School" // Typically from School model but using placeholder for now
+        });
+        sentCount++;
+      }
+    }
+
+    res.json({ message: `Reminders dispatched to ${sentCount} guardians` });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

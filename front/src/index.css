@@ -74,14 +74,70 @@ html {
 }
 
 @media print {
-  body { background: white !important; color: black !important; padding: 0 !important; margin: 0 !important; }
-  .no-print { display: none !important; }
-  .print-only { display: block !important; }
-  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-  @page { size: landscape; margin: 0.5cm; }
-  .shadow-glow, .backdrop-blur-xl, .bg-slate-950\/40 { background: white !important; box-shadow: none !important; backdrop-filter: none !important; border: 1px solid #eee !important; }
-  .text-brand-primary { color: #2563eb !important; }
-  .text-slate-500, .text-slate-600 { color: #666 !important; }
+  /* Hide everything by default */
+  html, body { background: white !important; height: auto !important; overflow: visible !important; }
+  
+  /* Hide all siblings of the portal and the main root */
+  body > *:not(.print-portal-active) { display: none !important; }
+
+  /* Ensure the portal container itself is transparent and not fixed/clipping */
+  .print-portal-active {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    background: transparent !important;
+    padding: 0 !important;
+    z-index: 99999 !important;
+  }
+
+  /* Target the Modal Content area specifically */
+  .print-content-active {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    max-height: none !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  /* Specifically hide common structural elements if they leaked through */
+  #root, .no-print, [class*="backdrop"], [class*="overlay"], aside, header, nav { 
+    display: none !important; 
+  }
+
+  /* Focus exclusively on the receipt */
+  #receipt-printable, #receipt-printable * {
+    visibility: visible !important;
+    display: block !important;
+    background-color: white !important;
+  }
+
+  #receipt-printable {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 210mm !important; 
+    height: auto !important;
+    min-height: 297mm !important;
+    margin: 0 !important;
+    padding: 25mm !important; /* Proper margin for A4 */
+    border: none !important;
+    z-index: 1000000 !important;
+  }
+
+  /* Reset all children colors for better print quality */
+  * { 
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  @page { 
+    size: portrait; 
+    margin: 0; 
+  }
 }
 
 .print-only { display: none; }

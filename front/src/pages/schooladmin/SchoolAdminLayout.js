@@ -42,7 +42,7 @@ const SchoolAdminLayout = () => {
   return (
     <div className="h-screen overflow-hidden bg-brand-background text-white flex font-inter">
       {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface/80 backdrop-blur-2xl border-r border-brand-border/40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-2xl shadow-black/40`}>
+      <aside className={`no-print fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface/80 backdrop-blur-2xl border-r border-brand-border/40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-2xl shadow-black/40`}>
         {/* Logo */}
         <div className="px-7 py-8 flex items-center justify-between border-b border-brand-border/30">
           <div className="flex items-center gap-3">
@@ -116,7 +116,7 @@ const SchoolAdminLayout = () => {
       <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
 
         {/* Top bar (mobile) */}
-        <header className="lg:hidden px-6 py-4 flex items-center justify-between bg-brand-surface/60 backdrop-blur-xl border-b border-brand-border/40">
+        <header className="no-print lg:hidden px-6 py-4 flex items-center justify-between bg-brand-surface/60 backdrop-blur-xl border-b border-brand-border/40">
           <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl bg-slate-800/40 text-slate-400 hover:text-white">
             <Menu size={22} />
           </button>
