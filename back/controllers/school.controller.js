@@ -5,7 +5,7 @@ const { sendWelcomeMail } = require('../utils/mail');
 
 exports.createSchool = async (req, res) => {
     try {
-        const { name, subdomain, adminEmail } = req.body;
+        const { name, subdomain, adminEmail, address, contact } = req.body;
         
         // Use uploaded logo if present
         const logo = req.file ? req.file.location : null;
@@ -17,7 +17,9 @@ exports.createSchool = async (req, res) => {
             name, 
             subdomain, 
             adminEmail,
-            logo
+            logo,
+            address,
+            contact
         });
 
         // Automatically create School Admin User
@@ -95,9 +97,9 @@ exports.getSchoolStats = async (req, res) => {
 exports.updateSchool = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, isActive } = req.body;
+        const { name, isActive, address, contact } = req.body;
         
-        const updateData = { name, isActive };
+        const updateData = { name, isActive, address, contact };
         if (req.file) {
             updateData.logo = req.file.location;
         }

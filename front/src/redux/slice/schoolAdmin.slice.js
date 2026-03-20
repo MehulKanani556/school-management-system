@@ -72,6 +72,24 @@ export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', asyn
 });
 export const fetchTimetableTemplates = asyncGet('sa/timetable-templates', '/timetable-templates');
 export const fetchFeeSummary = asyncGet('sa/feeSummary', '/fee-summary');
+export const fetchSchoolProfile = asyncGet('sa/school-profile', '/school-profile');
+export const updateSchoolProfile = createAsyncThunk('sa/updateProfile', async (data, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.patch(`${BASE}/school-profile`, data, {
+      headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return res.data;
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const changeAdminPassword = createAsyncThunk('sa/changePassword', async (data, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.post(`${BASE}/change-password`, data);
+    return res.data;
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -213,8 +231,10 @@ const initialState = {
   payroll: [], leaves: [], reviews: [],timetableTemplates: [],
   examAnalytics: null,
   feeSummary: null,
+  schoolProfile: null,
   loading: false, error: null, message: null
 };
+
 
 const handleList = (key) => (state, action) => { state[key] = action.payload; state.loading = false; };
 
@@ -463,7 +483,21 @@ const schoolAdminSlice = createSlice({
         state.reviews = state.reviews.filter(r => r._id !== a.payload.id);
         state.loading = false;
         state.message = a.payload.message || "Performance review removed";
+      })
+      .addCase(fetchSchoolProfile.fulfilled, (state, a) => {
+        state.schoolProfile = a.payload.data || a.payload;
+        state.loading = false;
+      })
+      .addCase(updateSchoolProfile.fulfilled, (state, a) => {
+        state.schoolProfile = a.payload.data || a.payload;
+        state.loading = false;
+        state.message = a.payload.message || "School profile updated";
+      })
+      .addCase(changeAdminPassword.fulfilled, (state, a) => {
+        state.loading = false;
+        state.message = a.payload.message || "Password changed successfully";
       });
+
 
     // pending/rejected for all
     [
@@ -477,7 +511,8 @@ const schoolAdminSlice = createSlice({
       saveAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard,        
-      fetchFeeSummary, sendFeeReminders
+      fetchFeeSummary, sendFeeReminders,
+      fetchSchoolProfile, updateSchoolProfile, changeAdminPassword
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

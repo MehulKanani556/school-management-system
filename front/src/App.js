@@ -23,7 +23,9 @@ import Payroll from './pages/schooladmin/Payroll';
 import Leaves from './pages/schooladmin/Leaves';
 import Reviews from './pages/schooladmin/Reviews';
 import Reports from './pages/schooladmin/Reports';
+import SchoolProfile from './pages/schooladmin/SchoolProfiles';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
+
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
 import Revenue from './pages/superadmin/Revenue';
@@ -127,7 +129,9 @@ function AppRoutes() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="reports" element={<Reports />} />
           <Route path="holidays" element={<Holidays />} />
+          <Route path="profile" element={<SchoolProfile />} />
         </Route>
+
 
 
         {/* Main Entry Point (Switchboard) */}

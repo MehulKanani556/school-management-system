@@ -23,6 +23,7 @@ const csv = require('csv-parser');
 const PDFDocument = require('pdfkit');
 const { Parser } = require('json2csv');
 
+
 const getSchoolId = (req) => req.user.schoolId;
 const getSchoolAdminId = (req) => req.user._id;
 
@@ -1853,3 +1854,61 @@ exports.sendFeeReminders = async (req, res) => {
     res.json({ message: `Reminders dispatched to ${sentCount} guardians` });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
+// ─── School Profile ───────────────────────────────────────────────────────────
+// Helper for current academic year (Session starts in April)
+const getAcademicYear = () => {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = today.getMonth() + 1;
+  return month >= 4 ? `${year}-${(year + 1).toString().slice(-2)}` : `${year - 1}-${year.toString().slice(-2)}`;
+};
+
+exports.getSchoolProfile = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const school = await School.findById(schoolId).lean();
+    if (!school) return res.status(404).json({ message: 'School not found' });
+
+    // Inject dynamic academic year
+    school.academicYear = getAcademicYear();
+
+    res.json(school);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateSchoolProfile = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const body = { ...req.body };
+    if (req.file) {
+      body.logo = req.file.location;
+      await User.findByIdAndUpdate(req.user._id, { photo: req.file.location });
+    }
+
+    const school = await School.findByIdAndUpdate(schoolId, body, { new: true }).lean();
+    if (!school) return res.status(404).json({ message: 'School not found' });
+
+    school.academicYear = getAcademicYear();
+    res.json(school);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.changeAdminPassword = async (req, res) => {
+  try {
+    const { oldPassword, newPassword } = req.body;
+    const user = await User.findById(req.user._id);
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
+
+    // Hash and update new password
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+
+

@@ -24,6 +24,8 @@ const schoolSchema = new mongoose.Schema(
     name: { type: String, required: true },
     subdomain: { type: String, required: true, unique: true },
     logo: { type: String }, // NEW
+    address: { type: String },
+    contact: { type: String },
     adminEmail: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     revenue: { // To track global revenue in stats

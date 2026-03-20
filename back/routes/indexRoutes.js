@@ -110,6 +110,11 @@ router.get('/school-admin/reports/fees-export', ...schoolAdmin, sa.exportFeeRepo
 router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);
 router.get('/school-admin/timetable/:classId', ...schoolAdmin, tbc.getTimetableByClass);
 router.post('/school-admin/timetable', ...schoolAdmin, tbc.upsertTimetable);
+router.get('/school-admin/school-profile', ...schoolAdmin, sa.getSchoolProfile);
+router.put('/school-admin/school-profile', ...schoolAdmin, upload.single('logo'), sa.updateSchoolProfile);
+router.post('/school-admin/change-password', ...schoolAdmin, sa.changeAdminPassword);
+
+
 
 // Timetable Template Routes
 router.get('/school-admin/timetable-templates', ...schoolAdmin, ttc.getTemplates);

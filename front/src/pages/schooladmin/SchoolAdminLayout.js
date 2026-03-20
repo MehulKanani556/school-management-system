@@ -6,8 +6,9 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain
+  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings
 } from 'lucide-react';
+import MainHeader from '../../components/MainHeader';
 
 const navItems = [
   { to: '/school-admin',          icon: LayoutDashboard, label: 'Dashboard',  end: true },
@@ -26,6 +27,7 @@ const navItems = [
   { to: '/school-admin/leaves',     icon: CalendarDays,  label: 'Leaves' },
   { to: '/school-admin/reviews',    icon: Rocket,        label: 'Reviews' },
   { to: '/school-admin/holidays',   icon: Calendar,      label: 'Holidays' },
+  { to: '/school-admin/profile',    icon: Settings,      label: 'Settings' },
 ];
 
 const SchoolAdminLayout = () => {

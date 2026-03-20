@@ -118,6 +118,16 @@ export const authSlice = createSlice({
             localStorage.clear();
             state.message = "Logged out successfully";
         },
+        updateUser: (state, action) => {
+
+            state.user = { ...state.user, ...action.payload };
+            sessionStorage.setItem('user', JSON.stringify(state.user));
+        },
+        clearMessage: (state) => {
+
+            state.message = null;
+            state.error = null;
+        },
         clearAuthError: (state) => {
             state.error = null;
         },
@@ -233,5 +243,6 @@ export const authSlice = createSlice({
     }
 });
 
-export const { logout, clearAuthError, clearAuthMessage } = authSlice.actions;
+export const { logout, updateUser, clearAuthError, clearAuthMessage } = authSlice.actions;
 export default authSlice.reducer;
+
