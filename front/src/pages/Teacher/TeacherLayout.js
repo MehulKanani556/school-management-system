@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, Users, BookOpen, ClipboardList, 
-    Upload, MessageSquare, LogOut, ChevronRight,
-    Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout
+    Upload, MessageSquare, LogOut, ChevronRight, ChevronDown,
+    Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout,
+    Megaphone, Shield
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -50,28 +51,79 @@ const TeacherLayout = () => {
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/teacher' },
-        { icon: BookOpen, label: 'Assigned Classes', path: '/teacher/classes' },
-        { icon: ClipboardList, label: 'Mark Attendance', path: '/teacher/attendance' },
-        { icon: Activity, label: 'Add Marks', path: '/teacher/marks' },
-        { icon: Upload, label: 'Homework Section', path: '/teacher/assignments' },
-        { icon: TrendingUp, label: 'Academic Analytics', path: '/teacher/performance-report' },
-        { icon: Clock, label: 'Timetable', path: '/teacher/timetable' },
-        { icon: MessageSquare, label: 'Communicate', path: '/teacher/messages' },
-        { icon: Layout, label: 'Class Noticeboard', path: '/teacher/noticeboard' },
-        { icon: DollarSign, label: 'Sector Financials', path: '/teacher/fee-status' },
-        { icon: Clock, label: 'My Payroll', path: '/teacher/payroll' },
-        { icon: CalendarDays, label: 'My Leaves', path: '/teacher/leaves' },
-        { icon: User, label: 'Matrix Profile', path: '/teacher/profile' },
-        { icon: MessageSquare, label: 'Performance Reviews', path: '/teacher/reviews' },
-        { icon: CalendarIcon, label: 'Professional Roadmap', path: '/teacher/unified-calendar' },
-        { icon: Calendar, label: 'Holidays', path: '/teacher/holidays' },
+        {
+            label: 'Academic Cluster',
+            icon: BookOpen,
+            children: [
+                { path: '/teacher/classes', icon: BookOpen, label: 'Assigned Sectors' },
+                { path: '/teacher/attendance', icon: ClipboardList, label: 'Mark Attendance' },
+                { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
+                { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
+                { path: '/teacher/timetable', icon: Clock, label: 'Timetable' },
+            ]
+        },
+        {
+            label: 'Communicate',
+            icon: MessageSquare,
+            children: [
+                { path: '/teacher/messages?tab=feed', icon: Megaphone, label: 'Announcements' },
+                { path: '/teacher/messages?tab=chat', icon: Shield, label: 'Direct Probe' },
+                { path: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
+            ]
+        },
+        {
+            label: 'Management Matrix',
+            icon: DollarSign,
+            children: [
+                { path: '/teacher/fee-status', icon: DollarSign, label: 'Financial Status' },
+                { path: '/teacher/payroll', icon: Clock, label: 'My Payroll' },
+                { path: '/teacher/leaves', icon: CalendarDays, label: 'My Leaves' },
+            ]
+        },
+        {
+            label: 'Performance Intel',
+            icon: TrendingUp,
+            children: [
+                { path: '/teacher/performance-report', icon: TrendingUp, label: 'Analytics' },
+                { path: '/teacher/reviews', icon: MessageSquare, label: 'Staff Reviews' },
+            ]
+        },
+        {
+            label: 'Professional Map',
+            icon: User,
+            children: [
+                { path: '/teacher/profile', icon: User, label: 'Matrix Profile' },
+                { path: '/teacher/unified-calendar', icon: CalendarIcon, label: 'Professional Roadmap' },
+                { path: '/teacher/holidays', icon: Calendar, label: 'Holiday Sync' },
+            ]
+        },
     ];
+
+    const [expandedMenu, setExpandedMenu] = React.useState(null);
 
     const handleLogout = () => {
         dispatch(logout());
     };
 
-    const isActive = (path) => location.pathname === path;
+    const isActive = (path) => {
+        if (!path) return false;
+        if (path.includes('?')) {
+            const [base, query] = path.split('?');
+            return location.pathname === base && location.search === '?' + query;
+        }
+        return location.pathname === path;
+    };
+
+    const toggleSubmenu = (label) => {
+        setExpandedMenu(expandedMenu === label ? null : label);
+    };
+
+    React.useEffect(() => {
+        const activeItem = menuItems.find(item => 
+            item.children?.some(child => isActive(child.path))
+        );
+        if (activeItem) setExpandedMenu(activeItem.label);
+    }, [location.pathname, location.search]);
 
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 flex font-inter antialiased">
@@ -84,26 +136,63 @@ const TeacherLayout = () => {
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 space-y-1.5 overflow-y-auto mt-4">
-                    {menuItems.map((item) => (
-                        <Link
-                            key={item.path}
-                            to={item.path}
-                            onClick={() => {
-                                if (item.label === 'Communicate') dispatch(resetUnreadCount());
-                            }}
-                            className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.path) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:bg-slate-800/40 hover:text-slate-100'}`}
-                        >
-                            <item.icon size={20} className={isActive(item.path) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
-                            <span className="text-[12px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
-                            {item.label === 'Communicate' && unreadCount > 0 && (
-                                <div className="ml-auto flex h-5 w-5 items-center justify-center rounded-md bg-brand-primary text-[10px] font-black italic shadow-lg animate-bounce border border-white/20">
-                                    {unreadCount}
-                                </div>
-                            )}
-                            {isActive(item.path) && <ChevronRight size={16} className="ml-auto" />}
-                        </Link>
-                    ))}
+                <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-4 custom-scrollbar">
+                    {menuItems.map((item) => {
+                        const hasChildren = !!item.children;
+                        const isExpanded = expandedMenu === item.label;
+
+                        if (!hasChildren) {
+                            return (
+                                <Link
+                                    key={item.path}
+                                    to={item.path}
+                                    className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.path) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
+                                >
+                                    <item.icon size={18} className={isActive(item.path) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
+                                    <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+                                    {isActive(item.path) && <ChevronRight size={14} className="ml-auto" />}
+                                </Link>
+                            );
+                        }
+
+                        return (
+                            <div key={item.label} className="space-y-1">
+                                <button
+                                    onClick={() => toggleSubmenu(item.label)}
+                                    className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'text-white bg-slate-800/20' : 'text-slate-400 hover:text-white hover:bg-slate-800/40'}`}
+                                >
+                                    <item.icon size={18} className={isExpanded ? 'text-brand-primary' : 'group-hover:text-brand-primary transition-colors'} />
+                                    <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit text-left flex-1">{item.label}</span>
+                                    <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'opacity-40'}`} />
+                                </button>
+
+                                <motion.div
+                                    initial={false}
+                                    animate={{ height: isExpanded ? 'auto' : 0, opacity: isExpanded ? 1 : 0 }}
+                                    className="overflow-hidden pl-6 space-y-1"
+                                >
+                                    {item.children.map((child) => (
+                                        <Link
+                                            key={child.path}
+                                            to={child.path}
+                                            onClick={() => {
+                                                if (item.label === 'Communication') dispatch(resetUnreadCount());
+                                            }}
+                                            className={`flex items-center gap-4 px-6 py-3 rounded-md transition-all duration-300 group ${isActive(child.path) ? 'text-brand-primary bg-brand-primary/5 font-bold' : 'text-slate-500 hover:text-slate-200'}`}
+                                        >
+                                            <child.icon size={16} className={isActive(child.path) ? 'text-brand-primary' : 'opacity-60 group-hover:opacity-100'} />
+                                            <span className="text-[10px] font-black uppercase tracking-[0.1em] font-outfit">{child.label}</span>
+                                            {child.label === 'Direct Probe' && unreadCount > 0 && (
+                                                <div className="ml-auto h-4 w-4 flex items-center justify-center rounded-md bg-brand-primary text-[8px] font-black text-white shadow-lg animate-pulse">
+                                                    {unreadCount}
+                                                </div>
+                                            )}
+                                        </Link>
+                                    ))}
+                                </motion.div>
+                            </div>
+                        );
+                    })}
                 </nav>
 
                 <div className="p-6">

@@ -201,7 +201,7 @@ function AppRoutes() {
           <Route path="fees" element={<Fees />} />
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="attendance-analytics" element={<AttendanceAnalytics />} />
+          <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
           <Route path="subjects" element={<Subjects />} />
           <Route path="timetable" element={<AdminTimetable />} />
           <Route path="communication" element={<AdminCommunication />} />

@@ -744,7 +744,13 @@ exports.getUnifiedCalendar = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         const [timetable, exams, assignments, leaves] = await Promise.all([
-            Timetable.find({ 'slots.teacher': teacher._id }).populate('classSection'),
+            Timetable.find({ 'schedule.periods.teacher': teacher._id })
+                .populate({
+                    path: 'classSection',
+                    populate: { path: 'standardId' }
+                })
+                .populate('schedule.periods.subject')
+                .populate('schedule.periods.teacher'),
             Exam.find({ schoolId: teacher.schoolId._id }).populate('classSection'),
             Assignment.find({ createdBy: req.user._id }),
             Leave.find({ teacherId: teacher._id, status: 'approved' })

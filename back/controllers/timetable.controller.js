@@ -15,7 +15,7 @@ exports.getTimetableByClass = async (req, res) => {
                 _id: classId, 
                 $or: [
                     { classTeacher: teacher?._id },
-                    { assignedTeachers: teacher?._id }
+                    { 'subjectAssignments.teachers': teacher?._id }
                 ]
             });
             if (!classCheck) return res.status(403).json({ message: 'Unauthorized: Sector access restricted' });

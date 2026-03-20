@@ -89,7 +89,10 @@ const Communication = () => {
         };
 
         const handleDirectMessage = (data) => {
-            const partnerId = data.sender?._id === currentUser?._id ? data.recipient?._id || data.recipient : data.sender?._id;
+            const senderId = (data.sender?._id || data.sender)?.toString();
+            const recipientId = (data.recipient?._id || data.recipient)?.toString();
+            const meId = currentUser?._id?.toString();
+            const partnerId = senderId === meId ? recipientId : senderId;
             
             // If it's the active chat, add it to chatMessages
             if (partnerId === selectedChatRef.current) {
@@ -260,9 +263,12 @@ const Communication = () => {
         if (!messages.length) return [];
         const groups = {};
         messages.forEach(msg => {
-            const partner = msg.sender?._id === currentUser?._id ? msg.recipient : msg.sender;
+            const senderId = (msg.sender?._id || msg.sender)?.toString();
+            const recipientId = (msg.recipient?._id || msg.recipient)?.toString();
+            const meId = currentUser?._id?.toString();
+            const partner = senderId === meId ? msg.recipient : msg.sender;
             if (!partner) return;
-            const pId = partner._id || partner;
+            const pId = (partner._id || partner)?.toString();
             if (!groups[pId]) groups[pId] = { partner, messages: [] };
             groups[pId].messages.push(msg);
         });
@@ -274,7 +280,7 @@ const Communication = () => {
     }, [conversations, selectedChat]);
 
     return (
-        <div className="h-[calc(100vh-100px)] lg:h-[calc(100vh-120px)] text-slate-300 font-outfit p-2 lg:p-4 selection:bg-brand-primary/30 selection:text-white overflow-hidden flex flex-col">
+        <div className="h-[calc(100vh-130px)] lg:h-[calc(100vh-130px)] text-slate-300 font-outfit p-2 lg:p-4 selection:bg-brand-primary/30 selection:text-white overflow-hidden flex flex-col">
             {/* Header Section */}
             <div className="max-w-[1600px] w-full mx-auto mb-4 shrink-0">
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -428,13 +434,14 @@ const Communication = () => {
                                                         <div className={`max-w-[85%] lg:max-w-[75%] relative ${isMe ? 'items-end' : 'items-start'} flex flex-col group`}>
                                                             <div className={`px-4 py-2.5 rounded-xl text-[12px] font-bold shadow-xl relative transition-all hover:shadow-2xl ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
                                                                 <p className="italic leading-relaxed whitespace-pre-wrap">{msg.content}</p>
-                                                                <div className={`flex items-center gap-1.5 justify-end mt-1.5 opacity-40 group-hover:opacity-100 transition-opacity`}>
-                                                                    <span className="text-[7px] font-black uppercase tracking-widest italic">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                    {isMe && <div className="w-1 h-1 rounded-md bg-white/40"></div>}
-                                                                </div>
-                                                                
                                                                 {/* Triangle/Tail (WhatsApp Style) */}
                                                                 <div className={`absolute top-0 w-3 h-3 ${isMe ? '-right-1.5 bg-brand-primary clip-path-right' : '-left-1.5 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
+                                                            </div>
+                                                            
+                                                            {/* Time Outside of Div */}
+                                                            <div className={`flex items-center gap-1.5 mt-1 opacity-50 group-hover:opacity-100 transition-opacity mx-1`}>
+                                                                <span className="text-[7px] font-black uppercase tracking-widest italic text-slate-500">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                {isMe && <div className="w-1 h-1 rounded-md bg-slate-700"></div>}
                                                             </div>
                                                         </div>
                                                     </motion.div>
