@@ -122,12 +122,6 @@ const MainHeader = ({ onMenuClick }) => {
                       <User size={18} className="text-brand-primary" />
                       View Profile
                     </button>
-                    <button
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-white/5 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest"
-                    >
-                      <Settings size={18} className="text-brand-primary" />
-                      Settings
-                    </button>
 
                     <div className="p-1 mb-1">
                       <div className="h-px bg-white/5 w-full" />

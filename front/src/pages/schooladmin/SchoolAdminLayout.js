@@ -53,7 +53,6 @@ const navItems = [
   },
   { to: '/school-admin/communication', icon: MessageSquare, label: 'Messages' },
   { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
-  { to: '/school-admin/profile', icon: Settings, label: 'Settings' },
 ];
 
 const SchoolAdminLayout = () => {
