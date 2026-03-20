@@ -4,7 +4,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, Users, BookOpen, ClipboardList, 
     Upload, MessageSquare, LogOut, ChevronRight,
-    Bell, User, Activity, Calendar, Clock, CalendarDays, TrendingUp, DollarSign
+    Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -54,12 +54,16 @@ const TeacherLayout = () => {
         { icon: ClipboardList, label: 'Mark Attendance', path: '/teacher/attendance' },
         { icon: Activity, label: 'Add Marks', path: '/teacher/marks' },
         { icon: Upload, label: 'Homework Section', path: '/teacher/assignments' },
-        { icon: TrendingUp, label: 'Engagement Intelligence', path: '/teacher/analytics' },
+        { icon: TrendingUp, label: 'Academic Analytics', path: '/teacher/performance-report' },
         { icon: Clock, label: 'Timetable', path: '/teacher/timetable' },
         { icon: MessageSquare, label: 'Communicate', path: '/teacher/messages' },
-        { icon: DollarSign, label: 'Financial Matrix', path: '/teacher/payroll' },
+        { icon: Layout, label: 'Class Noticeboard', path: '/teacher/noticeboard' },
+        { icon: DollarSign, label: 'Sector Financials', path: '/teacher/fee-status' },
+        { icon: Clock, label: 'My Payroll', path: '/teacher/payroll' },
         { icon: CalendarDays, label: 'My Leaves', path: '/teacher/leaves' },
         { icon: User, label: 'Matrix Profile', path: '/teacher/profile' },
+        { icon: MessageSquare, label: 'Performance Reviews', path: '/teacher/reviews' },
+        { icon: CalendarIcon, label: 'Professional Roadmap', path: '/teacher/unified-calendar' },
         { icon: Calendar, label: 'Holidays', path: '/teacher/holidays' },
     ];
 

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Info, ArrowLeft, Loader2, Calendar, Award, CheckCircle, XCircle } from 'lucide-react';
+import { Users, Info, ArrowLeft, Loader2, Calendar, Award, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { fetchClassStudents, fetchStudentDetail } from '../../redux/slice/teacher.slice';
 import Modal from '../../components/Modal';
 
@@ -102,6 +102,12 @@ const ClassStudents = () => {
                                         </div>
                                     ))}
                                 </div>
+                                <Link 
+                                    to={`/teacher/student-attendance/${selectedStudent}`}
+                                    className="w-full mt-6 py-4 bg-slate-800/80 hover:bg-brand-primary rounded-xl flex items-center justify-center gap-3 text-slate-400 hover:text-white text-[9px] font-black uppercase tracking-[0.2em] border border-slate-700/50 shadow-xl transition-all active:scale-[0.98]"
+                                >
+                                    Full Telemetry Log <TrendingUp size={14} />
+                                </Link>
                             </div>
 
                             <div className="space-y-6">

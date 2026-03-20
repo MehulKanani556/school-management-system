@@ -222,6 +222,62 @@ export const changeTeacherPassword = createAsyncThunk('teacher/changePassword', 
     }
 });
 
+export const fetchFeeStatus = createAsyncThunk('teacher/fetchFees', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/get-fee-status');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchMyMessages = createAsyncThunk('teacher/fetchMessages', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/my-messages');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchPerformanceAnalytics = createAsyncThunk('teacher/fetchPerformance', async ({ classId, subjectId }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/performance-analytics?classId=${classId}&subjectId=${subjectId}`);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchDetailedAttendance = createAsyncThunk('teacher/fetchDetailedAttendance', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/student-attendance/${studentId}`);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const retractAnnouncement = createAsyncThunk('teacher/retractAnnouncement', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/teacher/retract-announcement/${id}`);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const importAttendanceBulk = createAsyncThunk('teacher/bulkAttendance', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/bulk-attendance', data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchTeacherReviews = createAsyncThunk('teacher/fetchReviews', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/reviews');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchUnifiedCalendar = createAsyncThunk('teacher/fetchUnifiedCalendar', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/unified-calendar');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -231,14 +287,19 @@ const teacherSlice = createSlice({
         studentDetail: null,
         submissions: [],
         payroll: [],
-        analytics: null,
+        analytics: null, // For performance analytics
         exams: [],
         attendance: [],
+        detailedAttendance: [], // For per-student history
         attendanceAnalytics: null,
         marks: [],
         timetable: null,
         assignments: [],
         leaves: [],
+        feeStatus: [], // For class fee view
+        reviews: [], // For teacher reviews
+        messages: [], // For teacher communication
+        unifiedCalendar: null, // For unified view
         profile: null,
         loading: false,
         error: null,
@@ -342,7 +403,34 @@ const teacherSlice = createSlice({
                 state.loading = false;
                 state.message = action.payload?.message || "Password updated";
             })
-            .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; });
+            .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; })
+            .addCase(fetchFeeStatus.fulfilled, (state, action) => {
+                state.feeStatus = action.payload;
+            })
+            .addCase(fetchPerformanceAnalytics.fulfilled, (state, action) => {
+                state.analytics = action.payload;
+            })
+            .addCase(fetchDetailedAttendance.fulfilled, (state, action) => {
+                state.detailedAttendance = action.payload;
+            })
+            .addCase(retractAnnouncement.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+            })
+            .addCase(importAttendanceBulk.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+            })
+            .addCase(fetchMyMessages.fulfilled, (state, action) => {
+                state.messages = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchTeacherReviews.fulfilled, (state, action) => {
+                state.reviews = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchUnifiedCalendar.fulfilled, (state, action) => {
+                state.unifiedCalendar = action.payload;
+                state.loading = false;
+            });
     }
 });
 

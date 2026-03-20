@@ -60,6 +60,28 @@ const TeacherLeaves = () => {
         }
     });
 
+    const calculateDays = (start, end) => {
+        const s = new Date(start);
+        const e = new Date(end);
+        const diff = Math.abs(e - s);
+        return Math.ceil(diff / (1000 * 60 * 60 * 24)) + 1;
+    };
+
+    const quotaStats = [
+        { 
+            label: 'Sick Leaves', 
+            used: leaves.filter(l => l.type === 'sick' && l.status === 'approved')
+                        .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0), 
+            total: 12 
+        },
+        { 
+            label: 'Casual Leaves', 
+            used: leaves.filter(l => l.type === 'casual' && l.status === 'approved')
+                        .reduce((acc, current) => acc + calculateDays(current.startDate, current.endDate), 0), 
+            total: 15 
+        },
+    ];
+
     return (
         <div className="space-y-8">
             <div className="flex items-center justify-between">
@@ -77,29 +99,31 @@ const TeacherLeaves = () => {
                 <div className="lg:col-span-1 space-y-4">
                     <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-md">
                         <div className="flex items-center justify-between mb-4">
-                           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage</h3>
-                           <Info size={14} className="text-slate-600" />
+                           <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage (Days)</h3>
+                           <div className="relative group">
+                             <Info size={14} className="text-slate-600" />
+                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                Total approved days based on institutional calendar synchronization.
+                             </div>
+                           </div>
                         </div>
                         <div className="space-y-4">
-                            {[
-                                { label: 'Sick Leaves', used: leaves.filter(l => l.type === 'sick' && l.status === 'approved').length, total: 12 },
-                                { label: 'Casual Leaves', used: leaves.filter(l => l.type === 'casual' && l.status === 'approved').length, total: 15 },
-                            ].map(item => (
+                            {quotaStats.map(item => (
                                 <div key={item.label}>
                                     <div className="flex justify-between text-[11px] font-bold mb-2">
                                         <span className="text-slate-400">{item.label}</span>
                                         <span className="text-white">{item.used} / {item.total}</span>
                                     </div>
                                     <div className="h-1.5 bg-slate-700/50 rounded-md overflow-hidden">
-                                        <div className="h-full bg-brand-primary rounded-md transition-all duration-1000" style={{ width: `${(item.used / item.total) * 100}%` }} />
+                                        <div className="h-full bg-brand-primary rounded-md transition-all duration-1000 shadow-[0_0_10px_rgba(37,99,235,0.4)]" style={{ width: `${Math.min(100, (item.used / item.total) * 100)}%` }} />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-md">
-                        <CalendarDays size={24} className="text-brand-primary mb-3" />
+                    <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-md group hover:bg-brand-primary/20 transition-all cursor-pointer">
+                        <CalendarDays size={24} className="text-brand-primary mb-3 group-hover:scale-110 transition-transform" />
                         <h4 className="text-sm font-bold text-white mb-2">Upcoming Holidays</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">Check the holiday calendar before applying for leave to optimize your time off.</p>
                         <button className="mt-4 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:underline">View Calendar</button>
@@ -108,11 +132,11 @@ const TeacherLeaves = () => {
 
                 {/* History */}
                 <div className="lg:col-span-2 space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2">Application History</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2 italic">Application History Registry</h3>
                     {leaves.length === 0 ? (
                         <div className="bg-slate-800/20 border border-dashed border-slate-700/50 rounded-md py-20 text-center">
                             <Clock size={40} className="mx-auto text-slate-700 mb-4 opacity-40" />
-                            <p className="text-slate-500 font-medium">No leave applications found</p>
+                            <p className="text-slate-500 font-medium whitespace-nowrap">No leave archives found in institutional memory</p>
                         </div>
                     ) : (
                         leaves.map((l, i) => (
@@ -121,20 +145,22 @@ const TeacherLeaves = () => {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="bg-slate-800/40 border border-slate-700/30 p-6 rounded-md hover:border-slate-600 transition-all group"
+                                className="bg-slate-800/40 border border-slate-700/30 p-6 rounded-md hover:border-slate-600 transition-all group relative overflow-hidden"
                             >
+                                <div className="absolute top-0 left-0 w-1 h-full bg-transparent group-hover:bg-brand-primary transition-all" />
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
-                                            <CalendarDays size={18} />
+                                        <div className="w-12 h-12 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xl">
+                                            <CalendarDays size={20} />
                                         </div>
                                         <div>
-                                            <div className="flex items-center gap-2">
-                                                <h4 className="font-bold text-white text-sm capitalize">{l.type} Leave</h4>
-                                                <div className="w-1 h-1 rounded-md bg-slate-700" />
-                                                <p className="text-[10px] font-bold text-slate-500">{format(parseISO(l.startDate), 'dd MMM')} — {format(parseISO(l.endDate), 'dd MMM')}</p>
+                                            <div className="flex items-center gap-3">
+                                                <h4 className="font-black text-white text-sm uppercase italic tracking-tighter">{l.type} Leave</h4>
+                                                <div className="w-1 h-1 rounded-full bg-slate-700" />
+                                                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{format(parseISO(l.startDate), 'dd MMM')} — {format(parseISO(l.endDate), 'dd MMM')}</p>
+                                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-tighter ml-2">({calculateDays(l.startDate, l.endDate)} Days)</span>
                                             </div>
-                                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{l.reason}</p>
+                                            <p className="text-[11px] text-slate-500 mt-1 line-clamp-1 italic">{l.reason}</p>
                                         </div>
                                     </div>
                                     <StatusBadge status={l.status} />
@@ -146,39 +172,44 @@ const TeacherLeaves = () => {
             </div>
 
             <Modal open={modal} onClose={() => setModal(false)} title="Apply for Leave">
-                <form onSubmit={formik.handleSubmit} className="space-y-4">
+                <form onSubmit={formik.handleSubmit} className="space-y-6 pt-4">
+                    <div className="bg-brand-primary/5 border border-brand-primary/10 p-4 rounded-md mb-2">
+                        <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider text-center">
+                            Please ensure your application details align with institutional pedagogical scheduling.
+                        </p>
+                    </div>
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block px-1">Leave Type</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Leave Category</label>
                         <select {...formik.getFieldProps('type')} className={inputClass}>
-                            <option value="sick">Sick Leave</option>
-                            <option value="casual">Casual Leave</option>
-                            <option value="maternity">Maternity Leave</option>
-                            <option value="paternity">Paternity Leave</option>
-                            <option value="other">Other</option>
+                            <option value="sick text-slate-400">Sick Leave (Medical Node Extraction)</option>
+                            <option value="casual">Casual Leave (Personal Time Retrieval)</option>
+                            <option value="maternity">Maternity Leave (Biological Cycle Support)</option>
+                            <option value="paternity">Paternity Leave (Biological Cycle Support)</option>
+                            <option value="other">Other (Miscellaneous Extraction)</option>
                         </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block px-1">Start Date</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Trigger Date</label>
                             <input type="date" {...formik.getFieldProps('startDate')} className={inputClass} />
-                            {formik.touched.startDate && formik.errors.startDate && <p className="text-[10px] text-red-500 mt-1 pl-1 font-bold italic">{formik.errors.startDate}</p>}
+                            {formik.touched.startDate && formik.errors.startDate && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.startDate}</p>}
                         </div>
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block px-1">End Date</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Termination Date</label>
                             <input type="date" {...formik.getFieldProps('endDate')} className={inputClass} />
-                            {formik.touched.endDate && formik.errors.endDate && <p className="text-[10px] text-red-500 mt-1 pl-1 font-bold italic">{formik.errors.endDate}</p>}
+                            {formik.touched.endDate && formik.errors.endDate && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.endDate}</p>}
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5 block px-1">Reason for Leave</label>
-                        <textarea {...formik.getFieldProps('reason')} rows={4} className={`${inputClass} resize-none`} placeholder="Briefly describe the reason for your application..."></textarea>
-                        {formik.touched.reason && formik.errors.reason && <p className="text-[10px] text-red-500 mt-1 pl-1 font-bold italic">{formik.errors.reason}</p>}
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Application Justification</label>
+                        <textarea {...formik.getFieldProps('reason')} rows={4} className={`${inputClass} resize-none min-h-[120px]`} placeholder="Briefly describe the institutional alignment for your application..."></textarea>
+                        {formik.touched.reason && formik.errors.reason && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.reason}</p>}
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full mt-4 py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 rounded-md font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                        {loading ? 'Submitting...' : 'Confirm Application'} <ChevronRight size={16} />
+                    <button type="submit" disabled={loading} className="w-full mt-6 py-5 bg-gradient-to-r from-brand-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand-primary/20 text-white">
+                        {loading ? 'Transmitting Data...' : 'Confirm Institutional Extraction'} <ChevronRight size={16} />
                     </button>
                 </form>
             </Modal>

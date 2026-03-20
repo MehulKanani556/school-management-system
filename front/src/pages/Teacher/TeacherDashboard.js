@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { BookOpen, Users, ClipboardList, Activity, ArrowRight, Loader2 } from 'lucide-react';
+import { BookOpen, Users, ClipboardList, Activity, ArrowRight, Loader2, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '../../redux/slice/teacher.slice';
 
@@ -30,6 +30,7 @@ const TeacherDashboard = () => {
         { label: 'Students', value: stats.students.toString(), icon: Users, color: 'text-brand-secondary' },
         { label: 'Attendance', value: `${stats.attendance}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
         { label: 'Submissions', value: stats.assignments.toString(), icon: Activity, color: 'text-brand-accent' },
+        { label: 'Deadlines', value: stats.upcomingDeadlines?.toString().padStart(2, '0') || '00', icon: Clock, color: 'text-luxury-rose' },
     ];
 
     return (

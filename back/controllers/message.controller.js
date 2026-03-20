@@ -141,11 +141,20 @@ exports.getMyMessages = async (req, res) => {
 // Get available contacts in the school (excluding self and students for now)
 exports.getContacts = async (req, res) => {
     try {
-        const users = await User.find({ 
+        const query = { 
             schoolId: req.user.schoolId, 
-            _id: { $ne: req.user._id },
-            role: { $in: ['School_Admin', 'Teacher'] }
-        }).select('firstName lastName photo role');
+            _id: { $ne: req.user._id }
+        };
+        
+        // Teachers can communicate with Admin, other Teachers, Students, and Parents
+        if (req.user.role === 'Teacher') {
+            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent'] };
+        } else {
+            // Default restricted contacts for other roles (can be expanded)
+            query.role = { $in: ['School_Admin', 'Teacher'] };
+        }
+
+        const users = await User.find(query).select('firstName lastName photo role');
         res.json(users);
     } catch (err) {
         res.status(500).json({ message: err.message });

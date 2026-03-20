@@ -180,6 +180,13 @@ router.get('/teacher/profile', ...teacher, tc.getProfile);
 router.put('/teacher/profile', ...teacher, upload.single('photo'), tc.updateProfile);
 router.post('/teacher/change-password', ...teacher, tc.changePassword);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
+router.get('/teacher/get-fee-status', ...teacher, tc.getStudentFeeStatus);
+router.get('/teacher/performance-analytics', ...teacher, tc.getPerformanceAnalytics);
+router.get('/teacher/student-attendance/:studentId', ...teacher, tc.getStudentFullAttendance);
+router.delete('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
+router.post('/teacher/bulk-attendance', ...teacher, tc.bulkAttendanceImport);
+router.get('/teacher/reviews', ...teacher, tc.getMyReviews);
+router.get('/teacher/unified-calendar', ...teacher, tc.getUnifiedCalendar);
 router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 
 // ─── Student Routes ──────────────────────────────────────────────────────────

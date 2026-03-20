@@ -68,6 +68,12 @@ const TeacherProfile = React.lazy(() => import('./pages/Teacher/TeacherProfile')
 const TeacherAnalytics = React.lazy(() => import('./pages/Teacher/AttendanceAnalytics'));
 const TeacherPayroll = React.lazy(() => import('./pages/Teacher/Payroll'));
 const ClassStudents = React.lazy(() => import('./pages/Teacher/ClassStudents'));
+const TeacherFeeStatus = React.lazy(() => import('./pages/Teacher/ClassFeeStatus'));
+const StudentDetailedAttendance = React.lazy(() => import('./pages/Teacher/StudentDetailedAttendance'));
+const PerformanceAnalytics = React.lazy(() => import('./pages/Teacher/PerformanceAnalytics'));
+const TeacherReviews = React.lazy(() => import('./pages/Teacher/TeacherReviews'));
+const TeacherUnifiedCalendar = React.lazy(() => import('./pages/Teacher/UnifiedCalendar'));
+const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
 
 const { store, persistor } = configureStore();
 
@@ -128,6 +134,12 @@ function AppRoutes() {
           <Route path="payroll" element={<TeacherPayroll />} />
           <Route path="leaves" element={<TeacherLeaves />} />
           <Route path="holidays" element={<Holidays />} />
+          <Route path="fee-status" element={<TeacherFeeStatus />} />
+          <Route path="student-attendance/:studentId" element={<StudentDetailedAttendance />} />
+          <Route path="performance-report" element={<PerformanceAnalytics />} />
+          <Route path="reviews" element={<TeacherReviews />} />
+          <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
+          <Route path="noticeboard" element={<ClassNoticeboard />} />
         </Route>
 
         {/* School Admin Panel */}

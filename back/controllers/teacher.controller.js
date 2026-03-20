@@ -12,6 +12,7 @@ const Message = require('../models/message.model');
 const Leave = require('../models/leave.model');
 const User = require('../models/user.model');
 const Submission = require('../models/submission.model');
+const Review = require('../models/review.model');
 const Payroll = require('../models/payroll.model');
 const bcrypt = require('bcrypt');
 
@@ -83,12 +84,21 @@ exports.getTeacherDashboard = async (req, res) => {
         };
     }));
 
+    // 5. Upcoming Deadlines (within next 3 days)
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+    const deadlinesCount = await Assignment.countDocuments({
+        createdBy: req.user._id,
+        dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
+    });
+
     res.json({
         stats: {
             classes: assignedClasses.length,
             students: studentsCount,
             attendance: attendancePercentage,
-            assignments: assignmentCount
+            assignments: assignmentCount,
+            upcomingDeadlines: deadlinesCount
         },
         recentAssignments,
         classesGrid
@@ -611,6 +621,139 @@ exports.getMyPayroll = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// 16. Student Fee Status (Read-only for teachers) ──────────────────────────
+exports.getStudentFeeStatus = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const assignedClasses = await ClassSection.find({
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
+        const classIds = assignedClasses.map(c => c._id);
+        
+        const students = await Student.find({ classSection: { $in: classIds }, deletedAt: null })
+            .populate('classSection', 'sectionLabel')
+            .populate('standardId', 'level');
+            
+        const FeePayment = require('../models/feePayment.model');
+        const feeStatus = await Promise.all(students.map(async (s) => {
+            const fees = await FeePayment.find({ studentId: s._id });
+            const pendingAmount = fees.reduce((acc, f) => acc + (f.status !== 'paid' ? (f.totalAmount - f.paidAmount) : 0), 0);
+            return {
+                studentId: s._id,
+                name: `${s.firstName} ${s.lastName}`,
+                admissionNumber: s.admissionNumber,
+                class: `Grade ${s.standardId?.level}-${s.classSection?.sectionLabel}`,
+                totalPending: pendingAmount,
+                status: pendingAmount > 0 ? 'Pending' : 'Cleared'
+            };
+        }));
+        
+        res.json(feeStatus);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 17. Subject-wise Performance Report ─────────────────────────────────────────
+exports.getPerformanceAnalytics = async (req, res) => {
+    try {
+        const { classId, subjectId } = req.query;
+        // Logic to aggregate marks for a specific subject in a class across exams
+        const marks = await Mark.find({ classSection: classId })
+            .populate('examId')
+            .populate('studentId', 'firstName lastName');
+            
+        // Filter by subject if provided
+        const filtered = subjectId ? marks.filter(m => m.examId?.subject?.toString() === subjectId) : marks;
+        
+        res.json(filtered);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 18. Student Full Attendance History ────────────────────────────────────────
+exports.getStudentFullAttendance = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const student = await Student.findById(studentId);
+        if (!student) return res.status(404).json({ message: 'Student archive not found' });
+        
+        const attendance = await Attendance.find({
+            'records.studentId': studentId
+        }).sort({ date: -1 });
+        
+        const history = attendance.map(a => {
+            const record = a.records.find(r => r.studentId.toString() === studentId);
+            return {
+                date: a.date,
+                status: record.status,
+                remarks: record.remarks
+            };
+        });
+        
+        res.json(history);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 19. Retract/Delete Announcement ─────────────────────────────────────────────
+exports.deleteAnnouncement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const message = await Message.findById(id);
+        
+        if (!message) return res.status(404).json({ message: 'Directive not found' });
+        if (message.sender.toString() !== req.user._id.toString()) {
+            return res.status(403).json({ message: 'Unauthorized: Transmission retraction denied' });
+        }
+        
+        await Message.findByIdAndDelete(id);
+        res.json({ message: 'Institutional directive retracted successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.bulkAttendanceImport = async (req, res) => {
+    try {
+        const { classSectionId, date, attendanceData } = req.body;
+        if (!classSectionId || !date || !attendanceData) return res.status(400).json({ message: "Institutional telemetry breach: Incomplete sector data" });
+
+        const records = await Promise.all(attendanceData.map(async (entry) => {
+            return await Attendance.findOneAndUpdate(
+                { studentId: entry.studentId, classSectionId, date: new Date(date) },
+                { status: entry.status, markedBy: req.user._id, role: 'Teacher' },
+                { upsert: true, new: true }
+            );
+        }));
+
+        res.json({ message: `Synchronized ${records.length} temporal cycles successfully.`, count: records.length });
+    } catch (error) { 
+        res.status(500).json({ message: "Cluster synchronization failure", error: error.message }); 
+    }
+};
+
+exports.getMyReviews = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile node not found' });
+
+        const reviews = await Review.find({ teacherId: teacher._id })
+            .populate('reviewerId', 'firstName lastName photo role')
+            .sort({ createdAt: -1 });
+
+        res.json(reviews);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getUnifiedCalendar = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const [timetable, exams, assignments, leaves] = await Promise.all([
+            Timetable.find({ 'slots.teacher': teacher._id }).populate('classSection'),
+            Exam.find({ schoolId: teacher.schoolId._id }).populate('classSection'),
+            Assignment.find({ createdBy: req.user._id }),
+            Leave.find({ teacherId: teacher._id, status: 'approved' })
+        ]);
+
+        res.json({ timetable, exams, assignments, leaves });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 module.exports = {
   getTeacherDashboard: exports.getTeacherDashboard,
   getAssignedClasses: exports.getAssignedClasses,
@@ -634,5 +777,12 @@ module.exports = {
   updateProfile: exports.updateProfile,
   changePassword: exports.changePassword,
   sendMessage: exports.sendMessage,
-  getMyPayroll: exports.getMyPayroll
+  getMyPayroll: exports.getMyPayroll,
+  getStudentFeeStatus: exports.getStudentFeeStatus,
+  getPerformanceAnalytics: exports.getPerformanceAnalytics,
+  getStudentFullAttendance: exports.getStudentFullAttendance,
+  deleteAnnouncement: exports.deleteAnnouncement,
+  bulkAttendanceImport: exports.bulkAttendanceImport,
+  getMyReviews: exports.getMyReviews,
+  getUnifiedCalendar: exports.getUnifiedCalendar
 };

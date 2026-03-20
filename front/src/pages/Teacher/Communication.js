@@ -20,15 +20,18 @@ import {
     Activity,
     Shield,
     ChevronDown,
-    Layout
+    Layout,
+    XCircle
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
+import { retractAnnouncement } from '../../redux/slice/teacher.slice';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Communication = () => {
+    const dispatch = useDispatch();
     const [activeTab, setActiveTab] = useState('feed'); // 'feed', 'chat', 'notices'
     const [sentMessages, setSentMessages] = useState([]);
     const [notices, setNotices] = useState([]);
@@ -108,6 +111,17 @@ const Communication = () => {
             fetchData();
         } catch (err) {
             toast.error('Broadcast failed');
+        }
+    };
+
+    const handleDeleteAnnouncement = async (id) => {
+        if (!window.confirm('PROTOCOL ALERT: Retract institutional directive from archival memory?')) return;
+        try {
+            await dispatch(retractAnnouncement(id)).unwrap();
+            toast.success('Directive Decommissioned');
+            fetchData();
+        } catch (err) {
+            toast.error('Retraction failed');
         }
     };
 
@@ -394,8 +408,16 @@ const Communication = () => {
                                             key={msg._id} 
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            className="bg-slate-900/40 border border-slate-800/60 rounded-md p-10 hover:border-brand-primary/20 backdrop-blur-2xl shadow-xl border-l-[6px] border-l-brand-primary/40"
+                                            className="bg-slate-900/40 border border-slate-800/60 rounded-md p-10 hover:border-brand-primary/20 backdrop-blur-2xl shadow-xl border-l-[6px] border-l-brand-primary/40 group relative"
                                         >
+                                            <div className="absolute top-5 right-5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <button 
+                                                    onClick={() => handleDeleteAnnouncement(msg._id)}
+                                                    className="p-3 bg-red-500/10 text-red-500 rounded-md border border-red-500/20 hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                                                >
+                                                    <XCircle size={16} />
+                                                </button>
+                                            </div>
                                             <div className="flex items-center gap-6 mb-8">
                                                 <div className="w-16 h-16 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-white/5">
                                                     <Megaphone size={28} />
