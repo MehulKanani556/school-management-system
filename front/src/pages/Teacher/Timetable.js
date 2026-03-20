@@ -33,7 +33,7 @@ const TeacherTimetable = () => {
                             <span className="w-12 h-[2px] bg-brand-primary rounded-md group-hover:w-20 transition-all duration-700"></span>
                             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Instructional Chronology</span>
                         </div>
-                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Temporal Sector</h1>
+                        <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Temporal Sector</h1>
                         <p className="text-slate-500 font-medium text-sm leading-relaxed max-w-xl italic">Visual archival of sectoral pedagogical nodes and educator assignments.</p>
                     </div>
 

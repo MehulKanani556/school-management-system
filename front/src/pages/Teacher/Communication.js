@@ -152,9 +152,9 @@ const Communication = () => {
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
                             <div className="h-[2px] w-8 bg-brand-primary rounded-md"></div>
-                            <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.45em] italic leading-none">Transmission Hub</span>
+                            <span className="text-[9px]  font-black text-brand-primary uppercase tracking-[0.45em] italic leading-none">Transmission Hub</span>
                         </div>
-                        <h1 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">
+                        <h1 className="text-4xl text-left lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">
                             SIGNAL <span className="text-brand-primary">RELAY</span>
                         </h1>
                         <p className="text-slate-500 font-bold text-[10px] lg:text-xs tracking-wider uppercase max-w-xl">Broadcasting authorized institutional directives across academic clusters.</p>

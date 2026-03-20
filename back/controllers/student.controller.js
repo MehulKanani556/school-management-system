@@ -4,6 +4,8 @@ const Attendance = require('../models/attendance.model');
 const Mark = require('../models/mark.model');
 const Assignment = require('../models/assignment.model');
 const ClassSection = require('../models/classSection.model');
+const Submission = require('../models/submission.model');
+const nc = require('./notification.controller');
 
 // Helper to get student node
 const getStudent = async (studentId) => {
@@ -60,7 +62,55 @@ exports.getAssignments = async (req, res) => {
 exports.getTimetable = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        // Assuming timetable is stored/referenced in ClassSection or we fetch it similarly
         res.json(student.classSection.timetable || []);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 6. Submit Assignment
+exports.submitAssignment = async (req, res) => {
+    try {
+        const { assignmentId, comments } = req.body;
+        const student = await getStudent(req.user._id);
+        const fileUrl = req.file ? req.file.location : null;
+
+        if (!fileUrl) return res.status(400).json({ message: 'Submission payload must include academic deliverable (file)' });
+
+        const assignment = await Assignment.findById(assignmentId);
+
+        const submission = await Submission.findOneAndUpdate(
+            { assignmentId, studentId: student._id },
+            { 
+                schoolId: student.schoolId._id,
+                assignmentId, 
+                studentId: student._id, 
+                fileUrl, 
+                comments,
+                submittedAt: new Date(),
+                status: 'Submitted'
+            },
+            { upsert: true, new: true }
+        );
+
+        // Notify teacher
+        nc.sendNotification({
+            schoolId: student.schoolId._id,
+            recipient: assignment.createdBy,
+            sender: req.user._id,
+            type: 'Assignment',
+            title: 'Academic Deliverable Uploaded',
+            message: `${student.firstName} submitted ${assignment.title}`,
+            link: '/teacher/assignments'
+        });
+
+        res.status(201).json({ message: 'Academic deliverable synchronized', submission });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 7. Get My Submissions
+exports.getMySubmissions = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const submissions = await Submission.find({ studentId: student._id }).populate('assignmentId', 'title subject' );
+        res.json(submissions);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

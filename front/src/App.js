@@ -7,7 +7,13 @@ import { configureStore } from './redux/Store';
 import { PersistGate } from 'redux-persist/integration/react';
 import Auth from './pages/auth/Auth';
 import Home from './pages/Home';
+
+// Layouts
 import SchoolAdminLayout from './pages/schooladmin/SchoolAdminLayout';
+import TeacherLayout from './pages/Teacher/TeacherLayout';
+import StudentLayout from './pages/Student/StudentLayout';
+
+// School Admin Pages
 import Dashboard from './pages/schooladmin/Dashboard';
 import Students from './pages/schooladmin/Students';
 import Teachers from './pages/schooladmin/Teachers';
@@ -24,31 +30,44 @@ import Leaves from './pages/schooladmin/Leaves';
 import Reviews from './pages/schooladmin/Reviews';
 import Reports from './pages/schooladmin/Reports';
 import SchoolProfile from './pages/schooladmin/SchoolProfiles';
-import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 
+// Super Admin Pages
+import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
 import Revenue from './pages/superadmin/Revenue';
 import Security from './pages/superadmin/Security';
-import TeacherLayout from './pages/Teacher/TeacherLayout';
+
+// Teacher Pages
 import TeacherDashboard from './pages/Teacher/TeacherDashboard';
 import AssignedClasses from './pages/Teacher/AssignedClasses';
 import MarkAttendance from './pages/Teacher/MarkAttendance';
 import AddMarks from './pages/Teacher/AddMarks';
 import Assignments from './pages/Teacher/Assignments';
-import Communication from './pages/Teacher/Communication';
-import TeacherTimetable from './pages/Teacher/Timetable';
 import TeacherLeaves from './pages/Teacher/TeacherLeaves';
-import StudentLayout from './pages/Student/StudentLayout';
+
+// Student Pages
 import StudentDashboard from './pages/Student/StudentDashboard';
 import AttendanceHistory from './pages/Student/AttendanceHistory';
 import AcademicResults from './pages/Student/AcademicResults';
 import AssignmentsStudent from './pages/Student/Assignments';
 import Timetable from './pages/Student/Timetable';
 import StudentProfile from './pages/Student/StudentProfile';
+
+// Common Pages
 import Holidays from './pages/common/Holidays';
+
+// Utilities & Context
 import ToastManager from './ToastManager';
 import { SocketProvider } from './context/SocketContext';
+
+// Lazy Loaded Nodes
+const TeacherTimetable = React.lazy(() => import('./pages/Teacher/Timetable'));
+const TeacherMessages = React.lazy(() => import('./pages/Teacher/Communication'));
+const TeacherProfile = React.lazy(() => import('./pages/Teacher/TeacherProfile'));
+const TeacherAnalytics = React.lazy(() => import('./pages/Teacher/AttendanceAnalytics'));
+const TeacherPayroll = React.lazy(() => import('./pages/Teacher/Payroll'));
+const ClassStudents = React.lazy(() => import('./pages/Teacher/ClassStudents'));
 
 const { store, persistor } = configureStore();
 
@@ -59,8 +78,6 @@ const RoleRoute = ({ children, role }) => {
   if (role && user?.role !== role) return <Navigate to="/" />;
   return children;
 };
-
-
 
 function AppRoutes() {
   const { isAuthenticated, user } = useSelector((state) => state.auth);
@@ -100,11 +117,15 @@ function AppRoutes() {
         }>
           <Route index element={<TeacherDashboard />} />
           <Route path="classes" element={<AssignedClasses />} />
+          <Route path="students/:classId" element={<ClassStudents />} />
           <Route path="attendance" element={<MarkAttendance />} />
           <Route path="marks" element={<AddMarks />} />
           <Route path="assignments" element={<Assignments />} />
           <Route path="timetable" element={<TeacherTimetable />} />
-          <Route path="messages" element={<Communication />} />
+          <Route path="messages" element={<TeacherMessages />} />
+          <Route path="profile" element={<TeacherProfile />} />
+          <Route path="analytics" element={<TeacherAnalytics />} />
+          <Route path="payroll" element={<TeacherPayroll />} />
           <Route path="leaves" element={<TeacherLeaves />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
@@ -120,75 +141,41 @@ function AppRoutes() {
           <Route path="fees" element={<Fees />} />
           <Route path="exams" element={<Exams />} />
           <Route path="attendance" element={<Attendance />} />
-          <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
+          <Route path="attendance-analytics" element={<AttendanceAnalytics />} />
           <Route path="subjects" element={<Subjects />} />
           <Route path="timetable" element={<AdminTimetable />} />
           <Route path="communication" element={<AdminCommunication />} />
-          <Route path="timetables" element={<AdminTimetable />} />
           <Route path="payroll" element={<Payroll />} />
           <Route path="leaves" element={<Leaves />} />
           <Route path="reviews" element={<Reviews />} />
           <Route path="reports" element={<Reports />} />
-          <Route path="holidays" element={<Holidays />} />
           <Route path="profile" element={<SchoolProfile />} />
         </Route>
 
-
-
-        {/* Main Entry Point (Switchboard) */}
-        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-
-        {/* Super Admin Domain (Nested Pages) */}
-        <Route path="/superadmin" element={isAuthenticated && user?.role === 'Super_Admin' ? <SuperAdminDashboard /> : <Navigate to="/" />}>
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<SuperAdminHome />} />
-          <Route path="schools" element={<AllSchools />} />
+        {/* Super Admin Panel */}
+        <Route path="/superadmin" element={
+          <RoleRoute role="Super_Admin"><SuperAdminHome /></RoleRoute>
+        }>
+          <Route index element={<SuperAdminDashboard />} />
+          <Route path="all-schools" element={<AllSchools />} />
           <Route path="revenue" element={<Revenue />} />
           <Route path="security" element={<Security />} />
         </Route>
-
-        {/* Catch-all Redirect */}
-        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
 }
-
 
 function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
         <SocketProvider>
-          <Toaster
-            position="top-center"
-            toastOptions={{
-              duration: 4000,
-              style: {
-                background: '#0f172a',
-                color: '#fff',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                borderRadius: '16px',
-                backdropFilter: 'blur(10px)',
-                fontWeight: '600',
-                fontSize: '14px',
-              },
-              success: {
-                iconTheme: {
-                  primary: '#10b981',
-                  secondary: '#fff',
-                },
-              },
-              error: {
-                iconTheme: {
-                  primary: '#f43f5e',
-                  secondary: '#fff',
-                },
-              },
-            }}
-          />
-          <ToastManager />
-          <AppRoutes />
+          <div className="App overflow-hidden">
+            <AppRoutes />
+            <Toaster position="top-right" reverseOrder={false} />
+            <ToastManager />
+          </div>
         </SocketProvider>
       </PersistGate>
     </Provider>

@@ -64,7 +64,7 @@ const TeacherLeaves = () => {
         <div className="space-y-8">
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-black uppercase tracking-tighter font-outfit text-white">Leave Portal</h1>
+                    <h1 className="text-3xl text-left font-black uppercase tracking-tighter font-outfit text-white">Leave Portal</h1>
                     <p className="text-slate-500 text-sm mt-1">Manage your time-off applications and track status</p>
                 </div>
                 <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95">

@@ -1,6 +1,15 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../../utils/axiosInstance';
 
+export const fetchDashboard = createAsyncThunk('teacher/fetchDashboard', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/dashboard');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 export const fetchAssignedClasses = createAsyncThunk('teacher/fetchClasses', async (_, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get('/teacher/assigned-classes');
@@ -13,6 +22,40 @@ export const fetchAssignedClasses = createAsyncThunk('teacher/fetchClasses', asy
 export const fetchClassStudents = createAsyncThunk('teacher/fetchStudents', async (classId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/teacher/assigned-students/${classId}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchStudentDetail = createAsyncThunk('teacher/fetchStudentDetail', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/student-detail/${studentId}`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchSubmissions = createAsyncThunk('teacher/fetchSubmissions', async (assignmentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/teacher/assignments/${assignmentId}/submissions`);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchPayroll = createAsyncThunk('teacher/fetchPayroll', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/payroll');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const gradeSubmissionThunk = createAsyncThunk('teacher/gradeSubmission', async ({ id, score, feedback }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post(`/teacher/grade-submission/${id}`, { score, feedback });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -105,6 +148,15 @@ export const fetchTeacherAttendance = createAsyncThunk('teacher/fetchAttendance'
     }
 });
 
+export const fetchAttendanceAnalytics = createAsyncThunk('teacher/fetchAttendanceAnalytics', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/attendance-analytics');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 export const fetchTeacherMarks = createAsyncThunk('teacher/fetchMarks', async (examId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/teacher/marks/${examId}`);
@@ -141,17 +193,53 @@ export const fetchMyLeaves = createAsyncThunk('teacher/fetchMyLeaves', async (_,
     }
 });
 
+export const fetchProfile = createAsyncThunk('teacher/fetchProfile', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/profile');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const updateProfile = createAsyncThunk('teacher/updateProfile', async (formData, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put('/teacher/profile', formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const changeTeacherPassword = createAsyncThunk('teacher/changePassword', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/change-password', data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
         classes: [],
+        dashboard: null,
         students: [],
+        studentDetail: null,
+        submissions: [],
+        payroll: [],
+        analytics: null,
         exams: [],
         attendance: [],
+        attendanceAnalytics: null,
         marks: [],
         timetable: null,
         assignments: [],
         leaves: [],
+        profile: null,
         loading: false,
         error: null,
         message: null
@@ -164,6 +252,11 @@ const teacherSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(fetchDashboard.pending, (state) => { state.loading = true; })
+            .addCase(fetchDashboard.fulfilled, (state, action) => {
+                state.loading = false;
+                state.dashboard = action.payload;
+            })
             .addCase(fetchAssignedClasses.pending, (state) => { state.loading = true; })
             .addCase(fetchAssignedClasses.fulfilled, (state, action) => {
                 state.loading = false;
@@ -172,11 +265,32 @@ const teacherSlice = createSlice({
             .addCase(fetchClassStudents.fulfilled, (state, action) => {
                 state.students = action.payload;
             })
+            .addCase(fetchStudentDetail.fulfilled, (state, action) => {
+                state.studentDetail = action.payload;
+            })
+            .addCase(fetchSubmissions.fulfilled, (state, action) => {
+                state.loading = false;
+                state.submissions = action.payload;
+            })
+            .addCase(gradeSubmissionThunk.fulfilled, (state, action) => {
+              state.loading = false;
+              state.message = action.payload.message;
+              const index = state.submissions.findIndex(s => s._id === action.payload.submission._id);
+              if (index !== -1) state.submissions[index] = action.payload.submission;
+            })
+            .addCase(fetchPayroll.fulfilled, (state, action) => {
+                state.loading = false;
+                state.payroll = action.payload;
+            })
             .addCase(fetchExamsByClass.fulfilled, (state, action) => {
                 state.exams = action.payload;
             })
             .addCase(fetchTeacherAttendance.fulfilled, (state, action) => {
                 state.attendance = action.payload;
+            })
+            .addCase(fetchAttendanceAnalytics.fulfilled, (state, action) => {
+                state.loading = false;
+                state.attendanceAnalytics = action.payload;
             })
             .addCase(fetchTeacherMarks.fulfilled, (state, action) => {
                 state.marks = action.payload;
@@ -214,6 +328,19 @@ const teacherSlice = createSlice({
                 state.loading = false;
                 state.message = action.payload?.message || "Leave application submitted";
                 state.leaves = [action.payload.leave || action.payload, ...state.leaves];
+            })
+            .addCase(fetchProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.profile = action.payload;
+            })
+            .addCase(updateProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.profile = action.payload.teacher || action.payload;
+                state.message = action.payload?.message || "Profile synchronized";
+            })
+            .addCase(changeTeacherPassword.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload?.message || "Password updated";
             })
             .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; });
     }

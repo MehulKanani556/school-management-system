@@ -7,7 +7,8 @@ const { requireRole } = require('../middleware/roleCheck');
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
 const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
-const tc = require('../controllers/teacher.controller');
+const tc = require("../controllers/teacher.controller");
+const nc = require("../controllers/notification.controller");
 const stc = require('../controllers/student.controller');
 const hc = require('../controllers/holiday.controller');
 const tbc = require('../controllers/timetable.controller');
@@ -23,6 +24,10 @@ router.post('/change-password', changePassword);
 router.post('/generatenewtoken', auth, generateNewToken);
 
 // user
+router.get('/notifications', auth, nc.getNotifications);
+router.put('/notifications/:id/read', auth, nc.markAsRead);
+router.put('/notifications/read-all', auth, nc.markAllAsRead);
+router.delete('/notifications/:id', auth, nc.deleteNotification);
 router.get('/users', getAllUsers);
 router.get('/users/:id', getSingleUser);
 router.delete('/users/:id', auth, deleteUser);
@@ -150,9 +155,12 @@ router.patch('/superadmin/update-status/:id', ...superAdmin, updateSchoolStatus)
 
 // ─── Teacher Routes ───────────────────────────────────────────────────────────
 const teacher = [auth, requireRole('Teacher')];
-
+ 
+// teacher section
+router.get('/teacher/dashboard', ...teacher, tc.getTeacherDashboard);
 router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
 router.get('/teacher/assigned-students/:classId', ...teacher, tc.getAssignedClassStudents);
+router.get('/teacher/student-detail/:id', ...teacher, tc.getStudentDetail);
 router.get('/teacher/exams/:classId', ...teacher, tc.getExamsByClass);
 router.get('/teacher/attendance', ...teacher, tc.getAttendanceByClassAndDate);
 router.get('/teacher/marks/:examId', ...teacher, tc.getMarksByExam);
@@ -161,9 +169,16 @@ router.post('/teacher/add-marks', ...teacher, tc.addMarks);
 router.post('/teacher/upload-assignment', ...teacher, upload.single('file'), tc.uploadAssignment);
 router.get('/teacher/assignments', ...teacher, tc.getAssignments);
 router.put('/teacher/assignments/:id', ...teacher, upload.single('file'), tc.updateAssignment);
+router.get('/teacher/payroll', ...teacher, tc.getMyPayroll);
+router.get('/teacher/assignments/:id/submissions', ...teacher, tc.getAssignmentSubmissions);
+router.post('/teacher/grade-submission/:id', ...teacher, tc.gradeSubmission);
 router.delete('/teacher/assignments/:id', ...teacher, tc.deleteAssignment);
 router.post('/teacher/apply-leave', ...teacher, tc.applyLeave);
 router.get('/teacher/my-leaves', ...teacher, tc.getMyLeaves);
+router.get('/teacher/attendance-analytics', ...teacher, tc.getAttendanceAnalytics);
+router.get('/teacher/profile', ...teacher, tc.getProfile);
+router.put('/teacher/profile', ...teacher, upload.single('photo'), tc.updateProfile);
+router.post('/teacher/change-password', ...teacher, tc.changePassword);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
 router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 

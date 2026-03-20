@@ -5,6 +5,7 @@ import schoolReducer from './slice/school.slice';
 import userReducer from './slice/user.slice';
 import teacherReducer from './slice/teacher.slice';
 import studentReducer from './slice/student.slice';
+import notificationReducer from './slice/notification.slice';
 
 import communicationReducer from './slice/communication.slice';
 
@@ -15,6 +16,7 @@ const rootReducer = combineReducers({
     user: userReducer,
     teacher: teacherReducer,
     student: studentReducer,
+    notifications: notificationReducer,
     communication: communicationReducer
 });
 

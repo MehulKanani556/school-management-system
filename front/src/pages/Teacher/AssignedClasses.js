@@ -17,7 +17,7 @@ const AssignedClasses = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit">Class Registry</h1>
+                    <h1 className="text-3xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit">Class Registry</h1>
                     <p className="text-slate-500 font-medium text-sm tracking-wide">Managing 0{classes.length} active academic sectors assigned to your faculty profile.</p>
                 </div>
                 <div className="px-5 py-2.5 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Node-Level Access Only</div>
@@ -60,15 +60,18 @@ const AssignedClasses = () => {
                                                 ))}
                                             </div>
                                         </td>
-                                        <td className="px-8 py-7 text-right">
-                                            <div className="flex items-center justify-end gap-3 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all">
-                                                <Link to={`/teacher/attendance?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-luxury-emerald hover:border-luxury-emerald/40 transition-all shadow-lg" title="Attendance">
+                                        <td className="px-8 py-7">
+                                            <div className="flex items-center justify-end gap-3">
+                                                <Link to={`/teacher/students/${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-secondary hover:border-brand-secondary/40 transition-all shadow-lg backdrop-blur-md" title="View Students">
+                                                    <Users size={18} />
+                                                </Link>
+                                                <Link to={`/teacher/attendance?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-luxury-emerald hover:border-luxury-emerald/40 transition-all shadow-lg backdrop-blur-md" title="Attendance">
                                                     <ClipboardList size={18} />
                                                 </Link>
-                                                <Link to={`/teacher/marks?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all shadow-lg" title="Add Marks">
+                                                <Link to={`/teacher/marks?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all shadow-lg backdrop-blur-md" title="Add Marks">
                                                     <Activity size={18} />
                                                 </Link>
-                                                <Link to={`/teacher/assignments?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-secondary hover:border-brand-secondary/40 transition-all shadow-lg" title="Publish Assignment">
+                                                <Link to={`/teacher/assignments?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-accent hover:border-brand-accent/40 transition-all shadow-lg backdrop-blur-md" title="Publish Assignment">
                                                     <ArrowRight size={18} />
                                                 </Link>
                                             </div>

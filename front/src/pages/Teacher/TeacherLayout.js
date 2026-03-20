@@ -4,18 +4,49 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { 
     LayoutDashboard, Users, BookOpen, ClipboardList, 
     Upload, MessageSquare, LogOut, ChevronRight,
-    Bell, User, Activity, Calendar, Clock, CalendarDays
+    Bell, User, Activity, Calendar, Clock, CalendarDays, TrendingUp, DollarSign
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { resetUnreadCount } from '../../redux/slice/communication.slice';
+import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
+import { useSocket } from '../../context/SocketContext';
+import NotificationPanel from '../../components/NotificationPanel';
 
 const TeacherLayout = () => {
     const dispatch = useDispatch();
     const location = useLocation();
     const { user } = useSelector((state) => state.auth);
     const { unreadCount } = useSelector((state) => state.communication);
+    const { unreadCount: notifCount } = useSelector((state) => state.notifications);
+    const { socket } = useSocket();
+    const [isNotifOpen, setIsNotifOpen] = React.useState(false);
+    
+    React.useEffect(() => {
+        dispatch(fetchNotifications());
+    }, [dispatch]);
+
+    React.useEffect(() => {
+        if (!socket) return;
+        socket.on('new_notification', (notif) => {
+            dispatch(receiveNotification(notif));
+            toast.success(`Matrix Alert: ${notif.title}`, {
+                icon: '🔔',
+                style: {
+                    borderRadius: '1.5rem',
+                    background: '#0f172a',
+                    color: '#fff',
+                    border: '1px solid #1e293b',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    fontSize: '10px'
+                }
+            });
+        });
+        return () => socket.off('new_notification');
+    }, [socket, dispatch]);
 
     const menuItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/teacher' },
@@ -23,9 +54,12 @@ const TeacherLayout = () => {
         { icon: ClipboardList, label: 'Mark Attendance', path: '/teacher/attendance' },
         { icon: Activity, label: 'Add Marks', path: '/teacher/marks' },
         { icon: Upload, label: 'Homework Section', path: '/teacher/assignments' },
+        { icon: TrendingUp, label: 'Engagement Intelligence', path: '/teacher/analytics' },
         { icon: Clock, label: 'Timetable', path: '/teacher/timetable' },
         { icon: MessageSquare, label: 'Communicate', path: '/teacher/messages' },
+        { icon: DollarSign, label: 'Financial Matrix', path: '/teacher/payroll' },
         { icon: CalendarDays, label: 'My Leaves', path: '/teacher/leaves' },
+        { icon: User, label: 'Matrix Profile', path: '/teacher/profile' },
         { icon: Calendar, label: 'Holidays', path: '/teacher/holidays' },
     ];
 
@@ -87,10 +121,16 @@ const TeacherLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
-                        <button className="p-2.5 rounded-md bg-slate-800/40 border border-slate-700/50 text-slate-400 hover:text-brand-primary transition-all relative">
-                            <Bell size={18} />
-                            <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900"></span>
-                        </button>
+                        <div className="relative">
+                            <button 
+                                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                                className={`p-2.5 rounded-xl border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+                            >
+                                <Bell size={18} />
+                                {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
+                            </button>
+                            <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+                        </div>
                         
                         <div className="h-10 w-px bg-slate-800/60"></div>
 
