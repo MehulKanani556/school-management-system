@@ -270,7 +270,7 @@ exports.deleteStandard = async (req, res) => {
 // ─── Students ─────────────────────────────────────────────────────────────────
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find({ schoolId: getSchoolId(req), deletedAt: null })
+    const students = await Student.find({ schoolId: getSchoolId(req), deletedAt: null }).sort({ createdAt: -1 })
       .populate('standard', 'level name')
       .populate('classSection', 'sectionLabel');
     res.json(students);
@@ -363,7 +363,7 @@ const validateTeacher = (body) => {
 // ─── Teachers ─────────────────────────────────────────────────────────────────
 exports.getTeachers = async (req, res) => {
   try {
-    const teachers = await Teacher.find({ schoolId: getSchoolId(req), deletedAt: null });
+    const teachers = await Teacher.find({ schoolId: getSchoolId(req), deletedAt: null }).sort({ createdAt: -1 });
     res.json(teachers);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -969,7 +969,11 @@ exports.importStudents = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const schoolId = getSchoolId(req);
+    // take from req.body as per user requirement
+    const schoolId = req.body.schoolId || getSchoolId(req);
+    const schoolAdminId = req.body.schoolAdminId || req.user._id;
+    const createdBy = req.body.createdBy || req.user._id;
+
     const results = [];
     const standards = await Standard.find({ schoolId });
     const sections = await ClassSection.find({ schoolId });
@@ -980,39 +984,82 @@ exports.importStudents = async (req, res) => {
       .on('end', async () => {
         try {
           const processed = [];
-          for (const row of results) {
-            const std = standards.find(s => String(s.level) === row.Standard);
-            const sec = std ? sections.find(s => s.sectionLabel === row.Section && String(s.standardId) === String(std._id)) : null;
+          const skipped = [];
+
+          for (const [index, row] of results.entries()) {
+            const firstName = row.firstName || row['First Name'];
+            const lastName = row.lastName || row['Last Name'];
+            const dobStr = row.dateOfBirth || row['Date of Birth'];
+            const standardStr = row.standard || row.Standard;
+            const classSectionStr = row.classSection || row.Section;
+
+            // Basic validation
+            if (!firstName || !lastName || !dobStr || !standardStr) {
+              skipped.push({ row: index + 1, reason: 'Missing required fields (firstName, lastName, dateOfBirth, or standard)' });
+              continue;
+            }
+
+            const standardLevelMatch = String(standardStr).match(/\d+/);
+            const standardLevel = standardLevelMatch ? parseInt(standardLevelMatch[0], 10) : null;
+
+            const std = standards.find(s => s.level === standardLevel);
+            if (!std) {
+              skipped.push({ row: index + 1, reason: `Standard level "${standardStr}" not found` });
+              continue;
+            }
+
+            const sec = std ? sections.find(s => s.sectionLabel === classSectionStr && String(s.standardId) === String(std._id)) : null;
+            if (classSectionStr && !sec) {
+              skipped.push({ row: index + 1, reason: `Section "${classSectionStr}" not found in standard ${standardLevel}` });
+              continue;
+            }
+
+            const dob = parseCSVDate(dobStr);
+            if (!dob) {
+              skipped.push({ row: index + 1, reason: `Invalid date format: ${dobStr}` });
+              continue;
+            }
 
             let plainPassword = '123456';
-            const dob = parseCSVDate(row['Date of Birth']);
             if (dob) {
-              plainPassword = `${String(dob.getDate()).padStart(2, '0')}${String(dob.getMonth() + 1).padStart(2, '0')}${String(dob.getFullYear()).substring(2)}`;
+              plainPassword = `${String(dob.getDate()).padStart(2, '0')}${String(dob.getMonth() + 1).padStart(2, '0')}${String(dob.getFullYear())}`;
             }
             const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
             processed.push({
-              firstName: row['First Name'],
-              lastName: row['Last Name'],
-              admissionNumber: row['Admission Number'] || undefined,
-              rollNumber: row['Roll Number'],
+              firstName,
+              lastName,
+              admissionNumber: undefined,
+              rollNumber: row.rollNumber || row['Roll Number'] || '',
               dateOfBirth: dob,
-              gender: (row.Gender || 'other').toLowerCase(),
-              guardianName: row['Guardian Name'],
-              guardianContact: row['Guardian Contact'],
-              address: row.Address,
-              standard: std ? std._id : undefined,
+              gender: (row.gender || row.Gender || 'other').toLowerCase(),
+              guardianName: row.guardianName || row['Guardian Name'],
+              guardianContact: row.guardianContact || row['Guardian Contact'],
+              address: row.address || row.Address,
+              standard: std._id,
               classSection: sec ? sec._id : undefined,
+              isActive: row.isActive === 'TRUE' || row.isActive === 'true' || row.isActive === true,
               schoolId,
-              schoolAdminId: req.user._id,
-              createdBy: req.user._id,
+              schoolAdminId,
+              createdBy,
               password: hashedPassword
             });
           }
 
-          await Student.insertMany(processed);
+          // Use sequential creation to ensure the admissionNumber sequence is correct
+          for (const studentData of processed) {
+            await Student.create(studentData);
+          }
+
           if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-          res.status(201).json({ message: `${processed.length} students imported successfully` });
+
+          res.status(201).json({
+            message: `${processed.length} students imported successfully`,
+            totalRows: results.length,
+            imported: processed.length,
+            skipped: skipped.length,
+            details: skipped.length > 0 ? skipped : undefined
+          });
         } catch (err) { res.status(500).json({ message: err.message }); }
       });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1046,7 +1093,9 @@ exports.importTeachers = async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: 'No file uploaded' });
 
-    const schoolId = getSchoolId(req);
+    const schoolId = req.body.schoolId || getSchoolId(req);
+    const schoolAdminId = req.body.schoolAdminId || req.user._id;
+
     const results = [];
 
     fs.createReadStream(req.file.path)
@@ -1055,41 +1104,76 @@ exports.importTeachers = async (req, res) => {
       .on('end', async () => {
         try {
           let count = 0;
-          for (const row of results) {
-            const email = row.Email?.trim();
-            if (!email) continue;
+          const skipped = [];
 
-            const existing = await User.findOne({ email });
-            if (existing) continue;
+          for (const [index, row] of results.entries()) {
+            const firstName = row.firstName || row['First Name'];
+            const lastName = row.lastName || row['Last Name'];
+            const email = (row.email || row.Email)?.trim();
+            const phone = row.phone || row.Phone;
+            const employeeId = row.employeeId || row['Employee ID'];
+            const qualificationsStr = row.qualifications || row.Qualifications;
+            const joiningDateStr = row.joiningDate || row['Joining Date'];
+
+            if (!firstName || !lastName || !email || !phone) {
+              skipped.push({ row: index + 1, reason: 'Missing required fields (firstName, lastName, email, or phone)' });
+              continue;
+            }
+
+            // Check for existing user with this email
+            const existingUser = await User.findOne({ email });
+            if (existingUser) {
+              skipped.push({ row: index + 1, reason: `User with email "${email}" already exists` });
+              continue;
+            }
+
+            // Check for existing teacher with this phone
+            const existingTeacherByPhone = await Teacher.findOne({ phone: String(phone).trim() });
+            if (existingTeacherByPhone) {
+              skipped.push({ row: index + 1, reason: `Teacher with phone "${phone}" already exists` });
+              continue;
+            }
 
             const hashedPassword = await bcrypt.hash(email, 10);
+            const isActive = row.isActive === 'TRUE' || row.isActive === 'true' || row.isActive === true;
+
             const user = await User.create({
-              firstName: row['First Name'],
-              lastName: row['Last Name'],
+              firstName,
+              lastName,
               email,
               password: hashedPassword,
               role: 'Teacher',
               schoolId,
-              photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(row['First Name'] + ' ' + row['Last Name'])}&background=2563eb&color=fff`,
+              isActive,
+              photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&background=2563eb&color=fff`,
             });
 
             await Teacher.create({
-              firstName: row['First Name'],
-              lastName: row['Last Name'],
+              firstName,
+              lastName,
               email,
-              phone: row.Phone,
-              employeeId: row['Employee ID'] || undefined,
+              phone,
+              employeeId: employeeId || undefined,
               schoolId,
-              schoolAdminId: req.user._id,
+              schoolAdminId,
               userId: user._id,
-              qualifications: row.Qualifications ? row.Qualifications.split(',').map(q => q.trim()) : [],
-              joiningDate: parseCSVDate(row['Joining Date'])
+              baseSalary: Number(row.baseSalary) || 0,
+              isActive,
+              qualifications: qualificationsStr ? qualificationsStr.split(',').map(q => q.trim()) : [],
+              joiningDate: parseCSVDate(joiningDateStr)
             });
             count++;
           }
 
           if (fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
-          res.status(201).json({ message: `${count} teachers imported successfully` });
+
+          res.status(201).json({
+            message: `${count} teachers imported successfully`,
+            totalRows: results.length,
+            imported: count,
+            skipped: skipped.length,
+            details: skipped.length > 0 ? skipped : undefined
+          });
         } catch (err) { res.status(500).json({ message: err.message }); }
       });
   } catch (err) { res.status(500).json({ message: err.message }); }
