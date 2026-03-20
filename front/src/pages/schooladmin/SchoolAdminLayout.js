@@ -1,46 +1,85 @@
-import React, { useState } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings
+  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import MainHeader from '../../components/MainHeader';
 import { resetUnreadCount } from '../../redux/slice/communication.slice';
 
 const navItems = [
-  { to: '/school-admin',          icon: LayoutDashboard, label: 'Dashboard',  end: true },
-  { to: '/school-admin/students', icon: Users,           label: 'Students' },
-  { to: '/school-admin/teachers', icon: GraduationCap,   label: 'Teachers' },
-  { to: '/school-admin/classes',  icon: BookOpen,        label: 'Classes' },
-  { to: '/school-admin/subjects', icon: BookMarked,      label: 'Subjects' },
-  { to: '/school-admin/fees',     icon: CreditCard,      label: 'Fees' },
-  { to: '/school-admin/exams',    icon: ClipboardList,   label: 'Exams' },
-  { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance' },
-  { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Attendance Intel' },
-  { to: '/school-admin/reports',    icon: BarChart3,     label: 'Reports & Analytics' },
-  { to: '/school-admin/timetable',  icon: Clock,         label: 'Timetable' },
-  { to: '/school-admin/communication', icon: MessageSquare, label: 'Communication' },
-  { to: '/school-admin/payroll',    icon: Banknote,      label: 'Payroll' },
-  { to: '/school-admin/leaves',     icon: CalendarDays,  label: 'Leaves' },
-  { to: '/school-admin/reviews',    icon: Rocket,        label: 'Reviews' },
-  { to: '/school-admin/holidays',   icon: Calendar,      label: 'Holidays' },
-  { to: '/school-admin/profile',    icon: Settings,      label: 'Settings' },
+  { to: '/school-admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  {
+    label: 'Academic',
+    icon: GraduationCap,
+    children: [
+      { to: '/school-admin/students', icon: Users, label: 'Students' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teachers' },
+      { to: '/school-admin/classes', icon: BookOpen, label: 'Classes' },
+      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subjects' },
+      { to: '/school-admin/timetable', icon: Clock, label: 'Timetable' },
+    ]
+  },
+  {
+    label: 'Exams & Attendance',
+    icon: ClipboardList,
+    children: [
+      { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Registry' },
+      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Attendance Intel' },
+      { to: '/school-admin/exams', icon: ClipboardList, label: 'Exam Center' },
+      { to: '/school-admin/holidays', icon: Calendar, label: 'Academic Calendar' },
+    ]
+  },
+  {
+    label: 'Financials',
+    icon: CreditCard,
+    children: [
+      { to: '/school-admin/fees', icon: CreditCard, label: 'Fee Management' },
+      { to: '/school-admin/payroll', icon: Banknote, label: 'Payroll' },
+    ]
+  },
+  {
+    label: 'Staff Management',
+    icon: Rocket,
+    children: [
+      { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
+      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Reviews' },
+    ]
+  },
+  { to: '/school-admin/communication', icon: MessageSquare, label: 'Messages' },
+  { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
+  { to: '/school-admin/profile', icon: Settings, label: 'Settings' },
 ];
 
 const SchoolAdminLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { user } = useSelector((state) => state.auth);
   const { unreadCount } = useSelector((state) => state.communication);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+
+  useEffect(() => {
+    // Auto-expand menu based on current path
+    const activeParent = navItems.find(item =>
+      item.children?.some(child => location.pathname === child.to)
+    );
+    if (activeParent) setExpanded(activeParent.label);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
+  };
+
+  const toggleSubmenu = (label) => {
+    setExpanded(expanded === label ? null : label);
   };
 
   return (
@@ -63,39 +102,83 @@ const SchoolAdminLayout = () => {
 
         {/* Nav */}
         <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto custom-scrollbar">
-          {navItems.map(({ to, icon: Icon, label, end }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={end}
-              onClick={() => {
-                setSidebarOpen(false);
-                if (label === 'Communication') dispatch(resetUnreadCount());
-              }}
-              className={({ isActive }) =>
-                `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${
-                  isActive
-                    ? 'bg-brand-primary text-white shadow-[0_8px_25px_-10px_rgba(37,99,235,0.6)]'
-                    : 'text-slate-500 hover:bg-slate-800/40 hover:text-white'
-                }`
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
+          {navItems.map((item) => {
+            const hasChildren = !!item.children;
+            const isExpanded = expanded === item.label;
+            const Icon = item.icon;
+
+            if (!hasChildren) {
+              return (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  end={item.end}
+                  onClick={() => setSidebarOpen(false)}
+                  className={({ isActive }) =>
+                    `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive
+                      ? 'bg-brand-primary text-white shadow-[0_8px_25px_-10px_rgba(37,99,235,0.6)]'
+                      : 'text-slate-500 hover:bg-slate-800/40 hover:text-white'
+                    }`
+                  }
+                >
+                  {({ isActive }) => (
+                    <>
+                      <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
+                        <Icon size={18} />
+                      </div>
+                      <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{item.label}</span>
+                      <ChevronRight size={14} className={`transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`} />
+                    </>
+                  )}
+                </NavLink>
+              );
+            }
+
+            return (
+              <div key={item.label} className="space-y-1">
+                <button
+                  onClick={() => toggleSubmenu(item.label)}
+                  className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isExpanded ? 'text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800/40'
+                    }`}
+                >
+                  <div className={`p-2 rounded-xl transition-all duration-300 ${isExpanded ? 'bg-brand-primary/20 text-brand-primary' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
                     <Icon size={18} />
                   </div>
-                  <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{label}</span>
-                  {label === 'Communication' && (unreadCount > 0) && (
-                    <div className="absolute top-2 right-2 flex h-5 w-5 items-center justify-center rounded-full bg-luxury-rose text-[10px] font-black italic shadow-lg animate-bounce border border-white/20">
-                      {unreadCount}
-                    </div>
+                  <span className="font-black text-sm uppercase tracking-wider font-outfit text-left flex-1">{item.label}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'opacity-40'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden pl-4 space-y-1"
+                    >
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        return (
+                          <NavLink
+                            key={child.to}
+                            to={child.to}
+                            onClick={() => setSidebarOpen(false)}
+                            className={({ isActive }) =>
+                              `flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 group ${isActive ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
+                              }`
+                            }
+                          >
+                            <ChildIcon size={16} className="opacity-60 group-hover:opacity-100 transition-opacity" />
+                            <span className="font-black text-[11px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                          </NavLink>
+                        );
+                      })}
+                    </motion.div>
                   )}
-                  <ChevronRight size={14} className={`transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`} />
-                </>
-              )}
-            </NavLink>
-          ))}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
         {/* User Info */}
