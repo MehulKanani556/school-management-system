@@ -18,6 +18,8 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
 const csv = require('csv-parser');
+const PDFDocument = require('pdfkit');
+const School = require('../models/school.model');
 const { Parser } = require('json2csv');
 
 const getSchoolId = (req) => req.user.schoolId;
@@ -335,6 +337,45 @@ exports.deleteStudent = async (req, res) => {
       { deletedAt: new Date(), isActive: false }
     );
     res.json({ message: 'Student record deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.promoteStudents = async (req, res) => {
+  try {
+    const { studentIds, fromStandardId, fromClassSectionId, toStandardId, toClassSectionId } = req.body;
+    const schoolId = getSchoolId(req);
+
+    // Build filter for source selection
+    let filter = { schoolId, deletedAt: null };
+    if (Array.isArray(studentIds) && studentIds.length > 0) {
+      filter._id = { $in: studentIds };
+    } else if (fromClassSectionId) {
+      filter.classSection = fromClassSectionId;
+    } else if (fromStandardId) {
+      filter.standard = fromStandardId;
+    } else {
+      return res.status(400).json({ message: 'Please specify students or source class to promote' });
+    }
+
+    // Check target standard existence
+    const targetStandard = await Standard.findOne({ _id: toStandardId, schoolId });
+    if (!targetStandard) return res.status(404).json({ message: 'Target grade level (Standard) not found' });
+
+    // Update students
+    const updateData = { standard: toStandardId };
+    if (toClassSectionId) {
+      updateData.classSection = toClassSectionId;
+    } else {
+      // If moving to next grade but section is not yet decided, clear the old section
+      updateData.classSection = null;
+    }
+
+    const result = await Student.updateMany(filter, updateData);
+
+    res.json({ 
+      message: `Promotion cycle completed. ${result.modifiedCount} records migrated to Level ${targetStandard.level}.`, 
+      modifiedCount: result.modifiedCount 
+    });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -747,6 +788,239 @@ exports.deleteExam = async (req, res) => {
   try {
     await Exam.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
     res.json({ message: 'Exam deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getExamAnalytics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const exam = await Exam.findById(id).populate('subject');
+    if (!exam) return res.status(404).json({ message: 'Exam node not found' });
+
+    const marks = await Mark.find({ examId: id, schoolId }).populate('studentId', 'firstName lastName admissionNumber');
+
+    const maxMarks = exam.maxMarks || 100;
+    const distribution = { A: 0, B: 0, C: 0, D: 0, F: 0 };
+    let totalMarks = 0;
+    let highest = 0;
+    let lowest = marks.length > 0 ? marks[0].marksObtained : 0;
+    const studentPerformance = [];
+
+    let passCount = 0;
+    let failCount = 0;
+
+    marks.forEach(m => {
+      const percentage = (m.marksObtained / maxMarks) * 100;
+      if (percentage >= 90) distribution.A++;
+      else if (percentage >= 80) distribution.B++;
+      else if (percentage >= 70) distribution.C++;
+      else if (percentage >= 60) distribution.D++;
+      else distribution.F++;
+
+      if (percentage >= 40) passCount++;
+      else failCount++;
+
+      totalMarks += m.marksObtained;
+      if (m.marksObtained > highest) highest = m.marksObtained;
+      if (m.marksObtained < lowest) lowest = m.marksObtained;
+      
+      studentPerformance.push({
+        name: `${m.studentId?.firstName} ${m.studentId?.lastName}`,
+        admissionNumber: m.studentId?.admissionNumber,
+        marks: m.marksObtained,
+        percentage: Number(percentage.toFixed(1)),
+        result: percentage >= 40 ? 'Pass' : 'Fail'
+      });
+    });
+
+    res.json({
+      examName: exam.name,
+      totalStudents: marks.length,
+      averageMarks: marks.length > 0 ? Number((totalMarks / marks.length).toFixed(1)) : 0,
+      highest,
+      lowest,
+      passCount,
+      failCount,
+      passRate: marks.length > 0 ? Number(((passCount / marks.length) * 100).toFixed(1)) : 0,
+      distribution: [
+        { name: 'Grade A (90+)', value: distribution.A, color: '#10b981' },
+        { name: 'Grade B (80+)', value: distribution.B, color: '#3b82f6' },
+        { name: 'Grade C (70+)', value: distribution.C, color: '#f59e0b' },
+        { name: 'Grade D (60+)', value: distribution.D, color: '#6366f1' },
+        { name: 'Grade F (<60)', value: distribution.F, color: '#ef4444' }
+      ],
+      topPerformers: studentPerformance.sort((a, b) => b.marks - a.marks).slice(0, 10),
+      studentPerformance // Full list if needed
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.toggleExamPublishStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+    const exam = await Exam.findOne({ _id: id, schoolId });
+    if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
+    
+    exam.isPublished = !exam.isPublished;
+    await exam.save();
+    
+    res.json({ 
+      message: exam.isPublished ? 'Examination Results Published to Students' : 'Examination Pulse Reverted to Draft Status', 
+      isPublished: exam.isPublished 
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.generateReportCard = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const school = await School.findById(schoolId);
+    if (!school) return res.status(404).json({ message: 'School not found' });
+
+    const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    const marks = await Mark.find({ studentId: id, schoolId })
+      .populate({
+        path: 'examId',
+        match: { isPublished: true },
+        populate: { path: 'subject' }
+      });
+
+    const validMarks = marks.filter(m => m.examId !== null);
+
+    const doc = new PDFDocument({ margin: 40, size: 'A4' });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=ReportCard_${student.firstName}_${student.lastName}.pdf`);
+    doc.pipe(res);
+
+    const primaryColor = '#2563eb';
+    const darkColor = '#1e293b';
+    const lightColor = '#f8fafc';
+    const borderColor = '#e2e8f0';
+
+    // ─── Header ───────────────────────────────────────────────────────────────
+    doc.rect(0, 0, 595, 120).fill(darkColor);
+    doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
+    doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('OFFICIAL ACADEMIC REPORT CARD', 40, 75, { characterSpacing: 2 });
+    
+    // Academic Year / Term (Optional placeholder)
+    doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text('ANNUAL SESSION 2025-26', 430, 45, { align: 'right', width: 125 });
+
+    let currentY = 150;
+
+    // ─── Student Information ──────────────────────────────────────────────────
+    doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('STUDENT INFORMATION', 40, currentY);
+    currentY += 15;
+    doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
+    currentY += 15;
+
+    const col1 = 40;
+    const col2 = 300;
+    doc.fillColor(darkColor).fontSize(9).font('Helvetica-Bold');
+    
+    // Grid row 1
+    doc.text('Student Name:', col1, currentY);
+    doc.font('Helvetica').text(`${student.firstName} ${student.lastName}`, col1 + 80, currentY);
+    doc.font('Helvetica-Bold').text('Admission No:', col2, currentY);
+    doc.font('Helvetica').text(student.admissionNumber || 'N/A', col2 + 80, currentY);
+    
+    currentY += 20;
+    // Grid row 2
+    doc.font('Helvetica-Bold').text('Standard/Grade:', col1, currentY);
+    doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'}`, col1 + 80, currentY);
+    doc.font('Helvetica-Bold').text('Class Section:', col2, currentY);
+    doc.font('Helvetica').text(student.classSection?.sectionLabel || 'N/A', col2 + 80, currentY);
+
+    currentY += 40;
+
+    // ─── Performance Table ────────────────────────────────────────────────────
+    doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('ACADEMIC RECORD', 40, currentY);
+    currentY += 15;
+    doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
+    currentY += 15;
+
+    // Table Header
+    const colSubject = 40;
+    const colExam = 240;
+    const colMarks = 400;
+    const colTotal = 480;
+
+    doc.rect(40, currentY, 515, 25).fill(lightColor);
+    doc.fillColor(darkColor).font('Helvetica-Bold').fontSize(9);
+    doc.text('SUBJECT', colSubject + 10, currentY + 8);
+    doc.text('EXAMINATION', colExam + 10, currentY + 8);
+    doc.text('OBTAINED', colMarks + 10, currentY + 8);
+    doc.text('MAX MARKS', colTotal + 10, currentY + 8);
+
+    currentY += 25;
+    let totalObtained = 0;
+    let totalMax = 0;
+
+    validMarks.forEach((m, i) => {
+      if (currentY > 700) { doc.addPage(); currentY = 50; }
+
+      const subjectName = m.examId.subject?.name || 'Subject';
+      const examName = m.examId.name;
+      const obtained = m.marksObtained;
+      const max = m.examId.maxMarks || 100;
+
+      totalObtained += obtained;
+      totalMax += max;
+
+      doc.fillColor(darkColor).font('Helvetica').fontSize(9);
+      doc.text(subjectName.toUpperCase(), colSubject + 10, currentY + 8);
+      doc.text(examName, colExam + 10, currentY + 8);
+      doc.font('Helvetica-Bold').text(obtained.toString(), colMarks + 10, currentY + 8, { width: 60, align: 'center' });
+      doc.font('Helvetica').text(max.toString(), colTotal + 10, currentY + 8, { width: 60, align: 'center' });
+
+      doc.moveTo(40, currentY + 25).lineTo(555, currentY + 25).strokeColor(lightColor).lineWidth(0.5).stroke();
+      currentY += 25;
+    });
+
+    currentY += 30;
+
+    // ─── Result Summary ───────────────────────────────────────────────────────
+    const summaryX = 350;
+    doc.rect(summaryX, currentY, 205, 100).fill(lightColor).strokeColor(borderColor).stroke();
+    doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('FINAL SUMMARY', summaryX + 15, currentY + 15);
+    
+    const percentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0;
+    let grade = 'F';
+    let color = '#ef4444';
+    if (percentage >= 90) { grade = 'A+'; color = '#10b981'; }
+    else if (percentage >= 80) { grade = 'A'; color = '#10b981'; }
+    else if (percentage >= 70) { grade = 'B'; color = '#2563eb'; }
+    else if (percentage >= 60) { grade = 'C'; color = '#f59e0b'; }
+    else if (percentage >= 40) { grade = 'D'; color = '#f59e0b'; }
+
+    doc.font('Helvetica').fontSize(9);
+    doc.text(`Total Marks: ${totalObtained} / ${totalMax}`, summaryX + 15, currentY + 35);
+    doc.text(`Percentage: ${percentage.toFixed(1)}%`, summaryX + 15, currentY + 50);
+    
+    doc.fillColor(color).fontSize(28).font('Helvetica-Bold').text(grade, summaryX + 140, currentY + 35);
+    doc.fontSize(8).fillColor('#64748b').text('GRADE', summaryX + 140, currentY + 65, { width: 40, align: 'center' });
+
+    // ─── Signatures ───────────────────────────────────────────────────────────
+    currentY += 150;
+    doc.moveTo(40, currentY).lineTo(180, currentY).strokeColor(darkColor).stroke();
+    doc.moveTo(225, currentY).lineTo(365, currentY).strokeColor(darkColor).stroke();
+    doc.moveTo(410, currentY).lineTo(550, currentY).strokeColor(darkColor).stroke();
+
+    doc.fillColor(darkColor).fontSize(8).font('Helvetica-Bold');
+    doc.text('CLASS TEACHER', 40, currentY + 10, { width: 140, align: 'center' });
+    doc.text('PRINCIPAL', 225, currentY + 10, { width: 140, align: 'center' });
+    doc.text('PARENT/GUARDIAN', 410, currentY + 10, { width: 140, align: 'center' });
+
+    // Footer
+    doc.fontSize(7).fillColor('#94a3b8').text(`${school.name} // Generated on ${new Date().toLocaleDateString()}`, 0, 810, { align: 'center', width: 595 });
+
+    doc.end();
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

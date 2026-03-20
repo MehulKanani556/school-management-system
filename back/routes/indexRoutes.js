@@ -39,6 +39,8 @@ router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'),
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
 router.get('/school-admin/export-students', ...schoolAdmin, sa.exportStudents);
 router.post('/school-admin/import-students', ...schoolAdmin, localUpload.single('file'), sa.importStudents);
+router.post('/school-admin/promote-students', ...schoolAdmin, sa.promoteStudents);
+router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generateReportCard);
 
 // Teachers
 router.get('/school-admin/teachers', ...schoolAdmin, sa.getTeachers);
@@ -85,6 +87,8 @@ router.get('/school-admin/exams', ...schoolAdmin, sa.getExams);
 router.post('/school-admin/exams', ...schoolAdmin, sa.createExam);
 router.put('/school-admin/exams/:id', ...schoolAdmin, sa.updateExam);
 router.delete('/school-admin/exams/:id', ...schoolAdmin, sa.deleteExam);
+router.get('/school-admin/exams/:id/analytics', ...schoolAdmin, sa.getExamAnalytics);
+router.patch('/school-admin/exams/:id/toggle-publish', ...schoolAdmin, sa.toggleExamPublishStatus);
 
 // Attendance
 router.get('/school-admin/attendance', ...schoolAdmin, sa.getAttendance);

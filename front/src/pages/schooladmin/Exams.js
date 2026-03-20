@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchExams, fetchClasses, fetchSubjects, fetchStandards, createExam, updateExam, deleteExam } from '../../redux/slice/schoolAdmin.slice';
-import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Calendar, BookOpen, Clock, AlertCircle } from 'lucide-react';
+import { fetchExams, fetchClasses, fetchSubjects, fetchStandards, createExam, updateExam, deleteExam, fetchExamAnalytics, toggleExamPublishStatus } from '../../redux/slice/schoolAdmin.slice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Pencil, Trash2, Calendar, BookOpen, Clock, AlertCircle, BarChart3, TrendingUp, Users, Award, ChevronRight, Send, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Cell, PieChart, Pie } from 'recharts';
 
 const typeColor = { unit_test: 'text-blue-400 bg-blue-400/10', midterm: 'text-purple-400 bg-purple-400/10', final: 'text-red-400 bg-red-400/10' };
 
@@ -21,9 +22,10 @@ const validationSchema = Yup.object({
 
 const Exams = () => {
     const dispatch = useDispatch();
-    const { exams, classes, subjects, standards, loading } = useSelector((s) => s.schoolAdmin);
+    const { exams, classes, subjects, standards, loading, examAnalytics } = useSelector((s) => s.schoolAdmin);
     const [modal, setModal] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [analyticsModal, setAnalyticsModal] = useState(false);
 
     useEffect(() => {
         dispatch(fetchExams());
@@ -87,12 +89,29 @@ const Exams = () => {
                         </div>
                         
                         <div className="flex items-start justify-between relative z-10">
-                            <span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${typeColor[e.type] || 'text-slate-400 bg-slate-400/10'}`}>{e.type.replace('_', ' ')}</span>
-                            <div className="flex gap-2">
-                                <button onClick={() => openEdit(e)} className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-brand-primary group/edit transition-all">
+                            <div className="flex flex-col gap-2">
+                                <span className={`w-fit px-4 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest ${typeColor[e.type] || 'text-slate-400 bg-slate-400/10'}`}>{e.type.replace('_', ' ')}</span>
+                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg w-fit border ${e.isPublished ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
+                                    <div className={`w-1 h-1 rounded-full ${e.isPublished ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></div>
+                                    <span className="text-[8px] font-black uppercase tracking-widest">{e.isPublished ? 'Published' : 'Draft Status'}</span>
+                                </div>
+                            </div>
+                            <div className="flex gap-2 relative z-10">
+                                <button onClick={() => {
+                                    dispatch(fetchExamAnalytics(e._id));
+                                    setAnalyticsModal(true);
+                                }} className="p-2.5 rounded-xl bg-indigo-500/10 hover:bg-indigo-500 text-indigo-400 hover:text-white transition-all border border-indigo-500/20" title="Analytics">
+                                    <BarChart3 size={14} />
+                                </button>
+                                <button onClick={() => dispatch(toggleExamPublishStatus(e._id))} 
+                                    className={`p-2.5 rounded-xl transition-all border ${e.isPublished ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white'}`} 
+                                    title={e.isPublished ? 'Revert to Draft' : 'Publish Results'}>
+                                    {e.isPublished ? <EyeOff size={14} /> : <Send size={14} />}
+                                </button>
+                                <button onClick={() => openEdit(e)} className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-brand-primary group/edit transition-all" title="Edit">
                                     <Pencil size={14} className="text-slate-400 group-hover/edit:text-white" />
                                 </button>
-                                <button onClick={() => dispatch(deleteExam(e._id))} className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-red-500 group/del transition-all">
+                                <button onClick={() => dispatch(deleteExam(e._id))} className="p-2.5 rounded-xl bg-slate-800/50 hover:bg-red-500 group/del transition-all" title="Delete">
                                     <Trash2 size={14} className="text-slate-400 group-hover/del:text-white" />
                                 </button>
                             </div>
@@ -208,6 +227,190 @@ const Exams = () => {
                         {loading ? 'Processing...' : editing ? 'Update Assessment' : 'Deploy Assessment'}
                     </button>
                 </form>
+            </Modal>
+
+            {/* Analytics Modal */}
+            <Modal open={analyticsModal} onClose={() => setAnalyticsModal(false)} title="Assessment Insights" maxWidth="max-w-6xl">
+                {loading && !examAnalytics ? (
+                    <div className="py-24 text-center">
+                        <TrendingUp size={48} className="text-indigo-500 animate-pulse mx-auto mb-4" />
+                        <p className="text-slate-400 font-black uppercase tracking-[0.2em] text-[10px]">Processing Statistical Data...</p>
+                    </div>
+                ) : examAnalytics ? (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        {/* Summary Header */}
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Participated Students', val: examAnalytics.totalStudents, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+                                { label: 'Average Score', val: `${examAnalytics.averageMarks}%`, icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+                                { label: 'Highest Pulse', val: examAnalytics.highest, icon: Award, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+                                { label: 'Lowest Directive', val: examAnalytics.lowest || 0, icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-400/10' },
+                            ].map((s, i) => (
+                                <div key={i} className="bg-slate-900/50 border border-white/5 rounded-3xl p-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-2xl ${s.bg} flex items-center justify-center ${s.color}`}>
+                                            <s.icon size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">{s.label}</p>
+                                            <p className="text-xl font-black font-outfit mt-1 text-white">{s.val}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                            {/* Distribution Chart */}
+                            <div className="lg:col-span-2 bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8">
+                                <div className="flex items-center justify-between mb-8">
+                                    <h3 className="text-xs font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+                                        <BarChart3 size={14} /> Grade Distribution Spectrum
+                                    </h3>
+                                </div>
+                                <div className="h-[300px] w-full">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={examAnalytics.distribution} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                                            <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                                            <YAxis stroke="#64748b" fontSize={10} fontWeight="bold" axisLine={false} tickLine={false} />
+                                            <Tooltip 
+                                                cursor={{ fill: '#ffffff05' }}
+                                                contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '1rem', color: '#fff' }}
+                                            />
+                                            <Bar dataKey="value" radius={[8, 8, 0, 0]} barSize={40}>
+                                                {examAnalytics.distribution.map((entry, index) => (
+                                                    <Cell key={`cell-${index}`} fill={entry.color} />
+                                                ))}
+                                            </Bar>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* Top Performers Leaderboard */}
+                            <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-6">
+                                    <Award size={14} /> Top Achievers
+                                </h3>
+                                <div className="space-y-4">
+                                    {examAnalytics.topPerformers.map((p, i) => (
+                                        <div key={i} className="flex items-center justify-between group">
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs ${i === 0 ? 'bg-amber-400/10 text-amber-400' : i === 1 ? 'bg-slate-300/10 text-slate-300' : i === 2 ? 'bg-orange-400/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>
+                                                    {i + 1}
+                                                </div>
+                                                <div>
+                                                    <p className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors capitalize">{p.name.toLowerCase()}</p>
+                                                    <p className="text-[9px] font-medium text-slate-500">{p.admissionNumber}</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-right">
+                                                <p className="text-xs font-black text-white">{p.marks}</p>
+                                                <p className="text-[9px] font-bold text-emerald-400">{p.percentage}%</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {examAnalytics.topPerformers.length === 0 && (
+                                        <div className="py-12 text-center text-slate-600 text-[10px] font-black uppercase tracking-widest">Calculated Data Pending</div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Pie Chart Analysis */}
+                        <div className="p-8 bg-brand-primary/5 border border-brand-primary/10 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-8">
+                            <div className="h-[200px] w-full md:w-[200px] shrink-0 text-center">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={examAnalytics.distribution} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
+                                            {examAnalytics.distribution.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <div className="flex-1">
+                                <h4 className="text-sm font-black uppercase tracking-widest text-white mb-4 italic">Composition Analysis</h4>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                    {examAnalytics.distribution.map((d, i) => (
+                                        <div key={i} className="flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: d.color }}></div>
+                                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{d.name.split(' (')[0]}: <span className="text-white">{d.value}</span></span>
+                                        </div>
+                                    ))}
+                                </div>
+                                <p className="mt-6 text-[11px] text-slate-500 leading-relaxed max-w-lg">
+                                    The statistical distribution indicates a <span className="text-indigo-400 font-bold uppercase underline decoration-indigo-400/30">Sector Performance Delta</span>. 
+                                    Average yields are hovering around <span className="text-emerald-400 font-bold underline decoration-emerald-400/30">{examAnalytics.averageMarks || 0}%</span> with peak achievers hitting <span className="text-amber-400 font-bold">{examAnalytics.highest || 0} marks</span>.
+                                </p>
+                            </div>
+                        </div>
+
+                        {/* Pass/Fail Subject Analytics Section */}
+                        <div className="bg-slate-900/40 border border-white/5 rounded-[2.5rem] p-8 flex flex-col items-center gap-6">
+                            <div className="w-full flex items-center justify-between">
+                                <h3 className="text-xs font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
+                                    <TrendingUp size={14} /> Subject Accuracy Matrix (Pass/Fail)
+                                </h3>
+                                <div className="text-[10px] font-black uppercase text-slate-600 italic tracking-[2px]">Minimum Efficiency Threshold: 40.0%</div>
+                            </div>
+                            
+                            <div className="w-full h-px bg-white/5"></div>
+
+                            <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+                                <div className="space-y-4">
+                                    <div className="flex items-center justify-between">
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Global Qualified Percentage</p>
+                                        <p className="text-2xl font-black text-emerald-400 font-outfit">{examAnalytics.passRate}%</p>
+                                    </div>
+                                    <div className="h-4 w-full bg-slate-800 rounded-full overflow-hidden border border-white/5 shadow-inner">
+                                        <motion.div 
+                                            initial={{ width: 0 }} 
+                                            animate={{ width: `${examAnalytics.passRate}%` }} 
+                                            transition={{ duration: 1.5, ease: 'easeOut' }}
+                                            className="h-full bg-gradient-to-r from-emerald-600 to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.3)]"
+                                        />
+                                    </div>
+                                    <div className="flex items-center gap-4 py-2">
+                                        <div className="flex-1 bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                                                <CheckCircle size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-slate-500 mb-1">Qualified Nodes</p>
+                                                <p className="text-lg font-black text-white">{examAnalytics.passCount}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex-1 bg-rose-500/5 border border-rose-500/10 rounded-2xl p-4 flex items-center gap-3">
+                                            <div className="w-8 h-8 rounded-xl bg-rose-500/10 flex items-center justify-center text-rose-500">
+                                                <XCircle size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[9px] font-black uppercase text-slate-500 mb-1">Retained Nodes</p>
+                                                <p className="text-lg font-black text-white">{examAnalytics.failCount}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-brand-primary/5 rounded-3xl p-6 border border-brand-primary/10">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-400 mb-4 italic">Analytical Deduction</p>
+                                    <p className="text-xs text-slate-400 leading-relaxed">
+                                        The assessment for <span className="text-white font-bold">{examAnalytics.examName}</span> achieved an overall performance accuracy of <span className="text-emerald-400 font-bold">{examAnalytics.passRate}%</span>. 
+                                        A total of <span className="text-white font-bold">{examAnalytics.passCount} students</span> successfully met the qualifying criterion, while <span className="text-white font-bold">{examAnalytics.failCount}</span> are recommended for additional remedial sessions to optimize future results.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="py-24 text-center">
+                         <AlertCircle size={48} className="text-slate-800 mx-auto mb-4 opacity-20" />
+                         <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">No Marks Data Detected For This Node</p>
+                    </div>
+                )}
             </Modal>
         </div>
     );

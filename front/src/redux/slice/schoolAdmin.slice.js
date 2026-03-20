@@ -29,6 +29,10 @@ export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
 export const fetchReviews = asyncGet('sa/reviews', '/reviews');
+export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get(`/school-admin/exams/${id}/analytics`); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
 
 const post = (name, path) =>
   createAsyncThunk(name, async (data, { rejectWithValue }) => {
@@ -108,6 +112,25 @@ export const updateReview = put('sa/updateReview', '/reviews');
 export const deleteReview = del('sa/deleteReview', '/reviews');
 export const importStudents = post('sa/importStudents', '/import-students');
 export const importTeachers = post('sa/importTeachers', '/import-teachers');
+export const promoteStudents = post('sa/promoteStudents', '/promote-students');
+export const toggleExamPublishStatus = createAsyncThunk('sa/toggleExamPublishStatus', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.patch(`/school-admin/exams/${id}/toggle-publish`); return { id, isPublished: res.data.isPublished, message: res.data.message }; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const downloadReportCard = createAsyncThunk('sa/downloadReportCard', async ({ id, name }, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get(`/school-admin/students/${id}/report-card`, { responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `ReportCard_${name}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { success: true };
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
 
 export const exportStudents = createAsyncThunk('sa/exportStudents', async (_, { rejectWithValue }) => {
   try {
@@ -143,6 +166,7 @@ const initialState = {
   attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
   holidays: [], timetable: null, timetables: [],
   payroll: [], leaves: [], reviews: [],
+  examAnalytics: null,
   loading: false, error: null, message: null
 };
 
@@ -233,6 +257,8 @@ const schoolAdminSlice = createSlice({
       })
       .addCase(importStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(importTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(promoteStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(fetchExamAnalytics.fulfilled, (state, a) => { state.examAnalytics = a.payload; state.loading = false; })
       .addCase(exportStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(exportTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
 
@@ -315,6 +341,12 @@ const schoolAdminSlice = createSlice({
       .addCase(deleteFeeStructure.fulfilled, (state, a) => { state.feeStructures = state.feeStructures.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee structure removed"; })
       .addCase(applyFeeStructure.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Fee structure applied successfully"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
+      .addCase(toggleExamPublishStatus.fulfilled, (state, a) => { 
+        const exam = state.exams.find(e => e._id === a.payload.id);
+        if (exam) exam.isPublished = a.payload.isPublished;
+        state.loading = false;
+        state.message = a.payload.message;
+      })
 
       // Payroll
       .addCase(fetchPayroll.fulfilled, handleList('payroll'))
@@ -377,7 +409,8 @@ const schoolAdminSlice = createSlice({
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,
       saveAttendance, toggleTeacherStatus, applyFeeStructure,
-      importStudents, importTeachers, exportStudents, exportTeachers
+      importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
+      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

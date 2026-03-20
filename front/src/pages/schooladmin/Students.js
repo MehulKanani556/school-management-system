@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText } from 'lucide-react';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
 
@@ -55,6 +55,11 @@ const Students = () => {
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formValues, setFormValues] = useState(emptyValues);
+  const [promoteModal, setPromoteModal] = useState(false);
+  const [promotionData, setPromotionData] = useState({
+    fromStandardId: '', fromClassSectionId: '',
+    toStandardId: '', toClassSectionId: ''
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -132,6 +137,9 @@ const Students = () => {
           <p className="text-slate-400 text-sm mt-1">{students.length} total students</p>
         </div>
         <div className="flex items-center gap-3">
+          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-indigo-400 hover:text-indigo-300 group">
+            <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Promote Students
+          </button>
           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
             <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Export Data
           </button>
@@ -186,6 +194,8 @@ const Students = () => {
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
+                    <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))} 
+                      className="p-2 rounded-xl hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
                     <button onClick={() => openEdit(s)} className="p-2 rounded-xl hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
                     <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
@@ -361,6 +371,89 @@ const Students = () => {
               {loading ? 'Deleting...' : 'Yes, Delete'}
             </button>
           </div>
+        </div>
+      </Modal>
+      
+      {/* Promotion Modal */}
+      <Modal open={promoteModal} onClose={() => setPromoteModal(false)} title="Promote Students">
+        <div className="space-y-6">
+          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
+            <p className="text-xs text-indigo-300 leading-relaxed font-medium">
+              This cycle will migrate students from one grade level to another. Use this at the end of the academic year.
+            </p>
+          </div>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/40 rounded-3xl border border-slate-800">
+              <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-2">Source Class (From)</div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
+                <select 
+                  className={ic()} 
+                  value={promotionData.fromStandardId}
+                  onChange={(e) => setPromotionData({...promotionData, fromStandardId: e.target.value, fromClassSectionId: ''})}
+                >
+                  <option value="">Select Source</option>
+                  {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Optional)</label>
+                <select 
+                  className={ic()} 
+                  value={promotionData.fromClassSectionId}
+                  onChange={(e) => setPromotionData({...promotionData, fromClassSectionId: e.target.value})}
+                >
+                  <option value="">Full Grade</option>
+                  {classes.filter(c => (c.standardId?._id || c.standardId) === promotionData.fromStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+                <ArrowUpCircle size={16} className="text-brand-primary" />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 p-4 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
+              <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-brand-primary border-b border-brand-primary/10 pb-2 mb-2">Target Grade (To)</div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
+                <select 
+                  className={ic()} 
+                  value={promotionData.toStandardId}
+                  onChange={(e) => setPromotionData({...promotionData, toStandardId: e.target.value, toClassSectionId: ''})}
+                >
+                  <option value="">Select Target</option>
+                  {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Recommended)</label>
+                <select 
+                  className={ic()} 
+                  value={promotionData.toClassSectionId}
+                  onChange={(e) => setPromotionData({...promotionData, toClassSectionId: e.target.value})}
+                >
+                  <option value="">Assign Later</option>
+                  {classes.filter(c => (c.standardId?._id || c.standardId) === promotionData.toStandardId).map(c => <option key={c._id} value={c._id}>{c.sectionLabel}</option>)}
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <button 
+            disabled={!promotionData.fromStandardId || !promotionData.toStandardId || loading}
+            onClick={async () => {
+              await dispatch(promoteStudents(promotionData));
+              dispatch(fetchStudents());
+              setPromoteModal(false);
+            }}
+            className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+          >
+            {loading ? 'Processing cycle...' : 'Execute Promotion Cycle'}
+          </button>
         </div>
       </Modal>
     </div>
