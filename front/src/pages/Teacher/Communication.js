@@ -151,7 +151,7 @@ const Communication = () => {
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                     <div className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="h-[2px] w-8 bg-brand-primary rounded-full"></div>
+                            <div className="h-[2px] w-8 bg-brand-primary rounded-md"></div>
                             <span className="text-[9px] font-black text-brand-primary uppercase tracking-[0.45em] italic leading-none">Transmission Hub</span>
                         </div>
                         <h1 className="text-4xl lg:text-5xl font-black text-white uppercase tracking-tighter italic leading-none">
@@ -160,7 +160,7 @@ const Communication = () => {
                         <p className="text-slate-500 font-bold text-[10px] lg:text-xs tracking-wider uppercase max-w-xl">Broadcasting authorized institutional directives across academic clusters.</p>
                     </div>
 
-                    <div className="flex bg-slate-900 p-1.5 rounded-[2rem] border border-slate-800/60 backdrop-blur-3xl shadow-2xl overflow-x-auto custom-scrollbar no-scrollbar">
+                    <div className="flex bg-slate-900 p-1.5 rounded-md border border-slate-800/60 backdrop-blur-3xl shadow-2xl overflow-x-auto custom-scrollbar no-scrollbar">
                         {[
                             { id: 'feed', label: 'Broadcasts', icon: Activity, color: 'brand-primary' },
                             { id: 'chat', label: 'Direct Probe', icon: Shield, color: 'indigo-500' },
@@ -169,7 +169,7 @@ const Communication = () => {
                             <button 
                                 key={t.id}
                                 onClick={() => { setActiveTab(t.id); setSelectedChat(null); }}
-                                className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === t.id ? `bg-${t.color} text-white shadow-xl shadow-${t.color}/20 scale-105` : 'text-slate-500 hover:text-slate-200'}`}
+                                className={`flex items-center gap-3 px-8 py-4 rounded-md text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${activeTab === t.id ? `bg-${t.color} text-white shadow-xl shadow-${t.color}/20 scale-105` : 'text-slate-500 hover:text-slate-200'}`}
                             >
                                 <t.icon size={16} />
                                 {t.label}
@@ -182,22 +182,22 @@ const Communication = () => {
             <div className="max-w-[1500px] w-full mx-auto flex-1 grid grid-cols-1 lg:grid-cols-12 gap-10 min-h-0">
                 {activeTab === 'chat' ? (
                     <>
-                        <div className={`lg:col-span-4 flex flex-col min-h-0 bg-slate-900/40 border border-slate-800/60 rounded-[3rem] backdrop-blur-3xl overflow-hidden shadow-2xl ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
+                        <div className={`lg:col-span-4 flex flex-col min-h-0 bg-slate-900/40 border border-slate-800/60 rounded-md backdrop-blur-3xl overflow-hidden shadow-2xl ${selectedChat ? 'hidden lg:flex' : 'flex'}`}>
                              <div className="p-8 border-b border-white/5 space-y-6 shrink-0 bg-slate-900/60">
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-sm font-black text-white uppercase tracking-widest italic flex items-center gap-3 leading-none">
                                         <Activity size={18} className="text-brand-primary" />
                                         Comms Channels
                                     </h2>
-                                    <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700/50 flex items-center justify-center animate-pulse">
-                                        <div className="w-2 h-2 rounded-full bg-brand-primary shadow-lg shadow-brand-primary/50"></div>
+                                    <div className="w-8 h-8 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center animate-pulse">
+                                        <div className="w-2 h-2 rounded-md bg-brand-primary shadow-lg shadow-brand-primary/50"></div>
                                     </div>
                                 </div>
                                 <div className="relative group">
                                     <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-brand-primary transition-colors" />
                                     <input 
                                         placeholder="SCAN COMMS LOG..."
-                                        className="w-full h-14 bg-slate-950/50 border border-slate-800 rounded-2xl pl-12 pr-6 text-[10px] font-black text-white italic tracking-widest outline-none focus:border-brand-primary transition-all placeholder:text-slate-800 uppercase"
+                                        className="w-full h-14 bg-slate-950/50 border border-slate-800 rounded-md pl-12 pr-6 text-[10px] font-black text-white italic tracking-widest outline-none focus:border-brand-primary transition-all placeholder:text-slate-800 uppercase"
                                     />
                                 </div>
                             </div>
@@ -207,9 +207,9 @@ const Communication = () => {
                                     <button 
                                         key={conv.partner._id}
                                         onClick={() => setSelectedChat(conv.partner._id)}
-                                        className={`w-full flex items-center gap-4 p-5 rounded-[2rem] transition-all border ${selectedChat === conv.partner._id ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
+                                        className={`w-full flex items-center gap-4 p-5 rounded-md transition-all border ${selectedChat === conv.partner._id ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
                                     >
-                                        <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center shadow-2xl shrink-0">
+                                        <div className="w-14 h-14 rounded-md bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center shadow-2xl shrink-0">
                                             {conv.partner.photo ? <img src={conv.partner.photo} alt="" className="w-full h-full object-cover" /> : <User size={24} className="text-slate-700" />}
                                         </div>
                                         <div className="text-left min-w-0 flex-1">
@@ -231,9 +231,9 @@ const Communication = () => {
                                     <button 
                                         key={t._id}
                                         onClick={() => setSelectedChat(t._id)}
-                                        className="w-full flex items-center gap-4 p-4 rounded-3xl transition-all border border-transparent hover:bg-slate-800/30 group"
+                                        className="w-full flex items-center gap-4 p-4 rounded-md transition-all border border-transparent hover:bg-slate-800/30 group"
                                     >
-                                        <div className="w-12 h-12 rounded-2xl bg-slate-800/50 border border-white/5 overflow-hidden flex items-center justify-center grayscale group-hover:grayscale-0 transition-all shrink-0">
+                                        <div className="w-12 h-12 rounded-md bg-slate-800/50 border border-white/5 overflow-hidden flex items-center justify-center grayscale group-hover:grayscale-0 transition-all shrink-0">
                                             {t.photo ? <img src={t.photo} alt="" className="w-full h-full object-cover" /> : <User size={18} className="text-slate-600" />}
                                         </div>
                                         <div className="text-left flex-1 min-w-0">
@@ -246,33 +246,33 @@ const Communication = () => {
                             </div>
                         </div>
 
-                        <div className={`lg:col-span-8 flex flex-col min-h-0 bg-slate-900/40 border border-slate-800/60 rounded-[3rem] backdrop-blur-3xl overflow-hidden shadow-2xl relative ${!selectedChat ? 'hidden lg:flex' : 'flex'}`}>
+                        <div className={`lg:col-span-8 flex flex-col min-h-0 bg-slate-900/40 border border-slate-800/60 rounded-md backdrop-blur-3xl overflow-hidden shadow-2xl relative ${!selectedChat ? 'hidden lg:flex' : 'flex'}`}>
                             {selectedChat ? (
                                 <>
                                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-slate-900/60 shadow-xl shrink-0">
                                         <div className="flex items-center gap-6">
-                                            <button onClick={() => setSelectedChat(null)} className="lg:hidden p-3 rounded-2xl bg-slate-800 text-slate-400">
+                                            <button onClick={() => setSelectedChat(null)} className="lg:hidden p-3 rounded-md bg-slate-800 text-slate-400">
                                                 <ArrowLeft size={20} />
                                             </button>
                                             <div className="flex items-center gap-4">
-                                                <div className="w-12 h-12 rounded-2xl bg-slate-800 border border-white/5 flex items-center justify-center shadow-lg relative shrink-0">
-                                                    {activeConversation?.partner.photo ? <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover rounded-2xl" /> : <User size={20} className="text-slate-600" />}
-                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-lg bg-green-500 border-2 border-[#020617] shadow-lg"></div>
+                                                <div className="w-12 h-12 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center shadow-lg relative shrink-0">
+                                                    {activeConversation?.partner.photo ? <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover rounded-md" /> : <User size={20} className="text-slate-600" />}
+                                                    <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md bg-green-500 border-2 border-[#020617] shadow-lg"></div>
                                                 </div>
                                                 <div className="min-w-0">
                                                     <h3 className="text-white font-black text-[14px] uppercase tracking-tight italic leading-none mb-1.5 truncate">
                                                         {activeConversation?.partner.firstName || contacts.find(c => c._id === selectedChat)?.firstName} {activeConversation?.partner.lastName || contacts.find(c => c._id === selectedChat)?.lastName}
                                                     </h3>
                                                     <div className="flex items-center gap-3">
-                                                        <div className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse"></div>
+                                                        <div className="h-1.5 w-1.5 rounded-md bg-green-500 animate-pulse"></div>
                                                         <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic">Encrypted Secure Link</span>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
-                                            <button className="p-4 rounded-2xl bg-slate-800/50 text-slate-400 hover:text-brand-primary border border-transparent hover:border-brand-primary/20 transition-all"><Paperclip size={18}/></button>
-                                            <button className="p-4 rounded-2xl bg-brand-primary text-white shadow-lg shadow-brand-primary/20"><Mic size={18}/></button>
+                                            <button className="p-4 rounded-md bg-slate-800/50 text-slate-400 hover:text-brand-primary border border-transparent hover:border-brand-primary/20 transition-all"><Paperclip size={18}/></button>
+                                            <button className="p-4 rounded-md bg-brand-primary text-white shadow-lg shadow-brand-primary/20"><Mic size={18}/></button>
                                         </div>
                                     </div>
 
@@ -280,7 +280,7 @@ const Communication = () => {
                                         <div className="flex flex-col gap-10">
                                             {activeConversation?.messages.map((m, i) => (
                                                 <div key={m._id} className={`flex flex-col ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'items-end' : 'items-start'}`}>
-                                                    <div className={`max-w-[85%] group relative ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'bg-brand-primary text-white rounded-[2rem] rounded-tr-none' : 'bg-slate-800 text-slate-300 rounded-[2rem] rounded-tl-none'}`}>
+                                                    <div className={`max-w-[85%] group relative ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'bg-brand-primary text-white rounded-md rounded-tr-md' : 'bg-slate-800 text-slate-300 rounded-md rounded-tl-md'}`}>
                                                         <div className="px-8 py-6">
                                                             <p className="text-[13px] font-bold leading-relaxed uppercase tracking-tight italic">{m.content}</p>
                                                         </div>
@@ -298,9 +298,9 @@ const Communication = () => {
                                     <div className="p-8 bg-slate-900 shadow-2xl border-t border-white/5 shrink-0">
                                         <form 
                                             onSubmit={(e) => { e.preventDefault(); handleSendPrivate(selectedChat); }}
-                                            className="flex items-center gap-4 bg-slate-950 p-2 rounded-[2.5rem] border border-slate-800/80 focus-within:border-brand-primary/30 transition-all shadow-inner"
+                                            className="flex items-center gap-4 bg-slate-950 p-2 rounded-md border border-slate-800/80 focus-within:border-brand-primary/30 transition-all shadow-inner"
                                         >
-                                            <button type="button" className="p-5 rounded-full text-slate-600 hover:text-brand-primary transition-colors"><Smile size={24}/></button>
+                                            <button type="button" className="p-5 rounded-md text-slate-600 hover:text-brand-primary transition-colors"><Smile size={24}/></button>
                                             <input 
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
@@ -309,7 +309,7 @@ const Communication = () => {
                                             />
                                             <button 
                                                 type="submit"
-                                                className="bg-brand-primary text-white p-5 rounded-full shadow-lg shadow-brand-primary/40 hover:scale-105 active:scale-95 transition-all"
+                                                className="bg-brand-primary text-white p-5 rounded-md shadow-lg shadow-brand-primary/40 hover:scale-105 active:scale-95 transition-all"
                                             >
                                                 <Send size={24} />
                                             </button>
@@ -319,7 +319,7 @@ const Communication = () => {
                             ) : (
                                 <div className="flex-1 flex flex-col items-center justify-center p-20 text-center space-y-10 opacity-40 grayscale pointer-events-none bg-slate-950/20">
                                     <div className="relative">
-                                        <div className="w-40 h-40 rounded-full border-8 border-slate-800 border-t-brand-primary animate-spin opacity-20"></div>
+                                        <div className="w-40 h-40 rounded-md border-8 border-slate-800 border-t-brand-primary animate-spin opacity-20"></div>
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             <Shield size={64} className="text-slate-800" />
                                         </div>
@@ -333,7 +333,7 @@ const Communication = () => {
                 ) : activeTab === 'feed' ? (
                     <>
                         <div className="lg:col-span-5 flex flex-col gap-10 min-h-0">
-                            <div className="bg-slate-900 border border-brand-primary/20 rounded-[3rem] p-12 relative overflow-hidden shadow-2xl shrink-0">
+                            <div className="bg-slate-900 border border-brand-primary/20 rounded-md p-12 relative overflow-hidden shadow-2xl shrink-0">
                                 <div className="relative z-10 space-y-10">
                                     <h2 className="text-2xl font-black text-white uppercase italic tracking-tight flex items-center gap-6 leading-none">
                                         <Megaphone className="text-brand-primary" size={32} />
@@ -346,7 +346,7 @@ const Communication = () => {
                                                     key={role}
                                                     type="button"
                                                     onClick={() => setAnnouncementInput({...announcementInput, targetRole: role})}
-                                                    className={`py-5 rounded-2xl text-[11px] font-black uppercase tracking-widest border transition-all ${announcementInput.targetRole === role ? 'bg-brand-primary/10 border-brand-primary text-brand-primary' : 'bg-slate-950 border-slate-800 text-slate-600'}`}
+                                                    className={`py-5 rounded-md text-[11px] font-black uppercase tracking-widest border transition-all ${announcementInput.targetRole === role ? 'bg-brand-primary/10 border-brand-primary text-brand-primary' : 'bg-slate-950 border-slate-800 text-slate-600'}`}
                                                 >
                                                     {role} CLUSTER
                                                 </button>
@@ -358,7 +358,7 @@ const Communication = () => {
                                                 placeholder="ENTER SIGNAL SUBJECT..."
                                                 value={announcementInput.subject}
                                                 onChange={(e) => setAnnouncementInput({...announcementInput, subject: e.target.value})}
-                                                className="w-full h-16 bg-slate-950 border border-slate-800 rounded-2xl px-6 text-white text-sm font-black uppercase outline-none focus:border-brand-primary transition-all italic"
+                                                className="w-full h-16 bg-slate-950 border border-slate-800 rounded-md px-6 text-white text-sm font-black uppercase outline-none focus:border-brand-primary transition-all italic"
                                             />
                                             <textarea 
                                                 required
@@ -366,10 +366,10 @@ const Communication = () => {
                                                 placeholder="COMPOSE INSTITUTIONAL DIRECTIVE..."
                                                 value={announcementInput.content}
                                                 onChange={(e) => setAnnouncementInput({...announcementInput, content: e.target.value})}
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-[2.5rem] p-8 text-white text-sm font-bold outline-none focus:border-brand-primary transition-all italic resize-none uppercase"
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-8 text-white text-sm font-bold outline-none focus:border-brand-primary transition-all italic resize-none uppercase"
                                             />
                                         </div>
-                                        <button type="submit" className="w-full py-6 rounded-2xl bg-brand-primary text-white flex items-center justify-center gap-4 text-[15px] font-black uppercase tracking-[0.4em] transition-all shadow-xl">
+                                        <button type="submit" className="w-full py-6 rounded-md bg-brand-primary text-white flex items-center justify-center gap-4 text-[15px] font-black uppercase tracking-[0.4em] transition-all shadow-xl">
                                             <Send size={24} />
                                             INITIATE SIGNAL
                                         </button>
@@ -394,16 +394,16 @@ const Communication = () => {
                                             key={msg._id} 
                                             initial={{ opacity: 0, x: 20 }}
                                             animate={{ opacity: 1, x: 0 }}
-                                            className="bg-slate-900/40 border border-slate-800/60 rounded-[3rem] p-10 hover:border-brand-primary/20 backdrop-blur-2xl shadow-xl border-l-[6px] border-l-brand-primary/40"
+                                            className="bg-slate-900/40 border border-slate-800/60 rounded-md p-10 hover:border-brand-primary/20 backdrop-blur-2xl shadow-xl border-l-[6px] border-l-brand-primary/40"
                                         >
                                             <div className="flex items-center gap-6 mb-8">
-                                                <div className="w-16 h-16 rounded-[1.8rem] bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-white/5">
+                                                <div className="w-16 h-16 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center border border-white/5">
                                                     <Megaphone size={28} />
                                                 </div>
                                                 <div>
                                                     <h4 className="text-white font-black text-2xl uppercase tracking-tighter italic leading-none mb-3">{msg.subject}</h4>
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-400">TARGET: {msg.targetRole || 'SPECIFIC'}</span>
+                                                        <span className="text-[9px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-md bg-slate-950 border border-slate-800 text-slate-400">TARGET: {msg.targetRole || 'SPECIFIC'}</span>
                                                         <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2"><Calendar size={12}/>{new Date(msg.createdAt).toLocaleDateString()}</span>
                                                     </div>
                                                 </div>
@@ -434,10 +434,10 @@ const Communication = () => {
                                         initial={{ opacity: 0, scale: 0.9 }}
                                         animate={{ opacity: 1, scale: 1 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-slate-900/40 border border-slate-800/60 rounded-[3rem] p-10 backdrop-blur-3xl hover:border-emerald-500/30 transition-all border-t-4 border-t-emerald-500/40 group relative overflow-hidden h-[350px] flex flex-col"
+                                        className="bg-slate-900/40 border border-slate-800/60 rounded-md p-10 backdrop-blur-3xl hover:border-emerald-500/30 transition-all border-t-4 border-t-emerald-500/40 group relative overflow-hidden h-[350px] flex flex-col"
                                     >
                                         <div className="flex items-center gap-5 mb-8">
-                                            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
+                                            <div className="w-14 h-14 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20">
                                                 <AlertCircle size={24} />
                                             </div>
                                             <div className="min-w-0">

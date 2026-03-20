@@ -10,7 +10,7 @@ const Header = ({ user, onLogout }) => {
                     <input
                         type="text"
                         placeholder="Locate Infrastructure..."
-                        className="w-full h-10 pl-11 pr-4 bg-brand-background/60 border border-brand-border rounded-lg text-sm font-medium text-slate-100 placeholder:text-slate-500 outline-none focus:border-brand-primary/60 focus:ring-4 focus:ring-brand-primary/5 transition-all"
+                        className="w-full h-10 pl-11 pr-4 bg-brand-background/60 border border-brand-border rounded-md text-sm font-medium text-slate-100 placeholder:text-slate-500 outline-none focus:border-brand-primary/60 focus:ring-4 focus:ring-brand-primary/5 transition-all"
                     />
                 </div>
             </div>
@@ -22,16 +22,16 @@ const Header = ({ user, onLogout }) => {
                         <p className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide leading-none">{user?.role?.replace('_', ' ')}</p>
                     </div>
                     {user?.photo ? (
-                        <img src={user.photo} alt="Avatar" className="w-10 h-10 rounded-full object-cover ring-1 ring-brand-border shadow-sm cursor-pointer hover:ring-brand-primary transition-all" />
+                        <img src={user.photo} alt="Avatar" className="w-10 h-10 rounded-md object-cover ring-1 ring-brand-border shadow-sm cursor-pointer hover:ring-brand-primary transition-all" />
                     ) : (
-                        <div className="w-10 h-10 rounded-full bg-brand-background flex items-center justify-center border border-brand-border cursor-pointer hover:border-brand-primary transition-colors hover:bg-brand-primary/10 group">
+                        <div className="w-10 h-10 rounded-md bg-brand-background flex items-center justify-center border border-brand-border cursor-pointer hover:border-brand-primary transition-colors hover:bg-brand-primary/10 group">
                             <User size={18} className="text-slate-400 group-hover:text-brand-primary transition-colors" />
                         </div>
                     )}
                 </div>
                 <button
                     onClick={onLogout}
-                    className="p-2.5 rounded-lg text-slate-400 hover:bg-luxury-rose/10 hover:text-luxury-rose transition-colors"
+                    className="p-2.5 rounded-md text-slate-400 hover:bg-luxury-rose/10 hover:text-luxury-rose transition-colors"
                     title="Sign Out"
                 >
                     <LogOut size={20} />

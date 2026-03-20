@@ -210,10 +210,10 @@ const Classes = () => {
           <p className="text-slate-400 text-sm mt-1">Manage grade levels and their associated sections</p>
         </div>
         <div className="flex gap-4">
-          <button onClick={openStdAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-surface/40 hover:bg-slate-800 border border-brand-border/40 rounded-2xl font-black text-xs uppercase tracking-wider transition-all text-slate-300">
+          <button onClick={openStdAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-surface/40 hover:bg-slate-800 border border-brand-border/40 rounded-md font-black text-xs uppercase tracking-wider transition-all text-slate-300">
             <Layout size={16} /> Manage Standards
           </button>
-          <button onClick={() => openAdd()} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-primary/20 text-white">
+          <button onClick={() => openAdd()} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-primary/20 text-white">
             <Plus size={18} /> Add Classroom
           </button>
         </div>
@@ -221,11 +221,11 @@ const Classes = () => {
 
       {loading && classes.length === 0 && standards.length === 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-48 rounded-[2.5rem] bg-slate-800/20 animate-pulse" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="h-48 rounded-md bg-slate-800/20 animate-pulse" />)}
         </div>
       ) : standards.length === 0 ? (
-        <div className="py-20 text-center bg-brand-surface/20 border border-brand-border/20 rounded-[3.5rem] flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-[2rem] bg-slate-800/40 flex items-center justify-center text-slate-500">
+        <div className="py-20 text-center bg-brand-surface/20 border border-brand-border/20 rounded-md flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-md bg-slate-800/40 flex items-center justify-center text-slate-500">
             <Layout size={32} />
           </div>
           <p className="text-slate-500 italic font-medium">No standards or classrooms configured yet.</p>
@@ -246,12 +246,12 @@ const Classes = () => {
                       {std.name && <p className="text-[10px] text-brand-primary font-black uppercase tracking-widest">{std.name}</p>}
                     </div>
                     <div className="flex gap-2">
-                       <button onClick={() => openStdEdit(std)} className="w-8 h-8 rounded-xl bg-slate-800/40 text-slate-500 flex items-center justify-center hover:text-white transition-all">
+                       <button onClick={() => openStdEdit(std)} className="w-8 h-8 rounded-md bg-slate-800/40 text-slate-500 flex items-center justify-center hover:text-white transition-all">
                          <Pencil size={12} />
                        </button>
                        <button 
                         onClick={() => openAdd(std._id)}
-                        className="w-8 h-8 rounded-xl bg-brand-primary/10 text-brand-primary flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all transform hover:scale-110"
+                        className="w-8 h-8 rounded-md bg-brand-primary/10 text-brand-primary flex items-center justify-center hover:bg-brand-primary hover:text-white transition-all transform hover:scale-110"
                       >
                         <Plus size={14} />
                       </button>
@@ -268,13 +268,13 @@ const Classes = () => {
                         initial={{ opacity: 0, scale: 0.95 }} 
                         animate={{ opacity: 1, scale: 1 }} 
                         transition={{ delay: i * 0.05 }}
-                        className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[1rem] p-6 hover:border-brand-primary/40 transition-all group relative overflow-hidden"
+                        className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-6 hover:border-brand-primary/40 transition-all group relative overflow-hidden"
                       >
-                        <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-full -mr-8 -mt-8" />
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 blur-[40px] rounded-md -mr-8 -mt-8" />
                         
                         <div className="flex items-start justify-between relative z-10">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-xl bg-brand-primary/10 flex items-center justify-center text-brand-primary text-lg font-black italic">
+                            <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center text-brand-primary text-lg font-black italic">
                               {c.sectionLabel}
                             </div>
                             <div>
@@ -290,7 +290,7 @@ const Classes = () => {
 
                         <div className="mt-6 pt-5 border-t border-slate-800/40 relative z-10">
                           <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-[10px] font-black text-brand-primary border border-slate-700/50">
+                            <div className="w-8 h-8 rounded-md bg-slate-800 flex items-center justify-center text-[10px] font-black text-brand-primary border border-slate-700/50">
                               {c.classTeacher ? c.classTeacher.firstName[0] : '?'}
                             </div>
                             <div className="min-w-0">
@@ -309,7 +309,7 @@ const Classes = () => {
                               const subDetail = subjects.find(s => s._id === sId) || a.subject;
                               if (!subDetail || (!subDetail.name && typeof subDetail !== 'string')) return null;
                               return (
-                                <span key={sId || idx} className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-lg text-[8px] font-bold text-slate-400 uppercase">
+                                <span key={sId || idx} className="px-2 py-0.5 bg-slate-900 border border-slate-800 rounded-md text-[8px] font-bold text-slate-400 uppercase">
                                   {subDetail.name || 'Subject'}
                                 </span>
                               );
@@ -324,7 +324,7 @@ const Classes = () => {
                   <div className="px-4">
                     <button 
                       onClick={() => openAdd(std._id)}
-                      className="w-full py-8 border-2 border-dashed border-slate-800/40 rounded-[2rem] flex flex-col items-center justify-center gap-2 group hover:border-brand-primary/30 transition-all text-slate-600 hover:text-brand-primary"
+                      className="w-full py-8 border-2 border-dashed border-slate-800/40 rounded-md flex flex-col items-center justify-center gap-2 group hover:border-brand-primary/30 transition-all text-slate-600 hover:text-brand-primary"
                     >
                       <Plus size={24} className="opacity-40 group-hover:opacity-100" />
                       <p className="text-[10px] font-black uppercase tracking-[0.2em]">Add first section for Grade {std.level}</p>
@@ -347,7 +347,7 @@ const Classes = () => {
                 value={formik.values.standardId}
                 onChange={formik.handleChange}
                 onBlur={formik.handleBlur}
-                className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.standardId && formik.errors.standardId ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all`}
+                className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.standardId && formik.errors.standardId ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all`}
               >
                 <option value="" className="bg-slate-900 text-slate-500">Choose Grade</option>
                 {[...standards].sort((a,b) => a.level - b.level).map(s => (
@@ -370,7 +370,7 @@ const Classes = () => {
                   onChange={handleSectionChange}
                   onBlur={formik.handleBlur}
                   placeholder="e.g. A or A1"
-                  className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.sectionLabel && formik.errors.sectionLabel ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all`} 
+                  className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.sectionLabel && formik.errors.sectionLabel ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all`} 
                 />
                 <div className="flex gap-2">
                   {['A', 'B', 'C', 'D','E'].map(label => (
@@ -378,7 +378,7 @@ const Classes = () => {
                       key={label}
                       type="button" 
                       onClick={() => formik.setFieldValue('sectionLabel', label)}
-                      className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all border ${formik.values.sectionLabel === label ? 'bg-brand-primary border-brand-primary text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
+                      className={`px-3 py-1 rounded-md text-[10px] font-black transition-all border ${formik.values.sectionLabel === label ? 'bg-brand-primary border-brand-primary text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:border-slate-500'}`}
                     >
                       {label}
                     </button>
@@ -398,7 +398,7 @@ const Classes = () => {
               value={formik.values.classTeacher}
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
-              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all"
+              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all"
             >
               <option value="" className="bg-slate-900">Select Class Teacher</option>
               {teachers.map(t => (
@@ -421,9 +421,9 @@ const Classes = () => {
                 if (!subObj) return null;
 
                 return (
-                  <div key={index} className="flex gap-2 items-start bg-slate-800/20 p-3 rounded-2xl border border-slate-700/50 relative">
+                  <div key={index} className="flex gap-2 items-start bg-slate-800/20 p-3 rounded-md border border-slate-700/50 relative">
                     <div className="flex-1 space-y-2">
-                      <div className="px-3 py-2 bg-slate-900/50 rounded-xl border border-slate-700/30">
+                      <div className="px-3 py-2 bg-slate-900/50 rounded-md border border-slate-700/30">
                         <p className="text-xs font-black text-white uppercase tracking-tight">{subObj.name}</p>
                         <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest">{subObj.code}</p>
                       </div>
@@ -434,7 +434,7 @@ const Classes = () => {
                           onChange={(e) => {
                             if (e.target.value) toggleTeacherInRow(index, e.target.value);
                           }}
-                          className="w-full bg-slate-900/30 border border-slate-700/30 rounded-xl py-2 px-3 text-xs font-bold text-slate-500 outline-none focus:border-brand-primary transition-all"
+                          className="w-full bg-slate-900/30 border border-slate-700/30 rounded-md py-2 px-3 text-xs font-bold text-slate-500 outline-none focus:border-brand-primary transition-all"
                         >
                           <option value="">+ Assign Teacher</option>
                           {teachers.map(t => (
@@ -450,7 +450,7 @@ const Classes = () => {
                               const t = teachers.find(teacher => teacher._id === tId);
                               if (!t) return null;
                               return (
-                                <div key={tId} className="flex items-center gap-1.5 pl-2 pr-1 py-1 bg-brand-primary/10 border border-brand-primary/30 rounded-lg text-[9px] font-black text-brand-primary uppercase">
+                                <div key={tId} className="flex items-center gap-1.5 pl-2 pr-1 py-1 bg-brand-primary/10 border border-brand-primary/30 rounded-md text-[9px] font-black text-brand-primary uppercase">
                                   <span>{t.firstName}</span>
                                   <button type="button" onClick={() => toggleTeacherInRow(index, tId)} className="p-0.5 hover:bg-brand-primary hover:text-white rounded-md transition-all">
                                     <Trash2 size={8} />
@@ -466,7 +466,7 @@ const Classes = () => {
                 );
               })}
               {!formik.values.standardId && (
-                <div className="py-8 text-center border-2 border-dashed border-slate-800/40 rounded-3xl opacity-50">
+                <div className="py-8 text-center border-2 border-dashed border-slate-800/40 rounded-md opacity-50">
                   <p className="text-[10px] text-slate-600 font-black uppercase tracking-widest">Select a Standard to assign teachers</p>
                 </div>
               )}
@@ -477,7 +477,7 @@ const Classes = () => {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white shadow-xl shadow-brand-primary/20">
+            className="w-full py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white shadow-xl shadow-brand-primary/20">
             {loading ? 'Processing...' : editing ? 'Update Classroom' : 'Create Classroom'}
           </button>
         </form>
@@ -495,7 +495,7 @@ const Classes = () => {
                 min={1} max={12}
                 value={stdFormik.values.level} 
                 onChange={stdFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all" 
+                className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all" 
                 placeholder="e.g. 10"
               />
             </div>
@@ -505,7 +505,7 @@ const Classes = () => {
                 name="name"
                 value={stdFormik.values.name} 
                 onChange={stdFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-xl py-2.5 px-4 text-white outline-none text-sm transition-all" 
+                className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all" 
                 placeholder="e.g. Tenth Grade"
               />
             </div>
@@ -527,7 +527,7 @@ const Classes = () => {
                       else cur.push(s._id);
                       stdFormik.setFieldValue('subjects', cur);
                     }}
-                    className={`flex items-center gap-2 p-3 rounded-xl border text-[10px] font-bold transition-all ${isSelected ? 'bg-brand-primary/10 border-brand-primary text-white' : 'bg-slate-800/20 border-slate-700/50 text-slate-500 hover:border-slate-600'}`}
+                    className={`flex items-center gap-2 p-3 rounded-md border text-[10px] font-bold transition-all ${isSelected ? 'bg-brand-primary/10 border-brand-primary text-white' : 'bg-slate-800/20 border-slate-700/50 text-slate-500 hover:border-slate-600'}`}
                   >
                     <BookOpen size={12} className={isSelected ? 'text-brand-primary' : 'text-slate-600'} />
                     <span className="truncate">{s.name}</span>
@@ -542,11 +542,11 @@ const Classes = () => {
 
           <div className="flex gap-3">
             {editingStd && (
-               <button type="button" onClick={() => dispatch(deleteStandard(editingStd)) && setStdModal(false)} className="px-6 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-2xl font-black text-sm transition-all">
+               <button type="button" onClick={() => dispatch(deleteStandard(editingStd)) && setStdModal(false)} className="px-6 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-md font-black text-sm transition-all">
                  <Trash2 size={18} />
                </button>
             )}
-            <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider text-white shadow-xl shadow-brand-primary/20 transition-all">
+            <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider text-white shadow-xl shadow-brand-primary/20 transition-all">
               {loading ? 'Saving...' : editingStd ? 'Update Standard' : 'Create Standard'}
             </button>
           </div>

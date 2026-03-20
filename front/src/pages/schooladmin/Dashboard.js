@@ -19,10 +19,10 @@ const StatCard = ({ icon: Icon, label, value, color, delay, subtext }) => (
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
-    className="p-6 rounded-[2.5rem] bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 hover:scale-[1.02] transition-all duration-300 group"
+    className="p-6 rounded-md bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 hover:scale-[1.02] transition-all duration-300 group"
   >
     <div className="flex items-start justify-between mb-4">
-      <div className={`p-4 rounded-2xl bg-gradient-to-br ${color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
+      <div className={`p-4 rounded-md bg-gradient-to-br ${color} shadow-lg shadow-black/20 group-hover:scale-110 transition-transform`}>
         <Icon size={24} className="text-white" />
       </div>
       {subtext && <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{subtext}</span>}
@@ -39,16 +39,16 @@ const ChartContainer = ({ title, children, icon: Icon, delay }) => (
     initial={{ opacity: 0, scale: 0.98 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ delay }}
-    className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8 flex flex-col h-full"
+    className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8 flex flex-col h-full"
   >
     <div className="flex items-center justify-between mb-8">
       <div className="flex items-center gap-3">
-        <div className="p-2 rounded-xl bg-slate-800/50 border border-slate-700/30">
+        <div className="p-2 rounded-md bg-slate-800/50 border border-slate-700/30">
           <Icon size={18} className="text-brand-primary" />
         </div>
         <h3 className="text-sm font-black uppercase tracking-[0.15em] text-slate-300 font-outfit">{title}</h3>
       </div>
-      <button className="p-2 hover:bg-slate-800/50 rounded-lg transition-colors">
+      <button className="p-2 hover:bg-slate-800/50 rounded-md transition-colors">
         <ChevronRight size={16} className="text-slate-500" />
       </button>
     </div>
@@ -79,7 +79,7 @@ const Dashboard = () => {
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}>
           <div className="flex items-center gap-3 mb-2">
-            <div className="w-2 h-8 bg-brand-primary rounded-full shadow-[0_0_15px_rgba(37,99,235,0.5)]" />
+            <div className="w-2 h-8 bg-brand-primary rounded-md shadow-[0_0_15px_rgba(37,99,235,0.5)]" />
             <h1 className="text-4xl font-black uppercase tracking-tighter font-outfit text-white">
               Dashboard
             </h1>
@@ -90,7 +90,7 @@ const Dashboard = () => {
         </motion.div>
 
         <div className="flex gap-3">
-          <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-2xl px-5 py-3 flex items-center gap-4">
+          <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md px-5 py-3 flex items-center gap-4">
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Current Time</p>
               <p className="text-sm font-bold text-white">{format(new Date(), 'hh:mm a')}</p>
@@ -108,7 +108,7 @@ const Dashboard = () => {
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
         {loading && !dashboard ? (
           [...Array(5)].map((_, i) => (
-            <div key={i} className="h-44 rounded-[2.5rem] bg-slate-800/20 animate-pulse border border-white/5" />
+            <div key={i} className="h-44 rounded-md bg-slate-800/20 animate-pulse border border-white/5" />
           ))
         ) : (
           stats.map((s) => <StatCard key={s.label} {...s} />)
@@ -159,11 +159,11 @@ const Dashboard = () => {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.3 }}
-            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8 h-full"
+            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8 h-full"
           >
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+                <div className="p-2 rounded-md bg-orange-500/10 border border-orange-500/20">
                   <Bell size={18} className="text-orange-500" />
                 </div>
                 <h3 className="text-sm font-black uppercase tracking-[0.15em] text-slate-300 font-outfit">Priority Alerts</h3>
@@ -175,8 +175,8 @@ const Dashboard = () => {
 
             <div className="space-y-4">
               {dashboard?.alerts?.overdueFees > 0 && (
-                <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 flex gap-4">
-                  <div className="p-2 h-fit rounded-lg bg-amber-500/20">
+                <div className="p-4 rounded-md bg-amber-500/10 border border-amber-500/20 flex gap-4">
+                  <div className="p-2 h-fit rounded-md bg-amber-500/20">
                     <AlertCircle size={18} className="text-amber-500" />
                   </div>
                   <div>
@@ -190,8 +190,8 @@ const Dashboard = () => {
               )}
 
               {dashboard?.alerts?.examsToday > 0 && (
-                <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex gap-4">
-                  <div className="p-2 h-fit rounded-lg bg-blue-500/20">
+                <div className="p-4 rounded-md bg-blue-500/10 border border-blue-500/20 flex gap-4">
+                  <div className="p-2 h-fit rounded-md bg-blue-500/20">
                     <Clock size={18} className="text-blue-500" />
                   </div>
                   <div>
@@ -240,11 +240,11 @@ const Dashboard = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8"
+          className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8"
         >
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-purple-500/10 border border-purple-500/20">
+              <div className="p-2 rounded-md bg-purple-500/10 border border-purple-500/20">
                 <Activity size={18} className="text-purple-500" />
               </div>
               <h3 className="text-sm font-black uppercase tracking-[0.15em] text-slate-300 font-outfit">Activity Feed</h3>
@@ -256,7 +256,7 @@ const Dashboard = () => {
               dashboard.activity.map((item, i) => (
                 <div key={i} className="flex gap-4 group cursor-default">
                   <div className="relative">
-                    <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-brand-primary transition-colors">
+                    <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-brand-primary transition-colors">
                       {item.type === 'student' ? <Users size={16} className="text-blue-400" /> : 
                        item.type === 'teacher' ? <GraduationCap size={16} className="text-emerald-400" /> : 
                        <ClipboardList size={16} className="text-purple-400" />}
@@ -288,11 +288,11 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.45 }}
-            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8"
+            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8"
         >
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-orange-500/10 border border-orange-500/20">
+              <div className="p-2 rounded-md bg-orange-500/10 border border-orange-500/20">
                 <CalendarIcon size={18} className="text-orange-500" />
               </div>
               <h3 className="text-sm font-black uppercase tracking-[0.15em] text-slate-300 font-outfit">Calendar</h3>
@@ -302,15 +302,15 @@ const Dashboard = () => {
           <div className="space-y-4">
             {dashboard?.calendar?.length > 0 ? (
               dashboard.calendar.map((event, i) => (
-                <div key={i} className="flex gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/[0.08] transition-colors group">
-                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-xl bg-slate-900 border border-white/5 flex-shrink-0 group-hover:border-orange-500/30 transition-colors">
+                <div key={i} className="flex gap-4 p-4 rounded-md bg-white/5 border border-white/5 hover:bg-white/[0.08] transition-colors group">
+                  <div className="flex flex-col items-center justify-center h-12 w-12 rounded-md bg-slate-900 border border-white/5 flex-shrink-0 group-hover:border-orange-500/30 transition-colors">
                     <span className="text-[10px] font-black uppercase text-slate-500">{format(parseISO(event.date), 'MMM')}</span>
                     <span className="text-lg font-black text-white leading-none">{format(parseISO(event.date), 'dd')}</span>
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-white mb-1 truncate group-hover:text-orange-400 transition-colors">{event.title}</h4>
                     <div className="flex items-center gap-2">
-                       <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${event.type === 'holiday' ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-500'}`}>
+                       <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase ${event.type === 'holiday' ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-500'}`}>
                          {event.type}
                        </span>
                        {event.endDate && (
@@ -359,20 +359,20 @@ const Dashboard = () => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.55 }}
-            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8 flex flex-col items-center justify-center text-center overflow-hidden relative group"
+            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8 flex flex-col items-center justify-center text-center overflow-hidden relative group"
           >
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:opacity-20 transition-opacity">
                 <TrendingUp size={120} />
             </div>
             
-            <div className="p-4 rounded-3xl bg-blue-500/10 border border-blue-500/20 mb-6">
+            <div className="p-4 rounded-md bg-blue-500/10 border border-blue-500/20 mb-6">
                 <ArrowUpRight size={32} className="text-blue-500" />
             </div>
             <h3 className="text-xl font-black text-white mb-2 font-outfit uppercase tracking-tighter">Growth Insights</h3>
             <p className="text-sm text-slate-400 mb-8 max-w-[200px] leading-relaxed">
               {dashboard?.metrics?.growthInsight || 'All performance metrics are stable for the current month.'}
             </p>
-            <button className="px-8 py-3 rounded-2xl bg-brand-primary hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+            <button className="px-8 py-3 rounded-md bg-brand-primary hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95">
               View Analytics
             </button>
           </motion.div>
@@ -383,7 +383,7 @@ const Dashboard = () => {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-[2.5rem] p-8"
+        className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md p-8"
       >
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6 font-outfit text-center">Quick Administration Access</p>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -396,7 +396,7 @@ const Dashboard = () => {
             { label: 'Settings', icon: CalendarIcon, href: '/school-admin/standards', color: 'bg-slate-500/10 text-slate-400 hover:bg-slate-500 hover:text-white' },
           ].map(({ label, href, icon: Icon, color }) => (
             <Link to={href} key={label}
-              className={`flex flex-col items-center gap-3 p-6 rounded-3xl border border-brand-border/20 transition-all duration-300 font-outfit group ${color}`}
+              className={`flex flex-col items-center gap-3 p-6 rounded-md border border-brand-border/20 transition-all duration-300 font-outfit group ${color}`}
             >
               <Icon size={24} className="group-hover:scale-110 transition-transform" />
               <span className="text-[10px] font-black uppercase tracking-widest text-center leading-tight">{label}</span>

@@ -254,7 +254,7 @@ const Fees = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="bg-brand-surface/60 p-1.5 rounded-2xl flex gap-1 border border-brand-border/30">
+          <div className="bg-brand-surface/60 p-1.5 rounded-md flex gap-1 border border-brand-border/30">
             {[
               { id: 'records', label: 'Fee Records', icon: List },
               { id: 'structure', label: 'Fee Structure', icon: Settings2 }
@@ -262,7 +262,7 @@ const Fees = () => {
               <button
                 key={t.id}
                 onClick={() => setActiveTab(t.id)}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all font-outfit ${activeTab === t.id ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all font-outfit ${activeTab === t.id ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
               >
                 <t.icon size={14} /> {t.label}
               </button>
@@ -270,13 +270,13 @@ const Fees = () => {
           </div>
           <button 
             onClick={() => dispatch(sendFeeReminders())}
-            className="flex items-center gap-2 px-5 py-3.5 bg-brand-surface/60 hover:bg-brand-primary/10 border border-brand-border/40 text-slate-300 hover:text-white rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-sm"
+            className="flex items-center gap-2 px-5 py-3.5 bg-brand-surface/60 hover:bg-brand-primary/10 border border-brand-border/40 text-slate-300 hover:text-white rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-sm"
           >
             <Mail size={18} /> Reminders
           </button>
           <button 
             onClick={() => setModalType(activeTab === 'records' ? 'fee' : 'structure')}
-            className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20 text-white"
+            className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20 text-white"
           >
             <Plus size={18} /> {activeTab === 'records' ? 'Add Record' : 'New Structure'}
           </button>
@@ -294,8 +294,8 @@ const Fees = () => {
                 { label: 'Overdue Debt', val: feeSummary?.totalPending || (totalBilled - totalPaid), ic: Info, col: 'amber-500' },
                 { label: 'Institutional Discount', val: feeSummary?.totalDiscount || 0, ic: Sparkles, col: 'fuchsia-500' }
               ].map(s => (
-                <div key={s.label} className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] p-7 transition-all hover:border-brand-primary/20 group">
-                  <div className={`w-10 h-10 rounded-xl bg-${s.col}/10 flex items-center justify-center text-${s.col} mb-4 group-hover:scale-110 transition-transform`}>
+                <div key={s.label} className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-7 transition-all hover:border-brand-primary/20 group">
+                  <div className={`w-10 h-10 rounded-md bg-${s.col}/10 flex items-center justify-center text-${s.col} mb-4 group-hover:scale-110 transition-transform`}>
                     <s.ic size={20} />
                   </div>
                   <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{s.label}</p>
@@ -308,13 +308,13 @@ const Fees = () => {
             <div className="flex flex-wrap gap-2">
               {['all', 'paid', 'pending', 'overdue'].map(s => (
                 <button key={s} onClick={() => setFilter(s)}
-                  className={`px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-wider transition-all font-outfit border ${filter === s ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-white'}`}>
+                  className={`px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all font-outfit border ${filter === s ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-white'}`}>
                   {s}
                 </button>
               ))}
             </div>
 
-            <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2.5rem] overflow-hidden">
+            <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
@@ -329,7 +329,7 @@ const Fees = () => {
                       <tr key={f._id} className="border-b border-brand-border/10 hover:bg-white/5 transition-colors group">
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary">
+                            <div className="w-9 h-9 rounded-md bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary">
                               {f.studentId?.firstName?.[0] || 'U'}
                             </div>
                             <div>
@@ -356,7 +356,7 @@ const Fees = () => {
                           <span className="font-black text-emerald-400 italic tracking-tight text-lg">${(f.paidAmount || 0).toLocaleString()}</span>
                         </td>
                         <td className="px-8 py-5">
-                          <span className={`px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${STATUS_COLORS[f.status] || 'border-slate-800 text-slate-500'}`}>
+                          <span className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest border ${STATUS_COLORS[f.status] || 'border-slate-800 text-slate-500'}`}>
                             {f.status.replace('_', ' ')}
                           </span>
                         </td>
@@ -365,14 +365,14 @@ const Fees = () => {
                           <div className="flex items-center gap-2">
                              <button 
                                onClick={() => showReceipt(f)} 
-                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
+                               className="p-2.5 rounded-md bg-slate-800/40 text-slate-500 hover:text-white hover:bg-white/10 transition-all opacity-0 group-hover:opacity-100"
                                title="Download Receipt"
                              >
                                <Download size={14} />
                              </button>
                              <button 
                                onClick={() => dispatch(sendFeeReminders({ studentId: f.studentId?._id }))} 
-                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                               className="p-2.5 rounded-md bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
                                title="Dispatch Reminder"
                              >
                                <Mail size={14} />
@@ -384,7 +384,7 @@ const Fees = () => {
                                  setEditing(null);
                                  feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
                                }} 
-                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-0 group-hover:opacity-100"
+                               className="p-2.5 rounded-md bg-slate-800/40 text-slate-500 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all opacity-0 group-hover:opacity-100"
                                title="Refine Payments"
                              >
                                <Wallet2 size={14} />
@@ -401,7 +401,7 @@ const Fees = () => {
                                    feeFormik.setValues({ ...feeFormik.initialValues, studentId: f.studentId?._id || f.studentId });
                                  }
                                }} 
-                               className="p-2.5 rounded-xl bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
+                               className="p-2.5 rounded-md bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
                                title="Config Records"
                              >
                                <Settings2 size={14} />
@@ -423,19 +423,19 @@ const Fees = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {feeStructures.map((s, i) => (
                 <motion.div key={s._id} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: i * 0.05 }}
-                  className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2.5rem] p-8 hover:border-brand-primary/30 transition-all group relative overflow-hidden">
+                  className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-8 hover:border-brand-primary/30 transition-all group relative overflow-hidden">
                   
                   <div className="absolute top-0 right-0 p-8 flex gap-2">
-                    <button onClick={() => openEditStructure(s)} className="p-3 rounded-2xl bg-slate-800/60 text-slate-400 hover:text-brand-primary transition-all shadow-xl border border-white/5">
+                    <button onClick={() => openEditStructure(s)} className="p-3 rounded-md bg-slate-800/60 text-slate-400 hover:text-brand-primary transition-all shadow-xl border border-white/5">
                       <Pencil size={16} />
                     </button>
-                    <button onClick={() => dispatch(deleteFeeStructure(s._id))} className="p-3 rounded-2xl bg-slate-800/60 text-slate-400 hover:text-red-400 transition-all shadow-xl border border-white/5">
+                    <button onClick={() => dispatch(deleteFeeStructure(s._id))} className="p-3 rounded-md bg-slate-800/60 text-slate-400 hover:text-red-400 transition-all shadow-xl border border-white/5">
                       <Trash2 size={16} />
                     </button>
                   </div>
 
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-14 h-14 rounded-3xl bg-brand-primary/20 flex items-center justify-center text-brand-primary font-black text-xl italic shadow-inner">
+                    <div className="w-14 h-14 rounded-md bg-brand-primary/20 flex items-center justify-center text-brand-primary font-black text-xl italic shadow-inner">
                       G{s.standardId?.level || '—'}
                     </div>
                     <div>
@@ -443,7 +443,7 @@ const Fees = () => {
                       <div className="flex items-center gap-4 mt-1">
                         <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em]">{s.academicYear}</p>
                         {s.dueDate && (
-                          <p className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-lg border border-amber-500/20">
+                          <p className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-md border border-amber-500/20">
                             Due: {new Date(s.dueDate).toLocaleDateString()}
                           </p>
                         )}
@@ -453,7 +453,7 @@ const Fees = () => {
 
                   <div className="space-y-3 mb-8">
                     {s.feeItems.map((item, idx) => (
-                      <div key={idx} className="flex items-center justify-between p-4 bg-slate-800/30 rounded-2xl border border-white/5">
+                      <div key={idx} className="flex items-center justify-between p-4 bg-slate-800/30 rounded-md border border-white/5">
                         <span className="text-sm font-bold text-slate-300 uppercase tracking-wider">{item.name}</span>
                         <span className="text-sm font-black text-white italic">${item.amount.toLocaleString()}</span>
                       </div>
@@ -474,7 +474,7 @@ const Fees = () => {
                         }); 
                         setModalType('apply'); 
                       }}
-                      className="px-6 py-3 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-brand-primary hover:text-white transition-all shadow-xl"
+                      className="px-6 py-3 bg-white text-black rounded-md font-black text-xs uppercase tracking-widest hover:bg-brand-primary hover:text-white transition-all shadow-xl"
                     >
                       Apply to Class
                     </button>
@@ -482,7 +482,7 @@ const Fees = () => {
                 </motion.div>
               ))}
               {feeStructures.length === 0 && (
-                <div className="lg:col-span-2 py-20 text-center bg-brand-surface/20 rounded-[3rem] border-2 border-dashed border-brand-border/30">
+                <div className="lg:col-span-2 py-20 text-center bg-brand-surface/20 rounded-md border-2 border-dashed border-brand-border/30">
                   <Settings2 size={40} className="mx-auto text-slate-600 mb-4 opacity-50" />
                   <p className="font-bold text-slate-500 uppercase tracking-widest">No fee structures defined yet</p>
                 </div>
@@ -500,7 +500,7 @@ const Fees = () => {
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit px-1">Select Student</label>
             <select name="studentId" value={feeFormik.values.studentId} onChange={feeFormik.handleChange}
-              className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all focus:ring-4 focus:ring-brand-primary/10 appearance-none">
+              className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-md py-3 px-5 text-white outline-none text-sm transition-all focus:ring-4 focus:ring-brand-primary/10 appearance-none">
               <option value="">Choose a student...</option>
               {students.map(s => <option key={s._id} value={s._id} className="bg-slate-900">{s.firstName} {s.lastName} ({s.admissionNumber})</option>)}
             </select>
@@ -518,7 +518,7 @@ const Fees = () => {
                 <div className="space-y-4">
                   {/* Balance Summary Header */}
                   {totalUnpaid > 0 && (
-                    <div className="p-6 bg-slate-900/60 border border-brand-primary/20 rounded-[2rem] relative overflow-hidden group">
+                    <div className="p-6 bg-slate-900/60 border border-brand-primary/20 rounded-md relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Wallet2 size={60} className="rotate-12" />
                       </div>
@@ -547,7 +547,7 @@ const Fees = () => {
                       
                       <div className="space-y-2 max-h-[300px] overflow-y-auto pr-1 custom-scrollbar">
                         {unpaidFees.map(uf => (
-                          <div key={uf._id} className={`p-4 bg-slate-800/40 rounded-3xl border transition-all ${editing === uf._id ? 'border-brand-primary bg-slate-800/80 shadow-xl' : 'border-white/5 hover:border-brand-primary/20'}`}>
+                          <div key={uf._id} className={`p-4 bg-slate-800/40 rounded-md border transition-all ${editing === uf._id ? 'border-brand-primary bg-slate-800/80 shadow-xl' : 'border-white/5 hover:border-brand-primary/20'}`}>
                             <div className="flex items-center justify-between mb-3">
                               <div>
                                 <h5 className="text-sm font-black text-white italic uppercase tracking-tight">{uf.category}</h5>
@@ -579,7 +579,7 @@ const Fees = () => {
                                     setPayingMap(prev => ({ ...prev, [uf._id]: val }));
                                     if (editing === uf._id) feeFormik.setFieldValue('payingNow', val);
                                   }}
-                                  className="w-full bg-slate-900/60 border border-white/5 focus:border-brand-primary rounded-2xl py-3 pl-8 pr-4 text-white outline-none text-xs font-black transition-all"
+                                  className="w-full bg-slate-900/60 border border-white/5 focus:border-brand-primary rounded-md py-3 pl-8 pr-4 text-white outline-none text-xs font-black transition-all"
                                 />
                               </div>
                               <button 
@@ -598,7 +598,7 @@ const Fees = () => {
                                     });
                                   }
                                 }}
-                                className={`p-3 rounded-2xl border transition-all ${editing === uf._id ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-brand-primary'}`}
+                                className={`p-3 rounded-md border transition-all ${editing === uf._id ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-brand-primary'}`}
                                 title="Edit full details"
                               >
                                 {editing === uf._id ? <CheckCircle2 size={16} /> : <Settings2 size={16} />}
@@ -617,12 +617,12 @@ const Fees = () => {
                         <button 
                           type="button" 
                           onClick={() => setIsAddingNew(true)}
-                          className="w-full py-4 border-2 border-dashed border-slate-700 hover:border-brand-primary/50 rounded-3xl text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-brand-primary transition-all flex items-center justify-center gap-2"
+                          className="w-full py-4 border-2 border-dashed border-slate-700 hover:border-brand-primary/50 rounded-md text-xs font-black uppercase tracking-[0.2em] text-slate-500 hover:text-brand-primary transition-all flex items-center justify-center gap-2"
                         >
                           <Plus size={14} /> Log Extra One-Time Charge
                         </button>
                       ) : (
-                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-900/40 p-6 rounded-[2.5rem] border border-white/5 space-y-4">
+                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-slate-900/40 p-6 rounded-md border border-white/5 space-y-4">
                           <div className="flex items-center justify-between mb-2">
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary">Manual Record Creator</h4>
                             <button type="button" onClick={() => setIsAddingNew(false)} className="text-[10px] font-black uppercase text-slate-500 hover:text-red-400">Cancel</button>
@@ -631,22 +631,22 @@ const Fees = () => {
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Reason / Category</label>
-                               <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="Exam Fee" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                               <input name="category" value={feeFormik.values.category} onChange={feeFormik.handleChange} placeholder="Exam Fee" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-md py-3 px-4 text-white text-xs outline-none" />
                             </div>
                             <div>
                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Total Charge</label>
-                               <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                               <input name="amount" type="number" value={feeFormik.values.amount} onChange={feeFormik.handleChange} placeholder="0.00" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-md py-3 px-4 text-white text-xs outline-none" />
                             </div>
                           </div>
                           
                           <div className="grid grid-cols-2 gap-4">
                             <div>
                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Initial Pay</label>
-                               <input name="paidAmount" type="number" value={feeFormik.values.paidAmount} onChange={feeFormik.handleChange} placeholder="0" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                               <input name="paidAmount" type="number" value={feeFormik.values.paidAmount} onChange={feeFormik.handleChange} placeholder="0" className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-md py-3 px-4 text-white text-xs outline-none" />
                             </div>
                             <div>
                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1">Due Cycle</label>
-                               <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange} className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-2xl py-3 px-4 text-white text-xs outline-none" />
+                               <input name="dueDate" type="date" value={feeFormik.values.dueDate} onChange={feeFormik.handleChange} className="mt-1 w-full bg-slate-800/60 border border-white/5 rounded-md py-3 px-4 text-white text-xs outline-none" />
                             </div>
                           </div>
                         </motion.div>
@@ -660,7 +660,7 @@ const Fees = () => {
             {/* Total Footer Summary */}
             {feeFormik.values.studentId && (
               <div className="pt-4 border-t border-white/5 mt-4 space-y-4">
-                <div className="flex items-center justify-between p-7 bg-brand-primary text-white rounded-[2.5rem] shadow-2xl shadow-brand-primary/20 relative overflow-hidden group">
+                <div className="flex items-center justify-between p-7 bg-brand-primary text-white rounded-md shadow-2xl shadow-brand-primary/20 relative overflow-hidden group">
                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                    <div>
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-70">Total Settlement Sum</p>
@@ -672,9 +672,9 @@ const Fees = () => {
                 </div>
 
                 <button type="submit" disabled={loading || formLoading} 
-                  className="w-full py-5 bg-white text-black hover:bg-brand-primary hover:text-white rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95"
+                  className="w-full py-5 bg-white text-black hover:bg-brand-primary hover:text-white rounded-md font-black text-sm uppercase tracking-[0.2em] transition-all shadow-2xl flex items-center justify-center gap-3 active:scale-95"
                 >
-                  {loading || formLoading ? <div className="w-5 h-5 border-2 border-brand-primary border-t-transparent animate-spin rounded-full" /> : 'Confirm Financial Records'}
+                  {loading || formLoading ? <div className="w-5 h-5 border-2 border-brand-primary border-t-transparent animate-spin rounded-md" /> : 'Confirm Financial Records'}
                 </button>
               </div>
             )}
@@ -688,7 +688,7 @@ const Fees = () => {
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Standard (Grade)</label>
               <select name="standardId" value={structureFormik.values.standardId} onChange={structureFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-2xl py-3 px-5 text-white outline-none text-sm transition-all focus:ring-4 focus:ring-brand-primary/10 appearance-none">
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 focus:border-brand-primary rounded-md py-3 px-5 text-white outline-none text-sm transition-all focus:ring-4 focus:ring-brand-primary/10 appearance-none">
                 <option value="">Select Standard...</option>
                 {standards.map(std => <option key={std._id} value={std._id} className="bg-slate-900">Grade {std.level}</option>)}
               </select>
@@ -696,14 +696,14 @@ const Fees = () => {
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Academic Year</label>
               <input name="academicYear" placeholder="2024-2025" value={structureFormik.values.academicYear} onChange={structureFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
             </div>
           </div>
 
           <div>
              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Structure Due Date</label>
              <input name="dueDate" type="date" value={structureFormik.values.dueDate} onChange={structureFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
           </div>
 
           <div className="space-y-3">
@@ -722,9 +722,9 @@ const Fees = () => {
               {structureFormik.values.feeItems.map((item, idx) => (
                 <div key={idx} className="flex gap-2">
                   <input placeholder="Name" value={item.name} onChange={e => structureFormik.setFieldValue(`feeItems[${idx}].name`, e.target.value)}
-                    className="flex-1 bg-slate-800/40 border border-brand-border/20 rounded-xl py-2 px-4 text-xs text-white" />
+                    className="flex-1 bg-slate-800/40 border border-brand-border/20 rounded-md py-2 px-4 text-xs text-white" />
                   <input type="number" placeholder="Amount" value={item.amount} onChange={e => structureFormik.setFieldValue(`feeItems[${idx}].amount`, Number(e.target.value))}
-                    className="w-24 bg-slate-800/40 border border-brand-border/20 rounded-xl py-2 px-4 text-xs text-white" />
+                    className="w-24 bg-slate-800/40 border border-brand-border/20 rounded-md py-2 px-4 text-xs text-white" />
                   <button type="button" onClick={() => structureFormik.setFieldValue('feeItems', structureFormik.values.feeItems.filter((_, i) => i !== idx))}
                     className="p-2 text-slate-600 hover:text-red-400"><Trash2 size={14}/></button>
                 </div>
@@ -732,14 +732,14 @@ const Fees = () => {
             </div>
           </div>
 
-          <div className="p-5 bg-brand-primary/10 border border-brand-primary/20 rounded-2xl flex items-center justify-between">
+          <div className="p-5 bg-brand-primary/10 border border-brand-primary/20 rounded-md flex items-center justify-between">
             <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Total Annual Calculation</span>
             <span className="text-xl font-black text-white italic">
               ${structureFormik.values.feeItems.reduce((acc, item) => acc + (Number(item.amount) || 0), 0).toLocaleString()}
             </span>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black hover:bg-brand-primary hover:text-white rounded-[1.2rem] font-black text-sm uppercase tracking-widest transition-all font-outfit shadow-xl mt-4">
+          <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black hover:bg-brand-primary hover:text-white rounded-md font-black text-sm uppercase tracking-widest transition-all font-outfit shadow-xl mt-4">
             {loading ? 'Synthesizing...' : editing ? 'Save Blueprint' : 'Establish Structure'}
           </button>
         </form>
@@ -748,7 +748,7 @@ const Fees = () => {
       {/* 3. Apply Structure Modal */}
       <Modal open={modalType === 'apply'} onClose={closeModals} title="Execute Fee Billing">
         <form onSubmit={applyFormik.handleSubmit} className="space-y-6 pt-4">
-          <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-[1.5rem] mb-6">
+          <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-md mb-6">
             <p className="text-xs font-bold text-slate-300 leading-relaxed text-center">
               You are about to generate individual fee records for <span className="text-brand-primary font-black">ALL STUDENTS</span> in 
               <span className="text-brand-primary font-black italic ml-1 underline decoration-2 underline-offset-4">
@@ -762,16 +762,16 @@ const Fees = () => {
              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Academic Year Context</label>
                 <input name="academicYear" value={applyFormik.values.academicYear} onChange={applyFormik.handleChange}
-                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3.5 px-5 text-white text-sm font-bold" />
+                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3.5 px-5 text-white text-sm font-bold" />
              </div>
              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Billing Due Date</label>
                 <input name="dueDate" type="date" value={applyFormik.values.dueDate} onChange={applyFormik.handleChange}
-                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-2xl py-3.5 px-5 text-white text-sm font-bold" />
+                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3.5 px-5 text-white text-sm font-bold" />
              </div>
           </div>
 
-          <button type="submit" disabled={loading} className="w-full py-5 bg-gradient-to-r from-brand-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all font-outfit text-white shadow-2xl shadow-brand-primary/30 mt-6">
+          <button type="submit" disabled={loading} className="w-full py-5 bg-gradient-to-r from-brand-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] rounded-md font-black text-sm uppercase tracking-[0.2em] transition-all font-outfit text-white shadow-2xl shadow-brand-primary/30 mt-6">
             {loading ? 'Executing Protocol...' : 'Confirm & Apply Billing'}
           </button>
         </form>
@@ -781,12 +781,12 @@ const Fees = () => {
       <Modal open={modalType === 'receipt'} onClose={closeModals} title="Document Preview">
         {receiptData && (
           <div className="space-y-8">
-            <div id="receipt-printable" className="bg-white text-slate-900 p-10 rounded-[2.5rem] shadow-2xl relative overflow-hidden font-outfit border border-slate-200">
+            <div id="receipt-printable" className="bg-white text-slate-900 p-10 rounded-md shadow-2xl relative overflow-hidden font-outfit border border-slate-200">
                {receiptData.status === 'paid' && <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-35deg] text-[120px] font-black text-slate-100 select-none pointer-events-none tracking-tighter uppercase opacity-50">PAID</div>}
                <div className="relative z-10">
                  <div className="flex justify-between items-start border-b-2 border-dashed border-slate-200 pb-6 mb-8">
                    <div>
-                     <div className="bg-brand-primary w-12 h-12 rounded-xl flex items-center justify-center text-white font-black text-xl mb-3">S</div>
+                     <div className="bg-brand-primary w-12 h-12 rounded-md flex items-center justify-center text-white font-black text-xl mb-3">S</div>
                      <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest">Financial Voucher</h2>
                      <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Reference ID: {receiptData._id?.slice(-12).toUpperCase()}</p>
                    </div>
@@ -804,14 +804,14 @@ const Fees = () => {
                    </div>
                    <div className="text-right">
                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Accounting Status</label>
-                     <span className={`text-[10px] font-black py-1 px-3 rounded-full uppercase inline-block ${receiptData.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                     <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block ${receiptData.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
                        {receiptData.status}
                      </span>
                      <span className="text-[10px] font-bold text-slate-500 block mt-2">Fiscal Session: 2026-27</span>
                    </div>
                  </div>
 
-                 <div className="rounded-3xl border border-slate-100 overflow-hidden mb-8">
+                 <div className="rounded-md border border-slate-100 overflow-hidden mb-8">
                    <table className="w-full text-left">
                      <thead>
                        <tr className="bg-slate-50 border-b border-slate-100">
@@ -862,7 +862,7 @@ const Fees = () => {
 
             <button 
               onClick={handlePrint}
-              className="no-print w-full py-5 bg-slate-900 text-white hover:bg-brand-primary rounded-[1.5rem] font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl"
+              className="no-print w-full py-5 bg-slate-900 text-white hover:bg-brand-primary rounded-md font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl"
             >
               <Download size={18} /> Print Official Document
             </button>

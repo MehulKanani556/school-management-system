@@ -166,7 +166,7 @@ const AttendanceAnalytics = () => {
                 <div className="flex gap-4">
                     <button 
                         onClick={handleExport}
-                        className="flex items-center gap-3 px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all"
+                        className="flex items-center gap-3 px-8 py-4 bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-400 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all"
                     >
                         <Download size={16} /> Export Intelligence
                     </button>
@@ -181,14 +181,14 @@ const AttendanceAnalytics = () => {
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={stat.label} 
-                        className="bg-slate-950/80 border border-slate-800/80 p-8 rounded-[2.5rem] shadow-2xl relative overflow-hidden group"
+                        className="bg-slate-950/80 border border-slate-800/80 p-8 rounded-md shadow-2xl relative overflow-hidden group"
                     >
                         <div className={`absolute top-0 right-0 w-32 h-32 ${stat.bg} blur-[80px] opacity-20 transition-all group-hover:opacity-40`}></div>
                         <div className="flex items-start justify-between mb-6">
-                            <div className={`p-4 rounded-2xl ${stat.bg} ${stat.color} border border-white/5`}>
+                            <div className={`p-4 rounded-md ${stat.bg} ${stat.color} border border-white/5`}>
                                 <stat.icon size={22} />
                             </div>
-                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full border border-white/5 ${stat.color} bg-black/20`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-md border border-white/5 ${stat.color} bg-black/20`}>
                                 {stat.trend}
                             </span>
                         </div>
@@ -229,22 +229,22 @@ const AttendanceAnalytics = () => {
                         className="grid grid-cols-1 lg:grid-cols-3 gap-8"
                     >
                         {/* Analytics Chart */}
-                        <div className="lg:col-span-2 bg-slate-950/80 border border-slate-800/80 rounded-[3.5rem] p-10 shadow-2xl overflow-hidden relative">
+                        <div className="lg:col-span-2 bg-slate-950/80 border border-slate-800/80 rounded-md p-10 shadow-2xl overflow-hidden relative">
                             <div className="flex items-center justify-between mb-12">
                                 <div>
                                     <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1 font-outfit">Temporal Trends</h3>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">Attendance stability across active cycles</p>
                                 </div>
-                                <div className="flex bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800">
+                                <div className="flex bg-slate-900/50 p-1.5 rounded-md border border-slate-800">
                                     <button 
                                         onClick={() => setViewMode('weekly')}
-                                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'weekly' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Weekly
                                     </button>
                                     <button 
                                         onClick={() => setViewMode('monthly')}
-                                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'monthly' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'monthly' ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Monthly
                                     </button>
@@ -292,13 +292,13 @@ const AttendanceAnalytics = () => {
                         </div>
 
                         {/* Recent Activity / Sector Performance */}
-                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3.5rem] p-10 shadow-2xl">
+                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-md p-10 shadow-2xl">
                             <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-8 font-outfit">Priority Nodes</h3>
                             <div className="space-y-6">
                                 {classes?.slice(0, 5).map((cls, i) => (
-                                    <div key={cls._id} className="group flex items-center justify-between p-5 rounded-[2rem] bg-slate-900/30 border border-slate-800/40 hover:border-brand-primary/30 transition-all cursor-pointer">
+                                    <div key={cls._id} className="group flex items-center justify-between p-5 rounded-md bg-slate-900/30 border border-slate-800/40 hover:border-brand-primary/30 transition-all cursor-pointer">
                                         <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 rounded-2xl bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary border border-slate-700 group-hover:scale-110 transition-transform">
+                                            <div className="w-12 h-12 rounded-md bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary border border-slate-700 group-hover:scale-110 transition-transform">
                                                 {cls.standardId?.level}
                                             </div>
                                             <div>
@@ -322,7 +322,7 @@ const AttendanceAnalytics = () => {
                         key="alerts"
                         initial={{ opacity: 0, scale: 0.95 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-slate-950/80 border border-slate-800/80 rounded-[4rem] p-12 shadow-2xl relative overflow-hidden"
+                        className="bg-slate-950/80 border border-slate-800/80 rounded-md p-12 shadow-2xl relative overflow-hidden"
                     >
                         <div className="absolute top-0 left-0 w-full h-2 bg-rose-500/20 blur-md"></div>
                         <div className="flex items-center justify-between mb-12">
@@ -333,25 +333,25 @@ const AttendanceAnalytics = () => {
                             <div className="flex gap-4 items-center">
                                 {/* <button 
                                     onClick={() => window.print()}
-                                    className="flex items-center gap-2 px-6 py-2 bg-slate-100 hover:bg-white text-slate-950 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all mr-2"
+                                    className="flex items-center gap-2 px-6 py-2 bg-slate-100 hover:bg-white text-slate-950 rounded-md font-black text-[10px] uppercase tracking-widest transition-all mr-2"
                                 >
                                     <Download size={14} /> Print Report
                                 </button> */}
-                                <div className="flex bg-slate-900/50 p-1.5 rounded-2xl border border-slate-800 mr-6">
+                                <div className="flex bg-slate-900/50 p-1.5 rounded-md border border-slate-800 mr-6">
                                     <button 
                                         onClick={() => setAlertView('grid')}
-                                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'grid' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'grid' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Grid
                                     </button>
                                     <button 
                                         onClick={() => setAlertView('table')}
-                                        className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'table' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'table' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Table
                                     </button>
                                 </div>
-                                <div className="p-5 bg-rose-500/10 rounded-[2.5rem] border border-rose-500/20 text-rose-500">
+                                <div className="p-5 bg-rose-500/10 rounded-md border border-rose-500/20 text-rose-500">
                                     <AlertTriangle size={32} />
                                 </div>
                             </div>
@@ -365,11 +365,11 @@ const AttendanceAnalytics = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
                                         key={alert._id || alert.studentId || i}
-                                        className="p-8 rounded-[3rem] bg-slate-900/40 border border-rose-500/20 hover:border-rose-500/50 transition-all group relative overflow-hidden"
+                                        className="p-8 rounded-md bg-slate-900/40 border border-rose-500/20 hover:border-rose-500/50 transition-all group relative overflow-hidden"
                                     >
-                                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/5 blur-[40px] rounded-full"></div>
+                                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/5 blur-[40px] rounded-md"></div>
                                         <div className="flex items-center gap-6 mb-8">
-                                            <div className="w-16 h-16 rounded-[1.5rem] bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-slate-500 overflow-hidden shadow-inner group-hover:border-rose-500/40 transition-all duration-500">
+                                            <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-slate-500 overflow-hidden shadow-inner group-hover:border-rose-500/40 transition-all duration-500">
                                                 {alert.photo ? (
                                                     <img src={alert.photo} alt={alert.firstName} className="w-full h-full object-cover" />
                                                 ) : (
@@ -389,7 +389,7 @@ const AttendanceAnalytics = () => {
                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Engagement Velocity</span>
                                                 <span className="text-2xl font-black text-rose-500 font-outfit">{alert.stats?.percentage || alert.percentage || 0}%</span>
                                             </div>
-                                            <div className="w-full h-2.5 bg-slate-800/50 rounded-full border border-slate-700 overflow-hidden shadow-inner">
+                                            <div className="w-full h-2.5 bg-slate-800/50 rounded-md border border-slate-700 overflow-hidden shadow-inner">
                                                 <motion.div 
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${alert.stats?.percentage || alert.percentage || 0}%` }}
@@ -413,7 +413,7 @@ const AttendanceAnalytics = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="overflow-x-auto rounded-[2.5rem] border border-slate-800 group transition-all">
+                            <div className="overflow-x-auto rounded-md border border-slate-800 group transition-all">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/60 border-b border-rose-500/20">
@@ -427,7 +427,7 @@ const AttendanceAnalytics = () => {
                                             <tr key={alert._id || alert.studentId || i} className="hover:bg-rose-500/[0.03] transition-colors group/row">
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-11 h-11 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 group-hover/row:border-rose-500/30 transition-all overflow-hidden bg-center bg-cover">
+                                                        <div className="w-11 h-11 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 group-hover/row:border-rose-500/30 transition-all overflow-hidden bg-center bg-cover">
                                                             {alert.photo ? (
                                                                 <img src={alert.photo} alt={alert.firstName} className="w-full h-full object-cover" />
                                                             ) : (
@@ -440,7 +440,7 @@ const AttendanceAnalytics = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7 uppercase">
-                                                    <span className="text-[10px] font-black text-slate-500 tracking-widest bg-slate-900/40 px-3 py-1.5 rounded-lg border border-slate-800 italic">#{alert.admissionNumber || 'N/A'}</span>
+                                                    <span className="text-[10px] font-black text-slate-500 tracking-widest bg-slate-900/40 px-3 py-1.5 rounded-md border border-slate-800 italic">#{alert.admissionNumber || 'N/A'}</span>
                                                 </td>
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-3">
@@ -454,7 +454,7 @@ const AttendanceAnalytics = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <button className="p-3 bg-rose-500/10 rounded-xl text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all transform active:scale-95">
+                                                    <button className="p-3 bg-rose-500/10 rounded-md text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all transform active:scale-95">
                                                         <Search size={16} />
                                                     </button>
                                                 </td>
@@ -467,7 +467,7 @@ const AttendanceAnalytics = () => {
 
                         {(!attendanceAlerts || attendanceAlerts.length === 0) && !loading && (
                             <div className="col-span-full py-20 text-center">
-                                <div className="w-20 h-20 bg-emerald-500/10 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 text-emerald-500 border border-emerald-500/20">
+                                <div className="w-20 h-20 bg-emerald-500/10 rounded-md flex items-center justify-center mx-auto mb-6 text-emerald-500 border border-emerald-500/20">
                                     <TrendingUp size={32} />
                                 </div>
                                 <h3 className="text-xl font-black text-white italic uppercase font-outfit tracking-tight">Zero Critical Deviations</h3>
@@ -485,7 +485,7 @@ const AttendanceAnalytics = () => {
                         className="space-y-8"
                     >
                         {/* Filters */}
-                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3rem] p-10 shadow-2xl">
+                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-md p-10 shadow-2xl">
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-end">
                                 <div className="space-y-3">
                                     <label className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 ml-2 italic">Standard Node</label>
@@ -494,7 +494,7 @@ const AttendanceAnalytics = () => {
                                         <select 
                                             value={selectedStandard} 
                                             onChange={e => { setSelectedStandard(e.target.value); setSelectedClass(''); }}
-                                            className="w-full bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all rounded-[1.5rem] py-5 pl-14 pr-8 text-white outline-none cursor-pointer text-sm font-bold font-outfit italic"
+                                            className="w-full bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all rounded-md py-5 pl-14 pr-8 text-white outline-none cursor-pointer text-sm font-bold font-outfit italic"
                                         >
                                             <option value="">Select Grade</option>
                                             {standards.map(s => <option key={s._id} value={s._id}>Node {s.level}</option>)}
@@ -509,7 +509,7 @@ const AttendanceAnalytics = () => {
                                             value={selectedClass} 
                                             onChange={e => setSelectedClass(e.target.value)} 
                                             disabled={!selectedStandard}
-                                            className="w-full bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all rounded-[1.5rem] py-5 pl-14 pr-8 text-white outline-none cursor-pointer text-sm font-bold font-outfit italic disabled:opacity-30 disabled:cursor-not-allowed"
+                                            className="w-full bg-slate-900/50 border border-slate-800 hover:border-slate-700 transition-all rounded-md py-5 pl-14 pr-8 text-white outline-none cursor-pointer text-sm font-bold font-outfit italic disabled:opacity-30 disabled:cursor-not-allowed"
                                         >
                                             <option value="">Select Sector</option>
                                             {classes
@@ -521,7 +521,7 @@ const AttendanceAnalytics = () => {
                                 <button 
                                     onClick={handleFetchReport}
                                     disabled={!selectedClass}
-                                    className="h-[60px] bg-brand-primary hover:bg-blue-600 disabled:opacity-40 text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_10px_30px_rgba(59,130,246,0.25)] flex items-center justify-center gap-3 font-outfit italic active:scale-95"
+                                    className="h-[60px] bg-brand-primary hover:bg-blue-600 disabled:opacity-40 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_10px_30px_rgba(59,130,246,0.25)] flex items-center justify-center gap-3 font-outfit italic active:scale-95"
                                 >
                                     <Search size={18} /> Synchronize Telemetry
                                 </button>
@@ -529,14 +529,14 @@ const AttendanceAnalytics = () => {
                         </div>
 
                         {/* Report Table */}
-                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-[4rem] overflow-hidden shadow-2xl relative">
+                        <div className="bg-slate-950/80 border border-slate-800/80 rounded-md overflow-hidden shadow-2xl relative">
                             <div className="p-10 border-b border-slate-800/40 flex items-center justify-between bg-black/20">
                                 <div>
                                     <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-1 font-outfit">Detailed Telemetry Log</h3>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.3em] italic">Granular presence tracking for the selected sector</p>
                                 </div>
                                 <div className="flex gap-4">
-                                    <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] bg-blue-500/10 px-4 py-2 rounded-xl border border-blue-500/20 italic">
+                                    <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] bg-blue-500/10 px-4 py-2 rounded-md border border-blue-500/20 italic">
                                         {attendanceReport?.length || 0} Entities Synced
                                     </span>
                                 </div>
@@ -556,7 +556,7 @@ const AttendanceAnalytics = () => {
                                             <tr key={report._id} className="hover:bg-white/[0.02] transition-colors group">
                                                 <td className="px-10 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-600 overflow-hidden">
+                                                        <div className="w-10 h-10 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center font-bold text-slate-600 overflow-hidden">
                                                             {report.photo ? (
                                                                 <img src={report.photo} alt={report.firstName} className="w-full h-full object-cover" />
                                                             ) : (
@@ -570,13 +570,13 @@ const AttendanceAnalytics = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/50 uppercase font-outfit italic">#{report.admissionNumber}</span>
+                                                    <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-md border border-slate-700/50 uppercase font-outfit italic">#{report.admissionNumber}</span>
                                                 </td>
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-32 h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                                                        <div className="w-32 h-1.5 bg-slate-800 rounded-md overflow-hidden">
                                                             <div 
-                                                                className={`h-full rounded-full ${report.stats?.percentage >= 75 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                                                className={`h-full rounded-md ${report.stats?.percentage >= 75 ? 'bg-emerald-500' : 'bg-rose-500'}`}
                                                                 style={{ width: `${report.stats?.percentage}%` }}
                                                             />
                                                         </div>
@@ -590,7 +590,7 @@ const AttendanceAnalytics = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg border italic ${report.stats?.percentage >= 90 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : report.stats?.percentage >= 75 ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
+                                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-md border italic ${report.stats?.percentage >= 90 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : report.stats?.percentage >= 75 ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
                                                         {report.stats?.percentage >= 90 ? 'High Retention' : report.stats?.percentage >= 75 ? 'Nominal' : 'Critical Risk'}
                                                     </span>
                                                 </td>

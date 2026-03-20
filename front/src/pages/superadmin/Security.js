@@ -26,12 +26,12 @@ const Security = () => {
                 <div className="flex flex-col">
                     <h1 className="text-2xl xs:text-3xl font-bold tracking-tight text-slate-100 font-inter italic uppercase leading-tight">Security & Access Center</h1>
                     <p className="text-[11px] xs:text-sm font-medium text-slate-400 mt-1 tracking-wide flex items-center gap-3">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]"></span>
+                        <span className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]"></span>
                         Firewall Situational Monitoring Active.
                     </p>
                 </div>
-                <div className="px-5 py-3 rounded-lg bg-brand-surface border border-brand-border flex items-center gap-4 shadow-2xl group cursor-default transition-all hover:border-brand-primary/40">
-                    <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary shadow-sm group-hover:scale-110 transition-transform">
+                <div className="px-5 py-3 rounded-md bg-brand-surface border border-brand-border flex items-center gap-4 shadow-2xl group cursor-default transition-all hover:border-brand-primary/40">
+                    <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center text-brand-primary shadow-sm group-hover:scale-110 transition-transform">
                         <ShieldCheck size={20} />
                     </div>
                     <div>
@@ -48,9 +48,9 @@ const Security = () => {
                     { label: 'Security Anomalies', value: lockedUsers.length, icon: AlertTriangle, color: 'text-luxury-rose bg-luxury-rose/10 border-luxury-rose/20', note: 'Credential Integrity Registry' },
                     { label: 'Active Sessions', value: users.filter(u => u.isActive).length, icon: Activity, color: 'text-luxury-emerald bg-luxury-emerald/10 border-luxury-emerald/20', note: 'Concurrent Flow Monitoring' }
                 ].map((stat, idx) => (
-                    <div key={idx} className="bg-brand-surface p-8 rounded-lg border border-brand-border shadow-2xl group hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden">
+                    <div key={idx} className="bg-brand-surface p-8 rounded-md border border-brand-border shadow-2xl group hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden">
                         <div className="flex items-center justify-between mb-8">
-                            <div className={`p-4 rounded-lg border ${stat.color} transition-all duration-500`}>
+                            <div className={`p-4 rounded-md border ${stat.color} transition-all duration-500`}>
                                 <stat.icon size={24} />
                             </div>
                             <span className="text-[9px] font-black uppercase text-slate-600 tracking-widest italic">Situational Telemetry</span>
@@ -63,18 +63,18 @@ const Security = () => {
             </div>
 
             {/* Privileged User Registry */}
-            <div className="bg-brand-surface border border-brand-border rounded-lg shadow-2xl overflow-hidden group">
+            <div className="bg-brand-surface border border-brand-border rounded-md shadow-2xl overflow-hidden group">
                 <div className="px-6 py-5 border-b border-brand-border bg-brand-background/30 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none">Infrastructure Administrator Clusters</h2>
                         <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic mt-2 opacity-60">Mapping access protocols across management nodes.</p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="h-9 px-4 rounded-lg border border-brand-border bg-brand-background flex items-center gap-2 text-slate-400 hover:text-brand-primary transition-all cursor-pointer text-[10px] font-bold uppercase tracking-widest italic shadow-sm">
+                        <div className="h-9 px-4 rounded-md border border-brand-border bg-brand-background flex items-center gap-2 text-slate-400 hover:text-brand-primary transition-all cursor-pointer text-[10px] font-bold uppercase tracking-widest italic shadow-sm">
                             <User size={14} />
                             <span>Audit Registry</span>
                         </div>
-                        <button className="p-2.5 bg-brand-background border border-brand-border rounded-lg text-slate-400 hover:text-luxury-rose transition-all shadow-sm">
+                        <button className="p-2.5 bg-brand-background border border-brand-border rounded-md text-slate-400 hover:text-luxury-rose transition-all shadow-sm">
                             <ShieldOff size={18} />
                         </button>
                     </div>
@@ -94,7 +94,7 @@ const Security = () => {
                                 <tr key={i} className="group/row hover:bg-brand-background/40 transition-all">
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-lg border border-brand-border bg-brand-background overflow-hidden p-0.5 group-hover/row:border-brand-primary/30 transition-all shadow-sm">
+                                            <div className="w-10 h-10 rounded-md border border-brand-border bg-brand-background overflow-hidden p-0.5 group-hover/row:border-brand-primary/30 transition-all shadow-sm">
                                                 {admin.photo ? <img src={admin.photo} alt="" className="w-full h-full object-cover rounded-md" /> : <div className="w-full h-full flex items-center justify-center text-slate-500"><User size={18} /></div>}
                                             </div>
                                             <div className="flex flex-col">
@@ -108,7 +108,7 @@ const Security = () => {
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${admin.failedLoginAttempts > 0 ? 'bg-luxury-rose animate-pulse' : 'bg-luxury-emerald'}`}></div>
+                                            <div className={`w-1.5 h-1.5 rounded-md ${admin.failedLoginAttempts > 0 ? 'bg-luxury-rose animate-pulse' : 'bg-luxury-emerald'}`}></div>
                                             <span className={`text-[9px] font-bold uppercase tracking-widest italic ${admin.failedLoginAttempts > 0 ? 'text-luxury-rose' : 'text-luxury-emerald'}`}>
                                                 {admin.failedLoginAttempts > 0 ? `${admin.failedLoginAttempts} Faults` : 'Secure Cluster'}
                                             </span>

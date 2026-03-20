@@ -30,7 +30,7 @@ const validationSchema = Yup.object({
 });
 
 const ic = (touched, error) =>
-  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-xl py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
+  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-md py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
 
 const Err = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
@@ -152,17 +152,17 @@ const Students = () => {
           <p className="text-slate-400 text-sm mt-1">{students.length} total students</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-indigo-400 hover:text-indigo-300 group">
+          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-indigo-400 hover:text-indigo-300 group">
             <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Promote Students
           </button>
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
             <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Export Data
           </button>
-          <label className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider cursor-pointer transition-all font-outfit text-slate-400 hover:text-white group">
+          <label className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider cursor-pointer transition-all font-outfit text-slate-400 hover:text-white group">
             <Upload size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Import CSV
             <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
           </label>
-          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
+          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
             <Plus size={18} /> Add Student
           </button>
         </div>
@@ -171,10 +171,10 @@ const Students = () => {
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students..."
-          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-2xl py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
+          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
       </div>
 
-      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] overflow-hidden">
+      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30">
@@ -194,7 +194,7 @@ const Students = () => {
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
                     <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`}
-                      className="w-10 h-10 rounded-xl object-cover bg-slate-800 border border-slate-700" alt="" />
+                      className="w-10 h-10 rounded-md object-cover bg-slate-800 border border-slate-700" alt="" />
                     <div className="font-semibold">{s.firstName} {s.lastName}</div>
                   </div>
                 </td>
@@ -210,9 +210,9 @@ const Students = () => {
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
                     <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
-                      className="p-2 rounded-xl hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
-                    <button onClick={() => openEdit(s)} className="p-2 rounded-xl hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
-                    <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                      className="p-2 rounded-md hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
+                    <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
+                    <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
                 </td>
               </motion.tr>
@@ -237,7 +237,7 @@ const Students = () => {
               onChange={(e) => formik.setFieldValue('photo', e.target.files[0])} />
 
             <label htmlFor="photo-upload" className="relative group cursor-pointer block">
-              <div className={`w-full h-42 py-4 rounded-3xl border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
+              <div className={`w-full h-42 py-4 rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
                 ${formik.values.photo ? 'border-brand-primary' : 'border-slate-700 hover:border-brand-primary bg-slate-800/40'}`}>
 
                 {formik.values.photo ? (
@@ -245,14 +245,14 @@ const Students = () => {
                     <img src={typeof formik.values.photo === 'string' ? formik.values.photo : URL.createObjectURL(formik.values.photo)}
                       className="w-full h-full object-cover" alt="Preview" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <div className="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center shadow-xl">
+                      <div className="w-12 h-12 rounded-md bg-brand-primary flex items-center justify-center shadow-xl">
                         <Upload size={24} className="text-white" />
                       </div>
                     </div>
                   </div>
                 ) : (
                   <>
-                    <div className="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                    <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
                       <Upload className="text-slate-400 group-hover:text-brand-primary transition-colors" size={24} />
                     </div>
                     <div className="text-center">
@@ -264,7 +264,7 @@ const Students = () => {
 
               {formik.values.photo && (
                 <button type="button" onClick={(e) => { e.preventDefault(); formik.setFieldValue('photo', null); }}
-                  className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-xl shadow-lg transition-all z-10">
+                  className="absolute top-4 right-4 p-2 bg-red-500 hover:bg-red-600 rounded-md shadow-lg transition-all z-10">
                   <X size={16} className="text-white" />
                 </button>
               )}
@@ -358,7 +358,7 @@ const Students = () => {
           </div>
 
           <button type="submit" disabled={loading || formik.isSubmitting}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
+            className="w-full py-3 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
             {loading ? 'Saving...' : editing ? 'Update Student' : 'Add Student'}
           </button>
         </form>
@@ -368,7 +368,7 @@ const Students = () => {
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Confirm Delete" maxWidth="max-w-sm">
         <div className="space-y-6">
           <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center">
               <Trash2 size={24} className="text-red-400" />
             </div>
             <div>
@@ -378,11 +378,11 @@ const Students = () => {
           </div>
           <div className="flex gap-3">
             <button onClick={() => setDeleteTarget(null)}
-              className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-sm uppercase tracking-wider transition-all font-outfit">
+              className="flex-1 py-3 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-sm uppercase tracking-wider transition-all font-outfit">
               Cancel
             </button>
             <button onClick={() => { dispatch(deleteStudent(deleteTarget._id)); setDeleteTarget(null); }} disabled={loading}
-              className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white font-black text-sm uppercase tracking-wider transition-all font-outfit">
+              className="flex-1 py-3 rounded-md bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white font-black text-sm uppercase tracking-wider transition-all font-outfit">
               {loading ? 'Deleting...' : 'Yes, Delete'}
             </button>
           </div>
@@ -392,14 +392,14 @@ const Students = () => {
       {/* Promotion Modal */}
       <Modal open={promoteModal} onClose={() => setPromoteModal(false)} title="Promote Students">
         <form onSubmit={promoteFormik.handleSubmit} className="space-y-6">
-          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
+          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-md">
             <p className="text-xs text-indigo-300 leading-relaxed font-medium">
               This cycle will migrate students from one grade level to another. Use this at the end of the academic year.
             </p>
           </div>
 
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/40 rounded-3xl border border-slate-800">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/40 rounded-md border border-slate-800">
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-2">Source Class (From)</div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
@@ -429,12 +429,12 @@ const Students = () => {
             </div>
 
             <div className="flex justify-center">
-              <div className="w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center">
                 <ArrowUpCircle size={16} className="text-brand-primary" />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 p-4 bg-brand-primary/5 rounded-3xl border border-brand-primary/10">
+            <div className="grid grid-cols-2 gap-4 p-4 bg-brand-primary/5 rounded-md border border-brand-primary/10">
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-brand-primary border-b border-brand-primary/10 pb-2 mb-2">Target Grade (To)</div>
               <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
@@ -467,7 +467,7 @@ const Students = () => {
           <button
             type="submit"
             disabled={!promoteFormik.isValid || loading}
-            className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-2xl font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+            className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-md font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
           >
             {loading ? 'Processing cycle...' : 'Execute Promotion Cycle'}
           </button>

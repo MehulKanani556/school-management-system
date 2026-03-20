@@ -21,7 +21,7 @@ const validationSchema = Yup.object({
 });
 
 const inputClass = (touched, error) =>
-  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-xl py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
+  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-md py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
 
 const FieldError = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
@@ -127,14 +127,14 @@ const Teachers = () => {
           <p className="text-slate-400 text-sm mt-1">{teachers.length} total teachers</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
+          <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
             <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Export Data
           </button>
-          <label className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-2xl font-black text-[10px] uppercase tracking-wider cursor-pointer transition-all font-outfit text-slate-400 hover:text-white group">
+          <label className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider cursor-pointer transition-all font-outfit text-slate-400 hover:text-white group">
             <Upload size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Import CSV
             <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
           </label>
-          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
+          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
             <Plus size={18} /> Add Teacher
           </button>
         </div>
@@ -143,10 +143,10 @@ const Teachers = () => {
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search teachers..."
-          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-2xl py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
+          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
       </div>
 
-      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] overflow-hidden">
+      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30">
@@ -169,19 +169,19 @@ const Teachers = () => {
                 <td className="px-6 py-4 text-slate-400 text-sm">{t.phone || '—'}</td>
                 <td className="px-6 py-4 text-brand-primary text-sm font-bold">₹{t.baseSalary?.toLocaleString() || '0'}</td>
                 <td className="px-6 py-4">
-                  <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${t.isActive ? 'text-emerald-400 bg-emerald-400/10' : 'text-slate-500 bg-slate-700/40'}`}>
+                  <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${t.isActive ? 'text-emerald-400 bg-emerald-400/10' : 'text-slate-500 bg-slate-700/40'}`}>
                     {t.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(t)} className="p-2 rounded-xl hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
+                    <button onClick={() => openEdit(t)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
                     <button onClick={() => dispatch(toggleTeacherStatus(t._id))}
-                      className={`p-2 rounded-xl transition-all ${t.isActive ? 'hover:bg-amber-500/10 text-slate-500 hover:text-amber-400' : 'hover:bg-emerald-500/10 text-slate-500 hover:text-emerald-400'}`}
+                      className={`p-2 rounded-md transition-all ${t.isActive ? 'hover:bg-amber-500/10 text-slate-500 hover:text-amber-400' : 'hover:bg-emerald-500/10 text-slate-500 hover:text-emerald-400'}`}
                       title={t.isActive ? 'Deactivate' : 'Activate'}>
                       {t.isActive ? <ToggleRight size={17} /> : <ToggleLeft size={17} />}
                     </button>
-                    <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                    <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
                 </td>
               </motion.tr>
@@ -242,13 +242,13 @@ const Teachers = () => {
           </div>
 
           {serverError && (
-            <div className="px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold">
+            <div className="px-4 py-3 rounded-md bg-red-500/10 border border-red-500/20 text-red-400 text-sm font-semibold">
               {serverError}
             </div>
           )}
 
           <button type="submit" disabled={loading || formik.isSubmitting}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
+            className="w-full py-3 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
             {loading ? 'Saving...' : editing ? 'Update Teacher' : 'Add Teacher'}
           </button>
         </form>
@@ -258,7 +258,7 @@ const Teachers = () => {
       <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Confirm Delete" maxWidth="max-w-sm">
         <div className="space-y-6">
           <div className="flex flex-col items-center text-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-md bg-red-500/10 border border-red-500/20 flex items-center justify-center">
               <Trash2 size={24} className="text-red-400" />
             </div>
             <div>
@@ -269,14 +269,14 @@ const Teachers = () => {
           <div className="flex gap-3">
             <button
               onClick={() => setDeleteTarget(null)}
-              className="flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-sm uppercase tracking-wider transition-all font-outfit"
+              className="flex-1 py-3 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-black text-sm uppercase tracking-wider transition-all font-outfit"
             >
               Cancel
             </button>
             <button
               onClick={() => { dispatch(deleteTeacher(deleteTarget._id)); setDeleteTarget(null); }}
               disabled={loading}
-              className="flex-1 py-3 rounded-2xl bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white font-black text-sm uppercase tracking-wider transition-all font-outfit"
+              className="flex-1 py-3 rounded-md bg-red-500 hover:bg-red-600 disabled:opacity-60 text-white font-black text-sm uppercase tracking-wider transition-all font-outfit"
             >
               {loading ? 'Deleting...' : 'Yes, Delete'}
             </button>

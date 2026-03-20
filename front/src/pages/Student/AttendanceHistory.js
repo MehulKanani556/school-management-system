@@ -33,17 +33,17 @@ const AttendanceHistory = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
         >
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-[3rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
-                        <span className="w-12 h-[2px] bg-luxury-emerald rounded-full"></span>
+                        <span className="w-12 h-[2px] bg-luxury-emerald rounded-md"></span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald font-outfit">Presence Node</span>
                     </div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Attendance Analytics</h1>
                     <p className="text-slate-500 font-medium text-sm tracking-wide italic">Secure discovery of institutional participation telemetry.</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-[2.5rem] shadow-inner backdrop-blur-sm">
+                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-md shadow-inner backdrop-blur-sm">
                     {[
                         { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald' },
                         { label: 'Present', val: stats.present, color: 'text-luxury-emerald' },
@@ -59,7 +59,7 @@ const AttendanceHistory = () => {
             </header>
 
             <div className="grid grid-cols-1 gap-6">
-                <div className="bg-[#0f0f12] border border-slate-800/60 rounded-[2.5rem] overflow-hidden shadow-2xl">
+                <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl">
                     <div className="p-8 border-b border-slate-800/50 flex items-center justify-between bg-black/20">
                         <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Historical Logs</h3>
                         <div className="relative group">
@@ -67,7 +67,7 @@ const AttendanceHistory = () => {
                             <input 
                                 type="text" 
                                 placeholder="Filter Cycles..." 
-                                className="bg-slate-900/50 border border-slate-800 rounded-xl py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48"
+                                className="bg-slate-900/50 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48"
                             />
                         </div>
                     </div>
@@ -91,14 +91,14 @@ const AttendanceHistory = () => {
                                             <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="p-3 bg-slate-900 rounded-xl group-hover:bg-slate-800 transition-colors">
+                                                        <div className="p-3 bg-slate-900 rounded-md group-hover:bg-slate-800 transition-colors">
                                                             <Calendar size={18} className="text-slate-400" />
                                                         </div>
                                                         <span className="font-bold text-slate-200 tracking-tight">{new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.color} border ${config.border}`}>
+                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.color} border ${config.border}`}>
                                                         <Icon size={14} />
                                                         {record.status}
                                                     </div>

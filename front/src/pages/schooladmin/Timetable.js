@@ -243,13 +243,13 @@ const AdminTimetable = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
             <div className="no-print space-y-4">
                 {/* ─── Neural Command Header ────────────────── */}
-                <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-[#030712]/80 p-8 rounded-2xl border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl relative overflow-hidden group">
+                <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 bg-[#030712]/80 p-8 rounded-md border border-white/5 shadow-[0_0_50px_rgba(0,0,0,0.3)] backdrop-blur-2xl relative overflow-hidden group">
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 via-transparent to-transparent opacity-50"></div>
-                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] animate-pulse"></div>
+                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-primary/5 rounded-md blur-[100px] animate-pulse"></div>
                     
                     <div className="space-y-2 relative z-10">
                         <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-brand-primary shadow-glow"></div>
+                            <div className="w-1.5 h-1.5 rounded-md bg-brand-primary shadow-glow"></div>
                             <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Sync System v2.0</span>
                         </div>
                         <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit group-hover:scale-[1.01] transition-transform duration-700">
@@ -261,7 +261,7 @@ const AdminTimetable = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 relative z-10">
-                        <div className="flex bg-black/40 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+                        <div className="flex bg-black/40 p-1 rounded-md border border-white/5 backdrop-blur-md">
                             {[
                                 { id: 'editor', icon: <Edit2 size={12} />, label: 'Node View' },
                                 { id: 'table', icon: <LayoutGrid size={12} />, label: 'Global Registry' }
@@ -269,7 +269,7 @@ const AdminTimetable = () => {
                                 <button
                                     key={mode.id}
                                     onClick={() => setViewMode(mode.id)}
-                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-500 ${viewMode === mode.id ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-500 hover:text-slate-300'}`}
+                                    className={`flex items-center gap-2 px-5 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all duration-500 ${viewMode === mode.id ? 'bg-brand-primary text-white shadow-glow' : 'text-slate-500 hover:text-slate-300'}`}
                                 >
                                     {mode.icon} {mode.label}
                                 </button>
@@ -281,7 +281,7 @@ const AdminTimetable = () => {
                         <div className="flex items-center gap-3">
                             <button 
                                 onClick={() => setIsTemplateModalOpen(true)}
-                                className="flex items-center gap-2 px-6 h-12 rounded-xl bg-slate-900/60 border border-white/5 text-slate-400 hover:border-brand-primary/40 hover:text-white hover:bg-slate-900 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group/btn shadow-inner"
+                                className="flex items-center gap-2 px-6 h-12 rounded-md bg-slate-900/60 border border-white/5 text-slate-400 hover:border-brand-primary/40 hover:text-white hover:bg-slate-900 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group/btn shadow-inner"
                             >
                                 <Settings size={14} className="group-hover/btn:rotate-90 transition-transform duration-700 text-brand-primary/60 group-hover/btn:text-brand-primary" />
                                 Infrastructure
@@ -292,7 +292,7 @@ const AdminTimetable = () => {
                                 <select 
                                     value={selectedClass} 
                                     onChange={(e) => setSelectedClass(e.target.value)}
-                                    className="bg-slate-950 border border-white/5 h-12 pl-12 pr-10 rounded-xl text-[9px] font-black uppercase tracking-widest outline-none focus:border-brand-primary/30 transition-all text-white appearance-none cursor-pointer hover:bg-black font-outfit shadow-inner"
+                                    className="bg-slate-950 border border-white/5 h-12 pl-12 pr-10 rounded-md text-[9px] font-black uppercase tracking-widest outline-none focus:border-brand-primary/30 transition-all text-white appearance-none cursor-pointer hover:bg-black font-outfit shadow-inner"
                                 >
                                     <option value="">Select Sector</option>
                                     {classes.map(c => (
@@ -307,9 +307,9 @@ const AdminTimetable = () => {
                             <button 
                                 onClick={handleSave}
                                 disabled={loading || !selectedClass}
-                                className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-20 text-white px-8 h-12 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all shadow-glow active:scale-95"
+                                className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-20 text-white px-8 h-12 rounded-md text-[9px] font-black uppercase tracking-widest transition-all shadow-glow active:scale-95"
                             >
-                                {loading ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Save size={14} />}
+                                {loading ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-md animate-spin" /> : <Save size={14} />}
                                 Sync Timeline
                             </button>
                         </div>
@@ -328,10 +328,10 @@ const AdminTimetable = () => {
                     >
                         <div className="flex items-center justify-between px-4">
                             <h2 className="text-xs font-black uppercase tracking-[0.5em] text-slate-500 font-outfit italic">Institutional Chronology Archive</h2>
-                            <span className="px-4 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-full text-[9px] font-black text-brand-primary uppercase tracking-widest italic">{timetables.length} Active Records</span>
+                            <span className="px-4 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[9px] font-black text-brand-primary uppercase tracking-widest italic">{timetables.length} Active Records</span>
                         </div>
 
-                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-2xl overflow-hidden backdrop-blur-xl shadow-xl">
+                        <div className="bg-slate-950/40 border border-slate-800/60 rounded-md overflow-hidden backdrop-blur-xl shadow-xl">
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-slate-800/60 bg-slate-900/40">
@@ -350,7 +350,7 @@ const AdminTimetable = () => {
                                             <tr key={cls._id} className="border-b border-slate-800/40 last:border-none group hover:bg-white/5 transition-all duration-500">
                                                 <td className="px-10 py-8">
                                                     <div className="flex items-center gap-4">
-                                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${tt ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' : 'bg-slate-900/60 border-slate-800 text-slate-600'}`}>
+                                                        <div className={`w-10 h-10 rounded-md flex items-center justify-center border transition-all ${tt ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' : 'bg-slate-900/60 border-slate-800 text-slate-600'}`}>
                                                             <Layers size={20} />
                                                         </div>
                                                         <div>
@@ -363,13 +363,13 @@ const AdminTimetable = () => {
                                                 </td>
                                                 <td className="px-10 py-8">
                                                     {tt ? (
-                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
+                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-md text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                                                            <div className="w-1.5 h-1.5 rounded-md bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.6)] animate-pulse"></div>
                                                             Synchronized
                                                         </div>
                                                     ) : (
-                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/60 border border-slate-700/60 rounded-xl text-[9px] font-black text-slate-500 uppercase tracking-widest">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
+                                                        <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800/60 border border-slate-700/60 rounded-md text-[9px] font-black text-slate-500 uppercase tracking-widest">
+                                                            <div className="w-1.5 h-1.5 rounded-md bg-slate-600"></div>
                                                             Awaiting Node Initialization
                                                         </div>
                                                     )}
@@ -380,7 +380,7 @@ const AdminTimetable = () => {
                                                 <td className="px-10 py-8 text-right">
                                                     <button 
                                                         onClick={() => { setSelectedClass(cls._id); setViewMode('editor'); }}
-                                                        className="h-12 px-8 rounded-xl border border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all flex items-center justify-center gap-3 float-right group/btn"
+                                                        className="h-12 px-8 rounded-md border border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all flex items-center justify-center gap-3 float-right group/btn"
                                                     >
                                                         {tt ? 'Modify' : 'Initialize'}
                                                         <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
@@ -404,12 +404,12 @@ const AdminTimetable = () => {
                         {selectedClass ? (
                             <div className="flex flex-col gap-6">
                                 {/* ─── Phase Selector ────────────────── */}
-                                <div className="flex bg-[#030712]/60 p-1.5 rounded-xl border border-white/5 backdrop-blur-md sticky top-0 z-50 overflow-x-auto no-scrollbar shadow-lg">
+                                <div className="flex bg-[#030712]/60 p-1.5 rounded-md border border-white/5 backdrop-blur-md sticky top-0 z-50 overflow-x-auto no-scrollbar shadow-lg">
                                     {days.map(day => (
                                         <button
                                             key={day}
                                             onClick={() => setActiveDay(day)}
-                                            className={`flex-1 flex flex-col items-center justify-center min-w-[100px] px-4 py-3 rounded-lg transition-all duration-700 relative group/day ${
+                                            className={`flex-1 flex flex-col items-center justify-center min-w-[100px] px-4 py-3 rounded-md transition-all duration-700 relative group/day ${
                                                 activeDay === day 
                                                 ? 'bg-brand-primary text-white shadow-glow' 
                                                 : 'text-slate-500 hover:text-slate-200 hover:bg-white/5'
@@ -417,11 +417,11 @@ const AdminTimetable = () => {
                                         >
                                             <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-outfit ${activeDay === day ? 'text-white' : 'text-slate-400 group-hover/day:text-white'}`}>{day}</span>
                                             <div className="flex items-center gap-1 mt-1 opacity-40">
-                                                <div className={`w-1 h-1 rounded-full ${schedule[activeDay]?.length > 0 ? 'bg-current' : 'bg-transparent border border-current'}`}></div>
+                                                <div className={`w-1 h-1 rounded-md ${schedule[activeDay]?.length > 0 ? 'bg-current' : 'bg-transparent border border-current'}`}></div>
                                                 <span className="text-[7px] font-bold">{(schedule[day] || []).length} Nodes</span>
                                             </div>
                                             {activeDay === day && (
-                                                <motion.div layoutId="dayTab" className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-white rounded-full"></motion.div>
+                                                <motion.div layoutId="dayTab" className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-white rounded-md"></motion.div>
                                             )}
                                         </button>
                                     ))}
@@ -435,14 +435,14 @@ const AdminTimetable = () => {
                                     <div className="flex gap-3">
                                         <button 
                                             onClick={() => setIsTemplateModalOpen(true)}
-                                            className="flex items-center gap-2 px-6 h-10 rounded-lg bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-brand-primary/30 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group shadow-inner"
+                                            className="flex items-center gap-2 px-6 h-10 rounded-md bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-brand-primary/30 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group shadow-inner"
                                         >
                                             <Layers size={14} className="group-hover:rotate-12 transition-transform text-brand-primary/40 group-hover:text-brand-primary" />
                                             Import Pattern
                                         </button>
                                         <button 
                                             onClick={addPeriod}
-                                            className="flex items-center gap-2 px-6 h-10 rounded-lg bg-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[9px] font-black uppercase tracking-widest shadow-glow active:scale-95 group"
+                                            className="flex items-center gap-2 px-6 h-10 rounded-md bg-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[9px] font-black uppercase tracking-widest shadow-glow active:scale-95 group"
                                         >
                                             <Plus size={14} className="group-hover:rotate-12 transition-transform" />
                                             Add Node
@@ -458,17 +458,17 @@ const AdminTimetable = () => {
                                                 layout
                                                 initial={{ opacity: 0, scale: 0.98 }}
                                                 animate={{ opacity: 1, scale: 1 }}
-                                                className="bg-[#030712]/40 border border-white/5 rounded-xl p-4 group hover:border-brand-primary/40 transition-all duration-700 shadow-lg relative overflow-hidden"
+                                                className="bg-[#030712]/40 border border-white/5 rounded-md p-4 group hover:border-brand-primary/40 transition-all duration-700 shadow-lg relative overflow-hidden"
                                             >
                                                 <div className="flex items-center gap-6 relative z-10">
                                                     {/* Step Count */}
-                                                    <div className="shrink-0 w-8 h-8 rounded-lg bg-slate-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover:text-brand-primary transition-colors">
+                                                    <div className="shrink-0 w-8 h-8 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-[10px] font-black text-slate-500 group-hover:text-brand-primary transition-colors">
                                                         {String(idx + 1).padStart(2, '0')}
                                                     </div>
 
                                                     <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
                                                         <div className="md:col-span-3">
-                                                            <div className="bg-slate-900/60 p-2 rounded-lg border border-white/5">
+                                                            <div className="bg-slate-900/60 p-2 rounded-md border border-white/5">
                                                                 <div className="flex flex-col gap-1">
                                                                     <select 
                                                                         value={period.type || 'Lecture'}
@@ -502,7 +502,7 @@ const AdminTimetable = () => {
 
                                                         {period.type.includes('Break') ? (
                                                             <div className="md:col-span-7 flex items-center justify-center">
-                                                                <div className="relative group/break w-full py-3 bg-brand-primary/5 rounded-2xl border border-brand-primary/10 shadow-inner overflow-hidden flex items-center justify-center">
+                                                                <div className="relative group/break w-full py-3 bg-brand-primary/5 rounded-md border border-brand-primary/10 shadow-inner overflow-hidden flex items-center justify-center">
                                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-primary/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"></div>
                                                                     <span className="text-[10px] font-black uppercase tracking-[0.8em] text-brand-primary/60 italic font-outfit relative z-10">
                                                                         {period.type} Node
@@ -517,7 +517,7 @@ const AdminTimetable = () => {
                                                                         <select 
                                                                             value={period.subject}
                                                                             onChange={(e) => updatePeriod(idx, 'subject', e.target.value)}
-                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-lg text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
+                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-md text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
                                                                         >
                                                                             <option value="">Subject</option>
                                                                             {(() => {
@@ -536,7 +536,7 @@ const AdminTimetable = () => {
                                                                         <select 
                                                                             value={period.teacher}
                                                                             onChange={(e) => updatePeriod(idx, 'teacher', e.target.value)}
-                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-lg text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
+                                                                            className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-md text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
                                                                         >
                                                                             <option value="">Educator</option>
                                                                             {(() => {
@@ -557,9 +557,9 @@ const AdminTimetable = () => {
                                                                 placeholder="RM"
                                                                 value={period.room}
                                                                 onChange={(e) => updatePeriod(idx, 'room', e.target.value)}
-                                                                className="w-12 bg-slate-900/60 border border-white/5 h-10 px-2 rounded-lg text-[10px] font-black uppercase text-center text-white outline-none focus:border-brand-primary/30"
+                                                                className="w-12 bg-slate-900/60 border border-white/5 h-10 px-2 rounded-md text-[10px] font-black uppercase text-center text-white outline-none focus:border-brand-primary/30"
                                                             />
-                                                            <button onClick={() => removePeriod(idx)} className="p-2.5 text-slate-600 hover:text-red-400 transition-colors bg-slate-900 border border-white/5 rounded-lg active:scale-95"><Trash2 size={14} /></button>
+                                                            <button onClick={() => removePeriod(idx)} className="p-2.5 text-slate-600 hover:text-red-400 transition-colors bg-slate-900 border border-white/5 rounded-md active:scale-95"><Trash2 size={14} /></button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -568,15 +568,15 @@ const AdminTimetable = () => {
                                     </AnimatePresence>
 
                                     {(!schedule[activeDay] || schedule[activeDay].length === 0) && (
-                                        <div className="py-24 border-2 border-dashed border-white/5 rounded-2xl bg-[#030712]/40 text-center flex flex-col items-center justify-center space-y-6 backdrop-blur-sm group/empty">
+                                        <div className="py-24 border-2 border-dashed border-white/5 rounded-md bg-[#030712]/40 text-center flex flex-col items-center justify-center space-y-6 backdrop-blur-sm group/empty">
                                             <Clock size={40} className="text-slate-800 opacity-20 group-hover/empty:scale-110 group-hover/empty:text-brand-primary/20 transition-all duration-1000" />
                                             <div>
                                                 <h4 className="text-slate-600 font-black uppercase tracking-[0.6em] text-[10px] italic font-outfit">Empty Temporal Node</h4>
-                                                <p className="text-slate-700 text-[9px] mt-2 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-6 py-2 rounded-full border border-white/5">Initialize pedagogical sequences for {activeDay}</p>
+                                                <p className="text-slate-700 text-[9px] mt-2 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-6 py-2 rounded-md border border-white/5">Initialize pedagogical sequences for {activeDay}</p>
                                             </div>
                                             <button 
                                                 onClick={addPeriod}
-                                                className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-8 py-3 rounded-lg text-[9px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20"
+                                                className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-8 py-3 rounded-md text-[9px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20"
                                             >
                                                 Apply First Pulse Points
                                             </button>
@@ -585,7 +585,7 @@ const AdminTimetable = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="py-48 flex flex-col items-center justify-center border border-white/5 rounded-2xl bg-[#030712]/20 backdrop-blur-md group relative overflow-hidden">
+                            <div className="py-48 flex flex-col items-center justify-center border border-white/5 rounded-md bg-[#030712]/20 backdrop-blur-md group relative overflow-hidden">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)] animate-pulse"></div>
                                 <LayoutGrid size={80} className="text-slate-800 mb-10 opacity-20 group-hover:scale-110 group-hover:text-brand-primary/10 transition-all duration-1000 relative z-10" />
                                 <h3 className="text-2xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Sector Link Required</h3>
@@ -608,7 +608,7 @@ const AdminTimetable = () => {
                         <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest italic">Institutional patterns</p>
                         <button 
                             onClick={() => handleOpenEditTemplate()}
-                            className="flex items-center gap-2 px-4 h-10 rounded-lg bg-brand-primary text-white text-[9px] font-black uppercase tracking-widest"
+                            className="flex items-center gap-2 px-4 h-10 rounded-md bg-brand-primary text-white text-[9px] font-black uppercase tracking-widest"
                         >
                             <Plus size={12} /> New Infrastructure
                         </button>
@@ -616,7 +616,7 @@ const AdminTimetable = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {timetableTemplates.map(template => (
-                            <div key={template._id} className="bg-slate-900 border border-white/5 p-5 rounded-xl group hover:border-indigo-500/30 transition-all flex flex-col justify-between h-full shadow-lg">
+                            <div key={template._id} className="bg-slate-900 border border-white/5 p-5 rounded-md group hover:border-indigo-500/30 transition-all flex flex-col justify-between h-full shadow-lg">
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
                                         <h4 className="text-lg font-black text-white italic tracking-tighter uppercase font-outfit">{template.name}</h4>
@@ -625,7 +625,7 @@ const AdminTimetable = () => {
                                             <button onClick={() => handleDeleteTemplate(template._id)} className="p-2 text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                                         </div>
                                     </div>
-                                    <div className="space-y-2 mb-6 bg-black/40 p-4 rounded-xl border border-white/5 max-h-32 overflow-y-auto scrollbar-compact">
+                                    <div className="space-y-2 mb-6 bg-black/40 p-4 rounded-md border border-white/5 max-h-32 overflow-y-auto scrollbar-compact">
                                         {template.periods.map((p, i) => (
                                             <div key={i} className="flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-400 border-b border-white/5 last:border-none py-1">
                                                 <span>{p.startTime} - {p.endTime}</span>
@@ -636,7 +636,7 @@ const AdminTimetable = () => {
                                 </div>
                                 <button 
                                     onClick={() => handleApplyTemplate(template)}
-                                    className="w-full h-10 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
+                                    className="w-full h-10 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
                                 >
                                     Apply Configuration
                                 </button>
@@ -660,11 +660,11 @@ const AdminTimetable = () => {
                             placeholder="e.g., Morning Shift"
                             value={templateName}
                             onChange={(e) => setTemplateName(e.target.value)}
-                            className="w-full bg-slate-950 border border-white/5 h-10 px-4 rounded-lg text-white font-black uppercase tracking-widest outline-none focus:border-brand-primary/40 text-[11px]"
+                            className="w-full bg-slate-950 border border-white/5 h-10 px-4 rounded-md text-white font-black uppercase tracking-widest outline-none focus:border-brand-primary/40 text-[11px]"
                         />
                     </div>
 
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-black/20 rounded-xl border border-white/5">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-3 bg-black/20 rounded-md border border-white/5">
                         {Object.entries(templateDurations).map(([type, duration]) => (
                             <div key={type} className="space-y-1">
                                 <label className="text-[7px] font-black text-slate-600 uppercase tracking-tighter">{type}(m)</label>
@@ -687,7 +687,7 @@ const AdminTimetable = () => {
                         </div>
                         <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 scrollbar-compact">
                             {templatePeriods.map((period, idx) => (
-                                <div key={idx} className="flex items-center gap-3 bg-black/20 border border-white/5 p-3 rounded-xl">
+                                <div key={idx} className="flex items-center gap-3 bg-black/20 border border-white/5 p-3 rounded-md">
                                     <div className="flex-1 grid grid-cols-4 gap-3">
                                         <select 
                                             value={period.type} 
@@ -721,7 +721,7 @@ const AdminTimetable = () => {
 
                     <button 
                         onClick={handleSaveTemplate}
-                        className="w-full h-12 rounded-xl bg-brand-primary text-white font-black uppercase tracking-widest shadow-glow active:scale-95 transition-all text-[11px]"
+                        className="w-full h-12 rounded-md bg-brand-primary text-white font-black uppercase tracking-widest shadow-glow active:scale-95 transition-all text-[11px]"
                     >
                         Sync Global Configuration
                     </button>
@@ -743,7 +743,7 @@ const AdminTimetable = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-6 border-2 border-slate-900 divide-x-2 divide-slate-900 rounded-2xl overflow-hidden">
+                <div className="grid grid-cols-6 border-2 border-slate-900 divide-x-2 divide-slate-900 rounded-md overflow-hidden">
                     {days.map(day => (
                         <div key={day} className="flex flex-col">
                             <div className="bg-slate-900 text-white p-4 text-[10px] font-black uppercase tracking-widest text-center italic border-b-2 border-slate-900">
@@ -751,7 +751,7 @@ const AdminTimetable = () => {
                             </div>
                             <div className="p-4 space-y-4 min-h-[600px]">
                                 {(schedule[day] || []).map((slot, idx) => (
-                                    <div key={idx} className={`p-4 border rounded-xl space-y-2 ${slot.type.includes('Break') ? 'border-slate-100 bg-slate-50' : 'border-slate-200'}`}>
+                                    <div key={idx} className={`p-4 border rounded-md space-y-2 ${slot.type.includes('Break') ? 'border-slate-100 bg-slate-50' : 'border-slate-200'}`}>
                                         <div className="flex items-center justify-between">
                                             <span className="text-[9px] font-black uppercase text-brand-primary italic">{slot.startTime}</span>
                                             <span className="text-[9px] font-bold text-slate-400 italic">TO {slot.endTime}</span>

@@ -38,10 +38,10 @@ const Timetable = () => {
             className="space-y-8"
         >
             <div className="no-print space-y-8">
-                <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 bg-slate-900/40 p-10 rounded-[3.5rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
                     <div className="space-y-3">
                         <div className="flex items-center gap-3 mb-2">
-                            <span className="w-12 h-[2px] bg-luxury-emerald rounded-full group-hover:w-20 transition-all duration-700"></span>
+                            <span className="w-12 h-[2px] bg-luxury-emerald rounded-md group-hover:w-20 transition-all duration-700"></span>
                             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald font-outfit">Temporal Coordinates</span>
                         </div>
                         <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Institutional Pulse</h1>
@@ -51,14 +51,14 @@ const Timetable = () => {
                     <div className="flex flex-col md:flex-row items-center gap-6">
                         <button 
                             onClick={() => window.print()}
-                            className="group flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-luxury-emerald/40 text-slate-400 hover:text-luxury-emerald px-8 h-16 rounded-[2rem] font-black tracking-[0.3em] uppercase text-[11px] transition-all active:scale-95 font-outfit italic"
+                            className="group flex items-center gap-4 bg-slate-900 border border-slate-800 hover:border-luxury-emerald/40 text-slate-400 hover:text-luxury-emerald px-8 h-16 rounded-md font-black tracking-[0.3em] uppercase text-[11px] transition-all active:scale-95 font-outfit italic"
                         >
                             <Printer size={20} className="group-hover:scale-110 transition-transform" />
                             Broadcast
                         </button>
 
-                        <div className="flex bg-black/40 p-2.5 rounded-[2rem] border border-slate-800/80 shadow-inner overflow-x-auto no-scrollbar backdrop-blur-md items-center gap-4">
-                            <div className="flex bg-slate-900/60 p-1.5 rounded-xl border border-slate-800 group-focus-within:border-brand-primary/50 transition-colors shrink-0">
+                        <div className="flex bg-black/40 p-2.5 rounded-md border border-slate-800/80 shadow-inner overflow-x-auto no-scrollbar backdrop-blur-md items-center gap-4">
+                            <div className="flex bg-slate-900/60 p-1.5 rounded-md border border-slate-800 group-focus-within:border-brand-primary/50 transition-colors shrink-0">
                                 <Calendar size={14} className="text-slate-500 ml-2" />
                                 <input 
                                     type="date"
@@ -73,7 +73,7 @@ const Timetable = () => {
                                     <button
                                         key={day}
                                         onClick={() => setActiveDay(day)}
-                                        className={`px-8 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
+                                        className={`px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all duration-500 whitespace-nowrap ${
                                             activeDay === day 
                                             ? 'bg-luxury-emerald text-black shadow-glow translate-y-[-2px]' 
                                             : 'text-slate-500 hover:text-white hover:bg-slate-800/40'
@@ -88,14 +88,14 @@ const Timetable = () => {
                 </header>
 
                 <div className="grid grid-cols-1 gap-12">
-                    <div className="bg-slate-950/40 border border-slate-800/60 rounded-[4rem] p-12 shadow-[0_40px_100px_rgba(0,0,0,0.4)] relative overflow-hidden backdrop-blur-2xl">
-                        <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-luxury-emerald/5 rounded-full blur-[150px] -mr-60 -mt-60"></div>
+                    <div className="bg-slate-950/40 border border-slate-800/60 rounded-md p-12 shadow-[0_40px_100px_rgba(0,0,0,0.4)] relative overflow-hidden backdrop-blur-2xl">
+                        <div className="absolute top-0 right-0 w-[40rem] h-[40rem] bg-luxury-emerald/5 rounded-md blur-[150px] -mr-60 -mt-60"></div>
                         
                         <div className="space-y-8 relative z-10">
                             <div className="flex items-center justify-between px-4 mb-2">
                                 <h3 className="text-xs font-black uppercase tracking-[0.5em] text-slate-500 font-outfit italic">Sequence Map: {activeDay}</h3>
-                                <div className="px-5 py-2 bg-slate-900/80 rounded-full border border-slate-800 flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-luxury-emerald animate-pulse"></div>
+                                <div className="px-5 py-2 bg-slate-900/80 rounded-md border border-slate-800 flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-md bg-luxury-emerald animate-pulse"></div>
                                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">{dailySchedule.length} active nodes</span>
                                 </div>
                             </div>
@@ -110,7 +110,7 @@ const Timetable = () => {
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, scale: 0.95 }}
                                                 transition={{ delay: idx * 0.08, type: 'spring', damping: 20 }}
-                                                className="flex flex-col gap-8 p-10 bg-slate-900/40 border border-slate-800/50 rounded-[3rem] group hover:border-luxury-emerald/40 transition-all duration-700 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] cursor-default overflow-hidden relative"
+                                                className="flex flex-col gap-8 p-10 bg-slate-900/40 border border-slate-800/50 rounded-md group hover:border-luxury-emerald/40 transition-all duration-700 hover:shadow-[0_20px_60px_rgba(0,0,0,0.5)] cursor-default overflow-hidden relative"
                                             >
                                                 <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-emerald/5 blur-[40px] group-hover:bg-luxury-emerald/10 transition-colors"></div>
                                                 
@@ -122,7 +122,7 @@ const Timetable = () => {
                                                         </div>
                                                         <span className="text-[9px] font-black text-slate-600 uppercase tracking-[0.4em] ml-7">Synchronized until {slot.endTime}</span>
                                                     </div>
-                                                    <div className="w-14 h-14 rounded-2xl bg-slate-950/80 border border-slate-800 flex items-center justify-center text-luxury-emerald shadow-inner group-hover:scale-110 group-hover:border-luxury-emerald/30 transition-all duration-700">
+                                                    <div className="w-14 h-14 rounded-md bg-slate-950/80 border border-slate-800 flex items-center justify-center text-luxury-emerald shadow-inner group-hover:scale-110 group-hover:border-luxury-emerald/30 transition-all duration-700">
                                                         <BookOpen size={24} />
                                                     </div>
                                                 </div>
@@ -137,12 +137,12 @@ const Timetable = () => {
                                                 </div>
 
                                                 <div className="flex items-center gap-4 pt-4 border-t border-slate-800/40 border-dashed">
-                                                    <div className="flex items-center gap-3 bg-slate-950/80 px-5 py-2.5 rounded-2xl border border-slate-800 shadow-xl group-hover:border-luxury-emerald/20 transition-all">
+                                                    <div className="flex items-center gap-3 bg-slate-950/80 px-5 py-2.5 rounded-md border border-slate-800 shadow-xl group-hover:border-luxury-emerald/20 transition-all">
                                                         <MapPin size={14} className="text-luxury-emerald" />
                                                         <span className="text-[11px] font-black text-slate-300 uppercase tracking-widest italic">{slot.room || 'Sector-Alpha'}</span>
                                                     </div>
                                                     <div className="flex-1"></div>
-                                                    <div className="w-10 h-10 rounded-full bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 group-hover:text-luxury-emerald group-hover:border-luxury-emerald/30 transition-all">
+                                                    <div className="w-10 h-10 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-600 group-hover:text-luxury-emerald group-hover:border-luxury-emerald/30 transition-all">
                                                         <Layers size={16} />
                                                     </div>
                                                 </div>
@@ -153,11 +153,11 @@ const Timetable = () => {
                                     <motion.div 
                                         initial={{ opacity: 0 }}
                                         animate={{ opacity: 1 }}
-                                        className="py-48 text-center bg-slate-900/20 rounded-[4rem] border-2 border-dashed border-slate-800/40"
+                                        className="py-48 text-center bg-slate-900/20 rounded-md border-2 border-dashed border-slate-800/40"
                                     >
                                         <Calendar size={80} className="text-slate-800 mx-auto mb-10 opacity-20 animate-pulse" />
                                         <h3 className="text-2xl font-black text-slate-600 uppercase tracking-[0.4em] font-outfit mb-4">No Scheduled Pulses</h3>
-                                        <p className="text-slate-700 text-[11px] font-bold uppercase tracking-widest italic bg-slate-900/50 px-8 py-2 rounded-full border border-slate-800/50 inline-block">The academic sector is quiet for this temporal period.</p>
+                                        <p className="text-slate-700 text-[11px] font-bold uppercase tracking-widest italic bg-slate-900/50 px-8 py-2 rounded-md border border-slate-800/50 inline-block">The academic sector is quiet for this temporal period.</p>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
@@ -179,7 +179,7 @@ const Timetable = () => {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-6 border-2 border-slate-900 divide-x-2 divide-slate-900 rounded-2xl overflow-hidden text-black">
+                <div className="grid grid-cols-6 border-2 border-slate-900 divide-x-2 divide-slate-900 rounded-md overflow-hidden text-black">
                     {days.map(day => (
                         <div key={day} className="flex flex-col">
                             <div className="bg-slate-900 text-white p-4 text-[10px] font-black uppercase tracking-widest text-center italic border-b-2 border-slate-900">
@@ -187,7 +187,7 @@ const Timetable = () => {
                             </div>
                             <div className="p-4 space-y-4 min-h-[600px] bg-white">
                                 {(timetable?.schedule?.find(s => s.day === day)?.periods || []).map((slot, idx) => (
-                                    <div key={idx} className="p-4 border border-slate-200 rounded-xl space-y-2 bg-slate-50">
+                                    <div key={idx} className="p-4 border border-slate-200 rounded-md space-y-2 bg-slate-50">
                                         <div className="flex items-center justify-between">
                                             <span className="text-[9px] font-black uppercase text-luxury-emerald italic">{slot.startTime}</span>
                                             <span className="text-[9px] font-bold text-slate-400 italic">TO {slot.endTime}</span>

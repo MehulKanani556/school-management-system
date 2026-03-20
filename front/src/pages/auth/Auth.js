@@ -45,16 +45,16 @@ const Auth = () => {
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-background py-10 px-4 selection:bg-brand-primary/20 font-inter">
             {/* Top Right Toggle */}
             <div className="absolute top-10 right-10 z-50">
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-1.5 rounded-2xl flex items-center gap-1 shadow-2xl">
+                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-1.5 rounded-md flex items-center gap-1 shadow-2xl">
                     <button
                         onClick={() => { setLoginRole('Standard'); loginFormik.resetForm(); }}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Standard' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Standard' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         Standard
                     </button>
                     <button
                         onClick={() => { setLoginRole('Student'); loginFormik.resetForm(); }}
-                        className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Student' ? 'bg-luxury-emerald text-white shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`px-6 py-2.5 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Student' ? 'bg-luxury-emerald text-white shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         Student Portal
                     </button>
@@ -62,8 +62,8 @@ const Auth = () => {
             </div>
 
             {/* Dynamic Background Elements */}
-            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] ${loginRole === 'Student' ? 'bg-luxury-emerald/15' : 'bg-brand-primary/15'} rounded-full blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-brand-secondary/15 rounded-full blur-[140px] animate-pulse-slow delay-1000"></div>
+            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] ${loginRole === 'Student' ? 'bg-luxury-emerald/15' : 'bg-brand-primary/15'} rounded-md blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
+            <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-brand-secondary/15 rounded-md blur-[140px] animate-pulse-slow delay-1000"></div>
 
             <motion.div
                 key={loginRole}
@@ -71,13 +71,13 @@ const Auth = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="w-full max-w-xl relative z-10"
             >
-                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border ${loginRole === 'Student' ? 'border-luxury-emerald/30' : 'border-brand-border/40'} rounded-[3.5rem] shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-colors duration-500`}>
+                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border ${loginRole === 'Student' ? 'border-luxury-emerald/30' : 'border-brand-border/40'} rounded-md shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-colors duration-500`}>
                     {/* Header */}
                     <div className="text-center mb-16">
                         <motion.div
                             initial={{ scale: 0.8, rotate: -10 }}
                             animate={{ scale: 1, rotate: 0 }}
-                            className={`inline-flex items-center justify-center w-24 h-24 rounded-[2rem] bg-gradient-to-br ${loginRole === 'Student' ? 'from-luxury-emerald to-emerald-400' : 'from-brand-primary to-brand-secondary'} mb-10 shadow-2xl transition-all duration-500`}
+                            className={`inline-flex items-center justify-center w-24 h-24 rounded-md bg-gradient-to-br ${loginRole === 'Student' ? 'from-luxury-emerald to-emerald-400' : 'from-brand-primary to-brand-secondary'} mb-10 shadow-2xl transition-all duration-500`}
                         >
                             <LogIn className="text-white w-12 h-12" />
                         </motion.div>
@@ -101,7 +101,7 @@ const Auth = () => {
                                     <input
                                         type="email"
                                         {...loginFormik.getFieldProps('email')}
-                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.email && loginFormik.errors.email ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-brand-primary outline-none rounded-3xl py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.email && loginFormik.errors.email ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-brand-primary outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
                                         placeholder="institutional@domain.com"
                                     />
                                 </div>
@@ -119,7 +119,7 @@ const Auth = () => {
                                     <input
                                         type="text"
                                         {...loginFormik.getFieldProps('admissionNumber')}
-                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.admissionNumber && loginFormik.errors.admissionNumber ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-luxury-emerald outline-none rounded-3xl py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.admissionNumber && loginFormik.errors.admissionNumber ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-luxury-emerald outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
                                         placeholder="ADM-2024-001"
                                     />
                                 </div>
@@ -141,7 +141,7 @@ const Auth = () => {
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     {...loginFormik.getFieldProps('password')}
-                                    className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.password && loginFormik.errors.password ? 'border-luxury-rose/40' : 'border-brand-border/40'} ${loginRole === 'Student' ? 'focus:border-luxury-emerald' : 'focus:border-brand-primary'} outline-none rounded-3xl py-5 pl-14 pr-16 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                    className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.password && loginFormik.errors.password ? 'border-luxury-rose/40' : 'border-brand-border/40'} ${loginRole === 'Student' ? 'focus:border-luxury-emerald' : 'focus:border-brand-primary'} outline-none rounded-md py-5 pl-14 pr-16 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
                                     placeholder="••••••••"
                                     autoComplete="current-password"
                                 />
@@ -162,7 +162,7 @@ const Auth = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full relative group overflow-hidden rounded-[2rem] ${loginRole === 'Student' ? 'bg-luxury-emerald hover:bg-emerald-600' : 'bg-brand-primary hover:bg-blue-600'} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all hover:shadow-2xl active:scale-[0.98] font-outfit`}
+                                className={`w-full relative group overflow-hidden rounded-md ${loginRole === 'Student' ? 'bg-luxury-emerald hover:bg-emerald-600' : 'bg-brand-primary hover:bg-blue-600'} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all hover:shadow-2xl active:scale-[0.98] font-outfit`}
                             >
                                 <div className="relative z-10 flex items-center justify-center gap-4">
                                     {loading ? <Loader2 className="animate-spin w-6 h-6" /> : <>{loginRole === 'Student' ? 'Initialize Student Session' : 'Elevate Access'} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" /></>}

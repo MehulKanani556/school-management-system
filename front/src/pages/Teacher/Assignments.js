@@ -106,7 +106,7 @@ const Assignments = () => {
                         if(viewMode === 'form') resetForm();
                         setViewMode(viewMode === 'list' ? 'form' : 'list');
                     }}
-                    className={`flex items-center gap-3 px-8 py-3.5 rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${viewMode === 'list' ? 'bg-brand-primary text-white hover:bg-blue-600' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
+                    className={`flex items-center gap-3 px-8 py-3.5 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${viewMode === 'list' ? 'bg-brand-primary text-white hover:bg-blue-600' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
                 >
                     {viewMode === 'list' ? <Plus size={16} /> : <X size={16} />}
                     {viewMode === 'list' ? 'Provision New' : 'Return to Registry'}
@@ -120,9 +120,9 @@ const Assignments = () => {
                         initial={{ opacity: 0, scale: 0.98 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
-                        className="bg-slate-900/60 border border-slate-800 rounded-[2.5rem] p-8 xs:p-12 relative overflow-hidden"
+                        className="bg-slate-900/60 border border-slate-800 rounded-md p-8 xs:p-12 relative overflow-hidden"
                     >
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full blur-[100px] pointer-events-none"></div>
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-md blur-[100px] pointer-events-none"></div>
                         
                         <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -133,7 +133,7 @@ const Assignments = () => {
                                         <select 
                                             value={selectedClass} 
                                             onChange={(e) => setSelectedClass(e.target.value)}
-                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-2xl text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
+                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
                                         >
                                             <option value="" className="bg-slate-900 text-slate-500">Select Section</option>
                                             {classes.map(cls => (
@@ -151,7 +151,7 @@ const Assignments = () => {
                                             value={formData.subject} 
                                             onChange={(e) => setFormData({...formData, subject: e.target.value})}
                                             required
-                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-2xl text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
+                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
                                         >
                                             <option value="" className="bg-slate-900 text-slate-500">Select Subject</option>
                                             {(classes.find(c => c._id === selectedClass)?.subjects || []).map(sub => (
@@ -170,7 +170,7 @@ const Assignments = () => {
                                     value={formData.title}
                                     onChange={(e) => setFormData({...formData, title: e.target.value})}
                                     required
-                                    className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-2xl text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner"
+                                    className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner"
                                 />
                             </div>
 
@@ -181,7 +181,7 @@ const Assignments = () => {
                                     value={formData.description}
                                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     rows={4}
-                                    className="w-full bg-slate-800/40 border border-slate-700/50 p-6 rounded-[2rem] text-[11px] font-medium text-slate-300 outline-none focus:border-brand-primary transition-all shadow-inner resize-none"
+                                    className="w-full bg-slate-800/40 border border-slate-700/50 p-6 rounded-md text-[11px] font-medium text-slate-300 outline-none focus:border-brand-primary transition-all shadow-inner resize-none"
                                 />
                             </div>
 
@@ -195,14 +195,14 @@ const Assignments = () => {
                                             value={formData.dueDate}
                                             onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
                                             required
-                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 pl-14 pr-6 rounded-2xl text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner"
+                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 pl-14 pr-6 rounded-md text-[11px] font-bold text-white outline-none focus:border-brand-primary transition-all shadow-inner"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-2.5">
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Attachment Upload</p>
-                                    <label className="flex items-center gap-4 bg-slate-800/40 border border-slate-700/50 border-dashed hover:border-brand-primary hover:bg-brand-primary/5 h-14 px-6 rounded-2xl cursor-pointer transition-all group">
+                                    <label className="flex items-center gap-4 bg-slate-800/40 border border-slate-700/50 border-dashed hover:border-brand-primary hover:bg-brand-primary/5 h-14 px-6 rounded-md cursor-pointer transition-all group">
                                         <Upload size={18} className="text-slate-500 group-hover:text-brand-primary transition-colors" />
                                         <span className={`${formData.file ? 'text-brand-primary' : 'text-slate-500'} text-[11px] font-black uppercase tracking-widest truncate max-w-[150px]`}>
                                             {formData.file ? formData.file.name : (editMode && editMode.fileUrl ? 'Re-upload File' : 'Select Identifier')}
@@ -219,7 +219,7 @@ const Assignments = () => {
                             <button 
                                 type="submit" 
                                 disabled={loading}
-                                className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.4em] text-white shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-50"
+                                className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-md text-[11px] font-black uppercase tracking-[0.4em] text-white shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-50"
                             >
                                 {loading ? <Activity size={20} className="animate-spin" /> : <Send size={20} />}
                                 {editMode ? 'UPDATE PROTOCOL' : 'PUBLISH ASSIGNMENT'}
@@ -238,10 +238,10 @@ const Assignments = () => {
                             <motion.div 
                                 key={assignment._id}
                                 layoutId={assignment._id}
-                                className="bg-slate-900 border border-slate-800 rounded-3xl p-6 group hover:border-brand-primary/40 transition-all shadow-xl relative overflow-hidden"
+                                className="bg-slate-900 border border-slate-800 rounded-md p-6 group hover:border-brand-primary/40 transition-all shadow-xl relative overflow-hidden"
                             >
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
+                                    <div className="w-12 h-12 rounded-md bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary">
                                         <FileText size={20} />
                                     </div>
                                     <div className="flex items-center gap-2">
@@ -255,7 +255,7 @@ const Assignments = () => {
                                         <h3 className="text-white font-black uppercase italic tracking-tight leading-none mb-1.5">{assignment.title}</h3>
                                         <div className="flex items-center gap-2">
                                             <span className="text-[10px] font-black text-brand-primary uppercase tracking-widest">{assignment.subject}</span>
-                                            <span className="w-1 h-1 rounded-full bg-slate-700"></span>
+                                            <span className="w-1 h-1 rounded-md bg-slate-700"></span>
                                             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
                                                 Grade {assignment.classSection?.standardId?.gradeLevel} - {assignment.classSection?.sectionLabel}
                                             </span>
@@ -272,7 +272,7 @@ const Assignments = () => {
                                             <span className="text-[11px] font-bold text-luxury-rose leading-none uppercase">{new Date(assignment.dueDate).toLocaleDateString()}</span>
                                         </div>
                                         {assignment.fileUrl && (
-                                            <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-all">
+                                            <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-white transition-all">
                                                 <ExternalLink size={16} />
                                             </a>
                                         )}
@@ -280,7 +280,7 @@ const Assignments = () => {
                                 </div>
                             </motion.div>
                         )) : (
-                            <div className="col-span-full py-20 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-[3rem] flex flex-col items-center justify-center opacity-40">
+                            <div className="col-span-full py-20 bg-slate-900/40 border-2 border-dashed border-slate-800 rounded-md flex flex-col items-center justify-center opacity-40">
                                 <School size={48} className="mb-4 text-slate-600" />
                                 <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-500">Node Registry Empty</p>
                             </div>

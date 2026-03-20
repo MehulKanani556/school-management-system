@@ -9,7 +9,7 @@ const Home = () => {
     if (loading) {
         return (
             <div className="min-h-screen bg-brand-background flex items-center justify-center">
-                <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-full animate-spin"></div>
+                <div className="w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-md animate-spin"></div>
             </div>
         );
     }

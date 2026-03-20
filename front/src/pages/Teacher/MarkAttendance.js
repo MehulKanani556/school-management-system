@@ -124,10 +124,10 @@ const MarkAttendance = () => {
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900/40 p-10 rounded-[3rem] border border-slate-800/60 shadow-2xl backdrop-blur-xl">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl">
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
-                        <span className="w-12 h-[2px] bg-brand-primary rounded-full"></span>
+                        <span className="w-12 h-[2px] bg-brand-primary rounded-md"></span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Teacher Terminal</span>
                     </div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Attendance Registry</h1>
@@ -143,7 +143,7 @@ const MarkAttendance = () => {
                             value={formik.values.selectedClass}
                             onChange={formik.handleChange}
                             onBlur={formik.handleBlur}
-                            className={`w-full bg-slate-900/80 border ${formik.touched.selectedClass && formik.errors.selectedClass ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic`}
+                            className={`w-full bg-slate-900/80 border ${formik.touched.selectedClass && formik.errors.selectedClass ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic`}
                         >
                             <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
                             {classes.map(cls => (
@@ -161,7 +161,7 @@ const MarkAttendance = () => {
                             name="selectedDate"
                             value={formik.values.selectedDate}
                             onChange={formik.handleChange}
-                            className="bg-slate-900/80 border border-slate-800 h-14 pl-14 pr-6 rounded-2xl text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary transition-all text-white shadow-xl italic"
+                            className="bg-slate-900/80 border border-slate-800 h-14 pl-14 pr-6 rounded-md text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary transition-all text-white shadow-xl italic"
                         />
                     </div>
                 </div>
@@ -177,7 +177,7 @@ const MarkAttendance = () => {
                                 placeholder="Identify student by nomenclature..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-2xl text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
+                                className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-md text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
                             />
                         </div>
                         <div className="flex gap-4">
@@ -190,14 +190,14 @@ const MarkAttendance = () => {
                                     });
                                     formik.setFieldValue('records', newRecords);
                                 }}
-                                className="px-6 h-14 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all italic"
+                                className="px-6 h-14 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic"
                             >
                                 Mass Presence
                             </button>
                             <button 
                                 onClick={formik.handleSubmit}
                                 disabled={loading || students.length === 0}
-                                className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-10 h-14 rounded-2xl font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
+                                className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
                             >
                                 {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
                                 Commit Records
@@ -205,7 +205,7 @@ const MarkAttendance = () => {
                         </div>
                     </div>
 
-                    <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.4)] overflow-hidden backdrop-blur-3xl">
+                    <div className="bg-slate-950/80 border border-slate-800/80 rounded-md shadow-[0_40px_100px_rgba(0,0,0,0.4)] overflow-hidden backdrop-blur-3xl">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left border-collapse">
                                 <thead>
@@ -227,7 +227,7 @@ const MarkAttendance = () => {
                                                 >
                                                     <td className="px-12 py-7">
                                                         <div className="flex items-center gap-6">
-                                                            <div className="w-14 h-14 rounded-[1.25rem] bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 text-sm overflow-hidden shadow-inner group-hover:border-brand-primary/40 transition-all duration-500">
+                                                            <div className="w-14 h-14 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 text-sm overflow-hidden shadow-inner group-hover:border-brand-primary/40 transition-all duration-500">
                                                                 {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700" /> : <Activity size={20} />}
                                                             </div>
                                                             <div>
@@ -243,7 +243,7 @@ const MarkAttendance = () => {
                                                                     key={status.id}
                                                                     type="button"
                                                                     onClick={() => formik.setFieldValue(`records.${student._id}.status`, status.id)}
-                                                                    className={`flex items-center gap-2 px-4 h-11 rounded-xl border transition-all duration-500 font-outfit italic ${
+                                                                    className={`flex items-center gap-2 px-4 h-11 rounded-md border transition-all duration-500 font-outfit italic ${
                                                                         formik.values.records[student._id]?.status === status.id 
                                                                         ? `bg-slate-900 border-slate-700 ${status.color} shadow-2xl scale-[1.05] ring-2 ring-slate-900/50` 
                                                                         : `border-slate-800/30 text-slate-600 bg-transparent ${status.bg} hover:border-slate-700`
@@ -259,7 +259,7 @@ const MarkAttendance = () => {
                                                         <button 
                                                             type="button"
                                                             onClick={() => setExpandedStudent(expandedStudent === student._id ? null : student._id)}
-                                                            className={`p-3 rounded-xl transition-all ${expandedStudent === student._id ? 'bg-brand-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
+                                                            className={`p-3 rounded-md transition-all ${expandedStudent === student._id ? 'bg-brand-primary text-white' : 'bg-slate-800 text-slate-400 hover:bg-slate-700'}`}
                                                         >
                                                             <ChevronDown size={18} className={`transition-transform duration-500 ${expandedStudent === student._id ? 'rotate-180' : ''}`} />
                                                         </button>
@@ -282,7 +282,7 @@ const MarkAttendance = () => {
                                                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                                                                             <input 
                                                                                 type="time"
-                                                                                className="w-full bg-slate-950/50 border border-slate-800/60 rounded-xl h-11 pl-12 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit"
+                                                                                className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md h-11 pl-12 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit"
                                                                                 value={formik.values.records[student._id]?.arrivalTime}
                                                                                 onChange={(e) => formik.setFieldValue(`records.${student._id}.arrivalTime`, e.target.value)}
                                                                             />
@@ -307,7 +307,7 @@ const MarkAttendance = () => {
                                                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                                                                             <input 
                                                                                 type="time"
-                                                                                className="w-full bg-slate-950/50 border border-slate-800/60 rounded-xl h-11 pl-12 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit"
+                                                                                className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md h-11 pl-12 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit"
                                                                                 value={formik.values.records[student._id]?.departureTime}
                                                                                 onChange={(e) => formik.setFieldValue(`records.${student._id}.departureTime`, e.target.value)}
                                                                             />
@@ -329,7 +329,7 @@ const MarkAttendance = () => {
                                                                     <div className="md:col-span-2 space-y-3">
                                                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Administrative Remarks</label>
                                                                         <textarea 
-                                                                            className="w-full bg-slate-950/50 border border-slate-800/60 rounded-2xl p-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit min-h-[90px] resize-none italic"
+                                                                            className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md p-4 text-xs font-bold text-white outline-none focus:border-brand-primary/40 transition-all font-outfit min-h-[90px] resize-none italic"
                                                                             placeholder="Enter behavioral or logistical notes..."
                                                                             value={formik.values.records[student._id]?.remarks}
                                                                             onChange={(e) => formik.setFieldValue(`records.${student._id}.remarks`, e.target.value)}
@@ -358,7 +358,7 @@ const MarkAttendance = () => {
                 </div>
             ) : (
                 <div className="space-y-10">
-                    <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-slate-800/40 rounded-[4rem] bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
+                    <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-slate-800/40 rounded-md bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
                         <Activity size={60} className="text-slate-800 mb-8 opacity-20 group-hover:text-brand-primary/20 group-hover:scale-110 transition-all duration-1000 animate-pulse" />
                         <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Sector Synchronization</p>
                         <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase italic font-outfit">Select an academic sector to initiate tracking terminal</p>
@@ -367,7 +367,7 @@ const MarkAttendance = () => {
                     {attendance && attendance.length > 0 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Historical Presence Logs</h3>
-                            <div className="bg-slate-950/80 border border-slate-800/80 rounded-[3rem] overflow-hidden shadow-2xl backdrop-blur-xl group hover:border-brand-primary/20 transition-all duration-700">
+                            <div className="bg-slate-950/80 border border-slate-800/80 rounded-md overflow-hidden shadow-2xl backdrop-blur-xl group hover:border-brand-primary/20 transition-all duration-700">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/60">

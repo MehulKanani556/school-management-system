@@ -116,13 +116,13 @@ const AllSchools = () => {
                     <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
                         <div className="relative group w-full sm:w-64">
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
-                            <input type="text" placeholder="Locate Node..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-brand-surface border border-brand-border focus:border-brand-primary/60 outline-none h-11 pl-11 pr-4 rounded-lg text-xs font-semibold text-slate-100 w-full shadow-2xl transition-all" />
+                            <input type="text" placeholder="Locate Node..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-brand-surface border border-brand-border focus:border-brand-primary/60 outline-none h-11 pl-11 pr-4 rounded-md text-xs font-semibold text-slate-100 w-full shadow-2xl transition-all" />
                         </div>
-                        <button onClick={openCreateModal} className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-700 text-white px-8 h-11 rounded-lg font-bold tracking-widest uppercase text-[11px] transition-all shadow-lg active:scale-95 group"><Plus size={18} className="group-hover:rotate-90 transition-transform" /> Provision</button>
+                        <button onClick={openCreateModal} className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-700 text-white px-8 h-11 rounded-md font-bold tracking-widest uppercase text-[11px] transition-all shadow-lg active:scale-95 group"><Plus size={18} className="group-hover:rotate-90 transition-transform" /> Provision</button>
                     </div>
                 </div>
 
-                <div className="bg-brand-surface border border-brand-border rounded-lg shadow-2xl overflow-hidden">
+                <div className="bg-brand-surface border border-brand-border rounded-md shadow-2xl overflow-hidden">
                     <div className="overflow-x-auto">
                         <table className="w-full text-left min-w-[600px]">
                             <thead>
@@ -143,7 +143,7 @@ const AllSchools = () => {
                                     <tr key={school._id} className="group hover:bg-brand-background/40 transition-colors">
                                         <td className="px-5 xs:px-6 py-5 xs:py-6">
                                             <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 xs:w-11 xs:h-11 rounded-lg bg-brand-background border border-brand-border flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-brand-primary/40 transition-colors shadow-sm">
+                                                <div className="w-10 h-10 xs:w-11 xs:h-11 rounded-md bg-brand-background border border-brand-border flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-brand-primary/40 transition-colors shadow-sm">
                                                     {school.logo ? <img src={school.logo} alt="" className="w-full h-full object-cover" /> : <School size={18} className="text-slate-500" />}
                                                 </div>
                                                 <div>
@@ -158,7 +158,7 @@ const AllSchools = () => {
                                         </td>
                                         <td className="px-5 xs:px-6 py-5 xs:py-6">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${school.isActive ? 'bg-luxury-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-600'}`}></div>
+                                                <div className={`w-1.5 h-1.5 rounded-md ${school.isActive ? 'bg-luxury-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-600'}`}></div>
                                                 <span className="text-[9px] xs:text-[10px] font-bold uppercase text-slate-400 tracking-widest italic">
                                                     {school.isActive ? 'OPERATIONAL' : 'OFFLINE'}
                                                 </span>
@@ -166,8 +166,8 @@ const AllSchools = () => {
                                         </td>
                                         <td className="px-5 xs:px-6 py-5 xs:py-6 text-right">
                                             <div className="flex justify-end gap-2 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-all transform lg:group-hover:translate-x-[-4px]">
-                                                <button onClick={() => openEditModal(school)} className="p-2 xs:p-2.5 rounded-lg border border-brand-border bg-brand-surface hover:border-brand-primary hover:text-brand-primary transition-all shadow-sm text-slate-400"><Edit size={16} /></button>
-                                                <button onClick={() => openDeleteModal(school)} className="p-2 xs:p-2.5 rounded-lg border border-brand-border bg-brand-surface hover:text-luxury-rose hover:border-luxury-rose transition-all shadow-sm text-slate-400"><Trash2 size={16} /></button>
+                                                <button onClick={() => openEditModal(school)} className="p-2 xs:p-2.5 rounded-md border border-brand-border bg-brand-surface hover:border-brand-primary hover:text-brand-primary transition-all shadow-sm text-slate-400"><Edit size={16} /></button>
+                                                <button onClick={() => openDeleteModal(school)} className="p-2 xs:p-2.5 rounded-md border border-brand-border bg-brand-surface hover:text-luxury-rose hover:border-luxury-rose transition-all shadow-sm text-slate-400"><Trash2 size={16} /></button>
                                             </div>
                                         </td>
                                     </tr>
@@ -191,20 +191,20 @@ const AllSchools = () => {
                 {isFormModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 xs:p-6">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={closeFormModal} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-                        <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }} className="relative w-full max-w-xl bg-brand-surface border border-brand-border rounded-lg shadow-2xl p-8 xs:p-10 overflow-hidden max-h-[90vh] overflow-y-auto">
-                            <div className="flex justify-between items-start mb-6 xs:mb-8"><div><h3 className="text-2xl xs:text-3xl font-bold tracking-tighter text-slate-100 font-inter lowercase italic mb-1">{modalMode === 'create' ? 'Provision instance' : 'Sync node mapping'}</h3><p className="text-slate-500 text-[9px] xs:text-[10px] font-bold uppercase tracking-widest">Global Registry Entry</p></div><button onClick={closeFormModal} className="p-2 xs:p-3 text-slate-400 hover:bg-brand-background rounded-lg transition-colors"><X size={20} /></button></div>
+                        <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }} className="relative w-full max-w-xl bg-brand-surface border border-brand-border rounded-md shadow-2xl p-8 xs:p-10 overflow-hidden max-h-[90vh] overflow-y-auto">
+                            <div className="flex justify-between items-start mb-6 xs:mb-8"><div><h3 className="text-2xl xs:text-3xl font-bold tracking-tighter text-slate-100 font-inter lowercase italic mb-1">{modalMode === 'create' ? 'Provision instance' : 'Sync node mapping'}</h3><p className="text-slate-500 text-[9px] xs:text-[10px] font-bold uppercase tracking-widest">Global Registry Entry</p></div><button onClick={closeFormModal} className="p-2 xs:p-3 text-slate-400 hover:bg-brand-background rounded-md transition-colors"><X size={20} /></button></div>
                             <form onSubmit={formik.handleSubmit} className="space-y-5 xs:space-y-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 xs:gap-6">
-                                    <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Institution Identity</p><input type="text" {...formik.getFieldProps('name')} placeholder="School Alias..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-lg text-sm font-medium w-full outline-none focus:border-brand-primary text-slate-100" /></div>
-                                    <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Node Domain Path</p><input type="text" {...formik.getFieldProps('subdomain')} disabled={modalMode === 'edit'} placeholder="subdomain.campus..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-lg text-sm font-medium w-full outline-none focus:border-brand-primary disabled:opacity-40 text-slate-100" /></div>
+                                    <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Institution Identity</p><input type="text" {...formik.getFieldProps('name')} placeholder="School Alias..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-md text-sm font-medium w-full outline-none focus:border-brand-primary text-slate-100" /></div>
+                                    <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Node Domain Path</p><input type="text" {...formik.getFieldProps('subdomain')} disabled={modalMode === 'edit'} placeholder="subdomain.campus..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-md text-sm font-medium w-full outline-none focus:border-brand-primary disabled:opacity-40 text-slate-100" /></div>
                                 </div>
-                                <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Administrator Registry Access</p><input type="email" {...formik.getFieldProps('adminEmail')} placeholder="Email Registration..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-lg text-sm font-medium w-full outline-none focus:border-brand-primary text-slate-100" /></div>
-                                <div className="relative group border border-dashed border-brand-border rounded-lg p-6 xs:p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-primary/5 hover:border-brand-primary transition-all">
+                                <div className="space-y-1.5"><p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest ml-1">Administrator Registry Access</p><input type="email" {...formik.getFieldProps('adminEmail')} placeholder="Email Registration..." className="bg-brand-background/60 border border-brand-border py-2.5 xs:py-3 px-4 rounded-md text-sm font-medium w-full outline-none focus:border-brand-primary text-slate-100" /></div>
+                                <div className="relative group border border-dashed border-brand-border rounded-md p-6 xs:p-8 flex flex-col items-center justify-center cursor-pointer hover:bg-brand-primary/5 hover:border-brand-primary transition-all">
                                     <input type="file" onChange={(e) => { const f = e.currentTarget.files[0]; if (f) { formik.setFieldValue('logo', f); setLogoPreview(URL.createObjectURL(f)); } }} className="absolute inset-0 opacity-0 cursor-pointer" />
-                                    {logoPreview ? <img src={logoPreview} alt="" className="w-14 h-14 xs:w-16 xs:h-16 rounded-lg object-cover mb-3 shadow-md border border-brand-border" /> : <div className="p-3 xs:p-4 rounded-full bg-slate-800 mb-3 group-hover:bg-brand-primary/10 transition-colors"><Upload className="text-slate-400 group-hover:text-brand-primary transition-all" size={24} /></div>}
+                                    {logoPreview ? <img src={logoPreview} alt="" className="w-14 h-14 xs:w-16 xs:h-16 rounded-md object-cover mb-3 shadow-md border border-brand-border" /> : <div className="p-3 xs:p-4 rounded-md bg-slate-800 mb-3 group-hover:bg-brand-primary/10 transition-colors"><Upload className="text-slate-400 group-hover:text-brand-primary transition-all" size={24} /></div>}
                                     <p className="text-[9px] xs:text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Institutional Branding Identifier</p>
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full py-4 rounded-lg bg-brand-primary hover:bg-blue-700 text-white font-bold uppercase tracking-[0.2em] xs:tracking-[0.3em] shadow-lg text-xs active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 transition-all">{loading ? <Activity className="animate-spin" size={18} /> : <>{modalMode === 'create' ? 'ACTIVATE PROVISIONING' : 'PUSH NODE UPDATES'} <Check size={18} /></>}</button>
+                                <button type="submit" disabled={loading} className="w-full py-4 rounded-md bg-brand-primary hover:bg-blue-700 text-white font-bold uppercase tracking-[0.2em] xs:tracking-[0.3em] shadow-lg text-xs active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 transition-all">{loading ? <Activity className="animate-spin" size={18} /> : <>{modalMode === 'create' ? 'ACTIVATE PROVISIONING' : 'PUSH NODE UPDATES'} <Check size={18} /></>}</button>
                             </form>
                         </motion.div>
                     </div>
@@ -216,13 +216,13 @@ const AllSchools = () => {
                 {isDeleteModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDeleteModalOpen(false)} className="absolute inset-0 bg-black/60 backdrop-blur-md" />
-                        <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }} className="relative w-full max-w-sm bg-brand-surface border border-brand-border rounded-lg shadow-2xl p-8 xs:p-10 text-center overflow-hidden">
-                            <div className="w-16 h-16 xs:w-20 xs:h-20 rounded-full bg-red-500/10 flex items-center justify-center mx-auto mb-6 xs:mb-8 text-luxury-rose"><AlertTriangle size={36} /></div>
+                        <motion.div initial={{ scale: 0.98, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.98, opacity: 0 }} className="relative w-full max-w-sm bg-brand-surface border border-brand-border rounded-md shadow-2xl p-8 xs:p-10 text-center overflow-hidden">
+                            <div className="w-16 h-16 xs:w-20 xs:h-20 rounded-md bg-red-500/10 flex items-center justify-center mx-auto mb-6 xs:mb-8 text-luxury-rose"><AlertTriangle size={36} /></div>
                             <h3 className="text-xl xs:text-2xl font-bold italic font-inter tracking-tighter mb-2 text-slate-100 uppercase leading-none">Terminate School?</h3>
                             <p className="text-slate-400 text-[10px] xs:text-[11px] leading-relaxed mb-8 xs:mb-10 font-medium uppercase tracking-[0.1em]">Instance mapping for <span className="text-brand-primary font-bold">{selectedSchool?.name}</span> will be permanently archived. Action is Definitive.</p>
                             <div className="grid grid-cols-2 gap-4">
-                                <button onClick={() => setIsDeleteModalOpen(false)} className="py-3.5 xs:py-4 rounded-lg bg-brand-background border border-brand-border font-bold uppercase text-[9px] text-slate-400 hover:bg-slate-800 transition-all tracking-widest">Cancel Access</button>
-                                <button onClick={confirmDelete} className="py-3.5 xs:py-4 rounded-lg bg-luxury-rose hover:bg-red-700 text-white font-bold uppercase text-[9px] shadow-lg active:scale-95 tracking-widest">Terminate</button>
+                                <button onClick={() => setIsDeleteModalOpen(false)} className="py-3.5 xs:py-4 rounded-md bg-brand-background border border-brand-border font-bold uppercase text-[9px] text-slate-400 hover:bg-slate-800 transition-all tracking-widest">Cancel Access</button>
+                                <button onClick={confirmDelete} className="py-3.5 xs:py-4 rounded-md bg-luxury-rose hover:bg-red-700 text-white font-bold uppercase text-[9px] shadow-lg active:scale-95 tracking-widest">Terminate</button>
                             </div>
                         </motion.div>
                     </div>

@@ -116,11 +116,11 @@ const Attendance = () => {
                 {selectedClass && classStudents.length > 0 && (
                     <div className="flex gap-4">
                         <button onClick={markAllPresent} 
-                            className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all">
+                            className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-black text-[11px] uppercase tracking-widest transition-all">
                             Mass Presence
                         </button>
                         <button onClick={handleSave} disabled={loading}
-                            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                            className="flex items-center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)]">
                             {loading ? <AlertCircle className="animate-spin" size={18} /> : <Save size={18} />} {saved ? 'System Updated!' : 'Commit Attendance'}
                         </button>
                     </div>
@@ -134,7 +134,7 @@ const Attendance = () => {
                         <div className="relative">
                             <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                             <select value={selectedStandard} onChange={e => { setSelectedStandard(e.target.value); setSelectedClass(''); }}
-                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-pointer text-sm font-bold font-outfit italic">
+                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-md py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-pointer text-sm font-bold font-outfit italic">
                                 <option value="">Select Grade...</option>
                                 {standards.map(s => <option key={s._id} value={s._id}>Grade {s.level}</option>)}
                             </select>
@@ -145,7 +145,7 @@ const Attendance = () => {
                         <div className="relative">
                             <Users size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                             <select value={selectedClass} onChange={e => setSelectedClass(e.target.value)} disabled={!selectedStandard}
-                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-not-allowed disabled:opacity-50 text-sm font-bold font-outfit italic">
+                                className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-md py-4 pl-14 pr-6 text-white outline-none transition-all appearance-none cursor-not-allowed disabled:opacity-50 text-sm font-bold font-outfit italic">
                                 <option value="">Select Sector...</option>
                                 {classes
                                     .filter(c => (c.standardId?._id || c.standardId) === selectedStandard)
@@ -159,7 +159,7 @@ const Attendance = () => {
                     <div className="relative">
                         <Calendar size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                         <input type="date" value={date} onChange={e => setDate(e.target.value)}
-                            className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-2xl py-4 pl-14 pr-6 text-white outline-none transition-all text-sm font-bold font-outfit italic" />
+                            className="w-full bg-[#0f0f12] border border-slate-800 focus:border-brand-primary rounded-md py-4 pl-14 pr-6 text-white outline-none transition-all text-sm font-bold font-outfit italic" />
                     </div>
                 </div>
             </div>
@@ -170,8 +170,8 @@ const Attendance = () => {
                         {summary.map(({ status, count }) => {
                             const Icon = statusIcon[status];
                             return (
-                                <div key={status} className={`flex items-center gap-4 px-6 py-6 rounded-[2rem] border backdrop-blur-xl ${statusColor[status]}`}>
-                                    <div className="p-3 bg-white/5 rounded-xl"><Icon size={20} /></div>
+                                <div key={status} className={`flex items-center gap-4 px-6 py-6 rounded-md border backdrop-blur-xl ${statusColor[status]}`}>
+                                    <div className="p-3 bg-white/5 rounded-md"><Icon size={20} /></div>
                                     <div>
                                         <p className="text-[9px] font-black uppercase tracking-[0.2em] opacity-70 mb-1">{status}</p>
                                         <p className="text-2xl font-black font-outfit leading-none italic">{count}</p>
@@ -181,7 +181,7 @@ const Attendance = () => {
                         })}
                     </div>
 
-                    <div className="bg-[#0f0f12] border border-slate-800/60 rounded-[3.5rem] overflow-hidden shadow-2xl relative">
+                    <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl relative">
                         <div className="p-8 border-b border-slate-800/40 flex items-center justify-between bg-black/20">
                             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit italic">Student Cluster - {filteredStudents.length} Nodes</h3>
                             <div className="relative group">
@@ -189,7 +189,7 @@ const Attendance = () => {
                                 <input type="text" placeholder="Filter IDs..." 
                                     value={searchTerm}
                                     onChange={e => setSearchTerm(e.target.value)}
-                                    className="bg-slate-900 border border-slate-800 rounded-xl py-2 pl-12 pr-4 text-[10px] font-bold text-white w-48 focus:outline-none focus:border-brand-primary/40 transition-all font-outfit" />
+                                    className="bg-slate-900 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white w-48 focus:outline-none focus:border-brand-primary/40 transition-all font-outfit" />
                             </div>
                         </div>
 
@@ -217,13 +217,13 @@ const Attendance = () => {
                                                         <div className="font-bold text-white italic tracking-tight font-outfit uppercase">{s.firstName} {s.lastName}</div>
                                                     </td>
                                                     <td className="px-10 py-6">
-                                                        <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-lg border border-slate-700/50 uppercase font-outfit italic">#{s.admissionNumber}</span>
+                                                        <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-md border border-slate-700/50 uppercase font-outfit italic">#{s.admissionNumber}</span>
                                                     </td>
                                                     <td className="px-10 py-6">
                                                         <div className="flex gap-2 flex-wrap">
                                                             {statusOptions.map(status => (
                                                                 <button key={status} onClick={() => updateRecord(s._id, 'status', status)}
-                                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider border transition-all font-outfit ${records[s._id]?.status === status ? statusColor[status] : 'text-slate-600 bg-transparent border-slate-800 hover:border-slate-600'}`}>
+                                                                    className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-wider border transition-all font-outfit ${records[s._id]?.status === status ? statusColor[status] : 'text-slate-600 bg-transparent border-slate-800 hover:border-slate-600'}`}>
                                                                     {status}
                                                                 </button>
                                                             ))}
@@ -258,7 +258,7 @@ const Attendance = () => {
                                                                                     type="time" 
                                                                                     value={records[s._id]?.arrivalTime || ''} 
                                                                                     onChange={e => updateRecord(s._id, 'arrivalTime', e.target.value)}
-                                                                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary" 
+                                                                                    className="w-full bg-slate-900 border border-slate-800 rounded-md py-3 pl-10 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary" 
                                                                                 />
                                                                             </div>
                                                                             <div className="relative">
@@ -267,7 +267,7 @@ const Attendance = () => {
                                                                                     type="time" 
                                                                                     value={records[s._id]?.departureTime || ''} 
                                                                                     onChange={e => updateRecord(s._id, 'departureTime', e.target.value)}
-                                                                                    className="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary" 
+                                                                                    className="w-full bg-slate-900 border border-slate-800 rounded-md py-3 pl-10 pr-4 text-xs font-bold text-white outline-none focus:border-brand-primary" 
                                                                                 />
                                                                             </div>
                                                                         </div>
@@ -277,13 +277,13 @@ const Attendance = () => {
                                                                         <div className="flex gap-4">
                                                                             <button 
                                                                                 onClick={() => updateRecord(s._id, 'isLate', !records[s._id]?.isLate)}
-                                                                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${records[s._id]?.isLate ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
+                                                                                className={`flex-1 py-3 rounded-md border text-[10px] font-black uppercase transition-all ${records[s._id]?.isLate ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
                                                                             >
                                                                                 Late Arrival
                                                                             </button>
                                                                             <button 
                                                                                 onClick={() => updateRecord(s._id, 'isEarlyLeave', !records[s._id]?.isEarlyLeave)}
-                                                                                className={`flex-1 py-3 rounded-xl border text-[10px] font-black uppercase transition-all ${records[s._id]?.isEarlyLeave ? 'bg-rose-500/10 text-rose-500 border-rose-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
+                                                                                className={`flex-1 py-3 rounded-md border text-[10px] font-black uppercase transition-all ${records[s._id]?.isEarlyLeave ? 'bg-rose-500/10 text-rose-500 border-rose-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
                                                                             >
                                                                                 Early Leave
                                                                             </button>
@@ -295,7 +295,7 @@ const Attendance = () => {
                                                                             value={records[s._id]?.remarks || ''} 
                                                                             onChange={e => updateRecord(s._id, 'remarks', e.target.value)}
                                                                             placeholder="Enter Log Data..."
-                                                                            className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs font-bold text-white outline-none focus:border-brand-primary h-14"
+                                                                            className="w-full bg-slate-900 border border-slate-800 rounded-md p-3 text-xs font-bold text-white outline-none focus:border-brand-primary h-14"
                                                                         />
                                                                     </div>
                                                                 </div>
@@ -313,7 +313,7 @@ const Attendance = () => {
                 </motion.div>
             ) : (
                 <div className="space-y-8">
-                    <div className="py-32 text-center border border-dashed border-slate-800 rounded-[4rem] bg-slate-900/10 shadow-inner">
+                    <div className="py-32 text-center border border-dashed border-slate-800 rounded-md bg-slate-900/10 shadow-inner">
                         <Clock size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
                         <p className="text-slate-500 font-bold italic uppercase tracking-[0.4em] text-[10px] font-outfit">Awaiting Academic Sector Synchronization</p>
                     </div>
@@ -321,7 +321,7 @@ const Attendance = () => {
                     {attendance && attendance.length > 0 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                             <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Historical Log Archive</h3>
-                            <div className="bg-[#0f0f12] border border-slate-800/60 rounded-[3rem] overflow-hidden shadow-2xl">
+                            <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/30">
@@ -349,8 +349,8 @@ const Attendance = () => {
                                                 <td className="px-10 py-5">
                                                     <div className="flex items-center gap-3">
                                                         <div className="flex -space-x-2">
-                                                            <div className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[10px] font-black text-emerald-400 font-outfit italic">P</div>
-                                                            <div className="w-6 h-6 rounded-full bg-red-500/20 border border-red-500/30 flex items-center justify-center text-[10px] font-black text-red-500 font-outfit italic">A</div>
+                                                            <div className="w-6 h-6 rounded-md bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center text-[10px] font-black text-emerald-400 font-outfit italic">P</div>
+                                                            <div className="w-6 h-6 rounded-md bg-red-500/20 border border-red-500/30 flex items-center justify-center text-[10px] font-black text-red-500 font-outfit italic">A</div>
                                                         </div>
                                                         <span className="text-[11px] font-bold text-slate-500 font-outfit italic">
                                                             {log.records?.filter(r => r.status === 'Present').length} / {log.records?.length} Verified

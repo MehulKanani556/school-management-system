@@ -47,17 +47,17 @@ const Reports = () => {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={() => window.print()}
-                        className="p-3 bg-slate-900/50 border border-white/5 rounded-2xl text-slate-400 hover:text-white transition-all shadow-lg active:scale-95"
+                        className="p-3 bg-slate-900/50 border border-white/5 rounded-md text-slate-400 hover:text-white transition-all shadow-lg active:scale-95"
                     >
                         <Printer size={18} />
                     </button>
                     <div className="h-10 w-px bg-white/5 hidden md:block mx-2"></div>
-                    <div className="flex bg-slate-900/50 p-1 rounded-2xl border border-white/5">
+                    <div className="flex bg-slate-900/50 p-1 rounded-md border border-white/5">
                         {['performance', 'finances'].map((tab) => (
                             <button
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
-                                className={`px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${
                                     activeTab === tab ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'
                                 }`}
                             >
@@ -70,7 +70,7 @@ const Reports = () => {
 
             {loading && !schoolPerformance && (
                 <div className="h-96 flex flex-col items-center justify-center space-y-4">
-                    <div className="w-12 h-12 border-4 border-brand-primary/30 border-t-brand-primary rounded-full animate-spin"></div>
+                    <div className="w-12 h-12 border-4 border-brand-primary/30 border-t-brand-primary rounded-md animate-spin"></div>
                     <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 animate-pulse">Synchronizing Data Streams...</p>
                 </div>
             )}
@@ -90,9 +90,9 @@ const Reports = () => {
                             { label: 'Published Exams', val: schoolPerformance.totalExams, icon: FileText, color: 'text-amber-400', trend: 'Stable', up: null },
                             { label: 'Academic Reach', val: '100%', icon: Users, color: 'text-indigo-400', trend: 'Optimal', up: null },
                         ].map((m, i) => (
-                            <motion.div key={i} variants={itemVariants} className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-[2rem] p-6 group hover:border-brand-primary/20 transition-all">
+                            <motion.div key={i} variants={itemVariants} className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-md p-6 group hover:border-brand-primary/20 transition-all">
                                 <div className="flex justify-between items-start mb-4">
-                                    <div className={`p-3 rounded-2xl bg-white/5 ${m.color}`}>
+                                    <div className={`p-3 rounded-md bg-white/5 ${m.color}`}>
                                         <m.icon size={20} />
                                     </div>
                                     {m.up !== null && (
@@ -110,12 +110,12 @@ const Reports = () => {
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Subject Comparison */}
-                        <div className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+                        <div className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-md p-8">
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-sm font-black uppercase tracking-widest text-indigo-400 flex items-center gap-2">
                                     <BarChart3 size={16} /> Subject Yield Variance
                                 </h3>
-                                <div className="p-2 bg-white/5 rounded-lg text-slate-500 cursor-help hover:text-white transition-colors">
+                                <div className="p-2 bg-white/5 rounded-md text-slate-500 cursor-help hover:text-white transition-colors">
                                     <Filter size={14} />
                                 </div>
                             </div>
@@ -140,7 +140,7 @@ const Reports = () => {
                         </div>
 
                         {/* Grade Wise Distribution */}
-                        <div className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-[2.5rem] p-8">
+                        <div className="bg-brand-surface/40 backdrop-blur-md border border-white/5 rounded-md p-8">
                              <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-sm font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
                                     <TrendingUp size={16} /> Grade Spectrum Efficiency
@@ -178,40 +178,40 @@ const Reports = () => {
                     className="space-y-8"
                 >
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="bg-slate-900/40 border border-emerald-500/10 rounded-[2.5rem] p-8">
+                        <div className="bg-slate-900/40 border border-emerald-500/10 rounded-md p-8">
                             <div className="flex justify-between items-start mb-6">
-                                <div className="p-4 rounded-2xl bg-emerald-500/10 text-emerald-400">
+                                <div className="p-4 rounded-md bg-emerald-500/10 text-emerald-400">
                                     <CreditCard size={24} />
                                 </div>
-                                <div className="px-3 py-1 rounded-full bg-emerald-500/10 text-[9px] font-black text-emerald-400 uppercase tracking-widest">Revenue Collected</div>
+                                <div className="px-3 py-1 rounded-md bg-emerald-500/10 text-[9px] font-black text-emerald-400 uppercase tracking-widest">Revenue Collected</div>
                             </div>
                             <h2 className="text-4xl font-black text-white font-outfit">₹{feeReport.totalCollected.toLocaleString()}</h2>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">Validated Payments</p>
-                            <div className="mt-8 h-2 w-full bg-slate-800 rounded-full overflow-hidden">
+                            <div className="mt-8 h-2 w-full bg-slate-800 rounded-md overflow-hidden">
                                 <div className="h-full bg-emerald-500" style={{ width: `${feeReport.collectionRate}%` }}></div>
                             </div>
                             <p className="text-[9px] font-black text-emerald-400 mt-2 uppercase tracking-widest">{feeReport.collectionRate}% of Target Reached</p>
                         </div>
 
-                        <div className="bg-slate-900/40 border border-rose-500/10 rounded-[2.5rem] p-8">
+                        <div className="bg-slate-900/40 border border-rose-500/10 rounded-md p-8">
                             <div className="flex justify-between items-start mb-6">
-                                <div className="p-4 rounded-2xl bg-rose-500/10 text-rose-400">
+                                <div className="p-4 rounded-md bg-rose-500/10 text-rose-400">
                                     <ArrowDownRight size={24} />
                                 </div>
-                                <div className="px-3 py-1 rounded-full bg-rose-500/10 text-[9px] font-black text-rose-400 uppercase tracking-widest">Outstanding Capital</div>
+                                <div className="px-3 py-1 rounded-md bg-rose-500/10 text-[9px] font-black text-rose-400 uppercase tracking-widest">Outstanding Capital</div>
                             </div>
                             <h2 className="text-4xl font-black text-white font-outfit">₹{feeReport.totalOutstanding.toLocaleString()}</h2>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">Pending Transactions</p>
                             <button 
                                 onClick={() => dispatch(exportFeeReport())}
-                                className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl flex items-center justify-center gap-3 transition-all active:scale-95 group text-slate-400 hover:text-white"
+                                className="mt-8 w-full py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-md flex items-center justify-center gap-3 transition-all active:scale-95 group text-slate-400 hover:text-white"
                             >
                                 <Download size={16} className="group-hover:translate-y-0.5 transition-transform" />
                                 <span className="text-[10px] font-black uppercase tracking-widest">Export Debtors List</span>
                             </button>
                         </div>
 
-                        <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-[2.5rem] p-8 flex flex-col justify-center text-center relative overflow-hidden group">
+                        <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-md p-8 flex flex-col justify-center text-center relative overflow-hidden group">
                              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-125 transition-transform duration-700">
                                 <PieChart size={120} />
                             </div>
@@ -222,7 +222,7 @@ const Reports = () => {
                     </div>
 
                     {/* Attendance Export Section */}
-                    <div className="bg-slate-900/40 border border-white/5 rounded-[3rem] p-10 flex flex-col md:flex-row items-center gap-12">
+                    <div className="bg-slate-900/40 border border-white/5 rounded-md p-10 flex flex-col md:flex-row items-center gap-12">
                         <div className="flex-1">
                             <h3 className="text-xl font-black text-white font-outfit uppercase italic tracking-tight">Audit Logs & <span className="text-brand-primary">Compliance</span></h3>
                             <p className="text-slate-500 text-xs mt-2 leading-relaxed max-w-lg">
@@ -232,7 +232,7 @@ const Reports = () => {
                         <div className="flex items-center gap-4">
                              <button 
                                 onClick={() => dispatch(exportAttendanceReport({}))}
-                                className="px-8 py-5 bg-brand-primary text-white rounded-[1.5rem] font-black text-[11px] uppercase tracking-widest shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex items-center gap-3"
+                                className="px-8 py-5 bg-brand-primary text-white rounded-md font-black text-[11px] uppercase tracking-widest shadow-[0_10px_30px_rgba(37,99,235,0.3)] hover:shadow-[0_15px_40px_rgba(37,99,235,0.4)] transition-all active:scale-95 flex items-center gap-3"
                             >
                                 <FileText size={18} />
                                 Raw Attendance CSV
@@ -243,7 +243,7 @@ const Reports = () => {
             )}
 
             {!loading && !schoolPerformance && !feeReport && (
-                <div className="py-20 text-center bg-slate-900/30 rounded-[3rem] border border-dashed border-white/10">
+                <div className="py-20 text-center bg-slate-900/30 rounded-md border border-dashed border-white/10">
                     <BarChart3 size={48} className="text-slate-700 mx-auto mb-4" />
                     <p className="text-slate-500 font-black uppercase tracking-widest text-xs">No Report Data Synthesized Yet</p>
                 </div>

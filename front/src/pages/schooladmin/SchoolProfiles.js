@@ -21,7 +21,7 @@ const validationSchema = Yup.object({
 });
 
 const ic = (touched, error) =>
-  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-xl py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
+  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-md py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
 
 const Err = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
@@ -113,9 +113,9 @@ const SchoolSettings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Logo Preview */}
         <div className="space-y-6">
-          <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2.5rem] p-8 flex flex-col items-center text-center">
+          <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-8 flex flex-col items-center text-center">
             <div className="relative group">
-              <div className="w-40 h-40 rounded-[2.5rem] bg-slate-800 border-2 border-brand-primary/20 overflow-hidden flex items-center justify-center transition-all group-hover:border-brand-primary shadow-2xl relative">
+              <div className="w-40 h-40 rounded-md bg-slate-800 border-2 border-brand-primary/20 overflow-hidden flex items-center justify-center transition-all group-hover:border-brand-primary shadow-2xl relative">
                 {logoPreview || user?.photo ? (
                   <img
                     src={logoPreview || user?.photo}
@@ -137,14 +137,14 @@ const SchoolSettings = () => {
               </div>
 
               {/* Online Indicator matching Header */}
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 border-4 border-brand-background ring-4 ring-emerald-500/10 z-10" />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-md bg-emerald-500 border-4 border-brand-background ring-4 ring-emerald-500/10 z-10" />
 
 
               {(logoPreview || user?.photo) && (
                 <button
                   type="button"
                   onClick={() => { setLogoPreview(null); formik.setFieldValue('logo', null); }}
-                  className="absolute -top-2 -right-2 p-2 bg-rose-500 rounded-xl shadow-lg hover:bg-rose-600 transition-all active:scale-95"
+                  className="absolute -top-2 -right-2 p-2 bg-rose-500 rounded-md shadow-lg hover:bg-rose-600 transition-all active:scale-95"
                 >
                   <X size={14} className="text-white" />
                 </button>
@@ -154,14 +154,14 @@ const SchoolSettings = () => {
 
             <div className="mt-8 space-y-2">
               <h3 className="text-2xl font-black text-white leading-tight font-outfit uppercase tracking-tighter">{schoolProfile?.name || 'School Name'}</h3>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary bg-brand-primary/10 px-4 py-1.5 rounded-full inline-block">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-brand-primary bg-brand-primary/10 px-4 py-1.5 rounded-md inline-block">
                 {schoolProfile?.subdomain}
               </p>
             </div>
 
             <div className="w-full mt-10 pt-10 border-t border-white/10 space-y-6">
               <div className="flex items-start gap-4 text-slate-400 group">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/40 flex items-center justify-center group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-all shrink-0 border border-white/5 shadow-inner">
+                <div className="w-10 h-10 rounded-md bg-slate-800/40 flex items-center justify-center group-hover:bg-brand-primary/10 group-hover:text-brand-primary transition-all shrink-0 border border-white/5 shadow-inner">
                   <Mail size={16} />
                 </div>
                 <div className="text-left overflow-hidden pt-0.5">
@@ -171,7 +171,7 @@ const SchoolSettings = () => {
               </div>
 
               <div className="flex items-start gap-4 text-slate-400 group">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/40 flex items-center justify-center group-hover:bg-amber-500/10 group-hover:text-amber-500 transition-all shrink-0 border border-white/5 shadow-inner">
+                <div className="w-10 h-10 rounded-md bg-slate-800/40 flex items-center justify-center group-hover:bg-amber-500/10 group-hover:text-amber-500 transition-all shrink-0 border border-white/5 shadow-inner">
                   <MapPin size={16} />
                 </div>
                 <div className="text-left overflow-hidden pt-0.5">
@@ -181,7 +181,7 @@ const SchoolSettings = () => {
               </div>
 
               <div className="flex items-start gap-4 text-slate-400 group">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/40 flex items-center justify-center group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-all shrink-0 border border-white/5 shadow-inner">
+                <div className="w-10 h-10 rounded-md bg-slate-800/40 flex items-center justify-center group-hover:bg-emerald-500/10 group-hover:text-emerald-500 transition-all shrink-0 border border-white/5 shadow-inner">
                   <Phone size={16} />
                 </div>
                 <div className="text-left pt-0.5">
@@ -191,7 +191,7 @@ const SchoolSettings = () => {
               </div>
 
               <div className="flex items-start gap-4 text-slate-400 group">
-                <div className="w-10 h-10 rounded-xl bg-slate-800/40 flex items-center justify-center group-hover:bg-purple-500/10 group-hover:text-purple-500 transition-all shrink-0 border border-white/5 shadow-inner">
+                <div className="w-10 h-10 rounded-md bg-slate-800/40 flex items-center justify-center group-hover:bg-purple-500/10 group-hover:text-purple-500 transition-all shrink-0 border border-white/5 shadow-inner">
                   <Calendar size={16} />
                 </div>
                 <div className="text-left pt-0.5">
@@ -208,13 +208,13 @@ const SchoolSettings = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2.5rem] p-8 lg:p-10"
+            className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-8 lg:p-10"
           >
             <form onSubmit={formik.handleSubmit} className="space-y-8">
               <div className="space-y-6">
                 <div className="flex items-center justify-between gap-3 mb-2">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-brand-primary/10 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center">
                       <Building2 size={20} className="text-brand-primary" />
                     </div>
                     <div>
@@ -227,7 +227,7 @@ const SchoolSettings = () => {
                   <button
                     type="button"
                     onClick={() => setIsPwdModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-800/40 hover:bg-orange-500/10 text-slate-400 hover:text-orange-500 border border-white/5 hover:border-orange-500/20 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all group scale-90"
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-800/40 hover:bg-orange-500/10 text-slate-400 hover:text-orange-500 border border-white/5 hover:border-orange-500/20 rounded-md text-[10px] font-black uppercase tracking-widest transition-all group scale-90"
                   >
                     <Key size={14} className="group-hover:rotate-12 transition-transform" />
                     Update Security
@@ -281,11 +281,11 @@ const SchoolSettings = () => {
                 <button
                   type="submit"
                   disabled={loading || !formik.dirty}
-                  className="w-full lg:w-auto px-10 py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl font-black text-xs uppercase tracking-[0.2em] text-white shadow-xl shadow-brand-primary/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                  className="w-full lg:w-auto px-10 py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed rounded-md font-black text-xs uppercase tracking-[0.2em] text-white shadow-xl shadow-brand-primary/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                 >
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-md animate-spin" />
                       Saving Changes...
                     </>
                   ) : (
@@ -317,13 +317,13 @@ const SchoolSettings = () => {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative w-full max-w-md bg-[#12121e] border border-white/10 rounded-[2.5rem] p-8 md:p-10 shadow-3xl overflow-hidden"
+              className="relative w-full max-w-md bg-[#12121e] border border-white/10 rounded-md p-8 md:p-10 shadow-3xl overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-full blur-[80px] -mr-20 -mt-20" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-md blur-[80px] -mr-20 -mt-20" />
 
               <div className="flex items-center justify-between mb-8 relative">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/10">
+                  <div className="w-12 h-12 rounded-md bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/10">
                     <Lock size={20} />
                   </div>
                   <div>
@@ -333,7 +333,7 @@ const SchoolSettings = () => {
                 </div>
                 <button
                   onClick={() => setIsPwdModalOpen(false)}
-                  className="p-2 hover:bg-white/5 rounded-xl transition-all"
+                  className="p-2 hover:bg-white/5 rounded-md transition-all"
                 >
                   <X size={18} className="text-slate-500" />
                 </button>
@@ -378,7 +378,7 @@ const SchoolSettings = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 py-4.5 bg-brand-primary hover:bg-orange-600 active:scale-[0.98] text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50"
+                    className="w-full h-12 py-4.5 bg-brand-primary hover:bg-orange-600 active:scale-[0.98] text-white rounded-md text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50"
                   >
                     {loading ? 'Processing...' : 'Secure Account Now'}
                   </button>

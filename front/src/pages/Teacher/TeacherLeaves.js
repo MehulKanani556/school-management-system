@@ -16,7 +16,7 @@ const validationSchema = Yup.object({
     reason: Yup.string().min(10, 'Reason must be at least 10 characters').required('Reason is required'),
 });
 
-const inputClass = "w-full bg-slate-800 border border-slate-700/50 rounded-xl py-3 px-4 text-white placeholder-slate-500 outline-none focus:border-brand-primary transition-all text-sm";
+const inputClass = "w-full bg-slate-800 border border-slate-700/50 rounded-md py-3 px-4 text-white placeholder-slate-500 outline-none focus:border-brand-primary transition-all text-sm";
 
 const StatusBadge = ({ status }) => {
     const configs = {
@@ -26,7 +26,7 @@ const StatusBadge = ({ status }) => {
     };
     const { color, icon: Icon } = configs[status] || configs.pending;
     return (
-        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest ${color}`}>
+        <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest ${color}`}>
             <Icon size={12} /> {status}
         </span>
     );
@@ -67,7 +67,7 @@ const TeacherLeaves = () => {
                     <h1 className="text-3xl font-black uppercase tracking-tighter font-outfit text-white">Leave Portal</h1>
                     <p className="text-slate-500 text-sm mt-1">Manage your time-off applications and track status</p>
                 </div>
-                <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95">
+                <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95">
                     <Plus size={18} /> Apply for Leave
                 </button>
             </div>
@@ -75,7 +75,7 @@ const TeacherLeaves = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Statistics */}
                 <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-3xl">
+                    <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-md">
                         <div className="flex items-center justify-between mb-4">
                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage</h3>
                            <Info size={14} className="text-slate-600" />
@@ -90,15 +90,15 @@ const TeacherLeaves = () => {
                                         <span className="text-slate-400">{item.label}</span>
                                         <span className="text-white">{item.used} / {item.total}</span>
                                     </div>
-                                    <div className="h-1.5 bg-slate-700/50 rounded-full overflow-hidden">
-                                        <div className="h-full bg-brand-primary rounded-full transition-all duration-1000" style={{ width: `${(item.used / item.total) * 100}%` }} />
+                                    <div className="h-1.5 bg-slate-700/50 rounded-md overflow-hidden">
+                                        <div className="h-full bg-brand-primary rounded-md transition-all duration-1000" style={{ width: `${(item.used / item.total) * 100}%` }} />
                                     </div>
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-3xl">
+                    <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-md">
                         <CalendarDays size={24} className="text-brand-primary mb-3" />
                         <h4 className="text-sm font-bold text-white mb-2">Upcoming Holidays</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">Check the holiday calendar before applying for leave to optimize your time off.</p>
@@ -110,7 +110,7 @@ const TeacherLeaves = () => {
                 <div className="lg:col-span-2 space-y-4">
                     <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2">Application History</h3>
                     {leaves.length === 0 ? (
-                        <div className="bg-slate-800/20 border border-dashed border-slate-700/50 rounded-[2rem] py-20 text-center">
+                        <div className="bg-slate-800/20 border border-dashed border-slate-700/50 rounded-md py-20 text-center">
                             <Clock size={40} className="mx-auto text-slate-700 mb-4 opacity-40" />
                             <p className="text-slate-500 font-medium">No leave applications found</p>
                         </div>
@@ -121,17 +121,17 @@ const TeacherLeaves = () => {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: i * 0.05 }}
-                                className="bg-slate-800/40 border border-slate-700/30 p-6 rounded-2xl hover:border-slate-600 transition-all group"
+                                className="bg-slate-800/40 border border-slate-700/30 p-6 rounded-md hover:border-slate-600 transition-all group"
                             >
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                                        <div className="w-10 h-10 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
                                             <CalendarDays size={18} />
                                         </div>
                                         <div>
                                             <div className="flex items-center gap-2">
                                                 <h4 className="font-bold text-white text-sm capitalize">{l.type} Leave</h4>
-                                                <div className="w-1 h-1 rounded-full bg-slate-700" />
+                                                <div className="w-1 h-1 rounded-md bg-slate-700" />
                                                 <p className="text-[10px] font-bold text-slate-500">{format(parseISO(l.startDate), 'dd MMM')} — {format(parseISO(l.endDate), 'dd MMM')}</p>
                                             </div>
                                             <p className="text-[11px] text-slate-500 mt-1 line-clamp-1">{l.reason}</p>
@@ -177,7 +177,7 @@ const TeacherLeaves = () => {
                         {formik.touched.reason && formik.errors.reason && <p className="text-[10px] text-red-500 mt-1 pl-1 font-bold italic">{formik.errors.reason}</p>}
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full mt-4 py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                    <button type="submit" disabled={loading} className="w-full mt-4 py-4 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 rounded-md font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
                         {loading ? 'Submitting...' : 'Confirm Application'} <ChevronRight size={16} />
                     </button>
                 </form>

@@ -21,7 +21,7 @@ const validationSchema = Yup.object({
 });
 
 const inputClass = (touched, error) =>
-  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-xl py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
+  `mt-1.5 w-full bg-slate-800 border ${touched && error ? 'border-red-500/60' : 'border-slate-700'} focus:border-brand-primary rounded-md py-3 px-4 text-white placeholder-slate-500 outline-none text-sm transition-all`;
 
 const FieldError = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
@@ -108,7 +108,7 @@ const Payroll = () => {
           <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Payroll Tracking</h1>
           <p className="text-slate-400 text-sm mt-1">{payroll.length} salary records managed</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-blue-600/20">
+        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-blue-600/20">
           <Plus size={18} /> Add Record
         </button>
       </div>
@@ -116,10 +116,10 @@ const Payroll = () => {
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
         <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search records by teacher name..."
-          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-2xl py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
+          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
       </div>
 
-      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-[2rem] overflow-hidden shadow-2xl shadow-black/40">
+      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden shadow-2xl shadow-black/40">
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30 bg-white/5">
@@ -155,14 +155,14 @@ const Payroll = () => {
                 </td>
                 <td className="px-6 py-5 font-black text-brand-primary">₹{p.totalAmount?.toLocaleString()}</td>
                 <td className="px-6 py-5">
-                  <span className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider ${p.status === 'paid' ? 'text-emerald-400 bg-emerald-400/10' : 'text-amber-500 bg-amber-500/10'}`}>
+                  <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${p.status === 'paid' ? 'text-emerald-400 bg-emerald-400/10' : 'text-amber-500 bg-amber-500/10'}`}>
                     {p.status}
                   </span>
                 </td>
                 <td className="px-6 py-5">
                   <div className="flex gap-2">
-                    <button onClick={() => openEdit(p)} className="p-2 rounded-xl hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
-                    <button onClick={() => dispatch(deletePayroll(p._id))} className="p-2 rounded-xl hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                    <button onClick={() => openEdit(p)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
+                    <button onClick={() => dispatch(deletePayroll(p._id))} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
                 </td>
               </motion.tr>
@@ -240,7 +240,7 @@ const Payroll = () => {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-2xl font-black text-sm uppercase tracking-wider transition-all font-outfit mt-4 flex items-center justify-center gap-2">
+            className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-4 flex items-center justify-center gap-2">
             <Banknote size={16} /> {loading ? 'Processing...' : editing ? 'Update Record' : 'Generate Payroll'}
           </button>
         </form>

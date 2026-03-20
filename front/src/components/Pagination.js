@@ -30,7 +30,7 @@ const Pagination = ({
   };
 
   const btnClass = (active) => `
-    flex items-center justify-center min-w-[40px] h-[40px] rounded-xl text-sm font-black transition-all duration-300
+    flex items-center justify-center min-w-[40px] h-[40px] rounded-md text-sm font-black transition-all duration-300
     ${active 
       ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20 scale-110 z-10' 
       : 'bg-brand-surface/40 hover:bg-slate-800 text-slate-400 hover:text-white border border-brand-border/30'}

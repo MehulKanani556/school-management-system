@@ -88,7 +88,7 @@ const SchoolAdminLayout = () => {
         {/* Logo */}
         <div className="px-7 py-8 flex items-center justify-between border-b border-brand-border/30">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-lg italic shadow-lg">SM</div>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-lg italic shadow-lg">SM</div>
             <div>
               <p className="font-black text-sm uppercase tracking-widest font-outfit">School Admin</p>
               <p className="text-[10px] text-slate-500 font-bold tracking-wider uppercase">Management Panel</p>
@@ -114,7 +114,7 @@ const SchoolAdminLayout = () => {
                   end={item.end}
                   onClick={() => setSidebarOpen(false)}
                   className={({ isActive }) =>
-                    `flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isActive
+                    `flex items-center gap-4 px-5 py-3.5 rounded-md transition-all duration-300 group ${isActive
                       ? 'bg-brand-primary text-white shadow-[0_8px_25px_-10px_rgba(37,99,235,0.6)]'
                       : 'text-slate-500 hover:bg-slate-800/40 hover:text-white'
                     }`
@@ -122,7 +122,7 @@ const SchoolAdminLayout = () => {
                 >
                   {({ isActive }) => (
                     <>
-                      <div className={`p-2 rounded-xl transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
+                      <div className={`p-2 rounded-md transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
                         <Icon size={18} />
                       </div>
                       <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{item.label}</span>
@@ -137,10 +137,10 @@ const SchoolAdminLayout = () => {
               <div key={item.label} className="space-y-1">
                 <button
                   onClick={() => toggleSubmenu(item.label)}
-                  className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-300 group ${isExpanded ? 'text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800/40'
+                  className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-md transition-all duration-300 group ${isExpanded ? 'text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800/40'
                     }`}
                 >
-                  <div className={`p-2 rounded-xl transition-all duration-300 ${isExpanded ? 'bg-brand-primary/20 text-brand-primary' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
+                  <div className={`p-2 rounded-md transition-all duration-300 ${isExpanded ? 'bg-brand-primary/20 text-brand-primary' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
                     <Icon size={18} />
                   </div>
                   <span className="font-black text-sm uppercase tracking-wider font-outfit text-left flex-1">{item.label}</span>
@@ -163,7 +163,7 @@ const SchoolAdminLayout = () => {
                             to={child.to}
                             onClick={() => setSidebarOpen(false)}
                             className={({ isActive }) =>
-                              `flex items-center gap-3 px-5 py-3 rounded-xl transition-all duration-300 group ${isActive ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
+                              `flex items-center gap-3 px-5 py-3 rounded-md transition-all duration-300 group ${isActive ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
                               }`
                             }
                           >
@@ -182,11 +182,11 @@ const SchoolAdminLayout = () => {
 
         {/* User Info */}
         <div className="px-4 py-6 border-t border-brand-border/30 bg-brand-surface/20 backdrop-blur-sm">
-          <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/60 rounded-[1.5rem] border border-white/5 shadow-inner">
+          <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/60 rounded-md border border-white/5 shadow-inner">
             {user?.photo ? (
-              <img src={user.photo} alt="avatar" className="w-10 h-10 rounded-xl object-cover ring-2 ring-brand-primary/20" />
+              <img src={user.photo} alt="avatar" className="w-10 h-10 rounded-md object-cover ring-2 ring-brand-primary/20" />
             ) : (
-              <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center border border-white/10 shadow-lg">
+              <div className="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center border border-white/10 shadow-lg">
                 <User size={18} className="text-slate-400" />
               </div>
             )}
@@ -194,7 +194,7 @@ const SchoolAdminLayout = () => {
               <p className="text-sm font-black text-white truncate font-outfit uppercase tracking-tighter">{user?.firstName} {user?.lastName}</p>
               <p className="text-[9px] text-brand-accent font-black uppercase tracking-[0.2em] opacity-80 leading-tight">Administrator</p>
             </div>
-            <button onClick={handleLogout} className="p-2.5 rounded-xl hover:bg-luxury-rose/10 text-slate-500 hover:text-luxury-rose transition-all group active:scale-90">
+            <button onClick={handleLogout} className="p-2.5 rounded-md hover:bg-luxury-rose/10 text-slate-500 hover:text-luxury-rose transition-all group active:scale-90">
               <LogOut size={16} className="group-hover:-rotate-12 transition-transform" />
             </button>
           </div>
