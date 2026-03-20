@@ -318,6 +318,16 @@ exports.updateStudent = async (req, res) => {
     const body = { ...req.body };
     if (req.file) body.photo = req.file.location;
 
+    // If DOB is changed, update password as well (DDMMYY)
+    if (body.dateOfBirth) {
+      const d = new Date(body.dateOfBirth);
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = String(d.getFullYear()).substring(2); // YY format
+      const plainPassword = `${day}${month}${year}`;
+      body.password = await bcrypt.hash(plainPassword, 10);
+    }
+
     const student = await Student.findOneAndUpdate(
       { _id: req.params.id, schoolId: getSchoolId(req) },
       body, { new: true }
@@ -1539,7 +1549,10 @@ exports.importStudents = async (req, res) => {
 
             let plainPassword = '123456';
             if (dob) {
-              plainPassword = `${String(dob.getDate()).padStart(2, '0')}${String(dob.getMonth() + 1).padStart(2, '0')}${String(dob.getFullYear())}`;
+              const day = String(dob.getDate()).padStart(2, '0');
+              const month = String(dob.getMonth() + 1).padStart(2, '0');
+              const year = String(dob.getFullYear()).substring(2);
+              plainPassword = `${day}${month}${year}`;
             }
             const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
