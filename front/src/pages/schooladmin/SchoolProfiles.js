@@ -137,7 +137,7 @@ const SchoolSettings = () => {
               </div>
 
               {/* Online Indicator matching Header */}
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-md bg-emerald-500 border-4 border-brand-background ring-4 ring-emerald-500/10 z-10" />
+              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-emerald-500 border-4 border-brand-background ring-4 ring-emerald-500/10 z-10" />
 
 
               {(logoPreview || user?.photo) && (
@@ -222,7 +222,7 @@ const SchoolSettings = () => {
                       <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Base Identity Settings</p>
                     </div>
                   </div>
-                  
+
                   {/* Moved Change Password Button */}
                   <button
                     type="button"

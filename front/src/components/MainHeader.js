@@ -66,32 +66,31 @@ const MainHeader = ({ onMenuClick }) => {
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center gap-3 pl-1 pr-4 py-1.5 rounded-md bg-slate-800/20 border border-white/5 hover:bg-slate-800/40 transition-all active:scale-[0.98]"
+            className="flex items-center gap-4 py-1.5 transition-all active:scale-[0.98] border-l border-white/10 pl-6 group"
           >
+            <div className="hidden sm:block text-right">
+              <p className="text-md font-bold text-white leading-tight font-outfit">
+                {user?.firstName} {user?.lastName}
+              </p>
+              {/* <p className="text-[11px] font-bold uppercase tracking-[0.05em] text-brand-primary mt-0.5">
+                FACULTY ID: {user?.facultyId || user?._id?.slice(-5).toUpperCase() || '003AC'}
+              </p> */}
+            </div>
             <div className="relative">
               {user?.photo ? (
                 <img
                   src={user.photo}
                   alt="Avatar"
-                  className="w-10 h-10 rounded-md object-cover border border-brand-primary/20"
+                  className="w-12 h-12 rounded-xl object-cover border border-white/10 shadow-lg"
                 />
               ) : (
-                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center border border-white/10">
-                  <User size={18} className="text-white" />
+                <div className="w-12 h-12 rounded-xl bg-brand-primary flex items-center justify-center border border-white/10 shadow-lg shadow-brand-primary/30">
+                  <span className="text-white font-bold text-lg">
+                    {user?.firstName?.charAt(0)}{user?.lastName?.charAt(0)}
+                  </span>
                 </div>
               )}
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-md bg-emerald-500 border-2 border-brand-background ring-2 ring-emerald-500/20" />
             </div>
-            <div className="hidden sm:block text-left">
-              <p className="text-xs font-black uppercase tracking-widest text-white/90 leading-tight font-outfit truncate max-w-[100px]">
-                {user?.firstName}
-              </p>
-              <p className="text-[10px] font-black uppercase tracking-[0.15em] text-brand-primary/80 leading-none mt-1">
-                {user?.role?.replace('_', ' ')}
-              </p>
-
-            </div>
-            <ChevronDown size={14} className={`text-slate-500 transition-transform duration-300 ${showProfileMenu ? 'rotate-180' : ''}`} />
           </button>
 
           {/* Profile Dropdown */}
