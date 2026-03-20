@@ -75,7 +75,7 @@ export const fetchFeeSummary = asyncGet('sa/feeSummary', '/fee-summary');
 export const fetchSchoolProfile = asyncGet('sa/school-profile', '/school-profile');
 export const updateSchoolProfile = createAsyncThunk('sa/updateProfile', async (data, { rejectWithValue }) => {
   try {
-    const res = await axiosInstance.patch(`${BASE}/school-profile`, data, {
+    const res = await axiosInstance.put(`${BASE}/school-profile`, data, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     return res.data;

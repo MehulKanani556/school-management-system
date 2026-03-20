@@ -119,9 +119,8 @@ export const authSlice = createSlice({
             state.message = "Logged out successfully";
         },
         updateUser: (state, action) => {
-
             state.user = { ...state.user, ...action.payload };
-            sessionStorage.setItem('user', JSON.stringify(state.user));
+            localStorage.setItem('user', JSON.stringify(state.user));
         },
         clearMessage: (state) => {
 

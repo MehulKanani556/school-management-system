@@ -61,7 +61,7 @@ const SchoolSettings = () => {
 
       const result = await dispatch(updateSchoolProfile(formData));
       if (!result.error) {
-        toast.success('School profile updated successfully!');
+        // toast.success('School profile updated successfully!');
         if (result.payload?.logo) {
           dispatch(updateUser({ photo: result.payload.logo }));
         }
