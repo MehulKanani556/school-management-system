@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown
+  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MainHeader from '../../components/MainHeader';
@@ -51,7 +51,15 @@ const navItems = [
       { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Reviews' },
     ]
   },
-  { to: '/school-admin/communication', icon: MessageSquare, label: 'Messages' },
+  {
+    label: 'Communication',
+    icon: MessageSquare,
+    children: [
+      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Announcements' },
+      { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
+      { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
+    ]
+  },
   { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
 ];
 
@@ -65,12 +73,15 @@ const SchoolAdminLayout = () => {
   const [expanded, setExpanded] = useState(null);
 
   useEffect(() => {
-    // Auto-expand menu based on current path
+    // Auto-expand menu based on current path + search
     const activeParent = navItems.find(item =>
-      item.children?.some(child => location.pathname === child.to)
+      item.children?.some(child => 
+        location.pathname + location.search === child.to || 
+        (child.to.includes('?') && location.pathname === child.to.split('?')[0] && location.search === child.to.split('?')[1])
+      )
     );
     if (activeParent) setExpanded(activeParent.label);
-  }, [location.pathname]);
+  }, [location.pathname, location.search]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -162,13 +173,26 @@ const SchoolAdminLayout = () => {
                             key={child.to}
                             to={child.to}
                             onClick={() => setSidebarOpen(false)}
-                            className={({ isActive }) =>
-                              `flex items-center gap-3 px-5 py-3 rounded-md transition-all duration-300 group ${isActive ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
-                              }`
-                            }
+                            className={({ isActive }) => {
+                              const active = child.to.includes('?') 
+                                ? (location.pathname + location.search === child.to)
+                                : isActive;
+                              
+                              return `flex items-center gap-3 px-5 py-3 rounded-md transition-all duration-300 group ${active ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
+                              }`;
+                            }}
                           >
-                            <ChildIcon size={16} className="opacity-60 group-hover:opacity-100 transition-opacity" />
-                            <span className="font-black text-[11px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                            {({ isActive }) => {
+                              const active = child.to.includes('?') 
+                                ? (location.pathname + location.search === child.to)
+                                : isActive;
+                              return (
+                                <>
+                                  <ChildIcon size={16} className={`transition-opacity ${active ? 'opacity-100 text-brand-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                                  <span className="font-black text-[11px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                                </>
+                              );
+                            }}
                           </NavLink>
                         );
                       })}
@@ -212,7 +236,7 @@ const SchoolAdminLayout = () => {
         {/* Main Header */}
         <MainHeader onMenuClick={() => setSidebarOpen(true)} />
 
-        <main className="flex-1 p-6 lg:p-8 overflow-auto">
+        <main className="flex-1 p-4 lg:p-4 overflow-auto">
           <Outlet />
         </main>
       </div>

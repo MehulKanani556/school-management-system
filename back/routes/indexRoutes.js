@@ -215,6 +215,7 @@ router.post('/school-admin/notices', ...schoolAdmin, upload.single('file'), mc.c
 router.get('/announcements', auth, mc.getAnnouncements);
 router.get('/notices', auth, mc.getNotices);
 router.get('/my-messages', auth, mc.getMyMessages);
+router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
 router.get('/contacts', auth, mc.getContacts);
 
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated

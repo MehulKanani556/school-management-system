@@ -4,7 +4,7 @@ import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasse
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft } from 'lucide-react';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
 
@@ -55,6 +55,10 @@ const Students = () => {
   const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [formValues, setFormValues] = useState(emptyValues);
+  const [viewMode, setViewMode] = useState('standards'); // 'standards', 'sections', 'students'
+  const [selectedStandard, setSelectedStandard] = useState(null);
+  const [selectedSection, setSelectedSection] = useState(null);
+
   const [promoteModal, setPromoteModal] = useState(false);
   const promoteFormik = useFormik({
     initialValues: {
@@ -134,12 +138,46 @@ const Students = () => {
   const handleClose = () => { setModal(false); setFormValues(emptyValues); };
 
   const filtered = students.filter(s => {
+    // Apply search filter
     const searchString = `${s.firstName} ${s.lastName} ${s.admissionNumber} Grade ${s.standard?.level} ${s.classSection?.sectionLabel}`.toLowerCase();
-    return searchString.includes(search.toLowerCase());
+    const matchesSearch = searchString.includes(search.toLowerCase());
+
+    // Apply drill-down filters
+    if (viewMode === 'students' && selectedSection) {
+      return matchesSearch && (s.classSection?._id || s.classSection) === selectedSection._id;
+    }
+    return matchesSearch;
   });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  // Helper to count students
+  const getStudentCount = (type, id) => {
+    if (type === 'standard') {
+      return students.filter(s => (s.standard?._id || s.standard) === id).length;
+    }
+    if (type === 'section') {
+      return students.filter(s => (s.classSection?._id || s.classSection) === id).length;
+    }
+    return 0;
+  };
+
+  const resetSelection = () => {
+    setViewMode('standards');
+    setSelectedStandard(null);
+    setSelectedSection(null);
+  };
+
+  const handleStandardClick = (std) => {
+    setSelectedStandard(std);
+    setViewMode('sections');
+  };
+
+  const handleSectionClick = (sec) => {
+    setSelectedSection(sec);
+    setViewMode('students');
+  };
 
   // Reset page when search changes
   useEffect(() => { setCurrentPage(1); }, [search]);
@@ -147,9 +185,40 @@ const Students = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">Students</h1>
-          <p className="text-slate-400 text-sm mt-1">{students.length} total students</p>
+        <div className="flex items-center gap-4">
+          {(viewMode !== 'standards' || selectedStandard) && (
+            <button
+              onClick={() => {
+                if (viewMode === 'students') setViewMode('sections');
+                else if (viewMode === 'sections') resetSelection();
+              }}
+              className="p-2.5 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md text-slate-400 hover:text-white transition-all"
+            >
+              <ArrowLeft size={18} />
+            </button>
+          )}
+          <div>
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+              <span className={viewMode === 'standards' ? 'text-brand-primary' : 'cursor-pointer hover:text-slate-300'} onClick={resetSelection}>Standards</span>
+              {selectedStandard && (
+                <>
+                  <ChevronRight size={10} />
+                  <span className={viewMode === 'sections' ? 'text-brand-primary' : 'cursor-pointer hover:text-slate-300'} onClick={() => setViewMode('sections')}>Grade {selectedStandard.level}</span>
+                </>
+              )}
+              {selectedSection && viewMode === 'students' && (
+                <>
+                  <ChevronRight size={10} />
+                  <span className="text-brand-primary">Section {selectedSection.sectionLabel}</span>
+                </>
+              )}
+            </div>
+            <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">
+              {viewMode === 'standards' && 'School Standards'}
+              {viewMode === 'sections' && `Grade ${selectedStandard?.level} Classrooms`}
+              {viewMode === 'students' && `Students - ${selectedSection?.sectionLabel}`}
+            </h1>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-indigo-400 hover:text-indigo-300 group">
@@ -168,66 +237,148 @@ const Students = () => {
         </div>
       </div>
 
-      <div className="relative">
-        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search students..."
-          className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
-      </div>
-
-      <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-brand-border/30">
-              {['Student', 'Admission No.', 'Gender', 'Guardian', 'Class', 'DOB', 'Actions'].map(h => (
-                <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && filtered.length === 0 ? (
-              <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
-            ) : filtered.length === 0 ? (
-              <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
-            ) : currentItems.map((s, i) => (
-              <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
-                className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`}
-                      className="w-10 h-10 rounded-md object-cover bg-slate-800 border border-slate-700" alt="" />
-                    <div className="font-semibold">{s.firstName} {s.lastName}</div>
+      <AnimatePresence mode="wait">
+        {viewMode === 'standards' && (
+          <motion.div
+            key="standards"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {standards.map((std) => (
+              <button
+                key={std._id}
+                onClick={() => handleStandardClick(std)}
+                className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-xl text-left transition-all duration-300 overflow-hidden"
+              >
+                <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                  <GraduationCap size={120} />
+                </div>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="w-12 h-12 rounded-lg bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform">
+                    <GraduationCap size={24} />
                   </div>
-                </td>
-                <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
-                <td className="px-6 py-4 text-slate-400 text-sm capitalize">{s.gender}</td>
-                <td className="px-6 py-4 text-slate-400 text-sm">{s.guardianName || '—'}</td>
-                <td className="px-6 py-4 text-slate-400 text-sm">
-                  {s.standard ? `Grade ${s.standard.level || '—'}-${s.classSection?.sectionLabel || '—'}` : '—'}
-                </td>
-                <td className="px-6 py-4 text-slate-400 text-sm">
-                  {s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString('en-GB') : '—'}
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex gap-2">
-                    <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
-                      className="p-2 rounded-md hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
-                    <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
-                    <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
+                    {getStudentCount('standard', std._id)} Students
                   </div>
-                </td>
-              </motion.tr>
+                </div>
+                <h3 className="text-xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-brand-primary transition-colors">
+                  Grade {std.level}
+                </h3>
+                <p className="text-slate-500 text-xs mt-1 font-medium italic">Click to view classrooms</p>
+              </button>
             ))}
-          </tbody>
-        </table>
-      </div>
+          </motion.div>
+        )}
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={filtered.length}
-      />
+        {viewMode === 'sections' && (
+          <motion.div
+            key="sections"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          >
+            {classes
+              .filter(c => (c.standardId?._id || c.standardId) === selectedStandard?._id)
+              .map((sec) => (
+                <button
+                  key={sec._id}
+                  onClick={() => handleSectionClick(sec)}
+                  className="group relative p-6 bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-xl text-left transition-all duration-300 overflow-hidden"
+                >
+                  <div className="absolute -right-4 -bottom-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                    <School size={120} />
+                  </div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div className="w-12 h-12 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                      <School size={24} />
+                    </div>
+                    <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
+                      {getStudentCount('section', sec._id)} Students
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-indigo-400 transition-colors">
+                    Section {sec.sectionLabel}
+                  </h3>
+                  <p className="text-slate-500 text-xs mt-1 font-medium italic">Explore student list</p>
+                </button>
+              ))}
+          </motion.div>
+        )}
+
+        {viewMode === 'students' && (
+          <motion.div
+            key="students"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6"
+          >
+            <div className="relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input value={search} onChange={e => setSearch(e.target.value)} placeholder={`Search in Section ${selectedSection?.sectionLabel}...`}
+                className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
+            </div>
+
+            <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-brand-border/30">
+                    {['Student', 'Admission No.', 'Gender', 'Guardian', 'Class', 'DOB', 'Actions'].map(h => (
+                      <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {loading && filtered.length === 0 ? (
+                    <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
+                  ) : filtered.length === 0 ? (
+                    <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
+                  ) : currentItems.map((s, i) => (
+                    <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
+                      className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                          <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`}
+                            className="w-10 h-10 rounded-md object-cover bg-slate-800 border border-slate-700" alt="" />
+                          <div className="font-semibold">{s.firstName} {s.lastName}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
+                      <td className="px-6 py-4 text-slate-400 text-sm capitalize">{s.gender}</td>
+                      <td className="px-6 py-4 text-slate-400 text-sm">{s.guardianName || '—'}</td>
+                      <td className="px-6 py-4 text-slate-400 text-sm">
+                        {s.standard ? `Grade ${s.standard.level || '—'}-${s.classSection?.sectionLabel || '—'}` : '—'}
+                      </td>
+                      <td className="px-6 py-4 text-slate-400 text-sm">
+                        {s.dateOfBirth ? new Date(s.dateOfBirth).toLocaleDateString('en-GB') : '—'}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex gap-2">
+                          <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
+                            className="p-2 rounded-md hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
+                          <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
+                          <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                        </div>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+              itemsPerPage={itemsPerPage}
+              totalItems={filtered.length}
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Add / Edit Modal */}
       <Modal open={modal} onClose={handleClose} title={editing ? 'Edit Student' : 'Add Student'}>

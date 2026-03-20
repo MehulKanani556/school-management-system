@@ -45,8 +45,22 @@ const Communication = () => {
         targetRole: 'Student'
     });
 
-    const socket = useSocket();
+    const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
+    
+    // Paginated Chat History
+    const [chatMessages, setChatMessages] = useState([]);
+    const [chatPage, setChatPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
+    const [fetchingChat, setFetchingChat] = useState(false);
+    const chatContainerRef = React.useRef(null);
+    const lastScrollHeightRef = React.useRef(0);
+
+    const selectedChatRef = React.useRef(null);
+
+    useEffect(() => {
+        selectedChatRef.current = selectedChat;
+    }, [selectedChat]);
 
     useEffect(() => {
         fetchData();
@@ -60,7 +74,22 @@ const Communication = () => {
                 setSentMessages(prev => [data, ...prev]);
                 toast.success(`Broadcasting Alert: ${data.subject}`);
             } else if (data.type === 'DirectMessage') {
-                setSentMessages(prev => [data, ...prev]);
+                const partnerId = data.sender?._id === currentUser?._id ? data.recipient?._id || data.recipient : data.sender?._id;
+                
+                // If active chat, append using ref
+                if (partnerId === selectedChatRef.current) {
+                    setChatMessages(prev => [...prev, data]);
+                    setTimeout(() => {
+                        if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                    }, 100);
+                }
+
+                // Update contact preview
+                setSentMessages(prev => [data, ...prev.filter(m => {
+                    const mPartnerId = m.sender?._id === currentUser?._id ? m.recipient?._id || m.recipient : m.sender?._id;
+                    return m.type !== 'DirectMessage' || mPartnerId !== partnerId;
+                })]);
+                
                 toast.success(`Direct Signal: ${data.sender?.firstName || 'User'}`);
             } else if (data.type === 'Notice') {
                 setNotices(prev => [data, ...prev]);
@@ -99,6 +128,57 @@ const Communication = () => {
         }
     };
 
+    const fetchChatHistory = async (partnerId, page = 1, isLoadingMore = false) => {
+        if (!partnerId) return;
+        setFetchingChat(true);
+        try {
+            const res = await axiosInstance.get(`/chat-history/${partnerId}?page=${page}`);
+            const newMsgs = res.data.reverse();
+            
+            if (newMsgs.length < 50) setHasMore(false);
+            else setHasMore(true);
+
+            if (isLoadingMore) {
+                if (chatContainerRef.current) lastScrollHeightRef.current = chatContainerRef.current.scrollHeight;
+                setChatMessages(prev => [...newMsgs, ...prev]);
+            } else {
+                setChatMessages(newMsgs);
+                setTimeout(() => {
+                    if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+                }, 100);
+            }
+        } catch (err) {
+            toast.error('Uplink history sync failed');
+        } finally {
+            setFetchingChat(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedChat) {
+            setChatPage(1);
+            setChatMessages([]);
+            setHasMore(true);
+            fetchChatHistory(selectedChat, 1);
+        }
+    }, [selectedChat]);
+
+    useEffect(() => {
+        if (lastScrollHeightRef.current && chatContainerRef.current) {
+            const newScrollHeight = chatContainerRef.current.scrollHeight;
+            chatContainerRef.current.scrollTop = newScrollHeight - lastScrollHeightRef.current;
+            lastScrollHeightRef.current = 0;
+        }
+    }, [chatMessages]);
+
+    const handleScroll = (e) => {
+        if (e.target.scrollTop === 0 && !fetchingChat && hasMore) {
+            const nextPage = chatPage + 1;
+            setChatPage(nextPage);
+            fetchChatHistory(selectedChat, nextPage, true);
+        }
+    };
+
     const handleSendAnnouncement = async (e) => {
         e.preventDefault();
         try {
@@ -128,14 +208,25 @@ const Communication = () => {
     const handleSendPrivate = async (recipientId) => {
         if (!messageInput.trim()) return;
         try {
-            await axiosInstance.post('/teacher/send-message', {
+            const payload = {
                 recipient: recipientId,
                 content: messageInput,
                 subject: 'Direct Response',
-                type: 'DirectMessage'
-            });
+                schoolId: currentUser?.schoolId // Required for socket save logic
+            };
+
+            if (socket) {
+                socket.emit('send_direct_message', payload);
+            } else {
+                // Fallback
+                await axiosInstance.post('/teacher/send-message', {
+                    ...payload,
+                    type: 'DirectMessage'
+                });
+            }
+            
             setMessageInput('');
-            fetchData();
+            // No fetchData() needed for direct messages as socket update handles it
         } catch (err) {
             toast.error('Uplink failed');
         }
@@ -290,22 +381,48 @@ const Communication = () => {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto p-12 space-y-10 custom-scrollbar bg-slate-950/20">
-                                        <div className="flex flex-col gap-10">
-                                            {activeConversation?.messages.map((m, i) => (
-                                                <div key={m._id} className={`flex flex-col ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'items-end' : 'items-start'}`}>
-                                                    <div className={`max-w-[85%] group relative ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'bg-brand-primary text-white rounded-md rounded-tr-md' : 'bg-slate-800 text-slate-300 rounded-md rounded-tl-md'}`}>
-                                                        <div className="px-8 py-6">
-                                                            <p className="text-[13px] font-bold leading-relaxed uppercase tracking-tight italic">{m.content}</p>
+                                    <div 
+                                        ref={chatContainerRef}
+                                        onScroll={handleScroll}
+                                        className="flex-1 overflow-y-auto p-8 lg:p-12 space-y-8 custom-scrollbar bg-slate-950/20 flex flex-col"
+                                    >
+                                        {fetchingChat && hasMore && (
+                                            <div className="flex justify-center py-2">
+                                                <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse"></div>
+                                            </div>
+                                        )}
+                                        
+                                        <div className="flex flex-col gap-6">
+                                            {chatMessages.map((m, i) => {
+                                                const isMe = m.sender === currentUser?._id || m.sender?._id === currentUser?._id;
+                                                const showDate = i === 0 || new Date(chatMessages[i-1].createdAt).toDateString() !== new Date(m.createdAt).toDateString();
+
+                                                return (
+                                                    <React.Fragment key={m._id}>
+                                                        {showDate && (
+                                                            <div className="flex flex-col items-center justify-center my-6">
+                                                                <div className="h-[1px] w-8 bg-slate-800/50"></div>
+                                                                <span className="text-[8px] font-black text-slate-600 bg-slate-900/50 px-4 py-1.5 rounded-md uppercase tracking-[0.2em] my-2 italic border border-white/5 shadow-inner">
+                                                                    {new Date(m.createdAt).toLocaleDateString([], { weekday: 'short', day: '2-digit', month: 'short' })}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                        
+                                                        <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[85%] lg:max-w-[75%] relative flex flex-col group ${isMe ? 'items-end' : 'items-start'}`}>
+                                                                <div className={`px-6 py-3.5 rounded-xl text-[14px] font-bold shadow-2xl transition-all relative ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
+                                                                    <p className="italic leading-relaxed whitespace-pre-wrap uppercase tracking-tight">{m.content}</p>
+                                                                    <div className="flex items-center gap-1.5 justify-end mt-2 opacity-30 group-hover:opacity-100 transition-opacity">
+                                                                        <span className="text-[8px] font-black uppercase tracking-widest italic">{new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                        {isMe && <div className="w-1 h-1 rounded-md bg-white/40"></div>}
+                                                                    </div>
+                                                                    <div className={`absolute top-0 w-3 h-3 ${isMe ? '-right-1.5 bg-brand-primary clip-path-right' : '-left-1.5 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
+                                                                </div>
+                                                            </div>
                                                         </div>
-                                                        <div className={`absolute bottom-0 ${m.sender === currentUser?._id || m.sender?._id === currentUser?._id ? 'right-0 translate-y-full text-right' : 'left-0 translate-y-full text-left'} py-2`}>
-                                                            <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2 opacity-50 group-hover:opacity-100 transition-opacity">
-                                                                {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} • TRANSMISSION VERIFIED
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
+                                                    </React.Fragment>
+                                                );
+                                            })}
                                         </div>
                                     </div>
 

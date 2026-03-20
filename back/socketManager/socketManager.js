@@ -1,6 +1,7 @@
 let ioInstance;
 const userSocketMap = new Map(); // userId -> socketId
 const socketUserMap = new Map(); // socketId -> userId
+const Message = require('../models/message.model');
 
 function initializeSocket(io) {
   ioInstance = io;
@@ -11,10 +12,47 @@ function initializeSocket(io) {
     // Register user when they connect (expecting userId from client)
     socket.on("register_user", (userId) => {
       if (userId) {
-        userSocketMap.set(userId, socket.id);
-        socketUserMap.set(socket.id, userId);
-        console.log(`User ${userId} registered to socket ${socket.id}`);
+        const idStr = userId.toString();
+        userSocketMap.set(idStr, socket.id);
+        socketUserMap.set(socket.id, idStr);
+        console.log(`User ${idStr} registered to socket ${socket.id}`);
+        // Join a private room for this user
+        socket.join(idStr);
       }
+    });
+
+    socket.on("send_direct_message", async (data) => {
+        try {
+            const senderId = socketUserMap.get(socket.id);
+            if (!senderId) return;
+
+            const { recipient, subject, content, schoolId } = data;
+
+            // Save to DB
+            const message = await Message.create({
+                schoolId,
+                sender: senderId,
+                recipient,
+                type: 'DirectMessage',
+                targetRole: 'Specific',
+                subject,
+                content
+            });
+
+            const populated = await message.populate([
+                { path: 'sender', select: 'firstName lastName photo role' },
+                { path: 'recipient', select: 'firstName lastName photo role' }
+            ]);
+
+            // Real-time send to recipient (via room or individual socket)
+            io.to(recipient.toString()).emit('new_direct_message', populated);
+            // Send back to sender to confirm and update UI
+            socket.emit('new_direct_message', populated);
+
+        } catch (err) {
+            console.error("Socket direct message error:", err);
+            socket.emit('error', { message: 'Message delivery failed' });
+        }
     });
 
     socket.on("disconnect", (reason) => {

@@ -141,3 +141,9 @@ html {
 }
 
 .print-only { display: none; }
+.clip-path-right {
+  clip-path: polygon(0 0, 0% 100%, 100% 0);
+}
+.clip-path-left {
+  clip-path: polygon(100% 0, 100% 100%, 0 0);
+}

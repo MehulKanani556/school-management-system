@@ -138,6 +138,34 @@ exports.getMyMessages = async (req, res) => {
     }
 };
 
+// Get specific chat history between two users with pagination
+exports.getChatHistory = async (req, res) => {
+    try {
+        const { otherUserId } = req.params;
+        const page = parseInt(req.query.page) || 1;
+        const limit = 50;
+        const skip = (page - 1) * limit;
+
+        const messages = await Message.find({
+            schoolId: req.user.schoolId,
+            type: 'DirectMessage',
+            $or: [
+                { sender: req.user._id, recipient: otherUserId },
+                { sender: otherUserId, recipient: req.user._id }
+            ]
+        })
+        .populate('sender', 'firstName lastName photo role')
+        .populate('recipient', 'firstName lastName photo role')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit);
+
+        res.json(messages);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
 // Get available contacts in the school (excluding self and students for now)
 exports.getContacts = async (req, res) => {
     try {

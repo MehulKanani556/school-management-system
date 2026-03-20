@@ -64,10 +64,8 @@ export const SocketProvider = ({ children }) => {
     useEffect(() => {
         if (!socketRef.current || !isConnected || !userId || !token) return;
 
-        console.log("🔑 User authenticated, joining user room:", userId);
-
-        // Example: join a private room
-        socketRef.current.emit("joinRoom", { userId });
+        console.log("🔑 User authenticated, registering user:", userId);
+        socketRef.current.emit("register_user", userId);
     }, [userId, token, isConnected]);
 
     return (
