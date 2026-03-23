@@ -9,6 +9,9 @@ const bookSchema = new mongoose.Schema(
     category: { type: String, trim: true },
     totalCopies: { type: Number, required: true, min: 0 },
     availableCopies: { type: Number, required: true, min: 0 },
+    publisher: { type: String, trim: true },
+    publicationYear: { type: Number, min: 0 },
+    location: { type: String, trim: true },
   },
   { timestamps: true }
 );

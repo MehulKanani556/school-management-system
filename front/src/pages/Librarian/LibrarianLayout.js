@@ -15,9 +15,11 @@ import toast from 'react-hot-toast';
 
 const navItems = [
   { to: '/librarian', icon: LayoutDashboard, label: 'Archive Deck', end: true },
-  { to: '/librarian/books', icon: Book, label: 'Asset Ledger' },
-  { to: '/librarian/issue-return', icon: Clock, label: 'Circulation Matrix' },
-  { to: '/librarian/members', icon: Users, label: 'Member Registry' },
+  { to: '/librarian/inventory', icon: Book, label: 'Asset Ledger' },
+  { to: '/librarian/records', icon: Clock, label: 'Active Threads' },
+  { to: '/librarian/categories', icon: Library, label: 'Categorical Matrix' },
+  { to: '/librarian/history', icon: BookMarked, label: 'Circulation Archive' },
+  { to: '/librarian/students', icon: Users, label: 'Member Registry' },
   { to: '/librarian/messages', icon: MessageSquare, label: 'Archive Comm' },
 ];
 

@@ -85,11 +85,74 @@ export const fetchRecordsSlice = createAsyncThunk(
     }
 );
 
+export const fetchHistorySlice = createAsyncThunk(
+    'librarian/fetchHistory',
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/librarian/history', { params });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchBorrowersSlice = createAsyncThunk(
+    'librarian/fetchBorrowers',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/librarian/borrowers');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchCategoriesSlice = createAsyncThunk(
+    'librarian/fetchCategories',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/librarian/categories');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const renewBookSlice = createAsyncThunk(
+    'librarian/renewBook',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.put(`/librarian/renew/${id}`);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const collectFineSlice = createAsyncThunk(
+    'librarian/collectFine',
+    async ({ id, status }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.put(`/librarian/fine/${id}`, { status });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 const librarianSlice = createSlice({
     name: 'librarian',
     initialState: {
         books: [],
-        records: [],
+        records: [], // Active issues
+        history: [], // Full history 
+        borrowers: [], // Students/Teachers
+        categories: [],
         loading: false,
         error: null,
         success: null
@@ -121,14 +184,36 @@ const librarianSlice = createSlice({
             .addCase(fetchRecordsSlice.fulfilled, (state, action) => {
                 state.records = action.payload;
             })
+            .addCase(fetchHistorySlice.fulfilled, (state, action) => {
+                state.history = action.payload;
+            })
+            .addCase(fetchBorrowersSlice.fulfilled, (state, action) => {
+                state.borrowers = action.payload;
+            })
+            .addCase(fetchCategoriesSlice.fulfilled, (state, action) => {
+                state.categories = action.payload;
+            })
             .addCase(issueBookSlice.fulfilled, (state, action) => {
                 state.records.unshift(action.payload);
-                state.success = 'Book issued';
+                state.success = 'Book issued successfully';
             })
             .addCase(returnBookSlice.fulfilled, (state, action) => {
                 const index = state.records.findIndex(r => r._id === action.payload._id);
+                if (index !== -1) {
+                    state.records.splice(index, 1); // Remove from active
+                }
+                state.history.unshift(action.payload); // Add to history
+                state.success = 'Book returned successfully';
+            })
+            .addCase(renewBookSlice.fulfilled, (state, action) => {
+                const index = state.records.findIndex(r => r._id === action.payload._id);
                 if (index !== -1) state.records[index] = action.payload;
-                state.success = 'Book returned';
+                state.success = 'Book renewed';
+            })
+            .addCase(collectFineSlice.fulfilled, (state, action) => {
+                const hIndex = state.history.findIndex(r => r._id === action.payload._id);
+                if (hIndex !== -1) state.history[hIndex] = action.payload;
+                state.success = 'Fine status updated';
             })
             .addMatcher(
                 (action) => action.type.endsWith('/rejected'),

@@ -1,23 +1,24 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchBooksSlice, fetchRecordsSlice } from '../../redux/slice/librarian.slice';
+import { fetchBooksSlice, fetchRecordsSlice, fetchHistorySlice } from '../../redux/slice/librarian.slice';
 import { Library, BookOpen, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const LibrarianDashboard = () => {
     const dispatch = useDispatch();
-    const { books, records, loading } = useSelector((state) => state.librarian);
-
     useEffect(() => {
         dispatch(fetchBooksSlice());
         dispatch(fetchRecordsSlice());
+        dispatch(fetchHistorySlice());
     }, [dispatch]);
+
+    const { books, records, history, loading } = useSelector((state) => state.librarian);
 
     const stats = [
         { label: 'Archived Knowledge', value: books.length, icon: Library, color: 'text-indigo-400' },
         { label: 'Active Circulation', value: records.filter(r => r.status === 'issued').length, icon: BookOpen, color: 'text-emerald-400' },
         { label: 'Overdue Threads', value: records.filter(r => r.status === 'overdue').length, icon: AlertCircle, color: 'text-red-400' },
-        { label: 'Total Syncs', value: records.length, icon: Clock, color: 'text-amber-400' },
+        { label: 'Total Matrix Syncs', value: history.length, icon: Clock, color: 'text-amber-400' },
     ];
 
     return (

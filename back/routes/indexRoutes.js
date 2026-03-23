@@ -355,6 +355,11 @@ router.delete('/librarian/books/:id', ...librarian, lc.deleteBook);
 router.post('/librarian/issue', ...librarian, lc.issueBook);
 router.put('/librarian/return/:id', ...librarian, lc.returnBook);
 router.get('/librarian/records', ...librarian, lc.getIssueRecords);
+router.get('/librarian/history', ...librarian, lc.getHistory);
+router.get('/librarian/borrowers', ...librarian, lc.getBorrowers);
+router.get('/librarian/categories', ...librarian, lc.getCategories);
+router.put('/librarian/renew/:id', ...librarian, lc.renewBook);
+router.put('/librarian/fine/:id', ...librarian, lc.collectFine);
 
 // ─── Transport Routes ──────────────────────────────────────────────────────────
 const transportManager = [auth, requireRole('Transport_Manager')];

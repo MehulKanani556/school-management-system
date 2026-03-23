@@ -1,20 +1,34 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRecordsSlice, returnBookSlice, fetchBooksSlice, issueBookSlice } from '../../redux/slice/librarian.slice';
+import { fetchRecordsSlice, returnBookSlice, fetchBooksSlice, issueBookSlice, fetchBorrowersSlice } from '../../redux/slice/librarian.slice';
 import { Clock, Search, RotateCcw, User, Calendar, Plus, BookOpen, Library, Loader2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
 const IssueRecords = () => {
     const dispatch = useDispatch();
-    const { records, books, success } = useSelector((state) => state.librarian);
+    const { records, books, borrowers, success } = useSelector((state) => state.librarian);
     const [isIssueOpen, setIsIssueOpen] = React.useState(false);
+    const [searchTerm, setSearchTerm] = React.useState('');
+    const [borrowerSearch, setBorrowerSearch] = React.useState('');
     const [formData, setFormData] = React.useState({ bookId: '', borrowerId: '', dueDate: moment().add(14, 'days').format('YYYY-MM-DD') });
 
     useEffect(() => {
         dispatch(fetchRecordsSlice());
         dispatch(fetchBooksSlice());
+        dispatch(fetchBorrowersSlice());
     }, [dispatch, success]);
+
+    const filteredRecords = records.filter(r => 
+        r.bookId?.title?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+        r.borrowerId?.firstName?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
+        r.borrowerId?.lastName?.toLowerCase()?.includes(searchTerm.toLowerCase())
+    );
+
+    const filteredBorrowers = (borrowers || []).filter(b => 
+        (b.firstName + ' ' + b.lastName).toLowerCase().includes(borrowerSearch.toLowerCase()) ||
+        b.email?.toLowerCase()?.includes(borrowerSearch.toLowerCase())
+    );
 
     const handleReturn = (id) => {
         dispatch(returnBookSlice(id));
@@ -48,8 +62,10 @@ const IssueRecords = () => {
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input 
                             type="text" 
-                            placeholder="Identify borrower..." 
-                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all w-full sm:w-64"
+                            placeholder="Identify borrower or volume..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all w-full sm:w-64 italic"
                         />
                     </div>
                 </div>
@@ -66,7 +82,7 @@ const IssueRecords = () => {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/40">
-                            {records.length > 0 ? records.map((record, i) => (
+                            {filteredRecords.length > 0 ? filteredRecords.map((record, i) => (
                                 <tr key={i} className="group/row hover:bg-neutral-950/60 transition-all">
                                     <td className="px-6 py-6 font-outfit">
                                         <div className="flex flex-col">
@@ -96,9 +112,12 @@ const IssueRecords = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${record.status === 'issued' ? 'bg-amber-600/10 border-amber-600/20 text-amber-500' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-500' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
-                                            {record.status}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic mb-1 ${record.status === 'issued' ? 'bg-amber-600/10 border-amber-600/20 text-amber-500' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-500' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
+                                                {record.status}
+                                            </span>
+                                            {record.fine > 0 && <span className="text-[10px] font-black text-red-400 italic">Fine: ₹{record.fine}</span>}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-6 text-right">
                                         {record.status !== 'returned' && (
@@ -147,16 +166,35 @@ const IssueRecords = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Institutional Borrower (User ID)</label>
-                                        <input 
-                                            type="text" 
-                                            required
-                                            placeholder="Paste citizen hash/ID..."
-                                            value={formData.borrowerId}
-                                            onChange={(e) => setFormData({...formData, borrowerId: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic leading-none"
-                                        />
-                                        <p className="text-[8px] font-bold text-slate-600 italic px-1 opacity-60">Borrower must be a registered node in the platform.</p>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Institutional Borrower (Search Member)</label>
+                                        <div className="relative group/search">
+                                            <Search className="absolute left-3 top-3.5 text-slate-600" size={12} />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Search by name or email..."
+                                                value={borrowerSearch}
+                                                onChange={(e) => setBorrowerSearch(e.target.value)}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-t-md py-3 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic leading-none"
+                                            />
+                                            <div className="max-h-32 overflow-y-auto bg-neutral-950 border-x border-b border-slate-800/60 rounded-b-md custom-scrollbarThin">
+                                                {filteredBorrowers.length > 0 ? filteredBorrowers.map(b => (
+                                                    <button
+                                                        key={b._id}
+                                                        type="button"
+                                                        onClick={() => {
+                                                            setFormData({...formData, borrowerId: b._id});
+                                                            setBorrowerSearch(`${b.firstName} ${b.lastName}`);
+                                                        }}
+                                                        className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase italic transition-all flex items-center justify-between ${formData.borrowerId === b._id ? 'bg-amber-600/20 text-amber-500' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'}`}
+                                                    >
+                                                        <span>{b.firstName} {b.lastName}</span>
+                                                        <span className="text-[8px] opacity-40">{b.role}</span>
+                                                    </button>
+                                                )) : (
+                                                    <div className="px-4 py-3 text-[10px] text-slate-600 italic">No nodes identified...</div>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Cycle Expiry (Due Date)</label>

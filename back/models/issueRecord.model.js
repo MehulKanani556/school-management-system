@@ -9,6 +9,8 @@ const issueRecordSchema = new mongoose.Schema(
     dueDate: { type: Date, required: true },
     returnDate: { type: Date },
     fine: { type: Number, default: 0 },
+    fineStatus: { type: String, enum: ['unpaid', 'paid', 'waived'], default: 'unpaid' },
+    renewalCount: { type: Number, default: 0 },
     status: { type: String, enum: ['issued', 'returned', 'overdue'], default: 'issued' },
   },
   { timestamps: true }

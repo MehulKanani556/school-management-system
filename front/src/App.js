@@ -135,6 +135,10 @@ const AccountantAnnouncements = React.lazy(() => import('./pages/Accountant/Acco
 const LibrarianDashboard = React.lazy(() => import('./pages/Librarian/LibrarianDashboard'));
 const BookInventory = React.lazy(() => import('./pages/Librarian/BookInventory'));
 const IssueRecords = React.lazy(() => import('./pages/Librarian/IssueRecords'));
+const BookCategories = React.lazy(() => import('./pages/Librarian/BookCategories'));
+const CirculationHistory = React.lazy(() => import('./pages/Librarian/CirculationHistory'));
+const MemberRegistry = React.lazy(() => import('./pages/Librarian/MemberRegistry'));
+const LibrarianMessages = React.lazy(() => import('./pages/Librarian/LibrarianMessages'));
 
 // Transporter Pages
 const TransporterDashboard = React.lazy(() => import('./pages/Transporter/TransporterDashboard'));
@@ -316,6 +320,10 @@ function AppRoutes() {
             <Route path="issue" element={<IssueRecords />} />
             <Route path="return" element={<IssueRecords />} />
             <Route path="records" element={<IssueRecords />} />
+            <Route path="categories" element={<BookCategories />} />
+            <Route path="history" element={<CirculationHistory />} />
+            <Route path="students" element={<MemberRegistry />} />
+            <Route path="messages" element={<LibrarianMessages />} />
           </Route>
 
           {/* Transporter Panel */}
