@@ -5,7 +5,8 @@ import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Users, BookOpen, GraduationCap,
   Calendar, MessageSquare, Menu, Bell, LogOut, ChevronDown, ChevronRight, User, Settings,
-  ClipboardList, BookMarked, Globe, CreditCard, Shield, Clock, Trash2, Megaphone, Activity, DollarSign
+  ClipboardList, BookMarked, Globe, CreditCard, Shield, Clock, Trash2, Megaphone, Activity, DollarSign,
+  Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -38,16 +39,17 @@ const navItems = [
     label: 'Finance & Supply',
     icon: DollarSign,
     children: [
-        { to: '/school-admin/fees', icon: CreditCard, label: 'Fiscal Ledger' },
-        { to: '/school-admin/salary', icon: DollarSign, label: 'Payroll Matrix' },
+      { to: '/school-admin/fees', icon: CreditCard, label: 'Fiscal Ledger' },
+      { to: '/school-admin/salary', icon: DollarSign, label: 'Payroll Matrix' },
     ]
   },
   {
     label: 'Communications',
     icon: MessageSquare,
     children: [
-        { to: '/school-admin/announcements', icon: Megaphone, label: 'Broadcasting' },
-        { to: '/school-admin/notice-board', icon: Activity, label: 'Pulse Notices' },
+      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Pulse Broadcast' },
+      { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
+      { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
     ]
   },
   { to: '/school-admin/holidays', icon: Calendar, label: 'Global Breaks' },
@@ -111,7 +113,13 @@ const SchoolAdminLayout = () => {
     setExpanded(expanded === label ? null : label);
   };
 
-  const isActive = (path) => location.pathname === path;
+  // const isActive = (path) => location.pathname === path;
+  const isActive = (path) => {
+    if (path.includes('?')) {
+        return location.pathname + location.search === path;
+    }
+    return location.pathname === path;
+  };
 
   return (
     <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
@@ -226,7 +234,7 @@ const SchoolAdminLayout = () => {
             <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >

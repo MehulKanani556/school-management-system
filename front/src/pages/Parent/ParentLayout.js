@@ -35,7 +35,12 @@ const navItems = [
     ]
   },
   { to: '/parent/fees', icon: CreditCard, label: 'Fiscal Ledger' },
-  { to: '/parent/messages', icon: MessageSquare, label: 'Direct Comm' },
+  {  icon: MessageSquare, label: 'Direct Comm',
+    children: [
+      {  to: '/parent/announcements', icon: CalendarDays, label: 'Announcements' },
+      { to: '/parent/messages', icon: Globe, label: 'Messages' },
+    ]
+   },
 ];
 
 const ParentLayout = () => {
