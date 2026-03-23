@@ -25,6 +25,7 @@ const routeSchema = new mongoose.Schema(
     stops: [stopSchema],
     vehicleId: { type: mongoose.Schema.Types.ObjectId, ref: 'Vehicle' },
     assignedStudents: [assignedStudentSchema],
+    status: { type: String, enum: ['active', 'inactive'], default: 'active' },
   },
   { timestamps: true }
 );

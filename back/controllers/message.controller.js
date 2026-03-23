@@ -208,12 +208,14 @@ exports.getContacts = async (req, res) => {
             _id: { $ne: req.user._id }
         };
         
-        // Teachers can communicate with Admin, other Teachers, Students, and Parents
+        // Role-based contact filtering
         if (req.user.role === 'Teacher') {
-            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent'] };
+            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager'] };
+        } else if (req.user.role === 'Transport_Manager') {
+            query.role = { $in: ['School_Admin', 'Parent'] };
         } else {
-            // Default restricted contacts for other roles (can be expanded)
-            query.role = { $in: ['School_Admin', 'Teacher'] };
+            // Default restricted contacts for other roles
+            query.role = { $in: ['School_Admin', 'Teacher', 'Transport_Manager'] };
         }
 
         const users = await User.find(query).select('firstName lastName photo role');

@@ -145,6 +145,10 @@ const TransporterDashboard = React.lazy(() => import('./pages/Transporter/Transp
 const Vehicles = React.lazy(() => import('./pages/Transporter/Vehicles'));
 const TransporterRoutes = React.lazy(() => import('./pages/Transporter/Routes'));
 const StudentAssignment = React.lazy(() => import('./pages/Transporter/StudentAssignment'));
+const Drivers = React.lazy(() => import('./pages/Transporter/Drivers'));
+const TripLogs = React.lazy(() => import('./pages/Transporter/TripLogs'));
+const TransporterMessages = React.lazy(() => import('./pages/Transporter/Messages'));
+const TransporterProfile = React.lazy(() => import('./pages/Transporter/Profile'));
 
 const { store, persistor } = configureStore();
 
@@ -334,6 +338,10 @@ function AppRoutes() {
             <Route path="vehicles" element={<Vehicles />} />
             <Route path="routes" element={<TransporterRoutes />} />
             <Route path="students" element={<StudentAssignment />} />
+            <Route path="drivers" element={<Drivers />} />
+            <Route path="logs" element={<TripLogs />} />
+            <Route path="messages" element={<TransporterMessages />} />
+            <Route path="profile" element={<TransporterProfile />} />
           </Route>
         </Routes>
       </Suspense>

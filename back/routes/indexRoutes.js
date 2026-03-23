@@ -368,10 +368,26 @@ router.get('/transport/vehicles', ...transportManager, trc.getVehicles);
 router.post('/transport/vehicles', ...transportManager, trc.addVehicle);
 router.put('/transport/vehicles/:id', ...transportManager, trc.updateVehicle);
 router.delete('/transport/vehicles/:id', ...transportManager, trc.deleteVehicle);
+router.get('/transport/analytics', ...transportManager, trc.getTransportAnalytics);
+router.post('/transport/vehicles/:id/maintenance', ...transportManager, trc.addMaintenanceRecord);
 router.get('/transport/routes', ...transportManager, trc.getRoutes);
 router.post('/transport/routes', ...transportManager, trc.addRoute);
 router.put('/transport/routes/:id', ...transportManager, trc.updateRoute);
 router.delete('/transport/routes/:id', ...transportManager, trc.deleteRoute);
 router.post('/transport/routes/:id/assign-student', ...transportManager, trc.assignStudent);
+router.post('/transport/routes/:id/unassign-student', ...transportManager, trc.unassignStudent);
+router.post('/transport/routes/:id/bulk-assign', ...transportManager, trc.bulkAssignStudents);
+
+// Drivers
+router.get('/transport/drivers', ...transportManager, trc.getDrivers);
+router.post('/transport/drivers', ...transportManager, trc.addDriver);
+router.put('/transport/drivers/:id', ...transportManager, trc.updateDriver);
+router.delete('/transport/drivers/:id', ...transportManager, trc.deleteDriver);
+
+// Trip Logs
+router.get('/transport/trip-logs', ...transportManager, trc.getTripLogs);
+router.post('/transport/trip-logs', ...transportManager, trc.recordTrip);
+router.put('/transport/trip-logs/:id/status', ...transportManager, trc.updateTripStatus);
+router.put('/transport/trip-logs/:id/toggle-boarding', ...transportManager, trc.toggleBoarding);
 
 module.exports = router;

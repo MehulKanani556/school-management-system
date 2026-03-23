@@ -1,6 +1,8 @@
 const Vehicle = require('../models/vehicle.model');
 const Route = require('../models/route.model');
 const Student = require('../models/student.model');
+const Driver = require('../models/driver.model');
+const TripLog = require('../models/tripLog.model');
 const mongoose = require('mongoose');
 
 const getSchoolId = (req) => req.user.schoolId;
@@ -8,7 +10,9 @@ const getSchoolId = (req) => req.user.schoolId;
 // Vehicle CRUD
 exports.getVehicles = async (req, res) => {
     try {
-        const vehicles = await Vehicle.find({ schoolId: getSchoolId(req) }).sort({ createdAt: -1 });
+        const vehicles = await Vehicle.find({ schoolId: getSchoolId(req) })
+            .populate('driverId')
+            .sort({ createdAt: -1 });
         res.json(vehicles);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -25,7 +29,7 @@ exports.updateVehicle = async (req, res) => {
         const vehicle = await Vehicle.findOneAndUpdate(
             { _id: req.params.id, schoolId: getSchoolId(req) },
             req.body, { new: true }
-        );
+        ).populate('driverId');
         res.json({ message: 'Vehicle updated', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -76,8 +80,17 @@ exports.assignStudent = async (req, res) => {
         const { studentId, pickupStop, dropoffStop } = req.body;
         const schoolId = getSchoolId(req);
         
-        const route = await Route.findOne({ _id: req.params.id, schoolId });
+        const route = await Route.findOne({ _id: req.params.id, schoolId }).populate('vehicleId');
         if (!route) return res.status(404).json({ message: 'Route not found' });
+
+        // Capacity Validation
+        if (route.vehicleId && route.assignedStudents.length >= route.vehicleId.capacity) {
+            // Check if student is already assigned (updating)
+            const isAlreadyAssigned = route.assignedStudents.some(s => s.studentId.toString() === studentId);
+            if (!isAlreadyAssigned) {
+                return res.status(400).json({ message: `Vehicle capacity reached (${route.vehicleId.capacity}). Cannot assign more students.` });
+            }
+        }
 
         // Check if student already assigned to this route
         const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
@@ -105,5 +118,255 @@ exports.assignStudent = async (req, res) => {
         }
 
         res.json({ message: 'Student assigned to route successfully', data: route });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.unassignStudent = async (req, res) => {
+    try {
+        const { studentId } = req.body;
+        const schoolId = getSchoolId(req);
+        
+        const route = await Route.findOne({ _id: req.params.id, schoolId });
+        if (!route) return res.status(404).json({ message: 'Route not found' });
+
+        route.assignedStudents = route.assignedStudents.filter(s => s.studentId.toString() !== studentId);
+        await route.save();
+
+        res.json({ message: 'Student removed from route', data: route });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Maintenance Tracking
+exports.addMaintenanceRecord = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { serviceType, cost, notes, date } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOne({ _id: id, schoolId });
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle unit not found' });
+
+        vehicle.maintenanceHistory.push({
+            date: date || new Date(),
+            serviceType,
+            cost,
+            notes
+        });
+        vehicle.lastServiceDate = date || new Date();
+        
+        await vehicle.save();
+        const updated = await Vehicle.findById(id).populate('driverId');
+        res.json({ message: 'Maintenance record synthesized', data: updated });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Driver CRUD
+exports.getDrivers = async (req, res) => {
+    try {
+        const drivers = await Driver.find({ schoolId: getSchoolId(req) }).sort({ createdAt: -1 });
+        res.json(drivers);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.addDriver = async (req, res) => {
+    try {
+        const driver = await Driver.create({ ...req.body, schoolId: getSchoolId(req) });
+        res.status(201).json({ message: 'Driver added successfully', data: driver });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateDriver = async (req, res) => {
+    try {
+        const driver = await Driver.findOneAndUpdate(
+            { _id: req.params.id, schoolId: getSchoolId(req) },
+            req.body, { new: true }
+        );
+        res.json({ message: 'Driver updated', data: driver });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteDriver = async (req, res) => {
+    try {
+        await Driver.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
+        res.json({ message: 'Driver deleted' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Trip Log Management
+exports.getTripLogs = async (req, res) => {
+    try {
+        const { date, startDate, endDate } = req.query;
+        let query = { schoolId: getSchoolId(req) };
+        
+        if (startDate && endDate) {
+            query.date = { 
+                $gte: new Date(startDate), 
+                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) 
+            };
+        } else if (date) {
+            const start = new Date(date);
+            start.setHours(0,0,0,0);
+            const end = new Date(date);
+            end.setHours(23,59,59,999);
+            query.date = { $gte: start, $lte: end };
+        }
+
+        const logs = await TripLog.find(query)
+            .populate('routeId')
+            .populate('vehicleId')
+            .populate('driverId')
+            .populate('attendance.studentId', 'firstName lastName')
+            .sort({ date: -1 });
+        res.json(logs);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.recordTrip = async (req, res) => {
+    try {
+        const tripData = { ...req.body, schoolId: getSchoolId(req) };
+        if (tripData.status === 'In-Progress') {
+            tripData.actualDepartureTime = new Date();
+        }
+        const log = await TripLog.create(tripData);
+        res.status(201).json({ message: 'Trip recorded', data: log });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateTripStatus = async (req, res) => {
+    try {
+        const { status, delayReason } = req.body;
+        const schoolId = getSchoolId(req);
+        const update = { status };
+
+        if (status === 'In-Progress') update.actualDepartureTime = new Date();
+        if (status === 'Completed') {
+            update.arrivalTime = new Date();
+            if (delayReason) update.delayReason = delayReason;
+        }
+        if (status === 'Cancelled') update.status = 'Cancelled';
+
+        const log = await TripLog.findOneAndUpdate(
+            { _id: req.params.id, schoolId },
+            { $set: update },
+            { new: true }
+        ).populate('routeId').populate('vehicleId').populate('driverId').populate('attendance.studentId', 'firstName lastName');
+
+        res.json({ message: `Transit sequence transition: ${status}`, data: log });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.toggleBoarding = async (req, res) => {
+    try {
+        const { studentId, boarded } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const log = await TripLog.findOne({ _id: req.params.id, schoolId });
+        if (!log) return res.status(404).json({ message: 'Trip not found' });
+
+        const record = log.attendance.find(a => a.studentId.toString() === studentId);
+        if (!record) return res.status(404).json({ message: 'Student not in trip attendance' });
+
+        record.boarded = boarded;
+        record.boardingTime = boarded ? new Date() : null;
+
+        await log.save();
+        
+        const updatedLog = await TripLog.findById(log._id)
+            .populate('routeId').populate('vehicleId').populate('driverId').populate('attendance.studentId', 'firstName lastName');
+
+        res.json({ message: boarded ? 'Student boarded' : 'Boarding removed', data: updatedLog });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+exports.getTransportAnalytics = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+
+        const vehicles = await Vehicle.find({ schoolId });
+        const drivers = await Driver.find({ schoolId });
+        const routes = await Route.find({ schoolId });
+        const students = await Student.find({ schoolId, isDeleted: false });
+
+        // Fleet Telemetry
+        const vehicleStats = {
+            total: vehicles.length,
+            active: vehicles.filter(v => v.status === 'active').length,
+            maintenance: vehicles.filter(v => v.status === 'maintenance').length,
+            totalMaintenanceCost: vehicles.reduce((acc, v) => acc + (v.maintenanceHistory?.reduce((s, h) => s + (h.cost || 0), 0) || 0), 0)
+        };
+
+        // Operator Performance
+        const driverStats = {
+            total: drivers.length,
+            avgRating: drivers.length ? (drivers.reduce((acc, d) => acc + (d.performanceRating || 0), 0) / drivers.length).toFixed(1) : 0
+        };
+
+        // Entity Displacement
+        const totalAssigned = routes.reduce((acc, r) => acc + r.assignedStudents.length, 0);
+        const transportStats = {
+            totalStudents: students.length,
+            assigned: totalAssigned,
+            unassigned: Math.max(0, students.length - totalAssigned)
+        };
+
+        // Recently Finalized Sequences
+        const recentTrips = await TripLog.find({ schoolId, status: 'Completed' })
+            .limit(10)
+            .sort({ date: -1 });
+        
+        const delayMetric = recentTrips.length ? (recentTrips.filter(t => t.delayReason).length / recentTrips.length * 100).toFixed(0) : 0;
+
+        res.json({
+            fleet: vehicleStats,
+            operators: driverStats,
+            logistics: transportStats,
+            efficiency: { delayRate: delayMetric }
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.bulkAssignStudents = async (req, res) => {
+    try {
+        const { routeId, studentIds, pickupStop, dropoffStop } = req.body;
+        const schoolId = getSchoolId(req);
+        
+        const route = await Route.findOne({ _id: routeId, schoolId }).populate('vehicleId');
+        if (!route) return res.status(404).json({ message: 'Route matrix not found' });
+
+        // Capacity Validation
+        const currentCount = route.assignedStudents.length;
+        const newUnassigned = studentIds.filter(id => !route.assignedStudents.some(as => as.studentId.toString() === id));
+        if (route.vehicleId && (currentCount + newUnassigned.length) > route.vehicleId.capacity) {
+            return res.status(400).json({ message: `Bulk allocation exceeds unit capacity (${route.vehicleId.capacity}). Current: ${currentCount}, Requested New: ${newUnassigned.length}` });
+        }
+
+        // Processing
+        const nc = require('./notification.controller');
+        for (const studentId of studentIds) {
+            const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
+            if (index !== -1) {
+                route.assignedStudents[index] = { studentId, pickupStop, dropoffStop };
+            } else {
+                route.assignedStudents.push({ studentId, pickupStop, dropoffStop });
+            }
+
+            // Notify Parent (Background process)
+            Student.findById(studentId).then(student => {
+                if (student && student.parentId) {
+                    nc.sendNotification({
+                        schoolId,
+                        recipient: student.parentId,
+                        sender: req.user._id,
+                        type: 'Transport',
+                        title: 'Bulk Logistical Synchronization',
+                        message: `Transport route assignments for ${student.firstName} have been updated during a bulk matrix re-allocation.`,
+                        link: '/parent/transport'
+                    });
+                }
+            }).catch(e => console.error(e));
+        }
+
+        await route.save();
+        const updated = await Route.findById(routeId).populate('vehicleId').populate('assignedStudents.studentId', 'firstName lastName admissionNumber');
+        res.json({ message: 'Bulk assignment synthesized successfully', data: updated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

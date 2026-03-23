@@ -5,7 +5,9 @@ import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Truck, Users, MapPin,
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
-  LogOut, ChevronDown, ChevronRight, User, Globe, Navigation
+  LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
+  ClipboardList,
+  Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -16,9 +18,12 @@ import toast from 'react-hot-toast';
 const navItems = [
   { to: '/transporter', icon: LayoutDashboard, label: 'Transit Deck', end: true },
   { to: '/transporter/vehicles', icon: Truck, label: 'Fleet Matrix' },
+  { to: '/transporter/drivers', icon: User, label: 'Personnel Hub' },
   { to: '/transporter/routes', icon: MapPin, label: 'Logistics Map' },
-  { to: '/transporter/passengers', icon: Users, label: 'Transit Registry' },
+  { to: '/transporter/students', icon: Users, label: 'Transit Registry' },
+  { to: '/transporter/logs', icon: ClipboardList, label: 'Transit Logs' },
   { to: '/transporter/messages', icon: MessageSquare, label: 'Transit Comm' },
+  { to: '/transporter/profile', icon: Settings, label: 'Core Identity' },
 ];
 
 const TransporterLayout = () => {

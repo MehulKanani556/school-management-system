@@ -1,60 +1,137 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRoutesSlice, assignStudentSlice } from '../../redux/slice/transport.slice';
+import { fetchRoutesSlice, assignStudentSlice, unassignStudentSlice, bulkAssignStudentSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
 import { fetchUsers } from '../../redux/slice/user.slice';
-import { Users, Navigation, MapPin, Search, Plus, User, Loader2 } from 'lucide-react';
+import { Users, Navigation, MapPin, Search, Plus, User, Loader2, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const StudentAssignment = () => {
     const dispatch = useDispatch();
-    const { routes, loading, success } = useSelector((state) => state.transport);
-    const { users: students } = useSelector((state) => state.user); // Student users
+    const { routes, loading, message, error } = useSelector((state) => state.transport);
+    const { users: students } = useSelector((state) => state.user);
     const [isAddOpen, setIsAddOpen] = React.useState(false);
+    const [isBulkOpen, setIsBulkOpen] = React.useState(false);
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const [selectedStudents, setSelectedStudents] = React.useState([]);
     const [formData, setFormData] = React.useState({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '' });
+    const [bulkData, setBulkData] = React.useState({ routeId: '', pickupStop: '', dropoffStop: '' });
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
         dispatch(fetchUsers());
-    }, [dispatch, success]);
+    }, [dispatch]);
+
+    useEffect(() => {
+        if (message) {
+            toast.success(message);
+            dispatch(clearTransportMessage());
+            setIsAddOpen(false);
+            setIsBulkOpen(false);
+            setSelectedStudents([]);
+            setFormData({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '' });
+            setBulkData({ routeId: '', pickupStop: '', dropoffStop: '' });
+        }
+        if (error) {
+            toast.error(error);
+            dispatch(clearTransportMessage());
+        }
+    }, [message, error, dispatch]);
 
     const handleAssign = (e) => {
         e.preventDefault();
         dispatch(assignStudentSlice({ routeId: formData.routeId, data: formData }));
-        setIsAddOpen(false);
     }
 
-    const assignedCount = routes.reduce((acc, r) => acc + (r.assignedStudents?.length || 0), 0);
+    const handleBulkAssign = (e) => {
+        e.preventDefault();
+        if (selectedStudents.length === 0) return toast.error('No citizens selected for bulk link.');
+        dispatch(bulkAssignStudentSlice({ 
+            routeId: bulkData.routeId, 
+            studentIds: selectedStudents, 
+            pickupStop: bulkData.pickupStop, 
+            dropoffStop: bulkData.dropoffStop 
+        }));
+    }
+
+    const toggleStudentSelection = (id) => {
+        setSelectedStudents(prev => 
+            prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]
+        );
+    }
+
+    const handleUnassign = (routeId, studentId) => {
+        if (window.confirm('Sever citizen-matrix link? This will remove the student from the route.')) {
+            dispatch(unassignStudentSlice({ routeId, studentId }));
+        }
+    }
+
+    const filteredRoutes = routes.map(route => ({
+        ...route,
+        assignedStudents: route.assignedStudents?.filter(as => 
+            as.studentId?.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            as.studentId?.lastName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            as.pickupStop?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            route.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        )
+    })).filter(route => route.assignedStudents?.length > 0 || route.name?.toLowerCase().includes(searchQuery.toLowerCase()));
+
+    const studentList = students.filter(s => s.role === 'Student');
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 pb-10">
-            <div className="flex justify-between items-end px-2">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-emerald-500 font-outfit uppercase">Assignment Terminal</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-emerald-500">Node Allocation</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Linking citizen nodes to institutional mobility matrices.</p>
                 </div>
-                <button 
-                    onClick={() => setIsAddOpen(true)}
-                    className="px-6 py-4 bg-emerald-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none font-outfit"
-                >
-                    <Plus size={14} /> assign citizen
-                </button>
+                
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                        <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
+                        <input 
+                            type="text" 
+                            placeholder="Identify Citizen or Matrix..." 
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all w-full italic h-[42px]"
+                        />
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => setIsAddOpen(true)}
+                            className="px-6 py-4 bg-emerald-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-emerald-600/20 hover:shadow-emerald-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none font-outfit whitespace-nowrap h-[42px]"
+                        >
+                            <Plus size={14} /> assign citizen
+                        </button>
+                        <button 
+                            onClick={() => setIsBulkOpen(true)}
+                            className="px-6 py-4 bg-neutral-900 border border-slate-800 text-slate-300 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-slate-800 transition-all flex items-center gap-2 leading-none font-outfit h-[42px]"
+                        >
+                            <Users size={14} /> bulk link
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
-                {routes.map((route, i) => (
-                    <div key={i} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-emerald-600/20 transition-all font-outfit">
+                {filteredRoutes.map((route) => (
+                    <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-emerald-600/20 transition-all font-outfit">
                         <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <Navigation size={18} className="text-emerald-500" />
                                 <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Matrix</h3>
-                                <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
+                                    <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Unit: {route.vehicleId?.registrationNumber || 'NA'}</span>
+                                </div>
                             </div>
                         </div>
 
                         <div className="p-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                 {route.assignedStudents?.map((as, idx) => (
-                                    <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-5 flex items-center gap-4 group/card hover:bg-neutral-900 transition-all">
+                                    <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-5 flex items-center gap-4 group/card hover:bg-neutral-900 transition-all relative">
                                         <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover/card:border-emerald-600/40 transition-all">
                                             <User size={18} />
                                         </div>
@@ -65,6 +142,12 @@ const StudentAssignment = () => {
                                                 <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
                                             </div>
                                         </div>
+                                        <button 
+                                            onClick={() => handleUnassign(route._id, as.studentId._id)}
+                                            className="absolute top-2 right-2 p-1.5 text-slate-700 hover:text-red-500 opacity-0 group-hover/card:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
+                                        >
+                                            <X size={12} />
+                                        </button>
                                     </div>
                                 ))}
                                 {(!route.assignedStudents || route.assignedStudents.length === 0) && (
@@ -74,7 +157,6 @@ const StudentAssignment = () => {
                         </div>
                     </div>
                 ))}
-                {routes.length === 0 && <p className="px-6 py-20 text-center text-slate-500 italic font-black uppercase text-xs tracking-[0.2em] opacity-40">No route matrices detected. Assign citizen nodes once matrix is generated.</p>}
             </div>
 
             <AnimatePresence>
@@ -92,10 +174,10 @@ const StudentAssignment = () => {
                                             required
                                             value={formData.studentId}
                                             onChange={(e) => setFormData({...formData, studentId: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 transition-all leading-none"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 appearance-none"
                                         >
                                             <option value="">Select Citizen Hash...</option>
-                                            {students.filter(s => s.role === 'Student').map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
+                                            {studentList.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -106,7 +188,7 @@ const StudentAssignment = () => {
                                             onChange={(e) => {
                                                 setFormData({...formData, routeId: e.target.value, pickupStop: '', dropoffStop: ''});
                                             }}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 transition-all leading-none"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 appearance-none"
                                         >
                                             <option value="">Select Sector Matrix...</option>
                                             {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
@@ -116,24 +198,24 @@ const StudentAssignment = () => {
                                     {formData.routeId && (
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Logic Point</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Point</label>
                                                 <select 
                                                     required
                                                     value={formData.pickupStop}
                                                     onChange={(e) => setFormData({...formData, pickupStop: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 transition-all leading-none"
+                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                 >
                                                     <option value="">Select Point...</option>
                                                     {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Dropoff Logic Point</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Dropoff Point</label>
                                                 <select 
                                                     required
                                                     value={formData.dropoffStop}
                                                     onChange={(e) => setFormData({...formData, dropoffStop: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 transition-all leading-none"
+                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                 >
                                                     <option value="">Select Point...</option>
                                                     {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
@@ -143,11 +225,109 @@ const StudentAssignment = () => {
                                     )}
                                 </div>
 
-                                <div className="flex gap-4 pt-6">
-                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort protocol</button>
-                                    <button type="submit" className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 leading-none hover:translate-y-[-2px]">confirm link</button>
+                                <div className="flex gap-4 pt-4">
+                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
+                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all leading-none disabled:opacity-50">
+                                        {loading ? 'Synthesizing...' : 'confirm link'}
+                                    </button>
                                 </div>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+
+                {isBulkOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsBulkOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit max-h-[90vh] flex flex-col">
+                            <div className="p-10 border-b border-slate-800/60 bg-neutral-950/40">
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Mass Node Re-Allocation</h3>
+                            </div>
+                            
+                            <div className="overflow-y-auto p-10 flex-1 custom-scrollbar">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                                    <div className="space-y-6">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Target Mobility Matrix</label>
+                                            <select 
+                                                required
+                                                value={bulkData.routeId}
+                                                onChange={(e) => setBulkData({...bulkData, routeId: e.target.value, pickupStop: '', dropoffStop: ''})}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
+                                            >
+                                                <option value="">Select Sector Matrix...</option>
+                                                {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
+                                            </select>
+                                        </div>
+
+                                        {bulkData.routeId && (
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Point</label>
+                                                    <select 
+                                                        required
+                                                        value={bulkData.pickupStop}
+                                                        onChange={(e) => setBulkData({...bulkData, pickupStop: e.target.value})}
+                                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
+                                                    >
+                                                        <option value="">Select Point...</option>
+                                                        {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Dropoff Point</label>
+                                                    <select 
+                                                        required
+                                                        value={bulkData.dropoffStop}
+                                                        onChange={(e) => setBulkData({...bulkData, dropoffStop: e.target.value})}
+                                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
+                                                    >
+                                                        <option value="">Select Point...</option>
+                                                        {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <div className="pt-6 border-t border-slate-800/40">
+                                            <p className="text-[9px] font-black text-slate-600 uppercase italic mb-4">Selected Citizens: {selectedStudents.length}</p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {selectedStudents.map(id => {
+                                                    const s = studentList.find(std => std._id === id);
+                                                    return (
+                                                        <div key={id} onClick={() => toggleStudentSelection(id)} className="px-3 py-1.5 bg-emerald-600/10 border border-emerald-600/30 rounded text-[9px] font-black text-emerald-400 uppercase italic cursor-pointer hover:bg-emerald-600/20">
+                                                            {s?.firstName} {s?.lastName}
+                                                        </div>
+                                                    )
+                                                })}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Citizen Roster (Select Multiple)</label>
+                                        <div className="bg-neutral-950 border border-slate-800 rounded-md divide-y divide-slate-800/40 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                            {studentList.map(s => (
+                                                <div key={s._id} onClick={() => toggleStudentSelection(s._id)} className={`p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-neutral-900 ${selectedStudents.includes(s._id) ? 'bg-emerald-600/5' : ''}`}>
+                                                    <span className={`text-[10px] font-black uppercase italic tracking-tighter ${selectedStudents.includes(s._id) ? 'text-emerald-400' : 'text-slate-400'}`}>{s.firstName} {s.lastName}</span>
+                                                    {selectedStudents.includes(s._id) && <Plus size={10} className="text-emerald-500 bg-emerald-500/10 rounded-full rotate-45" />}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-10 border-t border-slate-800/60 bg-neutral-950/40 flex gap-4">
+                                <button type="button" onClick={() => setIsBulkOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
+                                <button 
+                                    onClick={handleBulkAssign}
+                                    disabled={loading || !bulkData.routeId || !bulkData.pickupStop || selectedStudents.length === 0}
+                                    className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 leading-none disabled:opacity-50"
+                                >
+                                    {loading ? 'Synthesizing...' : 'Finalize Mass Re-allocation'}
+                                </button>
+                            </div>
                         </motion.div>
                     </div>
                 )}

@@ -107,6 +107,26 @@ export const resetPassword = createAsyncThunk(
     }
 );
 
+export const updateProfile = createAsyncThunk(
+    'auth/updateProfile',
+    async (formData, { rejectWithValue }) => {
+        try {
+            const response = await axios.put(`${BASE_URL}/users/me`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+            });
+            if (response.data.user) {
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+            }
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, rejectWithValue);
+        }
+    }
+);
+
 export const authSlice = createSlice({
     name: 'auth',
     initialState,
@@ -238,6 +258,19 @@ export const authSlice = createSlice({
             .addCase(resetPassword.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || "Reset Password Failed";
+            })
+            .addCase(updateProfile.pending, (state) => {
+                state.loading = true;
+                state.error = null;
+            })
+            .addCase(updateProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload.user;
+                state.message = 'Profile updated successfully';
+            })
+            .addCase(updateProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Profile update failed';
             });
     }
 });
