@@ -321,10 +321,22 @@ router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);
 const accountant = [auth, requireRole('Accountant')];
 
 router.get('/accountant/fees', ...accountant, ac.getFees);
+router.get('/accountant/standards', ...accountant, sa.getStandards);
 router.put('/accountant/fees/:id', ...accountant, ac.collectFee);
 router.get('/accountant/payroll', ...accountant, ac.getPayroll);
-router.put('/accountant/payroll/:id', ...accountant, ac.processPayroll);
+router.post('/accountant/payroll/generate', ...accountant, ac.generatePayroll);
+router.post('/accountant/payroll/single', ...accountant, ac.createSinglePayroll);
+router.put('/accountant/payroll/:id/process', ...accountant, ac.processPayroll);
+router.put('/accountant/payroll/:id', ...accountant, ac.updatePayroll);
+router.delete('/accountant/payroll/:id', ...accountant, ac.deletePayroll);
 router.get('/accountant/reports', ...accountant, ac.getFinancialReport);
+router.get('/accountant/teachers', ...accountant, sa.getTeachers);
+router.get('/accountant/fee-structures', ...accountant, ac.getFeeStructures);
+router.post('/accountant/fee-structures', ...accountant, ac.createFeeStructure);
+router.put('/accountant/fee-structures/:id', ...accountant, ac.updateFeeStructure);
+router.delete('/accountant/fee-structures/:id', ...accountant, ac.deleteFeeStructure);
+router.post('/accountant/apply-fee-structure', ...accountant, ac.applyFeeStructure);
+router.post('/accountant/send-fee-reminders', ...accountant, sa.sendFeeReminders);
 
 // ─── Librarian Routes ─────────────────────────────────────────────────────────
 const librarian = [auth, requireRole('Librarian')];

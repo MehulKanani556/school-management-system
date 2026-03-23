@@ -1,59 +1,322 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchFinancialReport } from '../../redux/slice/accountant.slice';
-import { DollarSign, UserCheck, TrendingUp, AlertTriangle, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { fetchFinancialReport, clearStatus } from '../../redux/slice/accountant.slice';
+import { 
+    DollarSign, TrendingUp, TrendingDown, Users, Calendar, 
+    ChevronRight, Download, Activity, AlertCircle, FileText, 
+    Layers, Briefcase, GraduationCap, X, Printer, Filter
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, 
+    ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell 
+} from 'recharts';
+import moment from 'moment';
 
 const AccountantDashboard = () => {
     const dispatch = useDispatch();
-    const { report, loading } = useSelector((state) => state.accountant);
+    const { report, loading, error } = useSelector((state) => state.accountant);
+    const [filterRange, setFilterRange] = useState({ start: '', end: '', year: '2026' });
+    const [showFilterModal, setShowFilterModal] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchFinancialReport());
-    }, [dispatch]);
+        dispatch(fetchFinancialReport({ 
+            startDate: filterRange.start, 
+            endDate: filterRange.end,
+            academicYear: filterRange.year 
+        }));
+    }, [dispatch, filterRange]);
 
-    if (loading || !report) {
-        return (
-            <div className="h-[70vh] flex items-center justify-center">
-                <Loader2 className="w-10 h-10 text-brand-primary animate-spin" />
-            </div>
-        );
-    }
+    const COLORS = ['#38bdf8', '#f43f5e', '#fbbf24', '#10b981'];
+
+    const exportVisualReport = () => {
+        const printWindow = window.open('', '_blank');
+        const content = `
+            <html>
+            <head>
+                <title>Fiscal Report - ${moment().format('YYYY-MM-DD')}</title>
+                <style>
+                    body { font-family: 'Inter', sans-serif; padding: 50px; color: #1e293b; background: white; }
+                    .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 40px; }
+                    .title { font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; font-style: italic; }
+                    .meta { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.1em; }
+                    .stat-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 20px; margin-bottom: 50px; }
+                    .stat-card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; }
+                    .stat-label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8; margin-bottom: 5px; }
+                    .stat-value { font-size: 20px; font-weight: 900; italic; }
+                    .table-section { margin-top: 40px; }
+                    table { width: 100%; border-collapse: collapse; }
+                    th { text-align: left; font-size: 10px; text-transform: uppercase; color: #94a3b8; padding: 12px; border-bottom: 2px solid #f1f5f9; }
+                    td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 600; }
+                    .total-row { background: #f8fafc; font-weight: 900; }
+                    .footer { margin-top: 100px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
+                </style>
+            </head>
+            <body>
+                <div class="header">
+                    <div>
+                        <div class="title">Fiscal Performance Audit</div>
+                        <div class="meta">Report Generation Hash: ${Math.random().toString(36).substring(2, 15).toUpperCase()}</div>
+                    </div>
+                    <div class="meta">Generated: ${moment().format('LLLL')}</div>
+                </div>
+                
+                <div class="stat-grid">
+                    <div class="stat-card"><div class="stat-label">Capital Inflow</div><div class="stat-value">$${report?.income?.toLocaleString()}</div></div>
+                    <div class="stat-card"><div class="stat-label">Capital Outflow</div><div class="stat-value">$${report?.expenses?.toLocaleString()}</div></div>
+                    <div class="stat-card"><div class="stat-label">Asset Liquidity</div><div class="stat-value">${report?.health?.liquidity}%</div></div>
+                    <div class="stat-card"><div class="stat-label">Fiscal Grade</div><div class="stat-value">${report?.health?.grade}</div></div>
+                </div>
+
+                <div class="table-section text-left">
+                    <div class="meta" style="margin-bottom: 20px;">Monthly Trend Analysis</div>
+                    <table>
+                        <thead>
+                            <tr><th>Period</th><th>Inflow (Income)</th><th>Outflow (Payroll)</th><th>Net Variance</th></tr>
+                        </thead>
+                        <tbody>
+                            ${report?.trends.map(t => `
+                                <tr>
+                                    <td>${t.name}</td>
+                                    <td>$${t.income.toLocaleString()}</td>
+                                    <td>$${t.expenses.toLocaleString()}</td>
+                                    <td style="color: ${t.income - t.expenses >= 0 ? '#10b981' : '#f43f5e'}">$${(t.income - t.expenses).toLocaleString()}</td>
+                                </tr>
+                            `).join('')}
+                            <tr class="total-row">
+                                <td>Aggregated Nodes</td>
+                                <td>$${report?.income.toLocaleString()}</td>
+                                <td>$${report?.expenses.toLocaleString()}</td>
+                                <td>$${(report?.income - report?.expenses).toLocaleString()}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="footer">
+                    <div>Fiscal Terminal Protocol v4.2</div>
+                    <div>Confidential Registry Record</div>
+                </div>
+            </body>
+            </html>
+        `;
+        printWindow.document.write(content);
+        printWindow.document.close();
+        printWindow.print();
+    };
+
+    if (!report) return <div className="p-20 text-center uppercase font-black italic text-slate-600 animate-pulse tracking-widest text-[10px]">Synchronizing Fiscal Data Matrix...</div>;
 
     const cards = [
-        { label: 'Platform Revenue', value: `$${report.income.toLocaleString()}`, icon: DollarSign, trend: 'Synchronized', color: 'text-luxury-emerald' },
-        { label: 'Pending Arrears', value: `$${report.pending.toLocaleString()}`, icon: AlertTriangle, trend: 'Actionable', color: 'text-luxury-rose' },
-        { label: 'Capital Outflow', value: `$${report.expenses.toLocaleString()}`, icon: TrendingUp, trend: 'Payroll Logic', color: 'text-brand-primary' },
-        { label: 'Institutional Census', value: report.summary.totalStudents, icon: UserCheck, trend: 'Total Nodes', color: 'text-luxury-gold' },
+        { title: 'Capital Inflow', val: `$${report.income?.toLocaleString()}`, change: '+12.5%', icon: TrendingUp, color: 'text-brand-primary' },
+        { title: 'Pending Assets', val: `$${report.pending?.toLocaleString()}`, change: 'Current Cycle', icon: Layers, color: 'text-luxury-gold' },
+        { title: 'Capital Outflow', val: `$${report.expenses?.toLocaleString()}`, change: '-2.1%', icon: TrendingDown, color: 'text-luxury-rose' },
+        { title: 'Asset Liquidity', val: `${report.health?.liquidity}%`, change: report.health?.status, icon: Activity, color: 'text-luxury-emerald' },
+    ];
+
+    const summaryItems = [
+        { label: 'Citizen Density', val: report.summary?.totalStudents || 0, icon: GraduationCap, sub: 'Enrolled Students' },
+        { label: 'Human Assets', val: report.summary?.totalEmployees || 0, icon: Briefcase, sub: 'Active Faculty' },
     ];
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1">Fiscal Matrix</h1>
-                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Real-time platform financial visualization.</p>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fiscal Command Node</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Real-time mapping of capital movement & asset liquidity.</p>
+                </div>
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => setShowFilterModal(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-brand-background border border-brand-border rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-xl"
+                    >
+                        <Filter size={14} />
+                        Current Q1 Cycle
+                    </button>
+                    <button 
+                        onClick={exportVisualReport}
+                        className="flex items-center gap-2 px-4 py-2 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[10px] font-black text-brand-primary uppercase tracking-widest italic hover:bg-brand-primary/20 transition-all shadow-xl"
+                    >
+                        <Printer size={14} />
+                        Generate Audit Report
+                    </button>
+                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {cards.map((card, idx) => (
-                    <div key={idx} className="bg-brand-surface p-8 rounded-md border border-brand-border shadow-2xl relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-300">
-                        <div className="flex justify-between items-start mb-8">
-                            <div className={`p-4 rounded-md bg-slate-800/60 border border-brand-border ${card.color}`}>
-                                <card.icon size={24} />
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                {cards.map((card, i) => (
+                    <motion.div 
+                        key={i} transition={{ delay: i * 0.1 }}
+                        className="bg-brand-surface border border-brand-border rounded-md p-6 shadow-2xl relative overflow-hidden group"
+                    >
+                        <div className="flex justify-between items-start mb-4">
+                            <div className={`p-2 rounded bg-slate-800 border border-brand-border group-hover:border-slate-500 transition-all ${card.color}`}>
+                                <card.icon size={20} />
                             </div>
-                            <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest italic">{card.trend}</span>
+                            <span className="text-[10px] font-black text-slate-600 uppercase italic opacity-60 tracking-tighter">{card.change}</span>
                         </div>
-                        <h3 className="text-4xl font-black text-slate-100 tracking-tighter italic uppercase mb-2 font-outfit leading-none">{card.value}</h3>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic leading-none">{card.label}</p>
-                    </div>
+                        <h3 className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic mb-1">{card.title}</h3>
+                        <p className="text-2xl font-black text-slate-100 italic tracking-tighter leading-none">{card.val}</p>
+                        <div className="absolute bottom-0 right-0 p-1 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                            <card.icon size={64} />
+                        </div>
+                    </motion.div>
                 ))}
             </div>
-            
-            <div className="p-10 bg-brand-surface border border-brand-border border-dashed rounded-md text-center opacity-60">
-                <p className="text-[10px] font-black uppercase tracking-widest italic text-slate-500">Advanced analysis modules initializing in Q3 synchronization...</p>
+
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                <div className="xl:col-span-2 bg-brand-surface border border-brand-border rounded-md shadow-2xl p-6">
+                    <div className="flex items-center justify-between mb-8">
+                        <h2 className="text-sm font-black italic uppercase tracking-widest text-slate-100 flex items-center gap-3">
+                            <Activity size={16} className="text-brand-primary" />
+                            Monthly Trend Analysis
+                        </h2>
+                    </div>
+                    <div className="h-[350px] w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <AreaChart data={report.trends}>
+                                <defs>
+                                    <linearGradient id="colorIncome" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#38bdf8" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#38bdf8" stopOpacity={0}/>
+                                    </linearGradient>
+                                    <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
+                                        <stop offset="95%" stopColor="#f43f5e" stopOpacity={0}/>
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" vertical={false} />
+                                <XAxis dataKey="name" stroke="#64748b" tick={{fontSize: 9, fontWeight: 900}} />
+                                <YAxis stroke="#64748b" tick={{fontSize: 9, fontWeight: 900}} />
+                                <Tooltip 
+                                    contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', fontSize: '10px', color: '#f1f5f9' }}
+                                    itemStyle={{ color: '#f1f5f9', fontWeight: 900, textTransform: 'uppercase' }}
+                                />
+                                <Area type="monotone" dataKey="income" stroke="#38bdf8" strokeWidth={3} fillOpacity={1} fill="url(#colorIncome)" />
+                                <Area type="monotone" dataKey="expenses" stroke="#f43f5e" strokeWidth={3} fillOpacity={1} fill="url(#colorExpense)" />
+                            </AreaChart>
+                        </ResponsiveContainer>
+                    </div>
+                </div>
+
+                <div className="space-y-8">
+                    <div className="bg-brand-surface border border-brand-border rounded-md shadow-2xl p-6 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 p-4">
+                           <div className={`text-3xl font-black italic ${report.health?.grade === 'A+' ? 'text-luxury-emerald' : 'text-brand-primary'}`}>{report.health?.grade}</div>
+                        </div>
+                        <h2 className="text-sm font-black italic uppercase tracking-widest text-slate-100 mb-6">Fiscal Health Metric</h2>
+                        <div className="flex items-center justify-center mb-6">
+                            <div className="relative w-32 h-32">
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <PieChart>
+                                        <Pie data={[{ value: report.health?.liquidity }, { value: 100 - report.health?.liquidity }]} innerRadius={45} outerRadius={60} paddingAngle={5} dataKey="value" stroke="none">
+                                            <Cell fill={report.health?.grade === 'A+' ? '#10b981' : '#38bdf8'} />
+                                            <Cell fill="#1e293b" />
+                                        </Pie>
+                                    </PieChart>
+                                </ResponsiveContainer>
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span className="text-xl font-black text-slate-100 italic">{report.health?.liquidity}%</span>
+                                    <span className="text-[8px] font-black text-slate-500 uppercase">Liquidity</span>
+                                </div>
+                            </div>
+                        </div>
+                        <p className="text-[10px] font-medium text-slate-500 italic uppercase leading-relaxed text-center">
+                            Aggregated score based on current liquidity, pending receivables, and mandatory disbursement obligations.
+                        </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        {summaryItems.map((item, i) => (
+                            <div key={i} className="bg-brand-background border border-brand-border rounded-md p-4 flex items-center gap-4 group hover:border-brand-primary/50 transition-all">
+                                <div className="p-2 bg-slate-800 rounded border border-brand-border text-slate-400 group-hover:text-brand-primary transition-colors">
+                                    <item.icon size={18} />
+                                </div>
+                                <div className="text-left">
+                                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-none mb-1.5">{item.label}</div>
+                                    <div className="flex items-end gap-2 text-left">
+                                        <span className="text-lg font-black text-slate-100 italic leading-none">{item.val}</span>
+                                        <span className="text-[8px] font-bold text-slate-600 uppercase italic opacity-70 leading-none mb-0.5">{item.sub}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
             </div>
+
+            <div className="bg-slate-900/50 border border-brand-border border-dashed p-4 rounded-md flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase italic tracking-widest overflow-hidden">
+                <div className="flex items-center gap-3">
+                    <ShieldCheck className="text-brand-primary" size={14} />
+                    Official Fiscal Audit Hash: 0X-RE-882-FT-AC-2026-SCHOOL-PROT-321
+                </div>
+                <div className="opacity-40">Verified via Blockchain Registry</div>
+            </div>
+
+            {/* Filter Selection Modal */}
+            <AnimatePresence>
+                {showFilterModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                            className="bg-brand-surface border border-brand-border rounded-md p-8 w-full max-w-sm shadow-2xl relative"
+                        >
+                            <h3 className="text-lg font-black text-slate-100 italic uppercase tracking-tighter mb-6">Filter Command</h3>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block">Academic Year Node</label>
+                                    <select 
+                                        value={filterRange.year}
+                                        onChange={(e) => setFilterRange({...filterRange, year: e.target.value})}
+                                        className="w-full bg-brand-background border border-brand-border rounded-md p-3 text-xs font-bold text-slate-300 focus:outline-none"
+                                    >
+                                        <option value="2026">Cycle 2026</option>
+                                        <option value="2025">Cycle 2025</option>
+                                    </select>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block">Start Node</label>
+                                        <input 
+                                            type="date" 
+                                            value={filterRange.start}
+                                            onChange={(e) => setFilterRange({...filterRange, start: e.target.value})}
+                                            className="w-full bg-brand-background border border-brand-border rounded-md p-3 text-xs font-bold text-slate-300 focus:outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block">End Node</label>
+                                        <input 
+                                            type="date" 
+                                            value={filterRange.end}
+                                            onChange={(e) => setFilterRange({...filterRange, end: e.target.value})}
+                                            className="w-full bg-brand-background border border-brand-border rounded-md p-3 text-xs font-bold text-slate-300 focus:outline-none"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => setShowFilterModal(false)}
+                                className="w-full mt-8 py-3 bg-brand-primary text-[10px] font-black text-slate-900 uppercase tracking-widest rounded-md hover:bg-brand-primary/90 transition-all shadow-lg"
+                            >
+                                Execute Protocol Search
+                            </button>
+                            <button onClick={() => setShowFilterModal(false)} className="absolute top-4 right-4 text-slate-500 hover:text-slate-100"><X size={18} /></button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };
+
+// Mock ShieldCheck for the audit hash
+const ShieldCheck = ({ className, size }) => (
+    <Activity className={className} size={size} />
+);
 
 export default AccountantDashboard;

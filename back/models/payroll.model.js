@@ -5,12 +5,14 @@ const payrollSchema = new mongoose.Schema({
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
   month: { type: Number, required: true }, // 1-12
   year: { type: Number, required: true },
-  baseSalary: { type: Number, required: true },
+  basicSalary: { type: Number, required: true },
   bonus: { type: Number, default: 0 },
   deductions: { type: Number, default: 0 },
-  totalAmount: { type: Number, required: true },
+  netSalary: { type: Number, required: true },
   status: { type: String, enum: ['paid', 'unpaid'], default: 'unpaid' },
-  paymentDate: { type: Date },
+  paidAt: { type: Date },
+  paymentMethod: { type: String, enum: ['Cash', 'Bank Transfer', 'Online'] },
+  transactionId: { type: String },
   remarks: { type: String },
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });

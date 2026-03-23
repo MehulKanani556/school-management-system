@@ -16,6 +16,7 @@ const feePaymentSchema = new mongoose.Schema({
   paidDate: { type: Date },
   academicYear: { type: String },
   feeStructureId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeStructure' },
+  submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
 feePaymentSchema.pre('save', function(next) {
