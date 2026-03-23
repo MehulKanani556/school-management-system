@@ -91,7 +91,7 @@ const TransporterLayout = () => {
               className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
             >
               <item.icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
-              <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+              <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
               {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
             </Link>
           ))}

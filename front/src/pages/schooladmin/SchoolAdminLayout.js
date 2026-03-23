@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, BookOpen, GraduationCap,
   Calendar, MessageSquare, Menu, Bell, LogOut, ChevronDown, ChevronRight, User, Settings,
   ClipboardList, BookMarked, Globe, CreditCard, Shield, Clock, Trash2, Megaphone, Activity, DollarSign,
-  Layout
+  Layout, PhoneIncoming, UserPlus, CalendarCheck, Brain, Banknote, Rocket, CalendarDays, BarChart3
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -17,30 +17,49 @@ import toast from 'react-hot-toast';
 const navItems = [
   { to: '/school-admin', icon: LayoutDashboard, label: 'Control Center', end: true },
   {
-    label: 'User Registry',
-    icon: Users,
+    label: 'Academic Node',
+    icon: GraduationCap,
     children: [
-      { to: '/school-admin/teachers', icon: Shield, label: 'Faculty Nodes' },
-      { to: '/school-admin/students', icon: GraduationCap, label: 'Learner Nodes' },
-      { to: '/school-admin/parents', icon: Users, label: 'Guardian Nodes' },
+      { to: '/school-admin/students', icon: Users, label: 'Student Registry' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
+      { to: '/school-admin/classes', icon: BookOpen, label: 'Class Matrix' },
+      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Nodes' },
+      { to: '/school-admin/timetable', icon: Clock, label: 'Temporal Grid' },
+      { to: '/school-admin/academic-years', icon: Calendar, label: 'Session Cycles' },
     ]
   },
   {
-    label: 'Academic Ops',
-    icon: BookOpen,
+    label: 'Admissions',
+    icon: PhoneIncoming,
     children: [
-      { to: '/school-admin/classes', icon: ClipboardList, label: 'Sector Matrix' },
-      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Matrix' },
-      { to: '/school-admin/academic-years', icon: Clock, label: 'Temporal Periods' },
-      { to: '/school-admin/sections', icon: Globe, label: 'Sub-Sectors' },
+       { to: '/school-admin/admissions', icon: UserPlus, label: 'Enrolment Pipeline' },
     ]
   },
   {
-    label: 'Finance & Supply',
-    icon: DollarSign,
+     label: 'Registry & Intel',
+    icon: ClipboardList,
     children: [
-      { to: '/school-admin/fees', icon: CreditCard, label: 'Fiscal Ledger' },
-      { to: '/school-admin/salary', icon: DollarSign, label: 'Payroll Matrix' },
+        { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance Log' },
+      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Attendance' },
+      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Matrix' },
+      { to: '/school-admin/holidays', icon: Calendar, label: 'Institutional Breaks' },
+    ]
+  },
+  {
+    label: 'Fiscal Matrix',
+    icon: CreditCard,
+    children: [
+      { to: '/school-admin/fees', icon: CreditCard, label: 'Revenue Streams' },
+      { to: '/school-admin/payroll', icon: Banknote, label: 'Staff Payroll' },
+    ]
+  },
+  {
+    label: 'Staff Core',
+    icon: Rocket,
+    children: [
+      { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
+      { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
+      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
     ]
   },
   {
@@ -53,6 +72,7 @@ const navItems = [
     ]
   },
   { to: '/school-admin/holidays', icon: Calendar, label: 'Global Breaks' },
+    { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
 ];
 
 const SchoolAdminLayout = () => {
@@ -148,7 +168,7 @@ const SchoolAdminLayout = () => {
                   className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-schooladmin-primary text-black shadow-lg shadow-schooladmin-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
                   <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-schooladmin-primary transition-colors'} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
                   {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                 </Link>
               );

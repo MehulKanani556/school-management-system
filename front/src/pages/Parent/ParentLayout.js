@@ -6,7 +6,8 @@ import {
   LayoutDashboard, BookOpen, CalendarCheck, ClipboardList,
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
   LogOut, ChevronDown, ChevronRight, User, GraduationCap, Users,
-  Globe, CalendarDays, CreditCard, Brain
+  Globe, CalendarDays, CreditCard, Brain, Trophy, FileText,
+  Shield, Megaphone, Sun, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -21,26 +22,40 @@ const navItems = [
     label: 'Ward Performance',
     icon: GraduationCap,
     children: [
-      { to: '/parent/attendance', icon: CalendarCheck, label: 'Presence Log' },
-      { to: '/parent/results', icon: Brain, label: 'Neural Results' },
-      { to: '/parent/timetable', icon: Clock, label: 'Temporal Grid' },
+      { to: '/parent/attendance', icon: CalendarCheck, label: 'Attendance' },
+      { to: '/parent/results', icon: Trophy, label: 'Academics' },
+      { to: '/parent/timetable', icon: Clock, label: 'Timetable' },
+      { to: '/parent/exams', icon: Calendar, label: 'Exams' },
+      { to: '/parent/assignments', icon: FileText, label: 'Assignments' },
     ]
   },
   {
-    label: 'Institutional Intel',
-    icon: Globe,
+    label: 'Conduct & Meetings',
+    icon: Shield,
     children: [
-      { to: '/parent/holidays', icon: CalendarDays, label: 'Global Breaks' },
-      { to: '/parent/notices', icon: Globe, label: 'Pulse Notices' },
+      { to: '/parent/behavior', icon: Shield, label: 'Conduct Registry' },
+      { to: '/parent/meetings', icon: Calendar, label: 'PTM Protocols' },
     ]
   },
-  { to: '/parent/fees', icon: CreditCard, label: 'Fiscal Ledger' },
-  {  icon: MessageSquare, label: 'Direct Comm',
+  {
+    label: 'Institutional Hub',
+    icon: Globe,
     children: [
-      {  to: '/parent/announcements', icon: CalendarDays, label: 'Announcements' },
-      { to: '/parent/messages', icon: Globe, label: 'Messages' },
+      { to: '/parent/announcements', icon: Megaphone, label: 'Announcements' },
+      { to: '/parent/messages', icon: MessageSquare, label: 'Messages' },
+      { to: '/parent/notifications', icon: Bell, label: 'Notifications' },
+      { to: '/parent/holidays', icon: Sun, label: 'Holidays' },
     ]
-   },
+  },
+  {
+    label: 'Financials & Logistics',
+    icon: CreditCard,
+    children: [
+      { to: '/parent/fees', icon: CreditCard, label: 'Financial Ledger' },
+      { to: '/parent/transport', icon: Truck, label: 'Transport' },
+    ]
+  },
+//   { to: '/parent/profile', icon: User, label: 'Profile' },
 ];
 
 const ParentLayout = () => {
@@ -200,7 +215,7 @@ const ParentLayout = () => {
                   className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-parent-primary text-black shadow-lg shadow-parent-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
                   <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-parent-primary transition-colors'} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
                   {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                 </Link>
               );
