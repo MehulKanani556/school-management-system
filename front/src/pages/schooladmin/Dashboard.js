@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { 
   Users, GraduationCap, BookOpen, CreditCard, ClipboardList, 
   TrendingUp, Calendar as CalendarIcon, Bell, Activity,
-  ChevronRight, ArrowUpRight, AlertCircle, Clock, CheckCircle2
+  ChevronRight, ArrowUpRight, AlertCircle, Clock, CheckCircle2, ShieldCheck
 } from 'lucide-react';
 import { 
   ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -68,7 +68,7 @@ const Dashboard = () => {
   const stats = [
     { icon: Users,         label: 'Total Students',  value: dashboard?.students,    color: 'from-blue-500 to-indigo-600',       delay: 0,    subtext: `${dashboard?.metrics?.studentGrowth >= 0 ? '+' : ''}${dashboard?.metrics?.studentGrowth || 0}% this month` },
     { icon: GraduationCap, label: 'Total Teachers',  value: dashboard?.teachers,    color: 'from-emerald-500 to-teal-600',      delay: 0.05, subtext: `${dashboard?.metrics?.newTeachers || 0} Added this month` },
-    { icon: BookOpen,      label: 'Classes',         value: dashboard?.classes,     color: 'from-purple-500 to-violet-600',     delay: 0.1,  subtext: `${dashboard?.classes || 0} Standards active` },
+    { icon: ShieldCheck,   label: 'Operational Staff', value: (dashboard?.accountants || 0) + (dashboard?.librarians || 0) + (dashboard?.transporters || 0), color: 'from-indigo-500 to-blue-600', delay: 0.1, subtext: 'Fiscal & Logistics' },
     { icon: CreditCard,    label: 'Pending Fees',    value: dashboard?.pendingFees, color: 'from-amber-500 to-orange-600',      delay: 0.15, subtext: `${dashboard?.alerts?.overdueFees || 0} Overdue` },
     { icon: ClipboardList, label: 'Total Exams',     value: dashboard?.exams,       color: 'from-rose-500 to-pink-600',         delay: 0.2,  subtext: `${dashboard?.alerts?.examsToday || 0} Scheduled today` },
   ];

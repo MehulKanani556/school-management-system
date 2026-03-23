@@ -93,12 +93,15 @@ exports.getDashboardStats = async (req, res) => {
     const schoolId = getSchoolId(req);
 
     // 1. Basic Stats
-    const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount] = await Promise.all([
+    const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount, accountantCount, librarianCount, transportCount] = await Promise.all([
       Student.countDocuments({ schoolId, isActive: true, deletedAt: null }),
       Teacher.countDocuments({ schoolId, isActive: true, deletedAt: null }),
       ClassSection.countDocuments({ schoolId }),
       FeePayment.countDocuments({ schoolId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
       Exam.countDocuments({ schoolId }),
+      User.countDocuments({ schoolId, role: 'Accountant', isActive: true }),
+      User.countDocuments({ schoolId, role: 'Librarian', isActive: true }),
+      User.countDocuments({ schoolId, role: 'Transport_Manager', isActive: true }),
     ]);
 
     // 2. Recent Activity (Latest additions)
@@ -216,6 +219,9 @@ exports.getDashboardStats = async (req, res) => {
     res.json({
       students: studentsCount,
       teachers: teachersCount,
+      accountants: accountantCount,
+      librarians: librarianCount,
+      transporters: transportCount,
       classes: classesCount,
       pendingFees: pendingFeesCount,
       exams: examsCount,
@@ -234,6 +240,33 @@ exports.getDashboardStats = async (req, res) => {
         growthInsight
       }
     });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createStaff = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, role, password } = req.body;
+    const schoolId = getSchoolId(req);
+
+    const allowedRoles = ['Accountant', 'Librarian', 'Transport_Manager'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role for staff registry' });
+    }
+
+    const existingUser = await User.findOne({ email });
+    if (existingUser) return res.status(400).json({ message: 'User with this email already exists' });
+
+    const hashedPassword = await bcrypt.hash(password || email, 10);
+    const user = await User.create({
+      firstName, lastName, email,
+      password: hashedPassword,
+      role,
+      schoolId,
+      photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&background=random&color=fff`,
+      phoneNumber: phone
+    });
+
+    res.status(201).json({ message: 'Staff member provisioned successfully', user });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -10,6 +10,9 @@ import notificationReducer from './slice/notification.slice';
 import communicationReducer from './slice/communication.slice';
 import parentReducer from './slice/parent.slice';
 import superAdminReducer from './slice/superAdmin.slice';
+import accountantReducer from './slice/accountant.slice';
+import librarianReducer from './slice/librarian.slice';
+import transportReducer from './slice/transport.slice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -22,6 +25,9 @@ const rootReducer = combineReducers({
     communication: communicationReducer,
     parent: parentReducer,
     superAdmin: superAdminReducer,
+    accountant: accountantReducer,
+    librarian: librarianReducer,
+    transport: transportReducer,
 });
 
 export default rootReducer;

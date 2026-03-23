@@ -47,6 +47,7 @@ const navItems = [
     label: 'Staff Management',
     icon: Rocket,
     children: [
+      { to: '/school-admin/staff', icon: Users, label: 'Staff Registry' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
       { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Reviews' },
     ]

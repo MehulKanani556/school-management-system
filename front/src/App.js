@@ -13,6 +13,9 @@ import SchoolAdminLayout from './pages/schooladmin/SchoolAdminLayout';
 import TeacherLayout from './pages/Teacher/TeacherLayout';
 import StudentLayout from './pages/Student/StudentLayout';
 import ParentLayout from './pages/Parent/ParentLayout';
+import AccountantLayout from './pages/Accountant/AccountantLayout';
+import LibrarianLayout from './pages/Librarian/LibrarianLayout';
+import TransporterLayout from './pages/Transporter/TransporterLayout';
 
 
 // School Admin Pages
@@ -32,6 +35,7 @@ import Leaves from './pages/schooladmin/Leaves';
 import Reviews from './pages/schooladmin/Reviews';
 import Reports from './pages/schooladmin/Reports';
 import SchoolProfile from './pages/schooladmin/SchoolProfiles';
+import StaffRegistry from './pages/schooladmin/StaffRegistry';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -102,6 +106,23 @@ const TeacherExams = React.lazy(() => import('./pages/Teacher/Exams'));
 const TeacherUnifiedCalendar = React.lazy(() => import('./pages/Teacher/UnifiedCalendar'));
 const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
 
+// Accountant Pages
+const AccountantDashboard = React.lazy(() => import('./pages/Accountant/AccountantDashboard'));
+const FeeCollection = React.lazy(() => import('./pages/Accountant/FeeCollection'));
+const PayrollManagement = React.lazy(() => import('./pages/Accountant/PayrollManagement'));
+const FinancialReports = React.lazy(() => import('./pages/Accountant/FinancialReports'));
+
+// Librarian Pages
+const LibrarianDashboard = React.lazy(() => import('./pages/Librarian/LibrarianDashboard'));
+const BookInventory = React.lazy(() => import('./pages/Librarian/BookInventory'));
+const IssueRecords = React.lazy(() => import('./pages/Librarian/IssueRecords'));
+
+// Transporter Pages
+const TransporterDashboard = React.lazy(() => import('./pages/Transporter/TransporterDashboard'));
+const Vehicles = React.lazy(() => import('./pages/Transporter/Vehicles'));
+const TransporterRoutes = React.lazy(() => import('./pages/Transporter/Routes'));
+const StudentAssignment = React.lazy(() => import('./pages/Transporter/StudentAssignment'));
+
 const { store, persistor } = configureStore();
 
 // Guard: only allow if authenticated + has required role
@@ -122,6 +143,9 @@ function AppRoutes() {
     if (user?.role === 'Teacher') return <Navigate to="/teacher" />;
     if (user?.role === 'Student') return <Navigate to="/student" />;
     if (user?.role === 'Parent') return <Navigate to="/parent" />;
+    if (user?.role === 'Accountant') return <Navigate to="/accountant" />;
+    if (user?.role === 'Librarian') return <Navigate to="/librarian" />;
+    if (user?.role === 'Transport_Manager') return <Navigate to="/transporter" />;
     return <Home />;
   };
 
@@ -218,6 +242,7 @@ function AppRoutes() {
           <Route path="reviews" element={<Reviews />} />
           <Route path="reports" element={<Reports />} />
           <Route path="profile" element={<SchoolProfile />} />
+          <Route path="staff" element={<StaffRegistry />} />
           <Route path="holidays" element={<Holidays />} />
         </Route>
 
@@ -233,6 +258,37 @@ function AppRoutes() {
           <Route path="security" element={<Security />} />
           <Route path="settings" element={<SystemSettings />} />
           <Route path="profile" element={<SuperAdminProfile />} />
+        </Route>
+
+        {/* Accountant Panel */}
+        <Route path="/accountant" element={
+          <RoleRoute role="Accountant"><AccountantLayout /></RoleRoute>
+        }>
+          <Route index element={<AccountantDashboard />} />
+          <Route path="fees" element={<FeeCollection />} />
+          <Route path="payroll" element={<PayrollManagement />} />
+          <Route path="reports" element={<FinancialReports />} />
+        </Route>
+
+        {/* Librarian Panel */}
+        <Route path="/librarian" element={
+          <RoleRoute role="Librarian"><LibrarianLayout /></RoleRoute>
+        }>
+          <Route index element={<LibrarianDashboard />} />
+          <Route path="inventory" element={<BookInventory />} />
+          <Route path="issue" element={<IssueRecords />} />
+          <Route path="return" element={<IssueRecords />} />
+          <Route path="records" element={<IssueRecords />} />
+        </Route>
+
+        {/* Transporter Panel */}
+        <Route path="/transporter" element={
+          <RoleRoute role="Transport_Manager"><TransporterLayout /></RoleRoute>
+        }>
+          <Route index element={<TransporterDashboard />} />
+          <Route path="vehicles" element={<Vehicles />} />
+          <Route path="routes" element={<TransporterRoutes />} />
+          <Route path="students" element={<StudentAssignment />} />
         </Route>
       </Routes>
     </Router>

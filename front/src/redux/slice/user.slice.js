@@ -14,6 +14,18 @@ export const fetchUsers = createAsyncThunk(
     }
 );
 
+export const addStaff = createAsyncThunk(
+    'user/addStaff',
+    async (staffData, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/school-admin/staff', staffData);
+            return response.data.user;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Provisioning failed');
+        }
+    }
+);
+
 const initialState = {
     users: [],
     loading: false,
@@ -41,6 +53,18 @@ const userSlice = createSlice({
                 state.users = action.payload || [];
             })
             .addCase(fetchUsers.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(addStaff.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(addStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.users.unshift(action.payload);
+                state.message = 'Staff member provisioned successfully';
+            })
+            .addCase(addStaff.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

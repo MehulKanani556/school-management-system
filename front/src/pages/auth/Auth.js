@@ -54,6 +54,24 @@ const Auth = () => {
                         Official
                     </button>
                     <button
+                        onClick={() => { setLoginRole('Accountant'); loginFormik.resetForm(); }}
+                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Accountant' ? 'bg-luxury-gold text-slate-900 shadow-lg shadow-luxury-gold/20' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        Accountant
+                    </button>
+                    <button
+                        onClick={() => { setLoginRole('Librarian'); loginFormik.resetForm(); }}
+                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Librarian' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        Librarian
+                    </button>
+                    <button
+                        onClick={() => { setLoginRole('Transporter'); loginFormik.resetForm(); }}
+                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Transporter' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                    >
+                        Transport
+                    </button>
+                    <button
                         onClick={() => { setLoginRole('Student'); loginFormik.resetForm(); }}
                         className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Student' ? 'bg-luxury-emerald text-white shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-slate-300'}`}
                     >
@@ -69,7 +87,7 @@ const Auth = () => {
             </div>
 
             {/* Dynamic Background Elements */}
-            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] ${loginRole === 'Student' ? 'bg-luxury-emerald/15' : loginRole === 'Parent' ? 'bg-luxury-rose/15' : 'bg-brand-primary/15'} rounded-md blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
+            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] ${loginRole === 'Student' ? 'bg-luxury-emerald/15' : loginRole === 'Parent' ? 'bg-luxury-rose/15' : loginRole === 'Accountant' ? 'bg-luxury-gold/15' : loginRole === 'Librarian' ? 'bg-indigo-600/15' : loginRole === 'Transporter' ? 'bg-orange-600/15' : 'bg-brand-primary/15'} rounded-md blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
             <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-brand-secondary/15 rounded-md blur-[140px] animate-pulse-slow delay-1000"></div>
 
             <motion.div
@@ -78,21 +96,21 @@ const Auth = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="w-full max-w-xl relative z-10"
             >
-                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border ${loginRole === 'Student' ? 'border-luxury-emerald/30' : loginRole === 'Parent' ? 'border-luxury-rose/30' : 'border-brand-border/40'} rounded-md shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-colors duration-500`}>
+                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border ${loginRole === 'Student' ? 'border-luxury-emerald/30' : loginRole === 'Parent' ? 'border-luxury-rose/30' : loginRole === 'Accountant' ? 'border-luxury-gold/30' : loginRole === 'Librarian' ? 'border-indigo-600/30' : loginRole === 'Transporter' ? 'border-orange-600/30' : 'border-brand-border/40'} rounded-md shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-colors duration-500`}>
                     {/* Header */}
                     <div className="text-center mb-16">
                         <motion.div
                             initial={{ scale: 0.8, rotate: -10 }}
                             animate={{ scale: 1, rotate: 0 }}
-                            className={`inline-flex items-center justify-center w-24 h-24 rounded-md bg-gradient-to-br ${loginRole === 'Student' ? 'from-luxury-emerald to-emerald-400' : loginRole === 'Parent' ? 'from-luxury-rose to-rose-400' : 'from-brand-primary to-brand-secondary'} mb-10 shadow-2xl transition-all duration-500`}
+                            className={`inline-flex items-center justify-center w-24 h-24 rounded-md bg-gradient-to-br ${loginRole === 'Student' ? 'from-luxury-emerald to-emerald-400' : loginRole === 'Parent' ? 'from-luxury-rose to-rose-400' : loginRole === 'Accountant' ? 'from-luxury-gold to-yellow-400' : loginRole === 'Librarian' ? 'from-indigo-600 to-indigo-400' : loginRole === 'Transporter' ? 'from-orange-600 to-orange-400' : 'from-brand-primary to-brand-secondary'} mb-10 shadow-2xl transition-all duration-500`}
                         >
-                            <LogIn className="text-white w-12 h-12" />
+                            <LogIn className={loginRole === 'Accountant' ? 'text-slate-900 w-12 h-12' : 'text-white w-12 h-12'} />
                         </motion.div>
                         <h1 className="text-5xl font-black text-white tracking-tighter uppercase font-outfit leading-none mb-4">
-                            {loginRole === 'Student' ? 'Student Entry' : loginRole === 'Parent' ? 'Parent Access' : 'Welcome Back'}
+                            {loginRole === 'Student' ? 'Student Entry' : loginRole === 'Parent' ? 'Parent Access' : loginRole === 'Accountant' ? 'Fiscal Portal' : loginRole === 'Librarian' ? 'Archive Node' : loginRole === 'Transporter' ? 'Logistics Hub' : 'Welcome Back'}
                         </h1>
                         <p className="text-slate-400 font-medium tracking-wide text-lg opacity-80">
-                            {loginRole === 'Student' ? 'Access your academic terminal' : loginRole === 'Parent' ? 'Monitor student growth & records' : 'Access your school management dashboard'}
+                            {loginRole === 'Student' ? 'Access your academic terminal' : loginRole === 'Parent' ? 'Monitor student growth & records' : loginRole === 'Accountant' ? 'Platform financial synchronization' : loginRole === 'Librarian' ? 'Knowledge life-cycle management' : loginRole === 'Transporter' ? 'Fleet operations & logistics' : 'Access your school management dashboard'}
                         </p>
                     </div>
 
@@ -108,7 +126,7 @@ const Auth = () => {
                                     <input
                                         type="email"
                                         {...loginFormik.getFieldProps('email')}
-                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.email && loginFormik.errors.email ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-brand-primary outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.email && loginFormik.errors.email ? 'border-luxury-rose/40' : 'border-brand-border/40'} ${loginRole === 'Accountant' ? 'focus:border-luxury-gold' : loginRole === 'Librarian' ? 'focus:border-indigo-600' : loginRole === 'Transporter' ? 'focus:border-orange-600' : 'focus:border-brand-primary'} outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
                                         placeholder="institutional@domain.com"
                                     />
                                 </div>
@@ -169,7 +187,7 @@ const Auth = () => {
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full relative group overflow-hidden rounded-md ${loginRole === 'Student' ? 'bg-luxury-emerald hover:bg-emerald-600' : 'bg-brand-primary hover:bg-blue-600'} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all hover:shadow-2xl active:scale-[0.98] font-outfit`}
+                                className={`w-full relative group overflow-hidden rounded-md ${loginRole === 'Student' ? 'bg-luxury-emerald hover:bg-emerald-600' : loginRole === 'Accountant' ? 'bg-luxury-gold text-slate-900 hover:bg-yellow-500' : loginRole === 'Librarian' ? 'bg-indigo-600 hover:bg-indigo-700' : loginRole === 'Transporter' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-brand-primary hover:bg-blue-600'} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all hover:shadow-2xl active:scale-[0.98] font-outfit`}
                             >
                                 <div className="relative z-10 flex items-center justify-center gap-4">
                                     {loading ? <Loader2 className="animate-spin w-6 h-6" /> : <>{loginRole === 'Student' ? 'Initialize Student Session' : 'Elevate Access'} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" /></>}

@@ -19,6 +19,9 @@ const tbc = require('../controllers/timetable.controller');
 const ttc = require('../controllers/timetableTemplate.controller');
 const pc = require('../controllers/parent.controller');
 const sac = require('../controllers/superAdmin.controller');
+const ac = require('../controllers/accountant.controller');
+const lc = require('../controllers/librarian.controller');
+const trc = require('../controllers/transport.controller');
 
 
 // Auth Routes
@@ -58,6 +61,7 @@ router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generate
 // Teachers
 router.get('/school-admin/teachers', ...schoolAdmin, sa.getTeachers);
 router.post('/school-admin/teachers', ...schoolAdmin, sa.createTeacher);
+router.post('/school-admin/staff', ...schoolAdmin, sa.createStaff);
 router.put('/school-admin/teachers/:id', ...schoolAdmin, sa.updateTeacher);
 router.delete('/school-admin/teachers/:id', ...schoolAdmin, sa.deleteTeacher);
 router.patch('/school-admin/teachers/:id/toggle-status', ...schoolAdmin, sa.toggleTeacherStatus);
@@ -276,5 +280,38 @@ router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticate
 router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
 router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
 router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);
+
+// ─── Accountant Routes ────────────────────────────────────────────────────────
+const accountant = [auth, requireRole('Accountant')];
+
+router.get('/accountant/fees', ...accountant, ac.getFees);
+router.put('/accountant/fees/:id', ...accountant, ac.collectFee);
+router.get('/accountant/payroll', ...accountant, ac.getPayroll);
+router.put('/accountant/payroll/:id', ...accountant, ac.processPayroll);
+router.get('/accountant/reports', ...accountant, ac.getFinancialReport);
+
+// ─── Librarian Routes ─────────────────────────────────────────────────────────
+const librarian = [auth, requireRole('Librarian')];
+
+router.get('/librarian/books', ...librarian, lc.getBooks);
+router.post('/librarian/books', ...librarian, lc.addBook);
+router.put('/librarian/books/:id', ...librarian, lc.updateBook);
+router.delete('/librarian/books/:id', ...librarian, lc.deleteBook);
+router.post('/librarian/issue', ...librarian, lc.issueBook);
+router.put('/librarian/return/:id', ...librarian, lc.returnBook);
+router.get('/librarian/records', ...librarian, lc.getIssueRecords);
+
+// ─── Transport Routes ──────────────────────────────────────────────────────────
+const transportManager = [auth, requireRole('Transport_Manager')];
+
+router.get('/transport/vehicles', ...transportManager, trc.getVehicles);
+router.post('/transport/vehicles', ...transportManager, trc.addVehicle);
+router.put('/transport/vehicles/:id', ...transportManager, trc.updateVehicle);
+router.delete('/transport/vehicles/:id', ...transportManager, trc.deleteVehicle);
+router.get('/transport/routes', ...transportManager, trc.getRoutes);
+router.post('/transport/routes', ...transportManager, trc.addRoute);
+router.put('/transport/routes/:id', ...transportManager, trc.updateRoute);
+router.delete('/transport/routes/:id', ...transportManager, trc.deleteRoute);
+router.post('/transport/routes/:id/assign-student', ...transportManager, trc.assignStudent);
 
 module.exports = router;
