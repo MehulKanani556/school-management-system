@@ -3,10 +3,9 @@ import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-do
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
-  LayoutDashboard, Users, GraduationCap, BookOpen,
-  CreditCard, ClipboardList, CalendarCheck, LogOut,
-  MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout, UserPlus, PhoneIncoming, Bell
+  LayoutDashboard, Users, BookOpen, GraduationCap,
+  Calendar, MessageSquare, Menu, Bell, LogOut, ChevronDown, ChevronRight, User, Settings,
+  ClipboardList, BookMarked, Globe, CreditCard, Shield, Clock, Trash2, Megaphone, Activity, DollarSign
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -17,61 +16,41 @@ import toast from 'react-hot-toast';
 const navItems = [
   { to: '/school-admin', icon: LayoutDashboard, label: 'Control Center', end: true },
   {
-    label: 'Academic Node',
-    icon: GraduationCap,
+    label: 'User Registry',
+    icon: Users,
     children: [
-      { to: '/school-admin/students', icon: Users, label: 'Student Registry' },
-      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
-      { to: '/school-admin/classes', icon: BookOpen, label: 'Class Matrix' },
-      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Nodes' },
-      { to: '/school-admin/timetable', icon: Clock, label: 'Temporal Grid' },
-      { to: '/school-admin/academic-years', icon: Calendar, label: 'Session Cycles' },
+      { to: '/school-admin/teachers', icon: Shield, label: 'Faculty Nodes' },
+      { to: '/school-admin/students', icon: GraduationCap, label: 'Learner Nodes' },
+      { to: '/school-admin/parents', icon: Users, label: 'Guardian Nodes' },
     ]
   },
   {
-    label: 'Admissions',
-    icon: PhoneIncoming,
+    label: 'Academic Ops',
+    icon: BookOpen,
     children: [
-      { to: '/school-admin/admissions', icon: UserPlus, label: 'Enrolment Pipeline' },
+      { to: '/school-admin/classes', icon: ClipboardList, label: 'Sector Matrix' },
+      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Matrix' },
+      { to: '/school-admin/academic-years', icon: Clock, label: 'Temporal Periods' },
+      { to: '/school-admin/sections', icon: Globe, label: 'Sub-Sectors' },
     ]
   },
   {
-    label: 'Registry & Intel',
-    icon: ClipboardList,
+    label: 'Finance & Supply',
+    icon: DollarSign,
     children: [
-      { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance Log' },
-      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Attendance' },
-      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Matrix' },
-      { to: '/school-admin/holidays', icon: Calendar, label: 'Institutional Breaks' },
+        { to: '/school-admin/fees', icon: CreditCard, label: 'Fiscal Ledger' },
+        { to: '/school-admin/salary', icon: DollarSign, label: 'Payroll Matrix' },
     ]
   },
   {
-    label: 'Fiscal Matrix',
-    icon: CreditCard,
-    children: [
-      { to: '/school-admin/fees', icon: CreditCard, label: 'Revenue Streams' },
-      { to: '/school-admin/payroll', icon: Banknote, label: 'Staff Payroll' },
-    ]
-  },
-  {
-    label: 'Staff Core',
-    icon: Rocket,
-    children: [
-      { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
-      { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
-      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
-    ]
-  },
-  {
-    label: 'Neural Link',
+    label: 'Communications',
     icon: MessageSquare,
     children: [
-      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Pulse Broadcast' },
-      { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
-      { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
+        { to: '/school-admin/announcements', icon: Megaphone, label: 'Broadcasting' },
+        { to: '/school-admin/notice-board', icon: Activity, label: 'Pulse Notices' },
     ]
   },
-  { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
+  { to: '/school-admin/holidays', icon: Calendar, label: 'Global Breaks' },
 ];
 
 const SchoolAdminLayout = () => {
@@ -94,13 +73,13 @@ const SchoolAdminLayout = () => {
     if (!socket) return;
     socket.on('new_notification', (notif) => {
       dispatch(receiveNotification(notif));
-      toast.success(`Admin Alert: ${notif.title}`, {
+      toast.success(`System Alert: ${notif.title}`, {
         icon: '⚡',
         style: {
           borderRadius: '1.5rem',
           background: '#0f172a',
           color: '#fff',
-          border: '1px solid #1e293b',
+          border: '1px solid #0ea5e9',
           fontWeight: 900,
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
@@ -113,13 +92,10 @@ const SchoolAdminLayout = () => {
 
   useEffect(() => {
     const activeParent = navItems.find(item =>
-      item.children?.some(child => 
-        location.pathname + location.search === child.to || 
-        (child.to.includes('?') && location.pathname === child.to.split('?')[0] && location.search === child.to.split('?')[1])
-      )
+      item.children?.some(child => location.pathname === child.to)
     );
     if (activeParent) setExpanded(activeParent.label);
-  }, [location.pathname, location.search]);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     dispatch(logout());
@@ -135,25 +111,21 @@ const SchoolAdminLayout = () => {
     setExpanded(expanded === label ? null : label);
   };
 
-  const isActive = (path) => {
-    if (path.includes('?')) {
-        return location.pathname + location.search === path;
-    }
-    return location.pathname === path;
-  };
+  const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="h-screen bg-slate-900 text-slate-100 flex font-inter antialiased overflow-hidden">
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
+    <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
+      {/* Sidebar - Terminal Aesthetic with Admin Theme */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SA</div>
-            <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none">Admin <span className="text-brand-primary">Node</span></span>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-schooladmin-primary to-schooladmin-secondary flex items-center justify-center font-black text-xl italic shadow-lg">AM</div>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Admin <span className="text-schooladmin-primary">Node</span></span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Operations Control</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -165,9 +137,9 @@ const SchoolAdminLayout = () => {
                   key={item.to}
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-schooladmin-primary text-black shadow-lg shadow-schooladmin-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
-                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
+                  <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-schooladmin-primary transition-colors'} />
                   <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
                   {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                 </Link>
@@ -178,11 +150,11 @@ const SchoolAdminLayout = () => {
               <div key={item.label} className="space-y-1">
                 <button
                   onClick={() => toggleSubmenu(item.label)}
-                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-slate-800/40 text-slate-100' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
-                  <Icon size={18} className={isExpanded ? 'text-brand-primary' : 'group-hover:text-brand-primary transition-colors'} />
+                  <Icon size={18} className={isExpanded ? 'text-schooladmin-primary' : 'group-hover:text-schooladmin-primary transition-colors'} />
                   <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
-                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'opacity-40'}`} />
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-schooladmin-primary' : 'opacity-40'}`} />
                 </button>
 
                 <AnimatePresence>
@@ -191,23 +163,25 @@ const SchoolAdminLayout = () => {
                       initial={{ opacity: 0, height: 0 }}
                       animate={{ opacity: 1, height: 'auto' }}
                       exit={{ opacity: 0, height: 0 }}
-                      className="overflow-hidden pl-4 space-y-1"
+                      className="overflow-hidden bg-brand-background/50 rounded-md mx-2 border border-brand-border/40"
                     >
-                      {item.children.map((child) => {
-                        const ChildIcon = child.icon;
-                        const childActive = isActive(child.to);
-                        return (
-                          <Link
-                            key={child.to}
-                            to={child.to}
-                            onClick={() => setSidebarOpen(false)}
-                            className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-brand-primary bg-brand-primary/10' : 'text-slate-500 hover:text-slate-300'}`}
-                          >
-                            <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-brand-primary' : 'opacity-60 group-hover:opacity-100'}`} />
-                            <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
-                          </Link>
-                        );
-                      })}
+                      <div className="py-1 space-y-1">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childActive = isActive(child.to);
+                          return (
+                            <Link
+                              key={child.to}
+                              to={child.to}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-schooladmin-primary bg-schooladmin-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                            >
+                              <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-schooladmin-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                              <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -217,9 +191,9 @@ const SchoolAdminLayout = () => {
         </nav>
 
         <div className="p-6 flex-shrink-0">
-          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group font-outfit">
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-schooladmin-primary/10 hover:text-schooladmin-primary transition-all group font-outfit uppercase tracking-widest text-[11px] font-black border border-transparent hover:border-schooladmin-primary/20">
             <LogOut size={20} />
-            <span className="text-[12px] font-black uppercase tracking-[0.15em]">Shutdown</span>
+            <span className="italic">Log out</span>
           </button>
         </div>
       </aside>
@@ -227,29 +201,29 @@ const SchoolAdminLayout = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Header - Stays at top */}
-        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/40 z-10 w-full transition-all">
+        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 z-10 w-full transition-all">
           <div className="flex items-center gap-4 text-slate-500">
-            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-slate-800 transition-colors">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
               <Menu size={20} />
             </button>
-            <span className="text-[10px] font-black uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-md border border-slate-700/50 hidden sm:block leading-none">Central Intelligence</span>
-            <ChevronRight size={14} className="hidden sm:block" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Admin Terminal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Institutional Node</span>
+            <ChevronRight size={14} className="hidden sm:block opacity-20" />
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-schooladmin-primary italic">Admin Center Terminal</span>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="relative">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-schooladmin-primary text-black border-schooladmin-primary shadow-xl shadow-schooladmin-primary/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-schooladmin-primary hover:border-schooladmin-primary/40 shadow-inner'}`}
               >
                 <Bell size={18} />
-                {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
+                {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-schooladmin-primary rounded-md border-2 border-brand-surface animate-pulse"></span>}
               </button>
-              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} role="SchoolAdmin" />
             </div>
 
-            <div className="h-10 w-px bg-slate-800/60"></div>
+            <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
               <button 
@@ -257,11 +231,13 @@ const SchoolAdminLayout = () => {
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >
                 <div className="text-right hidden sm:block">
-                  <p className="text-sm font-bold leading-none">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] mt-1.5 opacity-80 leading-none italic">Institutional Provost</p>
+                  <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-[9px] font-black text-schooladmin-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">ID: 00{user?._id.toString().slice(-3)}</p>
                 </div>
-                <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-brand-primary transition-all">
-                  {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-500" />}
+                <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-schooladmin-primary transition-all p-0.5">
+                  <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
+                    {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
+                  </div>
                 </div>
               </button>
 
@@ -276,32 +252,32 @@ const SchoolAdminLayout = () => {
                       initial={{ opacity: 0, y: 15, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                      className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-slate-900 border border-slate-800/60 shadow-2xl backdrop-blur-2xl"
+                      className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-brand-surface border border-brand-border shadow-3xl backdrop-blur-2xl"
                     >
-                      <div className="px-5 py-4 border-b border-white/5 mb-2 text-center">
-                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit">
+                      <div className="px-5 py-4 border-b border-brand-border mb-2 text-center">
+                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit italic">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user?.email}</p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">{user?.email}</p>
                       </div>
 
                       <div className="space-y-1">
                         <button
                           onClick={handleSettings}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">
-                          <User size={18} className="text-brand-primary" />
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic">
+                          <User size={18} className="text-schooladmin-primary" />
                           View Profile
                         </button>
 
                         <div className="p-1 mb-1">
-                          <div className="h-px bg-white/5 w-full" />
+                          <div className="h-px bg-brand-border w-full" />
                         </div>
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-xs font-black uppercase tracking-widest group"
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-[10px] font-black uppercase tracking-widest group italic"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                          Log Out
+                          Log Out Matrix
                         </button>
                       </div>
                     </motion.div>
@@ -319,7 +295,7 @@ const SchoolAdminLayout = () => {
       </div>
 
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
       )}
     </div>
   );

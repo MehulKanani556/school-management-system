@@ -14,7 +14,7 @@ const SuperAdminDashboard = () => {
     };
 
     return (
-        <div className="h-screen bg-slate-900 text-slate-100 flex font-inter antialiased overflow-hidden">
+        <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
             {/* Sidebar */}
             <Sidebar />
 

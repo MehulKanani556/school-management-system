@@ -127,6 +127,9 @@ const PayrollManagement = React.lazy(() => import('./pages/Accountant/PayrollMan
 const FinancialReports = React.lazy(() => import('./pages/Accountant/FinancialReports'));
 const FeeStructures = React.lazy(() => import('./pages/Accountant/FeeStructures'));
 const AuditLogs = React.lazy(() => import('./pages/Accountant/AuditLogs'));
+const AccountantProfile = React.lazy(() => import('./pages/Accountant/AccountantProfile'));
+const AccountantMessages = React.lazy(() => import('./pages/Accountant/AccountantMessages'));
+const AccountantAnnouncements = React.lazy(() => import('./pages/Accountant/AccountantAnnouncements'));
 
 // Librarian Pages
 const LibrarianDashboard = React.lazy(() => import('./pages/Librarian/LibrarianDashboard'));
@@ -299,6 +302,9 @@ function AppRoutes() {
             <Route path="fee-structures" element={<FeeStructures />} />
             <Route path="reports" element={<FinancialReports />} />
             <Route path="audit-logs" element={<AuditLogs />} />
+            <Route path="profile" element={<AccountantProfile />} />
+            <Route path="messages" element={<AccountantMessages />} />
+            <Route path="announcements" element={<AccountantAnnouncements />} />
           </Route>
 
           {/* Librarian Panel */}

@@ -14,7 +14,8 @@ body {
   font-family: var(--font-inter);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #020617; /* slate-950 */
+  background-color: #020617; /* brand-background */
+  color: #f8fafc;
 }
 
 h1, h2, h3, h4, h5, h6, .font-outfit {
@@ -27,21 +28,21 @@ h1, h2, h3, h4, h5, h6, .font-outfit {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0f172a;
+  background: #0b1120; /* brand-surface */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #1e293b; /* brand-border */
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #475569;
+  background: #334155;
 }
 
 /* Selection style */
 ::selection {
-  background-color: rgba(37, 99, 235, 0.3);
+  background-color: rgba(88, 166, 255, 0.3); /* brand-primary */
   color: #fff;
 }
 

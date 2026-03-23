@@ -30,7 +30,7 @@ const Header = ({ user, onLogout }) => {
                     borderRadius: '1.5rem',
                     background: '#0f172a',
                     color: '#fff',
-                    border: '1px solid #1e293b',
+                    border: '1px solid #6366f1',
                     fontWeight: 900,
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
@@ -47,26 +47,26 @@ const Header = ({ user, onLogout }) => {
     };
 
     return (
-        <header className="h-20 flex items-center justify-between px-8 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/40 sticky top-0 z-10 w-full transition-all">
+        <header className="h-20 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 sticky top-0 z-10 w-full transition-all">
             <div className="flex items-center gap-4 text-slate-500">
-                <span className="text-[10px] font-black uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-md border border-slate-700/50 hidden sm:block leading-none">Global Infrastructure</span>
-                <ChevronRight size={14} className="hidden sm:block" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Super User Node</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Global Infrastructure</span>
+                <ChevronRight size={14} className="hidden sm:block opacity-20" />
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-superadmin-primary italic font-outfit">Super User Node</span>
             </div>
 
             <div className="flex items-center gap-6">
                 <div className="relative">
                     <button
                         onClick={() => setIsNotifOpen(!isNotifOpen)}
-                        className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+                        className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-superadmin-primary text-black border-superadmin-primary shadow-xl shadow-superadmin-primary/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-superadmin-primary hover:border-superadmin-primary/40 shadow-inner'}`}
                     >
                         <Bell size={18} />
-                        {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
+                        <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-superadmin-primary rounded-md border-2 border-brand-surface animate-pulse"></span>
                     </button>
-                    <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+                    <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} role="SuperAdmin" />
                 </div>
 
-                <div className="h-10 w-px bg-slate-800/60"></div>
+                <div className="h-10 w-px bg-brand-border/60"></div>
 
                 <div className="flex items-center gap-4 relative">
                     <button 
@@ -74,11 +74,13 @@ const Header = ({ user, onLogout }) => {
                         className="flex items-center gap-4 hover:opacity-80 transition-opacity"
                     >
                         <div className="text-right hidden sm:block">
-                            <p className="text-sm font-bold leading-none">{user?.firstName} {user?.lastName}</p>
-                            <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] mt-1.5 opacity-80 leading-none italic">Root Administrator</p>
+                            <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
+                            <p className="text-[9px] font-black text-superadmin-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Root Administrator</p>
                         </div>
-                        <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-brand-primary transition-all">
-                            {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-500" />}
+                        <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-superadmin-primary transition-all p-0.5">
+                            <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
+                                {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
+                            </div>
                         </div>
                     </button>
 
@@ -93,32 +95,32 @@ const Header = ({ user, onLogout }) => {
                                     initial={{ opacity: 0, y: 15, scale: 0.95 }}
                                     animate={{ opacity: 1, y: 0, scale: 1 }}
                                     exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                                    className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-slate-900 border border-slate-800/60 shadow-2xl backdrop-blur-2xl"
+                                    className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-brand-surface border border-brand-border shadow-3xl backdrop-blur-2xl"
                                 >
-                                    <div className="px-5 py-4 border-b border-white/5 mb-2 text-center">
-                                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit">
+                                    <div className="px-5 py-4 border-b border-brand-border mb-2 text-center">
+                                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit italic">
                                             {user?.firstName} {user?.lastName}
                                         </p>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user?.email}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">{user?.email}</p>
                                     </div>
 
                                     <div className="space-y-1">
                                         <button
                                             onClick={handleSettings}
-                                            className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">
-                                            <User size={18} className="text-brand-primary" />
+                                            className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic">
+                                            <User size={18} className="text-superadmin-primary" />
                                             View Profile
                                         </button>
 
                                         <div className="p-1 mb-1">
-                                            <div className="h-px bg-white/5 w-full" />
+                                            <div className="h-px bg-brand-border w-full" />
                                         </div>
                                         <button
                                             onClick={onLogout}
-                                            className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-xs font-black uppercase tracking-widest group"
+                                            className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-[10px] font-black uppercase tracking-widest group italic"
                                         >
                                             <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                                            Log Out
+                                            Log Out Matrix
                                         </button>
                                     </div>
                                 </motion.div>

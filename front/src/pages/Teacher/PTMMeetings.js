@@ -172,9 +172,9 @@ const PTMMeetings = () => {
                     <div className="space-y-6">
                         <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 px-2 italic">Historical Archives (Recent Past)</h2>
                         {pastMeetings?.slice(0, 3).map((m, i) => (
-                            <div key={m._id} className="bg-slate-900/40 border border-slate-800 rounded-md p-6 border-l-2 border-slate-700 opacity-60 hover:opacity-100 transition-all group">
+                            <div key={m._id} className="bg-brand-surface/40 border border-brand-border rounded-md p-6 border-l-2 opacity-60 hover:opacity-100 transition-all group">
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">{new Date(m.date).toLocaleDateString()}</p>
-                                <h4 className="text-[11px] font-black uppercase tracking-wider mb-2 group-hover:text-brand-primary transition-all">{m.title}</h4>
+                                <h4 className="text-[11px] font-black uppercase tracking-wider mb-2 group-hover:text-teacher-primary transition-all">{m.title}</h4>
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">{m.studentId?.firstName} {m.studentId?.lastName}</p>
                             </div>
                         ))}
