@@ -233,11 +233,10 @@ function AppRoutes() {
           <Route path="behavior" element={<ChildBehavior />} />
           <Route path="meetings" element={<ChildMeetings />} />
           <Route path="announcements" element={<AnnouncementsStudent />} />
-          <Route path="messages" element={<MessagesStudent />} />
-          <Route path="holidays" element={<Holidays />} />
-          <Route path="profile" element={<ParentProfile />} />
           <Route path="notifications" element={<ParentNotifications />} />
           <Route path="messages" element={<ParentMessages />} />
+          <Route path="holidays" element={<Holidays />} />
+          <Route path="profile" element={<ParentProfile />} />
           <Route path="child-profile" element={<ChildProfile />} />
           <Route path="transport" element={<ChildTransport />} />
         </Route>

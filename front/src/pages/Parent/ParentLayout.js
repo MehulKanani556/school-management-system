@@ -118,8 +118,6 @@ const ParentLayout = () => {
         { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
         { icon: Sun, label: 'Holidays', path: '/parent/holidays' },
         { icon: User, label: 'Profile', path: '/parent/profile' },
-        { icon: Bell, label: 'Notifications', path: '/parent/notifications' },
-        { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
         { icon: Truck, label: 'Transport', path: '/parent/transport' },
     ];
 
@@ -262,23 +260,13 @@ const ParentLayout = () => {
                 </header>
 
                 <div className="p-6 lg:p-10 max-w-7xl mx-auto min-h-[calc(100vh-80px)]">
-                    <AnimatePresence mode="wait">
-                        <motion.div
-                            key={location.pathname}
-                            initial={{ opacity: 0, y: 15 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -15 }}
-                            transition={{ duration: 0.3 }}
-                        >
-                            {children.length > 0 && selectedChild ? <Outlet /> : (
-                                <div className="flex flex-col items-center justify-center h-full pt-40 opacity-50">
-                                    <Users size={64} className="text-slate-600 mb-6" />
-                                    <p className="font-black text-xl uppercase tracking-tighter">Initializing Guardian Sync...</p>
-                                    <p className="text-sm font-medium text-slate-500 mt-2">Connecting to student records</p>
-                                </div>
-                            )}
-                        </motion.div>
-                    </AnimatePresence>
+                    {children.length > 0 && selectedChild ? <Outlet /> : (
+                        <div className="flex flex-col items-center justify-center h-full pt-40 opacity-50">
+                            <Users size={64} className="text-slate-600 mb-6" />
+                            <p className="font-black text-xl uppercase tracking-tighter">Initializing Guardian Sync...</p>
+                            <p className="text-sm font-medium text-slate-500 mt-2">Connecting to student records</p>
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
