@@ -136,7 +136,9 @@ const TeacherLayout = () => {
             item.children?.some(child => isActive(child.path))
         );
         if (activeItem) setExpandedMenu(activeItem.label);
-    }, [location.pathname, location.search]);    return (
+    }, [location.pathname, location.search]);
+
+    return (
         <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
             {/* Sidebar - Terminal Aesthetic with Teacher Theme */}
             <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
@@ -244,7 +246,7 @@ const TeacherLayout = () => {
                         <div className="h-10 w-px bg-brand-border/60"></div>
 
                         <div className="flex items-center gap-4 relative">
-                            <button 
+                            <button
                                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
                             >

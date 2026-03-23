@@ -67,10 +67,12 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center justify-between mb-1.5">
-                                                <h4 className="text-[11px] font-black text-white uppercase tracking-widest truncate">{notif.title}</h4>
+                                                <h4 className="text-[11px] font-black text-white uppercase tracking-widest truncate">{String(notif.title || '')}</h4>
                                                 <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                                             </div>
-                                            <p className="text-[11px] text-slate-400 font-medium leading-relaxed mb-4">{notif.message}</p>
+                                            <p className="text-[11px] text-slate-400 font-medium leading-relaxed mb-4">
+                                                {typeof notif.message === 'object' ? JSON.stringify(notif.message) : String(notif.message || '')}
+                                            </p>
 
                                             <div className="flex items-center justify-between">
                                                 <div className="flex items-center gap-2">

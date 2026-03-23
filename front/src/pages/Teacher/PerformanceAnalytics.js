@@ -1,14 +1,15 @@
 import React, { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchPerformanceAnalytics } from '../../redux/slice/teacher.slice';
-import { 
-    BarChart, 
-    Bar, 
-    XAxis, 
-    YAxis, 
-    CartesianGrid, 
-    Tooltip, 
-    ResponsiveContainer, 
+import {
+    BarChart,
+    Bar,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    ResponsiveContainer,
     Cell,
     Radar,
     RadarChart,
@@ -22,37 +23,60 @@ import { TrendingUp, Award, Target, Activity, Users, BookOpen } from 'lucide-rea
 const PerformanceAnalytics = () => {
     const dispatch = useDispatch();
     const { analytics, loading } = useSelector(state => state.teacher);
+    
+    // Normalize data structure to handle potential nested responses safely
+    const dataArray = useMemo(() => {
+        const raw = Array.isArray(analytics) ? analytics : (analytics?.analytics || []);
+        console.log("Analytics Data Stream:", raw);
+        return raw;
+    }, [analytics]);
 
     useEffect(() => {
         dispatch(fetchPerformanceAnalytics());
     }, [dispatch]);
 
     const chartData = useMemo(() => {
-        if (!analytics || !analytics.length) return [];
-        return analytics.map(a => ({
-            name: a.subject,
-            avg: Number(a.averageScore.toFixed(1)),
-            max: a.maxScore,
-            min: a.minScore,
-            total: a.studentCount
+        if (!dataArray.length) return [];
+        return dataArray.map(a => ({
+            name: String(a.subject || 'Unknown Sector'),
+            avg: Number(Number(a.averageScore || 0).toFixed(1)),
+            max: Number(a.maxScore || 0),
+            min: Number(a.minScore || 0),
+            total: Number(a.studentCount || 0)
         }));
-    }, [analytics]);
+    }, [dataArray]);
 
     const stats = useMemo(() => {
-        if (!analytics || !analytics.length) return { top: 'N/A', lowest: 'N/A', overallAvg: 0 };
-        const sorted = [...analytics].sort((a,b) => b.averageScore - a.averageScore);
-        const overall = analytics.reduce((acc, curr) => acc + curr.averageScore, 0) / analytics.length;
+        if (!dataArray.length) return { top: 'N/A', lowest: 'N/A', overallAvg: '0' };
+        
+        const sorted = [...dataArray].sort((a, b) => (Number(b.averageScore) || 0) - (Number(a.averageScore) || 0));
+        const totalScore = dataArray.reduce((acc, curr) => acc + (Number(curr.averageScore) || 0), 0);
+        const overall = totalScore / dataArray.length;
+        
         return {
-            top: sorted[0].subject,
-            lowest: sorted[sorted.length-1].subject,
+            top: String(sorted[0]?.subject || 'N/A'),
+            lowest: String(sorted[sorted.length - 1]?.subject || 'N/A'),
             overallAvg: overall.toFixed(1)
         };
-    }, [analytics]);
+    }, [dataArray]);
 
     if (loading) return (
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
-            <Activity className="w-12 h-12 text-brand-primary animate-spin opacity-50" />
-            <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Computing Sector Analytics</p>
+            <Activity className="w-12 h-12 text-teacher-primary animate-spin opacity-50" />
+            <p className="text-slate-500 font-black uppercase tracking-widest text-[10px] animate-pulse italic">Synchronizing Neural Grid</p>
+        </div>
+    );
+
+    if (dataArray.length === 0) return (
+        <div className="h-[60vh] flex flex-col items-center justify-center gap-6 text-center">
+            <Target size={48} className="text-slate-700 opacity-20" />
+            <div className="space-y-3">
+                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-[10px] italic">No Analytic Pulse Detected</p>
+                <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed max-w-sm">
+                    Ensure marks have been submitted for your assigned subjects.<br/>
+                    Visit the <Link to="/teacher/marks" className="text-teacher-primary hover:underline">Mark Entry Terminal</Link> to initialize data.
+                </p>
+            </div>
         </div>
     );
 
@@ -60,8 +84,8 @@ const PerformanceAnalytics = () => {
         <div className="space-y-10 p-2">
             <header className="space-y-4">
                 <div className="flex items-center gap-3">
-                    <div className="h-[2px] w-12 bg-brand-primary rounded-md"></div>
-                    <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.5em] italic">Academic Intelligence</span>
+                    <div className="h-[2px] w-12 bg-teacher-primary rounded-md"></div>
+                    <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.5em] italic">Academic Intelligence Matrix</span>
                 </div>
                 <h1 className="text-4xl text-left font-black text-white uppercase italic tracking-tighter leading-none font-outfit">Performance Insights</h1>
                 <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Subject-wise scoring diagnostics across assigned sectors.</p>
@@ -70,10 +94,10 @@ const PerformanceAnalytics = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
                     { label: 'Top Performance', value: stats.top, icon: Award, color: 'text-luxury-emerald' },
-                    { label: 'Overall Average', value: `${stats.overallAvg}%`, icon: TrendingUp, color: 'text-brand-primary' },
+                    { label: 'Overall Average', value: `${stats.overallAvg}%`, icon: TrendingUp, color: 'text-teacher-primary' },
                     { label: 'Intervention Required', value: stats.lowest, icon: Target, color: 'text-luxury-rose' }
                 ].map((s, idx) => (
-                    <motion.div 
+                    <motion.div
                         key={idx}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
@@ -81,8 +105,8 @@ const PerformanceAnalytics = () => {
                         className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl shadow-2xl relative overflow-hidden group"
                     >
                         <s.icon className={`w-8 h-8 ${s.color} mb-6 opacity-50 group-hover:opacity-100 transition-all`} />
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 italic">{s.label}</p>
-                        <p className="text-2xl font-black text-white uppercase italic tracking-tighter">{s.value}</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 italic">{String(s.label || '')}</p>
+                        <p className="text-2xl font-black text-white uppercase italic tracking-tighter">{String(s.value || 'N/A')}</p>
                     </motion.div>
                 ))}
             </div>
@@ -98,7 +122,7 @@ const PerformanceAnalytics = () => {
                                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                                 <XAxis dataKey="name" stroke="#64748b" fontSize={10} fontWeight={900} tickLine={false} axisLine={false} />
                                 <YAxis stroke="#64748b" fontSize={10} fontWeight={900} tickLine={false} axisLine={false} />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
                                     itemStyle={{ color: '#fff', fontSize: '10px', fontWeight: '900', textTransform: 'uppercase' }}
                                 />
@@ -122,14 +146,14 @@ const PerformanceAnalytics = () => {
                                 <PolarGrid stroke="#1e293b" />
                                 <PolarAngleAxis dataKey="name" tick={{ fill: '#64748b', fontSize: 10, fontWeight: 900 }} />
                                 <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#64748b', fontSize: 8 }} />
-                                <Radar 
-                                    name="Score" 
-                                    dataKey="avg" 
-                                    stroke="#3b82f6" 
-                                    fill="#3b82f6" 
-                                    fillOpacity={0.4} 
+                                <Radar
+                                    name="Score"
+                                    dataKey="avg"
+                                    stroke="#3b82f6"
+                                    fill="#3b82f6"
+                                    fillOpacity={0.4}
                                 />
-                                <Tooltip 
+                                <Tooltip
                                     contentStyle={{ background: '#0f172a', border: '1px solid #1e293b', borderRadius: '8px' }}
                                 />
                             </RadarChart>
