@@ -1,9 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Outlet } from 'react-router-dom';
-import toast from 'react-hot-toast';
 import { logout } from '../../redux/slice/auth.slice';
-
 import Header from './Header';
 import Sidebar from './Sidebar';
 
@@ -16,20 +14,20 @@ const SuperAdminDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-brand-background text-slate-100 flex flex-col font-inter antialiased">
-            <main className="flex-1 w-full flex flex-col lg:flex-row relative z-10">
-                <div className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0 h-screen">
-                    <Sidebar />
-                </div>
+        <div className="h-screen bg-slate-900 text-slate-100 flex font-inter antialiased overflow-hidden">
+            {/* Sidebar */}
+            <Sidebar />
 
-                <div className="flex-1 min-w-0">
-                    <Header user={user} onLogout={handleLogout} />
+            {/* Main Content Area */}
+            <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+                {/* Header - Stays at top */}
+                <Header user={user} onLogout={handleLogout} />
 
-                    <div className="p-8">
-                        <Outlet />
-                    </div>
-                </div>
-            </main>
+                {/* This section scrolls */}
+                <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+                    <Outlet />
+                </main>
+            </div>
         </div>
     );
 };

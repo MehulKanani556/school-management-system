@@ -1,276 +1,283 @@
-import React, { useEffect, useState } from 'react';
-import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    LayoutDashboard, 
-    Calendar, 
-    ClipboardList, 
-    CreditCard, 
-    Clock, 
-    Bell, 
-    MessageSquare, 
-    User, 
-    LogOut, 
-    Menu, 
-    X,
-    Shield,
-    ChevronDown,
-    Users,
-    ChevronRight,
-    Trophy,
-    BookOpen,
-    FileText,
-    Megaphone,
-    Sun,
-    Trophy as TrophyIcon,
-    Truck
+import { logout } from '../../redux/slice/auth.slice';
+import {
+  LayoutDashboard, BookOpen, CalendarCheck, ClipboardList,
+  MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
+  LogOut, ChevronDown, ChevronRight, User, GraduationCap, Users, 
+  Globe, CalendarDays, CreditCard, Brain
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { fetchMyChildren, setSelectedChild } from '../../redux/slice/parent.slice';
-import { logout } from '../../redux/slice/auth.slice';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const SidebarLink = ({ item, location }) => {
-    const isActive = location.pathname === item.path;
-    return (
-        <Link
-            to={item.path}
-            className={`flex items-center gap-3 px-4 py-3.5 rounded-md transition-all duration-300 group relative ${
-                isActive 
-                ? 'bg-luxury-rose text-white shadow-lg shadow-luxury-rose/20' 
-                : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
-            }`}
-        >
-            <item.icon size={20} className={isActive ? 'text-white' : 'group-hover:text-luxury-rose transition-colors'} />
-            <span className="font-bold text-[11px] uppercase tracking-[0.2em]">{item.label}</span>
-            {isActive && (
-                <motion.div layoutId="activeNav" className="absolute right-2 w-1.5 h-1.5 rounded-full bg-white" />
-            )}
-        </Link>
-    );
-};
+const navItems = [
+  { to: '/parent', icon: LayoutDashboard, label: 'Observer Deck', end: true },
+  {
+    label: 'Ward Performance',
+    icon: GraduationCap,
+    children: [
+      { to: '/parent/attendance', icon: CalendarCheck, label: 'Presence Log' },
+      { to: '/parent/results', icon: Brain, label: 'Neural Results' },
+      { to: '/parent/timetable', icon: Clock, label: 'Temporal Grid' },
+    ]
+  },
+  {
+    label: 'Institutional Intel',
+    icon: Globe,
+    children: [
+      { to: '/parent/holidays', icon: CalendarDays, label: 'Global Breaks' },
+      { to: '/parent/notices', icon: Globe, label: 'Pulse Notices' },
+    ]
+  },
+  { to: '/parent/fees', icon: CreditCard, label: 'Fiscal Ledger' },
+  { to: '/parent/messages', icon: MessageSquare, label: 'Direct Comm' },
+];
 
 const ParentLayout = () => {
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isChildSwitcherOpen, setIsChildSwitcherOpen] = useState(false);
-    const [isNotifOpen, setIsNotifOpen] = useState(false);
-    
-    const location = useLocation();
-    const navigate = useNavigate();
-    const dispatch = useDispatch();
-    const { socket } = useSocket();
-    
-    const { user } = useSelector(state => state.auth);
-    const { children, selectedChild, loading } = useSelector(state => state.parent);
-    const { unreadCount: notifCount } = useSelector(state => state.notifications);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
+  const { unreadCount: notifCount } = useSelector((state) => state.notifications);
+  const { socket } = useSocket();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [expanded, setExpanded] = useState(null);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-    useEffect(() => {
-        if (children.length === 0) {
-            dispatch(fetchMyChildren());
+  useEffect(() => {
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('new_notification', (notif) => {
+      dispatch(receiveNotification(notif));
+      toast.success(`Guardian Intel: ${notif.title}`, {
+        icon: '🛡️',
+        style: {
+          borderRadius: '1.5rem',
+          background: '#0f172a',
+          color: '#fff',
+          border: '1px solid #1e293b',
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          fontSize: '11px'
         }
-        dispatch(fetchNotifications());
-    }, [dispatch, children.length]);
+      });
+    });
+    return () => socket.off('new_notification');
+  }, [socket, dispatch]);
 
-    useEffect(() => {
-        if (!socket) return;
-        
-        socket.on('new_notification', (notif) => {
-            dispatch(receiveNotification(notif));
-            toast.success(`Institutional Alert: ${notif.title}`, {
-                icon: '🔔',
-                style: {
-                    borderRadius: '0.5rem',
-                    background: '#0f172a',
-                    color: '#fff',
-                    border: '1px solid #f43f5e',
-                    fontWeight: 900,
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.1em',
-                    fontSize: '10px'
-                }
-            });
-        });
-
-        return () => socket.off('new_notification');
-    }, [socket, dispatch]);
-
-    const handleLogout = () => {
-        dispatch(logout());
-        navigate('/login');
-    };
-
-    const navItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/parent' },
-        { icon: Clock, label: 'Attendance', path: '/parent/attendance' },
-        { icon: Trophy, label: 'Academics', path: '/parent/results' },
-        { icon: FileText, label: 'Assignments', path: '/parent/assignments' },
-        { icon: Clock, label: 'Timetable', path: '/parent/timetable' },
-        { icon: CreditCard, label: 'Financial Ledger', path: '/parent/fees' },
-        { icon: Shield, label: 'Conduct Registry', path: '/parent/behavior' },
-        { icon: Calendar, label: 'PTM Protocols', path: '/parent/meetings' },
-        { icon: Bell, label: 'Notifications', path: '/parent/notifications' },
-        { icon: Calendar, label: 'Exams', path: '/parent/exams' },
-        { icon: Megaphone, label: 'Announcements', path: '/parent/announcements' },
-        { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
-        { icon: Sun, label: 'Holidays', path: '/parent/holidays' },
-        { icon: User, label: 'Profile', path: '/parent/profile' },
-        { icon: Truck, label: 'Transport', path: '/parent/transport' },
-    ];
-
-    return (
-        <div className="min-h-screen bg-brand-background text-white font-inter flex">
-            {/* Sidebar */}
-            <aside className={`fixed inset-y-0 left-0 z-50 bg-brand-surface/40 backdrop-blur-3xl border-r border-brand-border/40 transition-all duration-500 ${isSidebarOpen ? 'w-80' : 'w-24'} hidden lg:block`}>
-                <div className="flex flex-col h-full p-6">
-                    {/* Header/Logo */}
-                    <div className="flex items-center gap-4 mb-12 px-2">
-                        <div className="w-12 h-12 rounded-md bg-gradient-to-br from-luxury-rose to-rose-400 flex items-center justify-center shadow-2xl">
-                            <Users className="text-white w-6 h-6" />
-                        </div>
-                        {isSidebarOpen && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col">
-                                <span className="font-black text-xl tracking-tighter uppercase font-outfit leading-none">Parent</span>
-                                <span className="text-[9px] font-black text-luxury-rose uppercase tracking-[0.3em]">Guardian Portal</span>
-                            </motion.div>
-                        )}
-                    </div>
-
-                    {/* Child Switcher */}
-                    {isSidebarOpen && children.length > 0 && (
-                        <div className="mb-10 px-2 relative">
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 ml-1">Observing Student</p>
-                            <button 
-                                onClick={() => setIsChildSwitcherOpen(!isChildSwitcherOpen)}
-                                className="w-full bg-slate-900/50 border border-slate-800 rounded-md p-3 flex items-center justify-between group hover:border-luxury-rose/50 transition-all"
-                            >
-                                <div className="flex items-center gap-3 text-left">
-                                    <div className="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center border border-slate-700">
-                                        {selectedChild?.photo ? (
-                                            <img src={selectedChild.photo} alt="" className="w-full h-full object-cover rounded-md" />
-                                        ) : <User className="text-slate-500 w-5 h-5" />}
-                                    </div>
-                                    <div>
-                                        <p className="font-black text-[11px] uppercase leading-tight">{selectedChild?.firstName} {selectedChild?.lastName}</p>
-                                        <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">{selectedChild?.admissionNumber}</p>
-                                    </div>
-                                </div>
-                                <ChevronDown size={14} className={`text-slate-500 transition-transform ${isChildSwitcherOpen ? 'rotate-180' : ''}`} />
-                            </button>
-
-                            <AnimatePresence>
-                                {isChildSwitcherOpen && (
-                                    <motion.div 
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        className="absolute top-full left-2 right-2 mt-2 bg-slate-900 border border-slate-800 rounded-md shadow-2xl z-[60] overflow-hidden"
-                                    >
-                                        {children.map(child => (
-                                            <button
-                                                key={child._id}
-                                                onClick={() => {
-                                                    dispatch(setSelectedChild(child));
-                                                    setIsChildSwitcherOpen(false);
-                                                }}
-                                                className={`w-full p-4 flex items-center gap-4 hover:bg-slate-800 transition-colors border-b border-slate-800 last:border-0 ${selectedChild?._id === child._id ? 'bg-luxury-rose/10' : ''}`}
-                                            >
-                                                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center overflow-hidden border border-slate-700">
-                                                    {child.photo ? (
-                                                       <img src={child.photo} alt="" className="w-full h-full object-cover" /> 
-                                                    ) : <User size={14} className="text-slate-500" />}
-                                                </div>
-                                                <div className="text-left">
-                                                    <p className={`font-black text-[10px] uppercase ${selectedChild?._id === child._id ? 'text-luxury-rose' : ''}`}>{child.firstName} {child.lastName}</p>
-                                                    <p className="text-[9px] text-slate-500 uppercase tracking-widest">{child.standard?.name}</p>
-                                                </div>
-                                            </button>
-                                        ))}
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    )}
-
-                    {/* Navigation */}
-                    <nav className="flex-1 space-y-2">
-                        {navItems.map((item, idx) => (
-                            <SidebarLink key={idx} item={item} location={location} />
-                        ))}
-                    </nav>
-
-                    {/* Footer */}
-                    <div className="border-t border-brand-border/40 pt-6 mt-6">
-                        <button
-                            onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-4 rounded-md text-slate-400 hover:bg-luxury-rose/10 hover:text-luxury-rose transition-all group"
-                        >
-                            <LogOut size={20} className="group-hover:rotate-12 transition-transform" />
-                            <span className="font-black text-[11px] uppercase tracking-[0.3em]">Sign Out</span>
-                        </button>
-                    </div>
-                </div>
-            </aside>
-
-            {/* Main Content */}
-            <main className={`flex-1 transition-all duration-500 ${isSidebarOpen ? 'lg:ml-80' : 'lg:ml-24'}`}>
-                {/* Topbar */}
-                <header className="sticky top-0 z-40 bg-brand-background/80 backdrop-blur-xl border-b border-brand-border/40 px-6 py-4">
-                    <div className="flex items-center justify-between max-w-7xl mx-auto">
-                        <div className="flex items-center gap-6">
-                            <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="p-2 hover:bg-slate-800 rounded-md transition-colors hidden lg:block">
-                                <Menu size={20} />
-                            </button>
-                            <h2 className="text-xl font-black uppercase tracking-tighter">
-                                {navItems.find(i => location.pathname === i.path)?.label || 'Guardian Terminal'}
-                            </h2>
-                        </div>
-                        
-                        <div className="flex items-center gap-6">
-                            {/* Notification Dropdown */}
-                            <div className="relative">
-                                <button
-                                    onClick={() => setIsNotifOpen(!isNotifOpen)}
-                                    className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-luxury-rose text-white border-luxury-rose shadow-xl scale-105' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-luxury-rose'}`}
-                                >
-                                    <Bell size={20} />
-                                    {notifCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-luxury-rose rounded-full border border-slate-900 animate-pulse"></span>}
-                                </button>
-                                <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
-                            </div>
-
-                            <div className="h-8 w-px bg-slate-800/60 hidden md:block"></div>
-
-                            <div className="flex items-center gap-4">
-                                <div className="hidden md:flex flex-col items-end">
-                                    <span className="font-black text-[11px] uppercase tracking-wider">{user?.firstName} {user?.lastName}</span>
-                                    <span className="text-[9px] font-black text-luxury-rose uppercase tracking-[0.3em] opacity-80 leading-none mt-1">Guardian 00{user?._id.toString().slice(-3)}</span>
-                                </div>
-                                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shadow-xl shadow-black/40">
-                                    {user?.photo ? (
-                                        <img src={user.photo} alt="Parent Profile" className="w-full h-full object-cover" />
-                                    ) : <User className="text-slate-500" size={20} />}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </header>
-
-                <div className="p-6 lg:p-10 max-w-7xl mx-auto min-h-[calc(100vh-80px)]">
-                    {children.length > 0 && selectedChild ? <Outlet /> : (
-                        <div className="flex flex-col items-center justify-center h-full pt-40 opacity-50">
-                            <Users size={64} className="text-slate-600 mb-6" />
-                            <p className="font-black text-xl uppercase tracking-tighter">Initializing Guardian Sync...</p>
-                            <p className="text-sm font-medium text-slate-500 mt-2">Connecting to student records</p>
-                        </div>
-                    )}
-                </div>
-            </main>
-        </div>
+  useEffect(() => {
+    const activeParent = navItems.find(item =>
+      item.children?.some(child => location.pathname === child.to)
     );
+    if (activeParent) setExpanded(activeParent.label);
+  }, [location.pathname]);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    navigate('/login');
+  };
+
+  const handleSettings = () => {
+    navigate('/parent/profile');
+    setShowProfileMenu(false);
+  };
+
+  const toggleSubmenu = (label) => {
+    setExpanded(expanded === label ? null : label);
+  };
+
+  const isActive = (path) => location.pathname === path;
+
+  return (
+    <div className="h-screen bg-slate-900 text-slate-100 flex font-inter antialiased overflow-hidden">
+      {/* Sidebar - Terminal Aesthetic */}
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
+        <div className="p-8 flex-shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">GD</div>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none">Guardian <span className="text-brand-primary">Node</span></span>
+          </div>
+        </div>
+
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+          {navItems.map((item) => {
+            const hasChildren = !!item.children;
+            const isExpanded = expanded === item.label;
+            const Icon = item.icon;
+
+            if (!hasChildren) {
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
+                >
+                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+                  {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={item.label} className="space-y-1">
+                <button
+                  onClick={() => toggleSubmenu(item.label)}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-slate-800/40 text-slate-100' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
+                >
+                  <Icon size={18} className={isExpanded ? 'text-brand-primary' : 'group-hover:text-brand-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'opacity-40'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden pl-4 space-y-1"
+                    >
+                      {item.children.map((child) => {
+                        const ChildIcon = child.icon;
+                        const childActive = isActive(child.to);
+                        return (
+                          <Link
+                            key={child.to}
+                            to={child.to}
+                            onClick={() => setSidebarOpen(false)}
+                            className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-brand-primary bg-brand-primary/10' : 'text-slate-500 hover:text-slate-300'}`}
+                          >
+                            <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-brand-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                            <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                          </Link>
+                        );
+                      })}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </nav>
+
+        <div className="p-6 flex-shrink-0">
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group font-outfit">
+            <LogOut size={20} />
+            <span className="text-[12px] font-black uppercase tracking-[0.15em]">Shutdown</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Header */}
+        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/40 z-10 w-full transition-all">
+          <div className="flex items-center gap-4 text-slate-500">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-slate-800 transition-colors">
+              <Menu size={20} />
+            </button>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-md border border-slate-700/50 hidden sm:block leading-none">Guardian Observer</span>
+            <ChevronRight size={14} className="hidden sm:block" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Parent Terminal</span>
+          </div>
+
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <button
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+              >
+                <Bell size={18} />
+                {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
+              </button>
+              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            </div>
+
+            <div className="h-10 w-px bg-slate-800/60"></div>
+
+            <div className="flex items-center gap-4 relative">
+              <button 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+              >
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold leading-none">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] mt-1.5 opacity-80 leading-none italic">Guardian Overseer</p>
+                </div>
+                <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-brand-primary transition-all">
+                  {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-500" />}
+                </div>
+              </button>
+
+              <AnimatePresence>
+                {showProfileMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                      className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-slate-900 border border-slate-800/60 shadow-2xl backdrop-blur-2xl"
+                    >
+                      <div className="px-5 py-4 border-b border-white/5 mb-2 text-center">
+                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user?.email}</p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <button
+                          onClick={handleSettings}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">
+                          <User size={18} className="text-brand-primary" />
+                          View Profile
+                        </button>
+
+                        <div className="p-1 mb-1">
+                          <div className="h-px bg-white/5 w-full" />
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-xs font-black uppercase tracking-widest group"
+                        >
+                          <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
+                          Log Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </header>
+
+        {/* This section scrolls */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
+          <Outlet />
+        </main>
+      </div>
+
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
+      )}
+    </div>
+  );
 };
 
 export default ParentLayout;

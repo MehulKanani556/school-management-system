@@ -1,70 +1,72 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout, UserPlus, PhoneIncoming
+  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout, UserPlus, PhoneIncoming, Bell
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import MainHeader from '../../components/MainHeader';
-import { resetUnreadCount } from '../../redux/slice/communication.slice';
+import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
+import { useSocket } from '../../context/SocketContext';
+import NotificationPanel from '../../components/NotificationPanel';
+import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/school-admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  { to: '/school-admin', icon: LayoutDashboard, label: 'Control Center', end: true },
   {
-    label: 'Academic',
+    label: 'Academic Node',
     icon: GraduationCap,
     children: [
-      { to: '/school-admin/students', icon: Users, label: 'Students' },
-      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teachers' },
-      { to: '/school-admin/classes', icon: BookOpen, label: 'Classes' },
-      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subjects' },
-      { to: '/school-admin/timetable', icon: Clock, label: 'Timetable' },
-      { to: '/school-admin/academic-years', icon: Calendar, label: 'Academic Sessions' },
+      { to: '/school-admin/students', icon: Users, label: 'Student Registry' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
+      { to: '/school-admin/classes', icon: BookOpen, label: 'Class Matrix' },
+      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Nodes' },
+      { to: '/school-admin/timetable', icon: Clock, label: 'Temporal Grid' },
+      { to: '/school-admin/academic-years', icon: Calendar, label: 'Session Cycles' },
     ]
   },
   {
     label: 'Admissions',
     icon: PhoneIncoming,
     children: [
-      { to: '/school-admin/admissions', icon: UserPlus, label: 'Admission Terminal' },
+      { to: '/school-admin/admissions', icon: UserPlus, label: 'Enrolment Pipeline' },
     ]
   },
   {
-    label: 'Exams & Attendance',
+    label: 'Registry & Intel',
     icon: ClipboardList,
     children: [
-      { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Registry' },
-      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Attendance Intel' },
-      { to: '/school-admin/exams', icon: ClipboardList, label: 'Exam Center' },
-      { to: '/school-admin/holidays', icon: Calendar, label: 'Academic Calendar' },
+      { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance Log' },
+      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Attendance' },
+      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Matrix' },
+      { to: '/school-admin/holidays', icon: Calendar, label: 'Institutional Breaks' },
     ]
   },
   {
-    label: 'Financials',
+    label: 'Fiscal Matrix',
     icon: CreditCard,
     children: [
-      { to: '/school-admin/fees', icon: CreditCard, label: 'Fee Management' },
-      { to: '/school-admin/payroll', icon: Banknote, label: 'Payroll' },
+      { to: '/school-admin/fees', icon: CreditCard, label: 'Revenue Streams' },
+      { to: '/school-admin/payroll', icon: Banknote, label: 'Staff Payroll' },
     ]
   },
   {
-    label: 'Staff Management',
+    label: 'Staff Core',
     icon: Rocket,
     children: [
-      { to: '/school-admin/staff', icon: Users, label: 'Staff Registry' },
+      { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
-      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Reviews' },
+      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
     ]
   },
   {
-    label: 'Communication',
+    label: 'Neural Link',
     icon: MessageSquare,
     children: [
-      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Announcements' },
+      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Pulse Broadcast' },
       { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
       { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
     ]
@@ -77,12 +79,39 @@ const SchoolAdminLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
-  const { unreadCount } = useSelector((state) => state.communication);
+  const { unreadCount: notifCount } = useSelector((state) => state.notifications);
+  const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);
+  const [isNotifOpen, setIsNotifOpen] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   useEffect(() => {
-    // Auto-expand menu based on current path + search
+    dispatch(fetchNotifications());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (!socket) return;
+    socket.on('new_notification', (notif) => {
+      dispatch(receiveNotification(notif));
+      toast.success(`Admin Alert: ${notif.title}`, {
+        icon: '⚡',
+        style: {
+          borderRadius: '1.5rem',
+          background: '#0f172a',
+          color: '#fff',
+          border: '1px solid #1e293b',
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          fontSize: '11px'
+        }
+      });
+    });
+    return () => socket.off('new_notification');
+  }, [socket, dispatch]);
+
+  useEffect(() => {
     const activeParent = navItems.find(item =>
       item.children?.some(child => 
         location.pathname + location.search === child.to || 
@@ -97,30 +126,34 @@ const SchoolAdminLayout = () => {
     navigate('/login');
   };
 
+  const handleSettings = () => {
+    navigate('/school-admin/profile');
+    setShowProfileMenu(false);
+  };
+
   const toggleSubmenu = (label) => {
     setExpanded(expanded === label ? null : label);
   };
 
+  const isActive = (path) => {
+    if (path.includes('?')) {
+        return location.pathname + location.search === path;
+    }
+    return location.pathname === path;
+  };
+
   return (
-    <div className="h-screen overflow-hidden bg-brand-background text-white flex font-inter">
+    <div className="h-screen bg-slate-900 text-slate-100 flex font-inter antialiased overflow-hidden">
       {/* Sidebar */}
-      <aside className={`no-print fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface/80 backdrop-blur-2xl border-r border-brand-border/40 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-2xl shadow-black/40`}>
-        {/* Logo */}
-        <div className="px-7 py-8 flex items-center justify-between border-b border-brand-border/30">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-slate-900 border-r border-slate-800/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
+        <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-lg italic shadow-lg">SM</div>
-            <div>
-              <p className="font-black text-sm uppercase tracking-widest font-outfit">School Admin</p>
-              <p className="text-[10px] text-slate-500 font-bold tracking-wider uppercase">Management Panel</p>
-            </div>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SA</div>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none">Admin <span className="text-brand-primary">Node</span></span>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white transition-colors">
-            <X size={20} />
-          </button>
         </div>
 
-        {/* Nav */}
-        <nav className="flex-1 px-4 py-5 space-y-1 overflow-y-auto custom-scrollbar">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -128,28 +161,16 @@ const SchoolAdminLayout = () => {
 
             if (!hasChildren) {
               return (
-                <NavLink
+                <Link
                   key={item.to}
                   to={item.to}
-                  end={item.end}
                   onClick={() => setSidebarOpen(false)}
-                  className={({ isActive }) =>
-                    `flex items-center gap-4 px-5 py-3.5 rounded-md transition-all duration-300 group ${isActive
-                      ? 'bg-brand-primary text-white shadow-[0_8px_25px_-10px_rgba(37,99,235,0.6)]'
-                      : 'text-slate-500 hover:bg-slate-800/40 hover:text-white'
-                    }`
-                  }
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
                 >
-                  {({ isActive }) => (
-                    <>
-                      <div className={`p-2 rounded-md transition-all duration-300 ${isActive ? 'bg-white/10' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
-                        <Icon size={18} />
-                      </div>
-                      <span className="font-black text-sm uppercase tracking-wider font-outfit flex-1">{item.label}</span>
-                      <ChevronRight size={14} className={`transition-all duration-300 ${isActive ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2 group-hover:opacity-60 group-hover:translate-x-0'}`} />
-                    </>
-                  )}
-                </NavLink>
+                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
+                  {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
+                </Link>
               );
             }
 
@@ -157,13 +178,10 @@ const SchoolAdminLayout = () => {
               <div key={item.label} className="space-y-1">
                 <button
                   onClick={() => toggleSubmenu(item.label)}
-                  className={`w-full flex items-center gap-4 px-5 py-3.5 rounded-md transition-all duration-300 group ${isExpanded ? 'text-white' : 'text-slate-500 hover:text-white hover:bg-slate-800/40'
-                    }`}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-slate-800/40 text-slate-100' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
                 >
-                  <div className={`p-2 rounded-md transition-all duration-300 ${isExpanded ? 'bg-brand-primary/20 text-brand-primary' : 'bg-transparent group-hover:bg-brand-primary/10'}`}>
-                    <Icon size={18} />
-                  </div>
-                  <span className="font-black text-sm uppercase tracking-wider font-outfit text-left flex-1">{item.label}</span>
+                  <Icon size={18} className={isExpanded ? 'text-brand-primary' : 'group-hover:text-brand-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
                   <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-brand-primary' : 'opacity-40'}`} />
                 </button>
 
@@ -177,32 +195,17 @@ const SchoolAdminLayout = () => {
                     >
                       {item.children.map((child) => {
                         const ChildIcon = child.icon;
+                        const childActive = isActive(child.to);
                         return (
-                          <NavLink
+                          <Link
                             key={child.to}
                             to={child.to}
                             onClick={() => setSidebarOpen(false)}
-                            className={({ isActive }) => {
-                              const active = child.to.includes('?') 
-                                ? (location.pathname + location.search === child.to)
-                                : isActive;
-                              
-                              return `flex items-center gap-3 px-5 py-3 rounded-md transition-all duration-300 group ${active ? 'text-brand-primary bg-brand-primary/10 font-bold' : 'text-slate-500 hover:text-slate-300'
-                              }`;
-                            }}
+                            className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-brand-primary bg-brand-primary/10' : 'text-slate-500 hover:text-slate-300'}`}
                           >
-                            {({ isActive }) => {
-                              const active = child.to.includes('?') 
-                                ? (location.pathname + location.search === child.to)
-                                : isActive;
-                              return (
-                                <>
-                                  <ChildIcon size={16} className={`transition-opacity ${active ? 'opacity-100 text-brand-primary' : 'opacity-60 group-hover:opacity-100'}`} />
-                                  <span className="font-black text-[11px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
-                                </>
-                              );
-                            }}
-                          </NavLink>
+                            <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-brand-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                            <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                          </Link>
                         );
                       })}
                     </motion.div>
@@ -213,42 +216,111 @@ const SchoolAdminLayout = () => {
           })}
         </nav>
 
-        {/* User Info */}
-        <div className="px-4 py-6 border-t border-brand-border/30 bg-brand-surface/20 backdrop-blur-sm">
-          <div className="flex items-center gap-3 px-4 py-3 bg-slate-900/60 rounded-md border border-white/5 shadow-inner">
-            {user?.photo ? (
-              <img src={user.photo} alt="avatar" className="w-10 h-10 rounded-md object-cover ring-2 ring-brand-primary/20" />
-            ) : (
-              <div className="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center border border-white/10 shadow-lg">
-                <User size={18} className="text-slate-400" />
-              </div>
-            )}
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-white truncate font-outfit uppercase tracking-tighter">{user?.firstName} {user?.lastName}</p>
-              <p className="text-[9px] text-brand-accent font-black uppercase tracking-[0.2em] opacity-80 leading-tight">Administrator</p>
-            </div>
-            <button onClick={handleLogout} className="p-2.5 rounded-md hover:bg-luxury-rose/10 text-slate-500 hover:text-luxury-rose transition-all group active:scale-90">
-              <LogOut size={16} className="group-hover:-rotate-12 transition-transform" />
-            </button>
-          </div>
+        <div className="p-6 flex-shrink-0">
+          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group font-outfit">
+            <LogOut size={20} />
+            <span className="text-[12px] font-black uppercase tracking-[0.15em]">Shutdown</span>
+          </button>
         </div>
       </aside>
 
-      {/* Overlay */}
-      {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
-      )}
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+        {/* Header - Stays at top */}
+        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-slate-900/60 backdrop-blur-xl border-b border-slate-800/40 z-10 w-full transition-all">
+          <div className="flex items-center gap-4 text-slate-500">
+            <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-slate-800 transition-colors">
+              <Menu size={20} />
+            </button>
+            <span className="text-[10px] font-black uppercase tracking-widest bg-slate-800 px-3 py-1 rounded-md border border-slate-700/50 hidden sm:block leading-none">Central Intelligence</span>
+            <ChevronRight size={14} className="hidden sm:block" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">Admin Terminal</span>
+          </div>
 
-      {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 lg:pl-72 transition-all duration-300">
+          <div className="flex items-center gap-6">
+            <div className="relative">
+              <button
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-brand-primary text-white border-brand-primary shadow-xl scale-110' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-brand-primary'}`}
+              >
+                <Bell size={18} />
+                {notifCount > 0 && <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-brand-primary rounded-md border-2 border-slate-900 animate-pulse"></span>}
+              </button>
+              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
+            </div>
 
-        {/* Main Header */}
-        <MainHeader onMenuClick={() => setSidebarOpen(true)} />
+            <div className="h-10 w-px bg-slate-800/60"></div>
 
-        <main className="flex-1 p-4 lg:p-4 overflow-auto">
+            <div className="flex items-center gap-4 relative">
+              <button 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center gap-4 hover:opacity-80 transition-opacity"
+              >
+                <div className="text-right hidden sm:block">
+                  <p className="text-sm font-bold leading-none">{user?.firstName} {user?.lastName}</p>
+                  <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] mt-1.5 opacity-80 leading-none italic">Institutional Provost</p>
+                </div>
+                <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-brand-primary transition-all">
+                  {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-500" />}
+                </div>
+              </button>
+
+              <AnimatePresence>
+                {showProfileMenu && (
+                  <>
+                    <div
+                      className="fixed inset-0 z-10"
+                      onClick={() => setShowProfileMenu(false)}
+                    />
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                      className="absolute right-0 top-[calc(100%+12px)] z-20 w-64 p-3 rounded-md bg-slate-900 border border-slate-800/60 shadow-2xl backdrop-blur-2xl"
+                    >
+                      <div className="px-5 py-4 border-b border-white/5 mb-2 text-center">
+                        <p className="text-sm font-black uppercase text-white tracking-widest leading-none mb-1 font-outfit">
+                          {user?.firstName} {user?.lastName}
+                        </p>
+                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">{user?.email}</p>
+                      </div>
+
+                      <div className="space-y-1">
+                        <button
+                          onClick={handleSettings}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-xs font-black uppercase tracking-widest">
+                          <User size={18} className="text-brand-primary" />
+                          View Profile
+                        </button>
+
+                        <div className="p-1 mb-1">
+                          <div className="h-px bg-white/5 w-full" />
+                        </div>
+                        <button
+                          onClick={handleLogout}
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-xs font-black uppercase tracking-widest group"
+                        >
+                          <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
+                          Log Out
+                        </button>
+                      </div>
+                    </motion.div>
+                  </>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </header>
+
+        {/* This section scrolls */}
+        <main className="flex-1 overflow-y-auto p-4 lg:p-8 custom-scrollbar">
           <Outlet />
         </main>
       </div>
+
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden transition-all duration-300" onClick={() => setSidebarOpen(false)} />
+      )}
     </div>
   );
 };

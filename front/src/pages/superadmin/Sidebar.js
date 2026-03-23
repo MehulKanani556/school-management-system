@@ -1,61 +1,56 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Globe, DollarSign, ShieldCheck, ArrowUpRight, Activity, Menu, Settings } from 'lucide-react';
+import { NavLink, Link, useLocation } from 'react-router-dom';
+import { LayoutDashboard, Globe, DollarSign, ShieldCheck, ArrowUpRight, Activity, Menu, Settings, LogOut, ChevronRight } from 'lucide-react';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../redux/slice/auth.slice';
 
 const Sidebar = () => {
+    const dispatch = useDispatch();
+    const location = useLocation();
+
     const menuItems = [
         { icon: LayoutDashboard, label: 'Control Center', path: '/superadmin/dashboard' },
         { icon: Globe, label: 'Institution Nodes', path: '/superadmin/schools' },
-        { icon: Activity, label: 'Performance Analytics', path: '/superadmin/analytics' },
+        { icon: Activity, label: 'Global Analytics', path: '/superadmin/analytics' },
         { icon: DollarSign, label: 'Gross Revenue', path: '/superadmin/revenue' },
-        { icon: ShieldCheck, label: 'Security & Audit Logs', path: '/superadmin/security' },
-        { icon: Settings, label: 'System Settings', path: '/superadmin/settings' },
+        { icon: ShieldCheck, label: 'Security & Audit', path: '/superadmin/security' },
+        { icon: Settings, label: 'System Config', path: '/superadmin/settings' },
     ];
 
+    const handleLogout = () => {
+        dispatch(logout());
+    };
+
+    const isActive = (path) => location.pathname === path;
+
     return (
-        <aside className="bg-brand-surface h-full flex flex-col pt-0 p-4 border-r border-brand-border shadow-2xl">
-            <div className="flex items-center gap-4 h-[75px]">
-                <button className="lg:hidden p-2 text-slate-400 hover:bg-brand-background rounded-md transition-colors">
-                    <Menu size={20} />
-                </button>
-                <div className="flex items-center gap-3 px-2">
-                    <div className="w-9 h-9 rounded-md bg-brand-primary flex items-center justify-center font-bold tracking-tight text-white shadow-lg">SM</div>
-                    <div className="flex flex-col">
-                        <span className="text-sm font-bold text-slate-100 tracking-tight font-inter leading-none">School Management</span>
-                        <span className="text-[11px] font-medium text-slate-400 mt-1 leading-none tracking-wide">Administrator Portal</span>
-                    </div>
+        <aside className="hidden lg:flex w-72 flex-col bg-slate-900 border-r border-slate-800/60 sticky top-0 h-screen z-20">
+            <div className="p-8">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SA</div>
+                    <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none">Super <span className="text-brand-primary">Admin</span></span>
                 </div>
             </div>
 
-            <nav className="flex-1 space-y-1 mt-4">
-                {menuItems.map((item, idx) => (
-                    <NavLink
-                        key={idx}
+            <nav className="flex-1 px-4 space-y-1 overflow-y-auto mt-4 custom-scrollbar">
+                {menuItems.map((item) => (
+                    <Link
+                        key={item.path}
                         to={item.path}
-                        className={({ isActive }) => `
-                            flex items-center justify-between group px-3 py-2.5 rounded-md text-sm font-semibold transition-all
-                            ${isActive
-                                ? 'bg-brand-primary/15 text-brand-primary border border-brand-primary/20 shadow-sm shadow-brand-primary/5'
-                                : 'text-slate-400 hover:bg-brand-background hover:text-slate-100 border border-transparent'}
-                        `}
+                        className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.path) ? 'bg-brand-primary text-white shadow-lg' : 'text-slate-400 hover:bg-slate-800/40 hover:text-slate-100'}`}
                     >
-                        <div className="flex items-center gap-3 font-outfit uppercase tracking-wider text-[11px]">
-                            <item.icon size={18} className="flex-shrink-0" />
-                            <span>{item.label}</span>
-                        </div>
-                        <ArrowUpRight size={14} className="opacity-0 group-hover:opacity-40 transition-opacity" />
-                    </NavLink>
+                        <item.icon size={18} className={isActive(item.path) ? 'text-white' : 'group-hover:text-brand-primary transition-colors'} />
+                        <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 leading-none">{item.label}</span>
+                        {isActive(item.path) && <ChevronRight size={14} className="ml-auto" />}
+                    </Link>
                 ))}
             </nav>
 
-            <div className="mt-auto pt-6 border-t border-brand-border">
-                <div className="bg-brand-background/40 border border-brand-border rounded-md p-4 relative overflow-hidden group">
-                    <div className="flex items-center gap-3 relative z-10">
-                        <div className="w-1.5 h-1.5 rounded-md bg-brand-accent animate-pulse shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div>
-                        <span className="text-[10px] font-bold text-slate-200 uppercase tracking-widest font-outfit">Core Active</span>
-                    </div>
-                    <p className="text-[10px] font-medium text-slate-400 mt-2 italic leading-relaxed">System monitoring enabled and synchronized with global nodes.</p>
-                </div>
+            <div className="p-6">
+                <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-red-500/10 hover:text-red-400 transition-all group font-outfit">
+                    <LogOut size={20} />
+                    <span className="text-[12px] font-black uppercase tracking-[0.15em]">Log out</span>
+                </button>
             </div>
         </aside>
     );
