@@ -12,7 +12,9 @@ const Auth = () => {
     const navigate = useNavigate();
     const { loading, error, message, isAuthenticated } = useSelector((state) => state.auth);
     const [showPassword, setShowPassword] = useState(false);
-    const [loginRole, setLoginRole] = useState('Standard'); // 'Standard' or 'Student'
+
+    // Auto-detected role based on input: 'Student' or 'Other'
+    const [detectedRole, setDetectedRole] = useState('Other');
 
     useEffect(() => {
         if (isAuthenticated) {
@@ -23,157 +25,113 @@ const Auth = () => {
     // Login Formik
     const loginFormik = useFormik({
         initialValues: {
-            email: '',
-            admissionNumber: '',
+            identifier: '',
             password: '',
         },
         validationSchema: Yup.object({
-            email: loginRole === 'Standard' ? Yup.string().email('Invalid email address').required('Email is required') : Yup.string(),
-            admissionNumber: loginRole === 'Student' ? Yup.string().required('Admission Number is required') : Yup.string(),
+            identifier: Yup.string().required('Email or Admission Number is required'),
             password: Yup.string().required('Password is required'),
         }),
         onSubmit: (values) => {
-            if (loginRole === 'Student') {
-                dispatch(studentLogin({ admissionNumber: values.admissionNumber, password: values.password }));
+            const val = values.identifier.toUpperCase();
+            // Refined detection: Starts with ADM but is NOT an email
+            const isStudent = val.startsWith('ADM') && !val.includes('@');
+
+            if (isStudent) {
+                dispatch(studentLogin({ admissionNumber: values.identifier, password: values.password }));
             } else {
-                // Both Standard and Parent use email/password
-                dispatch(login({ email: values.email, password: values.password }));
+                dispatch(login({ email: values.identifier, password: values.password }));
             }
         },
     });
 
+    // Handle role detection for UI themes
+    useEffect(() => {
+        const val = loginFormik.values.identifier.toUpperCase();
+        // Refined detection: Starts with ADM but is NOT an email
+        if (val.startsWith('ADM') && !val.includes('@')) {
+            setDetectedRole('Student');
+        } else {
+            setDetectedRole('Other');
+        }
+    }, [loginFormik.values.identifier]);
+
+    const getThemeColor = () => {
+        return detectedRole === 'Student' ? 'luxury-emerald' : 'brand-primary';
+    };
+
+    const getTitle = () => {
+        return detectedRole === 'Student' ? 'Student Entry' : 'Institutional Login';
+    };
+
     return (
         <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-brand-background py-10 px-4 selection:bg-brand-primary/20 font-inter">
-            {/* Top Right Toggle */}
-            <div className="absolute top-10 right-10 z-50">
-                <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800 p-1.5 rounded-md flex items-center gap-1 shadow-2xl">
-                    <button
-                        onClick={() => { setLoginRole('Standard'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Standard' ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Official
-                    </button>
-                    <button
-                        onClick={() => { setLoginRole('Accountant'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Accountant' ? 'bg-luxury-gold text-slate-900 shadow-lg shadow-luxury-gold/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Accountant
-                    </button>
-                    <button
-                        onClick={() => { setLoginRole('Librarian'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Librarian' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Librarian
-                    </button>
-                    <button
-                        onClick={() => { setLoginRole('Transporter'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Transporter' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Transport
-                    </button>
-                    <button
-                        onClick={() => { setLoginRole('Student'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Student' ? 'bg-luxury-emerald text-white shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Student
-                    </button>
-                    <button
-                        onClick={() => { setLoginRole('Parent'); loginFormik.resetForm(); }}
-                        className={`px-4 py-2.5 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all ${loginRole === 'Parent' ? 'bg-luxury-rose text-white shadow-lg shadow-luxury-rose/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        Parent
-                    </button>
-                </div>
-            </div>
-
             {/* Dynamic Background Elements */}
-            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] ${loginRole === 'Student' ? 'bg-luxury-emerald/15' : loginRole === 'Parent' ? 'bg-luxury-rose/15' : loginRole === 'Accountant' ? 'bg-luxury-gold/15' : loginRole === 'Librarian' ? 'bg-indigo-600/15' : loginRole === 'Transporter' ? 'bg-orange-600/15' : 'bg-brand-primary/15'} rounded-md blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-brand-secondary/15 rounded-md blur-[140px] animate-pulse-slow delay-1000"></div>
+            <div className={`absolute top-[-10%] left-[-10%] w-[45%] h-[45%] bg-${getThemeColor()}/15 rounded-md blur-[140px] animate-pulse-slow transition-colors duration-1000`}></div>
+            <div className={`absolute bottom-[-10%] right-[-10%] w-[45%] h-[45%] bg-brand-secondary/15 rounded-md blur-[140px] animate-pulse-slow delay-1000`}></div>
 
             <motion.div
-                key={loginRole}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
                 className="w-full max-w-xl relative z-10"
             >
-                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border ${loginRole === 'Student' ? 'border-luxury-emerald/30' : loginRole === 'Parent' ? 'border-luxury-rose/30' : loginRole === 'Accountant' ? 'border-luxury-gold/30' : loginRole === 'Librarian' ? 'border-indigo-600/30' : loginRole === 'Transporter' ? 'border-orange-600/30' : 'border-brand-border/40'} rounded-md shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-colors duration-500`}>
+                <div className={`bg-brand-surface/70 backdrop-blur-[32px] border border-${getThemeColor()}/30 rounded-md shadow-[0_32px_80px_-20px_rgba(0,0,0,0.6)] overflow-hidden p-8 md:p-10 transition-all duration-700`}>
                     {/* Header */}
                     <div className="text-center mb-16">
-                        <motion.div
-                            initial={{ scale: 0.8, rotate: -10 }}
-                            animate={{ scale: 1, rotate: 0 }}
-                            className={`inline-flex items-center justify-center w-24 h-24 rounded-md bg-gradient-to-br ${loginRole === 'Student' ? 'from-luxury-emerald to-emerald-400' : loginRole === 'Parent' ? 'from-luxury-rose to-rose-400' : loginRole === 'Accountant' ? 'from-luxury-gold to-yellow-400' : loginRole === 'Librarian' ? 'from-indigo-600 to-indigo-400' : loginRole === 'Transporter' ? 'from-orange-600 to-orange-400' : 'from-brand-primary to-brand-secondary'} mb-10 shadow-2xl transition-all duration-500`}
+                        <div
+                            className={`inline-flex items-center justify-center w-20 h-20 rounded-md bg-gradient-to-br from-${getThemeColor()} to-brand-secondary mb-8 shadow-2xl transition-all duration-700`}
                         >
-                            <LogIn className={loginRole === 'Accountant' ? 'text-slate-900 w-12 h-12' : 'text-white w-12 h-12'} />
-                        </motion.div>
-                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase font-outfit leading-none mb-4">
-                            {loginRole === 'Student' ? 'Student Entry' : loginRole === 'Parent' ? 'Parent Access' : loginRole === 'Accountant' ? 'Fiscal Portal' : loginRole === 'Librarian' ? 'Archive Node' : loginRole === 'Transporter' ? 'Logistics Hub' : 'Welcome Back'}
+                            <LogIn className="text-white w-10 h-10" />
+                        </div>
+                        <h1 className="text-5xl font-black text-white tracking-tighter uppercase font-outfit leading-none mb-3">
+                            Welcome Back
                         </h1>
-                        <p className="text-slate-400 font-medium tracking-wide text-lg opacity-80">
-                            {loginRole === 'Student' ? 'Access your academic terminal' : loginRole === 'Parent' ? 'Monitor student growth & records' : loginRole === 'Accountant' ? 'Platform financial synchronization' : loginRole === 'Librarian' ? 'Knowledge life-cycle management' : loginRole === 'Transporter' ? 'Fleet operations & logistics' : 'Access your school management dashboard'}
+                        <p className="text-slate-400 font-medium tracking-wide text-lg opacity-80 italic">
+                            Institutional Terminal Access
                         </p>
                     </div>
 
-                    {/* Login Form */}
+                    {/* Unified Login Form */}
                     <form onSubmit={loginFormik.handleSubmit} className="space-y-10">
-                        {(loginRole === 'Standard' || loginRole === 'Parent') ? (
-                            <div className="space-y-4">
-                                <label className="text-xs text-slate-400 ml-2 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Email Address</label>
-                                <div className="relative group">
-                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-brand-primary transition-colors">
-                                        <Mail size={22} />
-                                    </div>
-                                    <input
-                                        type="email"
-                                        {...loginFormik.getFieldProps('email')}
-                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.email && loginFormik.errors.email ? 'border-luxury-rose/40' : 'border-brand-border/40'} ${loginRole === 'Accountant' ? 'focus:border-luxury-gold' : loginRole === 'Librarian' ? 'focus:border-indigo-600' : loginRole === 'Transporter' ? 'focus:border-orange-600' : 'focus:border-brand-primary'} outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
-                                        placeholder="institutional@domain.com"
-                                    />
+                        <div className="space-y-4 text-left">
+                            <label className="text-xs text-slate-400 ml-2 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Identity Pointer</label>
+                            <div className="relative group">
+                                <div className={`absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-${getThemeColor()} transition-colors`}>
+                                    <Mail size={22} />
                                 </div>
-                                {loginFormik.touched.email && loginFormik.errors.email && (
-                                    <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[11px] text-luxury-rose font-black ml-4 uppercase tracking-[0.1em]">{loginFormik.errors.email}</motion.p>
-                                )}
+                                <input
+                                    type="text"
+                                    {...loginFormik.getFieldProps('identifier')}
+                                    className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.identifier && loginFormik.errors.identifier ? 'border-luxury-rose/40' : `border-brand-border/40 focus:border-${getThemeColor()}`} outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                    placeholder="Institutional ID or Email"
+                                />
                             </div>
-                        ) : (
-                            <div className="space-y-4">
-                                <label className="text-xs text-slate-400 ml-2 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Admission Number</label>
-                                <div className="relative group text-white">
-                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-luxury-emerald transition-colors">
-                                        < Mail size={22} />
-                                    </div>
-                                    <input
-                                        type="text"
-                                        {...loginFormik.getFieldProps('admissionNumber')}
-                                        className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.admissionNumber && loginFormik.errors.admissionNumber ? 'border-luxury-rose/40' : 'border-brand-border/40'} focus:border-luxury-emerald outline-none rounded-md py-5 pl-14 pr-6 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
-                                        placeholder="ADM-2024-001"
-                                    />
-                                </div>
-                                {loginFormik.touched.admissionNumber && loginFormik.errors.admissionNumber && (
-                                    <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[11px] text-luxury-rose font-black ml-4 uppercase tracking-[0.1em]">{loginFormik.errors.admissionNumber}</motion.p>
-                                )}
-                            </div>
-                        )}
+                            {loginFormik.touched.identifier && loginFormik.errors.identifier && (
+                                <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[11px] text-luxury-rose font-black ml-4 uppercase tracking-[0.1em]">{loginFormik.errors.identifier}</motion.p>
+                            )}
+                        </div>
 
-                        <div className="space-y-4">
+                        <div className="space-y-4 text-left">
                             <div className="flex justify-between items-center ml-2">
-                                <label className="text-xs text-slate-400 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Password</label>
-                                <Link to="/forgot-password" size="sm" className={`text-[11px] ${loginRole === 'Student' ? 'text-luxury-emerald hover:text-emerald-400' : 'text-brand-accent hover:text-cyan-400'} font-black uppercase tracking-widest italic outline-none hover:underline decoration-2 underline-offset-4 transition-colors`}>Lost Password?</Link>
+                                <label className="text-xs text-slate-400 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Security Hash</label>
+                                <Link to="/forgot-password" size="sm" className={`text-[11px] text-${getThemeColor()} hover:opacity-80 font-black uppercase tracking-widest italic outline-none hover:underline decoration-2 underline-offset-4 transition-all`}>Lost Key?</Link>
                             </div>
                             <div className="relative group">
-                                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-brand-primary transition-colors">
+                                <div className={`absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-${getThemeColor()} transition-colors`}>
                                     <Lock size={22} />
                                 </div>
                                 <input
                                     type={showPassword ? "text" : "password"}
                                     {...loginFormik.getFieldProps('password')}
-                                    className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.password && loginFormik.errors.password ? 'border-luxury-rose/40' : 'border-brand-border/40'} ${loginRole === 'Student' ? 'focus:border-luxury-emerald' : 'focus:border-brand-primary'} outline-none rounded-md py-5 pl-14 pr-16 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
+                                    className={`w-full bg-slate-900/40 border-2 ${loginFormik.touched.password && loginFormik.errors.password ? 'border-luxury-rose/40' : `border-brand-border/40 focus:border-${getThemeColor()}`} outline-none rounded-md py-5 pl-14 pr-16 text-white text-lg placeholder-slate-700 transition-all font-inter shadow-inner`}
                                     placeholder="••••••••"
                                     autoComplete="current-password"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute inset-y-0 right-0 pr-6 flex items-center text-slate-500 hover:text-brand-primary transition-colors outline-none"
+                                    className={`absolute inset-y-0 right-0 pr-6 flex items-center text-slate-500 hover:text-${getThemeColor()} transition-colors outline-none`}
                                 >
                                     {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                                 </button>
@@ -183,14 +141,20 @@ const Auth = () => {
                             )}
                         </div>
 
+                        {error && (
+                            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-luxury-rose/10 border border-luxury-rose/20 p-4 rounded-md text-center">
+                                <p className="text-[11px] text-luxury-rose font-black uppercase tracking-widest">{error}</p>
+                            </motion.div>
+                        )}
+
                         <div className="pt-6">
                             <button
                                 type="submit"
                                 disabled={loading}
-                                className={`w-full relative group overflow-hidden rounded-md ${loginRole === 'Student' ? 'bg-luxury-emerald hover:bg-emerald-600' : loginRole === 'Accountant' ? 'bg-luxury-gold text-slate-900 hover:bg-yellow-500' : loginRole === 'Librarian' ? 'bg-indigo-600 hover:bg-indigo-700' : loginRole === 'Transporter' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-brand-primary hover:bg-blue-600'} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all hover:shadow-2xl active:scale-[0.98] font-outfit`}
+                                className={`w-full relative group overflow-hidden rounded-md bg-${getThemeColor()} disabled:opacity-70 text-white py-6 font-black tracking-[0.4em] uppercase transition-all duration-700 hover:shadow-2xl active:scale-[0.98] font-outfit`}
                             >
                                 <div className="relative z-10 flex items-center justify-center gap-4">
-                                    {loading ? <Loader2 className="animate-spin w-6 h-6" /> : <>{loginRole === 'Student' ? 'Initialize Student Session' : 'Elevate Access'} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" /></>}
+                                    {loading ? <Loader2 className="animate-spin w-6 h-6" /> : <>Initialize Session <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" /></>}
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                             </button>
