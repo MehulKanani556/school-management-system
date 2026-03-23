@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Outlet, Link, useLocation } from 'react-router-dom';
 import {
     LayoutDashboard, DollarSign, CreditCard, PieChart,
-    LogOut, ChevronRight, Bell, User, Settings
+    LogOut, ChevronRight, Bell, User, Settings, BookOpen
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -17,6 +17,7 @@ const AccountantLayout = () => {
         { icon: LayoutDashboard, label: 'Dashboard', path: '/accountant' },
         { icon: DollarSign, label: 'Fee Collection', path: '/accountant/fees' },
         { icon: CreditCard, label: 'Payroll', path: '/accountant/payroll' },
+        { icon: BookOpen, label: 'Fee Structures', path: '/accountant/fee-structures' },
         { icon: PieChart, label: 'Reports', path: '/accountant/reports' },
     ];
 

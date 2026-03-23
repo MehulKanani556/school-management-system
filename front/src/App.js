@@ -122,6 +122,7 @@ const AccountantDashboard = React.lazy(() => import('./pages/Accountant/Accounta
 const FeeCollection = React.lazy(() => import('./pages/Accountant/FeeCollection'));
 const PayrollManagement = React.lazy(() => import('./pages/Accountant/PayrollManagement'));
 const FinancialReports = React.lazy(() => import('./pages/Accountant/FinancialReports'));
+const FeeStructures = React.lazy(() => import('./pages/Accountant/FeeStructures'));
 
 // Librarian Pages
 const LibrarianDashboard = React.lazy(() => import('./pages/Librarian/LibrarianDashboard'));
@@ -285,6 +286,7 @@ function AppRoutes() {
           <Route index element={<AccountantDashboard />} />
           <Route path="fees" element={<FeeCollection />} />
           <Route path="payroll" element={<PayrollManagement />} />
+          <Route path="fee-structures" element={<FeeStructures />} />
           <Route path="reports" element={<FinancialReports />} />
         </Route>
 
