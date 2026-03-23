@@ -18,6 +18,7 @@ import { fetchChildOverview } from '../../redux/slice/parent.slice';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSocket } from '../../context/SocketContext';
 import axiosInstance from '../../utils/axiosInstance';
+import moment from 'moment';
 import { toast } from 'react-hot-toast';
 
 const ParentDashboard = () => {
@@ -299,20 +300,26 @@ const ParentDashboard = () => {
                     </div>
                     <div className="space-y-4">
                         {overview?.pendingFees?.length > 0 ? (
-                            overview.pendingFees.map((fee, i) => (
-                                <div key={i} className="flex items-center justify-between p-4 bg-luxury-rose/5 border border-luxury-rose/20 rounded-md">
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-2 rounded bg-luxury-rose/10 transition-colors">
-                                            <AlertCircle size={18} className="text-luxury-rose" />
+                            overview.pendingFees.map((fee, i) => {
+                                const isOverdue = moment().isAfter(moment(fee.dueDate));
+                                return (
+                                    <div key={i} className={`flex items-center justify-between p-4 border rounded-md transition-all ${isOverdue ? 'bg-luxury-rose/10 border-luxury-rose/40 shadow-[0_0_20px_rgba(244,63,94,0.1)]' : 'bg-slate-900/30 border-slate-800'}`}>
+                                        <div className="flex items-center gap-4">
+                                            <div className={`p-2 rounded transition-colors ${isOverdue ? 'bg-luxury-rose/20 animate-pulse' : 'bg-slate-800'}`}>
+                                                <AlertCircle size={18} className={isOverdue ? 'text-luxury-rose' : 'text-slate-500'} />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-black text-[11px] uppercase tracking-[0.1em]">{fee.category}</p>
+                                                    {isOverdue && <span className="text-[8px] font-black bg-luxury-rose text-white px-1.5 py-0.5 rounded-sm uppercase tracking-widest leading-none">Overdue</span>}
+                                                </div>
+                                                <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-black text-[11px] uppercase tracking-[0.1em]">{fee.category}</p>
-                                            <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">Due: {new Date(fee.dueDate).toLocaleDateString()}</p>
-                                        </div>
+                                        <p className={`text-xl font-black ${isOverdue ? 'text-luxury-rose' : 'text-white'}`}>₹{fee.totalAmount}</p>
                                     </div>
-                                    <p className="text-xl font-black text-white">₹{fee.totalAmount}</p>
-                                </div>
-                            ))
+                                );
+                            })
                         ) : (
                             <div className="flex flex-col items-center justify-center py-8 bg-emerald-500/5 border border-emerald-500/20 rounded-md">
                                 <CheckCircle2 size={32} className="text-emerald-500 mb-2" />

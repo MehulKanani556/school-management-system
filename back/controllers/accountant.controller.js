@@ -9,6 +9,7 @@ const Teacher = require('../models/teacher.model');
 const mongoose = require('mongoose');
 const logAudit = require('../utils/auditLogger');
 const PDFDocument = require('pdfkit');
+const nc = require('./notification.controller');
 
 const getSchoolId = (req) => req.user.schoolId;
 
@@ -312,6 +313,19 @@ exports.processPayroll = async (req, res) => {
         ).populate('teacherId', 'firstName lastName employeeId');
 
         if (!payroll) return res.status(404).json({ message: 'Payroll record not found' });
+
+        // Automated Disbursement Notification
+        if (status === 'paid') {
+            await nc.sendNotification({
+                schoolId: getSchoolId(req),
+                recipient: payroll.teacherId?._id,
+                sender: req.user._id,
+                type: 'Payroll',
+                title: 'Capital Dispatched: Salary Credited',
+                message: `Institutional payroll node for ${payroll.month}/${payroll.year} has been synchronized. Net Amount: ₹${payroll.netSalary.toLocaleString()}. Reference: ${transactionId || 'Internal Transfer'}.`,
+                link: '/teacher/payroll'
+            });
+        }
 
         // Log Audit
         await logAudit(req, 'PROCESS_PAYROLL', 'Finance', `Processed payroll of ${payroll.netSalary} for teacher ${payroll.teacherId?.firstName} ${payroll.teacherId?.lastName}`);

@@ -16,6 +16,7 @@ const Leave = require('../models/leave.model');
 const Review = require('../models/review.model');
 const School = require('../models/school.model');
 const { sendFeeReminderMail } = require('../utils/mail');
+const nc = require('./notification.controller');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const fs = require('fs');
@@ -1950,6 +1951,7 @@ exports.sendFeeReminders = async (req, res) => {
     const schoolId = getSchoolId(req);
     const { studentId } = req.body || {}; // optional filter
     
+    const school = await School.findById(schoolId);
     const query = { 
         schoolId, 
         status: { $in: ['pending', 'overdue', 'partially_paid'] } 
@@ -1960,20 +1962,40 @@ exports.sendFeeReminders = async (req, res) => {
     
     let sentCount = 0;
     for (const fee of overdueFees) {
-      if (fee.studentId && fee.studentId.guardianEmail) {
+      if (!fee.studentId) continue;
+
+      const student = fee.studentId;
+      const pendingAmount = fee.totalAmount - (fee.paidAmount || 0);
+
+      // 1. Send Email if guardian email exists
+      if (student.guardianEmail) {
         await sendFeeReminderMail({
-          to: fee.studentId.guardianEmail,
-          studentName: `${fee.studentId.firstName} ${fee.studentId.lastName}`,
+          to: student.guardianEmail,
+          studentName: `${student.firstName} ${student.lastName}`,
           category: fee.category,
-          amount: fee.totalAmount - fee.paidAmount,
+          amount: pendingAmount,
           dueDate: fee.dueDate,
-          schoolName: "Your School" // Typically from School model but using placeholder for now
+          schoolName: school.name || "Institutional Cluster"
         });
-        sentCount++;
       }
+
+      // 2. Send Internal Notification to Parent Node
+      if (student.parentId) {
+        await nc.sendNotification({
+          schoolId,
+          recipient: student.parentId,
+          sender: req.user._id,
+          type: 'Fee',
+          title: 'Fiscal Alert: Pending Fee',
+          message: `Institutional record for ${student.firstName} shows a pending balance of ₹${pendingAmount} (${fee.category}). Due Date: ${new Date(fee.dueDate).toLocaleDateString()}.`,
+          link: '/parent/fees'
+        });
+      }
+      
+      sentCount++;
     }
 
-    res.json({ message: `Reminders dispatched to ${sentCount} guardians` });
+    res.json({ message: `Institutional Reminders dispatched to ${sentCount} nodes` });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 // ─── School Profile ───────────────────────────────────────────────────────────

@@ -229,7 +229,8 @@ const PayrollManagement = () => {
 
             {/* Capital Registry Matrix - UPDATED FORMAT */}
             <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md overflow-hidden shadow-2xl">
-                <table className="w-full text-left">
+                <div className="overflow-x-auto custom-scrollbar">
+                    <table className="w-full text-left">
                     <thead>
                         <tr className="border-b border-brand-border/30 bg-white/5">
                             {['Teacher', 'Month/Year', 'Base Salary', 'Bonus/Ded', 'Total', 'Status', 'Actions'].map(h => (
@@ -285,6 +286,7 @@ const PayrollManagement = () => {
                         )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* Pagination */}
