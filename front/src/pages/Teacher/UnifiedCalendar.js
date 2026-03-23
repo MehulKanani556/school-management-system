@@ -61,13 +61,18 @@ const TeacherUnifiedCalendar = () => {
 
         // 1. Timetable (Recurring)
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        // For timetable, we just show it for the current month's days matching the day of week
         calendarGrid.forEach(cell => {
             if (!cell.date) return;
             const dayName = dayNames[cell.date.getDay()];
             unifiedCalendar.timetable?.forEach(tt => {
-                tt.slots?.filter(s => s.day === dayName).forEach(s => {
-                    addEvent(cell.date, { type: 'lecture', title: `${s.subject} (${tt.classSection?.sectionLabel})`, time: s.startTime, color: 'border-brand-primary' });
+                const daySchedule = tt.schedule?.find(s => s.day === dayName);
+                daySchedule?.periods?.forEach(p => {
+                    addEvent(cell.date, { 
+                        type: 'lecture', 
+                        title: `${p.subject?.name || 'Lecture'} (${tt.classSection?.sectionLabel})`, 
+                        time: p.startTime, 
+                        color: 'border-brand-primary' 
+                    });
                 });
             });
         });
@@ -84,8 +89,18 @@ const TeacherUnifiedCalendar = () => {
 
         // 4. Leaves
         unifiedCalendar.leaves?.forEach(lv => {
-            // Support multi-day leaves if models have startDate/endDate, otherwise use date
-            addEvent(lv.startDate || lv.date, { type: 'leave', title: 'Approved Leave', time: 'Full Day', color: 'border-emerald-500' });
+            const start = new Date(lv.startDate);
+            const end = new Date(lv.endDate);
+            const current = new Date(start);
+            while (current <= end) {
+                addEvent(new Date(current), { 
+                    type: 'leave', 
+                    title: 'Pedagogical Furlough', 
+                    time: 'Institutional Leave', 
+                    color: 'border-emerald-500/50' 
+                });
+                current.setDate(current.getDate() + 1);
+            }
         });
 
         return map;

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
-import { BookOpen, Users, ClipboardList, Activity, ArrowRight, Loader2, Clock } from 'lucide-react';
+import { BookOpen, Users, ClipboardList, Activity, ArrowRight, Loader2, Clock, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { fetchDashboard } from '../../redux/slice/teacher.slice';
 
@@ -112,6 +112,27 @@ const TeacherDashboard = () => {
                 </div>
 
                 <div className="space-y-8">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Institutional Alerts</h3>
+                    <div className="bg-slate-900/60 backdrop-blur-xl border border-luxury-rose/20 p-8 rounded-md shadow-2xl space-y-6">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-2 h-2 rounded-full bg-luxury-rose animate-pulse shadow-glow"></div>
+                            <span className="text-[11px] font-black uppercase text-luxury-rose tracking-[0.3em] italic font-outfit">Priority Deadlines</span>
+                        </div>
+                        {dashboard?.alerts?.length > 0 ? (
+                            dashboard.alerts.map((alert) => (
+                                <div key={alert.id} className="p-4 bg-luxury-rose/5 border border-luxury-rose/10 rounded-md flex items-center justify-between group hover:bg-luxury-rose/10 transition-all">
+                                    <div className="flex items-center gap-3">
+                                        <AlertCircle size={14} className="text-luxury-rose" />
+                                        <p className="text-[10px] font-black text-white uppercase tracking-tight">{alert.title}</p>
+                                    </div>
+                                    <span className="text-[8px] font-black text-slate-500 uppercase italic">due {new Date(alert.due).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                </div>
+                            ))
+                        ) : (
+                            <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest text-center py-6 italic">No immediate deadline protocols detected</p>
+                        )}
+                    </div>
+
                     <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Pulse</h3>
                     <div className="bg-slate-900/60 backdrop-blur-xl border border-slate-800/80 p-8 rounded-md shadow-2xl h-full flex flex-col">
                         <div className="flex items-center gap-3 mb-10">

@@ -33,14 +33,15 @@ exports.createAnnouncement = async (req, res) => {
 // Create a Notice (Notice Board)
 exports.createNotice = async (req, res) => {
     try {
-        const { subject, content } = req.body;
+        const { subject, content, classSection } = req.body;
         const schoolId = req.user.schoolId;
 
         const notice = await Message.create({
             schoolId,
             sender: req.user._id,
             type: 'Notice',
-            targetRole: 'All',
+            targetRole: classSection ? 'Specific' : 'All',
+            classSection: classSection || null,
             subject,
             content,
             fileUrl: req.file ? req.file.location : null
@@ -49,7 +50,11 @@ exports.createNotice = async (req, res) => {
         const populated = await notice.populate('sender', 'firstName lastName photo role');
         
         // Real-time broadcast
-        socketManager.broadcastNotice('new_notice', populated);
+        if (classSection) {
+            socketManager.sendToClass(classSection, 'new_notice', populated);
+        } else {
+            socketManager.broadcastNotice('new_notice', populated);
+        }
 
         res.status(201).json(populated);
     } catch (err) {
@@ -101,13 +106,29 @@ exports.getAnnouncements = async (req, res) => {
     }
 };
 
-// Get all notices for the school
+// Get all notices for the school (with class filtering for students)
 exports.getNotices = async (req, res) => {
     try {
-        const notices = await Message.find({ 
+        const query = { 
             schoolId: req.user.schoolId, 
             type: 'Notice' 
-        }).populate('sender', 'firstName lastName photo role').sort({ createdAt: -1 });
+        };
+
+        // If student, only show school-wide notices or their own class notices
+        if (req.user.role === 'Student') {
+            const Student = require('../models/student.model');
+            const student = await Student.findOne({ userId: req.user._id });
+            if (student) {
+                query.$or = [
+                    { classSection: null }, // School-wide
+                    { classSection: student.classSection } // Specific class
+                ];
+            }
+        }
+
+        const notices = await Message.find(query)
+            .populate('sender', 'firstName lastName photo role')
+            .sort({ createdAt: -1 });
         res.json(notices);
     } catch (err) {
         res.status(500).json({ message: err.message });

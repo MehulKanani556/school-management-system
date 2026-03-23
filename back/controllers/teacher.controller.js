@@ -18,245 +18,245 @@ const bcrypt = require('bcrypt');
 
 // Helper to get teacher record by user ID
 const getTeacher = async (userId) => {
-  return await Teacher.findOne({ userId }).populate('schoolId');
+    return await Teacher.findOne({ userId }).populate('schoolId');
 };
 
 // 0. Dashboard Stats ──────────────────────────────────────────────────────────
 exports.getTeacherDashboard = async (req, res) => {
-  try {
-    const teacherProfile = await getTeacher(req.user._id);
-    if (!teacherProfile) return res.status(404).json({ message: 'Teacher profile node not found' });
+    try {
+        const teacherProfile = await getTeacher(req.user._id);
+        if (!teacherProfile) return res.status(404).json({ message: 'Teacher profile node not found' });
 
-    // 1. Assigned classes & student count
-    const assignedClasses = await ClassSection.find({
-      $or: [
-        { classTeacher: teacherProfile._id },
-        { 'subjectAssignments.teachers': teacherProfile._id }
-      ]
-    }).populate('standardId');
-    const classIds = assignedClasses.map(c => c._id);
-    const studentsCount = await Student.countDocuments({ classSection: { $in: classIds }, deletedAt: null });
+        // 1. Assigned classes & student count
+        const assignedClasses = await ClassSection.find({
+            $or: [
+                { classTeacher: teacherProfile._id },
+                { 'subjectAssignments.teachers': teacherProfile._id }
+            ]
+        }).populate('standardId');
+        const classIds = assignedClasses.map(c => c._id);
+        const studentsCount = await Student.countDocuments({ classSection: { $in: classIds }, deletedAt: null });
 
-    // 2. Attendance % (last 30 days overall average for those classes)
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    const attendanceRecords = await Attendance.find({ 
-        classSection: { $in: classIds },
-        date: { $gte: thirtyDaysAgo }
-    });
-
-    let totalPossible = 0;
-    let totalPresent = 0;
-    attendanceRecords.forEach(att => {
-        att.records.forEach(r => {
-            totalPossible++;
-            if (r.status === 'Present') totalPresent++;
+        // 2. Attendance % (last 30 days overall average for those classes)
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const attendanceRecords = await Attendance.find({
+            classSection: { $in: classIds },
+            date: { $gte: thirtyDaysAgo }
         });
-    });
-    const attendancePercentage = totalPossible > 0 ? Number(((totalPresent / totalPossible) * 100).toFixed(1)) : 0;
 
-    // 3. Assignment stats (active vs total)
-    const assignments = await Assignment.find({ createdBy: req.user._id });
-    const assignmentCount = assignments.length;
-    
-    // Top 4 assignments with submission counts
-    const recentAssignments = await Promise.all(
-        assignments.slice(-4).reverse().map(async (a) => {
-            const count = await Submission.countDocuments({ assignmentId: a._id });
+        let totalPossible = 0;
+        let totalPresent = 0;
+        attendanceRecords.forEach(att => {
+            att.records.forEach(r => {
+                totalPossible++;
+                if (r.status === 'Present') totalPresent++;
+            });
+        });
+        const attendancePercentage = totalPossible > 0 ? Number(((totalPresent / totalPossible) * 100).toFixed(1)) : 0;
+
+        // 3. Assignment stats (active vs total)
+        const assignments = await Assignment.find({ createdBy: req.user._id });
+        const assignmentCount = assignments.length;
+
+        // Top 4 assignments with submission counts
+        const recentAssignments = await Promise.all(
+            assignments.slice(-4).reverse().map(async (a) => {
+                const count = await Submission.countDocuments({ assignmentId: a._id });
+                return {
+                    id: a._id,
+                    title: a.title,
+                    dueDate: a.dueDate,
+                    subject: a.subject,
+                    submissions: count
+                };
+            })
+        );
+
+        // 4. Classes Summary Grid
+        const classesGrid = await Promise.all(assignedClasses.map(async (c) => {
+            const count = await Student.countDocuments({ classSection: c._id, deletedAt: null });
             return {
-                id: a._id,
-                title: a.title,
-                dueDate: a.dueDate,
-                subject: a.subject,
-                submissions: count
+                id: c._id,
+                section: c.sectionLabel,
+                standard: c.standardId?.level || c.standardId || 'N/A', // Support both populated object and raw level if needed
+                students: count
             };
-        })
-    );
+        }));
 
-    // 4. Classes Summary Grid
-    const classesGrid = await Promise.all(assignedClasses.map(async (c) => {
-        const count = await Student.countDocuments({ classSection: c._id, deletedAt: null });
-        return {
-            id: c._id,
-            section: c.sectionLabel,
-            standard: c.standardId?.level || c.standardId || 'N/A', // Support both populated object and raw level if needed
-            students: count
-        };
-    }));
+        // 5. Upcoming Deadlines (within next 3 days)
+        const threeDaysFromNow = new Date();
+        threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+        const deadlinesCount = await Assignment.countDocuments({
+            createdBy: req.user._id,
+            dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
+        });
 
-    // 5. Upcoming Deadlines (within next 3 days)
-    const threeDaysFromNow = new Date();
-    threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-    const deadlinesCount = await Assignment.countDocuments({
-        createdBy: req.user._id,
-        dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
-    });
-
-    res.json({
-        stats: {
-            classes: assignedClasses.length,
-            students: studentsCount,
-            attendance: attendancePercentage,
-            assignments: assignmentCount,
-            upcomingDeadlines: deadlinesCount
-        },
-        recentAssignments,
-        classesGrid
-    });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        res.json({
+            stats: {
+                classes: assignedClasses.length,
+                students: studentsCount,
+                attendance: attendancePercentage,
+                assignments: assignmentCount,
+                upcomingDeadlines: deadlinesCount
+            },
+            recentAssignments,
+            classesGrid
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // 1. View assigned classes ───────────────────────────────────────────────────
 exports.getAssignedClasses = async (req, res) => {
-  try {
-    const teacher = await getTeacher(req.user._id);
-    if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
+    try {
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
 
-    const classes = await ClassSection.find({
-      $or: [
-        { classTeacher: teacher._id },
-        { 'subjectAssignments.teachers': teacher._id }
-      ]
-    }).populate('standardId', 'level').populate('subjects', 'name');
-    res.json(classes);
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        const classes = await ClassSection.find({
+            $or: [
+                { classTeacher: teacher._id },
+                { 'subjectAssignments.teachers': teacher._id }
+            ]
+        }).populate('standardId', 'level').populate('subjects', 'name');
+        res.json(classes);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // 2. Mark attendance ─────────────────────────────────────────────────────────—
 exports.markAttendance = async (req, res) => {
-  try {
-    const { classSection, classSectionId, date, records } = req.body;
-    const targetClass = classSection || classSectionId;
-    const teacher = await getTeacher(req.user._id);
-    
+    try {
+        const { classSection, classSectionId, date, records } = req.body;
+        const targetClass = classSection || classSectionId;
+        const teacher = await getTeacher(req.user._id);
 
-    // Verify teacher is assigned to this class
-    const isAssigned = await ClassSection.findOne({
-      _id: targetClass,
-      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-    });
 
-    if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+        // Verify teacher is assigned to this class
+        const isAssigned = await ClassSection.findOne({
+            _id: targetClass,
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
 
-    const attendance = await Attendance.findOneAndUpdate(
-      { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date) },
-      { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), records, submittedBy: req.user._id },
-      { upsert: true, new: true }
-    );
-    res.json({ message: 'Attendance registry synchronized', attendance });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+
+        const attendance = await Attendance.findOneAndUpdate(
+            { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date) },
+            { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), records, submittedBy: req.user._id },
+            { upsert: true, new: true }
+        );
+        res.json({ message: 'Attendance registry synchronized', attendance });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // 3. Add marks ────────────────────────────────────────────────────────────────
 exports.addMarks = async (req, res) => {
-  try {
-    const { examId, studentMarks } = req.body; // studentMarks: [{ studentId: ID, score: Number, remarks: String }]
-    const teacher = await getTeacher(req.user._id);
+    try {
+        const { examId, studentMarks } = req.body; // studentMarks: [{ studentId: ID, score: Number, remarks: String }]
+        const teacher = await getTeacher(req.user._id);
 
-    const exam = await Exam.findById(examId);
-    if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
+        const exam = await Exam.findById(examId);
+        if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
 
-    // Verify teacher is assigned to the exam's class
-    const isAssigned = await ClassSection.findOne({
-      _id: exam.classSection,
-      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-    });
+        // Verify teacher is assigned to the exam's class
+        const isAssigned = await ClassSection.findOne({
+            _id: exam.classSection,
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
 
-    if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-    const marks = await Promise.all(studentMarks.map(item => 
-      Mark.findOneAndUpdate(
-        { schoolId: teacher.schoolId._id, examId, studentId: item.studentId },
-        { marksObtained: item.score, remarks: item.remarks, submittedBy: req.user._id },
-        { upsert: true, new: true }
-      )
-    ));
+        const marks = await Promise.all(studentMarks.map(item =>
+            Mark.findOneAndUpdate(
+                { schoolId: teacher.schoolId._id, examId, studentId: item.studentId },
+                { marksObtained: item.score, remarks: item.remarks, submittedBy: req.user._id },
+                { upsert: true, new: true }
+            )
+        ));
 
-    // Trigger Notifications for students
-    Promise.all(studentMarks.map(m => nc.sendNotification({
-        schoolId: teacher.schoolId._id,
-        recipient: m.studentId,
-        sender: req.user._id,
-        type: 'Mark',
-        title: `Performance Assessment: ${exam.title}`,
-        message: `Grade secured for ${exam.subject}: ${m.score}/${exam.maxMarks}`,
-        link: '/student/results'
-    })));
+        // Trigger Notifications for students
+        Promise.all(studentMarks.map(m => nc.sendNotification({
+            schoolId: teacher.schoolId._id,
+            recipient: m.studentId,
+            sender: req.user._id,
+            type: 'Mark',
+            title: `Performance Assessment: ${exam.title}`,
+            message: `Grade secured for ${exam.subject}: ${m.score}/${exam.maxMarks}`,
+            link: '/student/results'
+        })));
 
-    res.json({ message: 'Performance metrics localized', marks });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        res.json({ message: 'Performance metrics localized', marks });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // 4. Upload assignment ────────────────────────────────────────────────────────
 exports.uploadAssignment = async (req, res) => {
-  try {
-    const { classSection, title, description, subject, dueDate } = req.body;
-    const teacher = await getTeacher(req.user._id);
-    const fileUrl = req.file ? req.file.location : null;
+    try {
+        const { classSection, title, description, subject, dueDate } = req.body;
+        const teacher = await getTeacher(req.user._id);
+        const fileUrl = req.file ? req.file.location : null;
 
-    // Verify assignment
-    const isAssigned = await ClassSection.findOne({
-      _id: classSection,
-      $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-    });
+        // Verify assignment
+        const isAssigned = await ClassSection.findOne({
+            _id: classSection,
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
 
-    if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-    const assignment = await Assignment.create({
-      schoolId: teacher.schoolId._id,
-      classSection, title, description, subject,
-      dueDate: new Date(dueDate),
-      fileUrl,
-      createdBy: req.user._id
-    });
+        const assignment = await Assignment.create({
+            schoolId: teacher.schoolId._id,
+            classSection, title, description, subject,
+            dueDate: new Date(dueDate),
+            fileUrl,
+            createdBy: req.user._id
+        });
 
-    // Notify all students in this class
-    const students = await Student.find({ classSection });
-    Promise.all(students.map(s => nc.sendNotification({
-        schoolId: teacher.schoolId._id,
-        recipient: s._id,
-        sender: req.user._id,
-        type: 'Assignment',
-        title: 'New Homework Provisioned',
-        message: `${subject}: ${title} (Due: ${new Date(dueDate).toLocaleDateString()})`,
-        link: '/student/assignments'
-    })));
+        // Notify all students in this class
+        const students = await Student.find({ classSection });
+        Promise.all(students.map(s => nc.sendNotification({
+            schoolId: teacher.schoolId._id,
+            recipient: s._id,
+            sender: req.user._id,
+            type: 'Assignment',
+            title: 'New Homework Provisioned',
+            message: `${subject}: ${title} (Due: ${new Date(dueDate).toLocaleDateString()})`,
+            link: '/student/assignments'
+        })));
 
-    res.status(201).json({ message: 'Instructional material synchronized', assignment });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        res.status(201).json({ message: 'Instructional material synchronized', assignment });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 const socketManager = require('../socketManager/socketManager');
 
 // 5. Communicate with students/parents ───────────────────────────────────────—
 exports.sendMessage = async (req, res) => {
-  try {
-    const { targetRole, classSection, subject, content, recipient } = req.body;
-    const teacher = await getTeacher(req.user._id);
-    const fileUrl = req.file ? req.file.location : null;
+    try {
+        const { targetRole, classSection, subject, content, recipient } = req.body;
+        const teacher = await getTeacher(req.user._id);
+        const fileUrl = req.file ? req.file.location : null;
 
-    // Create institutional message
-    const message = await Message.create({
-      schoolId: teacher.schoolId._id,
-      sender: req.user._id,
-      recipient: recipient || null,
-      targetRole: targetRole || 'Student',
-      type: recipient ? 'DirectMessage' : 'Announcement',
-      classSection: classSection || null,
-      subject, content, fileUrl
-    });
+        // Create institutional message
+        const message = await Message.create({
+            schoolId: teacher.schoolId._id,
+            sender: req.user._id,
+            recipient: recipient || null,
+            targetRole: targetRole || 'Student',
+            type: recipient ? 'DirectMessage' : 'Announcement',
+            classSection: classSection || null,
+            subject, content, fileUrl
+        });
 
-    const populated = await message.populate('sender', 'firstName lastName photo role');
+        const populated = await message.populate('sender', 'firstName lastName photo role');
 
-    // Real-time notification
-    if (recipient) {
-        socketManager.sendToUser(recipient, 'new_direct_message', populated);
-    } else {
-        socketManager.broadcastToRole(targetRole || 'Student', 'new_announcement', populated);
-    }
+        // Real-time notification
+        if (recipient) {
+            socketManager.sendToUser(recipient, 'new_direct_message', populated);
+        } else {
+            socketManager.broadcastToRole(targetRole || 'Student', 'new_announcement', populated);
+        }
 
-    res.status(201).json({ message: 'Communication broadcasted successfully', data: populated });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+        res.status(201).json({ message: 'Communication broadcasted successfully', data: populated });
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // 6. View Assigned Class Students ─────────────────────────────────────────────
@@ -282,7 +282,7 @@ exports.getStudentDetail = async (req, res) => {
         const { id } = req.params;
         const teacher = await getTeacher(req.user._id);
 
-        const student = await Student.findById(id).populate('classSection standardId');
+        const student = await Student.findById(id).populate('classSection standard');
         if (!student) return res.status(404).json({ message: 'Student search term not found in registry' });
 
         // Verify teacher belongs to the same class or is a subject teacher
@@ -329,22 +329,8 @@ exports.getStudentDetail = async (req, res) => {
 };
 
 // 7. View Exams for assigned class ─────────────────────────────────────────────
-exports.getExamsByClass = async (req, res) => {
-    try {
-        const { classId } = req.params;
-        const teacher = await getTeacher(req.user._id);
+// (Removed duplicate getExamsByClass that was causing 403 error due to missing params)
 
-        const isAssigned = await ClassSection.findOne({
-            _id: classId,
-            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-        });
-
-        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
-
-        const exams = await Exam.find({ classSection: classId });
-        res.json(exams);
-    } catch (err) { res.status(500).json({ message: err.message }); }
-};
 // 8. Fetch existing attendance for editing ──────────────────────────────────
 exports.getAttendanceByClassAndDate = async (req, res) => {
     try {
@@ -359,10 +345,10 @@ exports.getAttendanceByClassAndDate = async (req, res) => {
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-        const att = await Attendance.find({ 
-            schoolId: teacher.schoolId._id, 
-            classSection: targetRef, 
-            date: new Date(date) 
+        const att = await Attendance.find({
+            schoolId: teacher.schoolId._id,
+            classSection: targetRef,
+            date: new Date(date)
         });
         res.json(att);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -384,9 +370,9 @@ exports.getMarksByExam = async (req, res) => {
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-        const marks = await Mark.find({ 
-            schoolId: teacher.schoolId._id, 
-            examId 
+        const marks = await Mark.find({
+            schoolId: teacher.schoolId._id,
+            examId
         });
         res.json(marks);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -533,7 +519,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
         attendance.forEach(record => {
             const dateStr = record.date.toISOString().split('T')[0];
             if (!dailyStats[dateStr]) dailyStats[dateStr] = { total: 0, present: 0 };
-            
+
             record.records.forEach(r => {
                 dailyStats[dateStr].total++;
                 if (r.status === 'Present') dailyStats[dateStr].present++;
@@ -580,7 +566,7 @@ exports.updateProfile = async (req, res) => {
         if (!teacher) return res.status(404).json({ message: 'Teacher profile node not found' });
 
         const { firstName, lastName, phone, qualifications } = req.body;
-        
+
         // Update Teacher Record
         teacher.firstName = firstName || teacher.firstName;
         teacher.lastName = lastName || teacher.lastName;
@@ -632,11 +618,11 @@ exports.getStudentFeeStatus = async (req, res) => {
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const classIds = assignedClasses.map(c => c._id);
-        
+
         const students = await Student.find({ classSection: { $in: classIds }, deletedAt: null })
             .populate('classSection', 'sectionLabel')
-            .populate('standardId', 'level');
-            
+            .populate('standard', 'level');
+
         const FeePayment = require('../models/feePayment.model');
         const feeStatus = await Promise.all(students.map(async (s) => {
             const fees = await FeePayment.find({ studentId: s._id });
@@ -645,12 +631,12 @@ exports.getStudentFeeStatus = async (req, res) => {
                 studentId: s._id,
                 name: `${s.firstName} ${s.lastName}`,
                 admissionNumber: s.admissionNumber,
-                class: `Grade ${s.standardId?.level}-${s.classSection?.sectionLabel}`,
+                class: `Grade ${s.standard?.level || 'N/A'}-${s.classSection?.sectionLabel || '?'}`,
                 totalPending: pendingAmount,
                 status: pendingAmount > 0 ? 'Pending' : 'Cleared'
             };
         }));
-        
+
         res.json(feeStatus);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -658,16 +644,62 @@ exports.getStudentFeeStatus = async (req, res) => {
 // 17. Subject-wise Performance Report ─────────────────────────────────────────
 exports.getPerformanceAnalytics = async (req, res) => {
     try {
-        const { classId, subjectId } = req.query;
-        // Logic to aggregate marks for a specific subject in a class across exams
-        const marks = await Mark.find({ classSection: classId })
-            .populate('examId')
-            .populate('studentId', 'firstName lastName');
-            
-        // Filter by subject if provided
-        const filtered = subjectId ? marks.filter(m => m.examId?.subject?.toString() === subjectId) : marks;
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
         
-        res.json(filtered);
+        const assignedClasses = await ClassSection.find({
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
+        const classIds = assignedClasses.map(c => c._id);
+        const standardIds = assignedClasses.map(c => c.standardId).filter(Boolean);
+
+        const exams = await Exam.find({ 
+            $or: [
+                { classSection: { $in: classIds } },
+                { standardId: { $in: standardIds }, classSection: null }
+            ],
+            schoolId: teacher.schoolId._id 
+        });
+        const examIds = exams.map(e => e._id);
+
+        const marks = await Mark.find({ schoolId: teacher.schoolId._id, examId: { $in: examIds } })
+            .populate({ path: 'examId', populate: { path: 'subject', select: 'name' } })
+            .populate('studentId', 'firstName lastName');
+
+        console.log('Performance Diagnostic:', { classIds, examIds: examIds.length, marks: marks.length });
+
+        // Group by subject
+        const stats = {};
+        marks.forEach(m => {
+            if (!m.examId || !m.examId.subject) return;
+            const subject = m.examId.subject.name;
+            if (!stats[subject]) {
+                stats[subject] = {
+                    subject,
+                    totalScore: 0,
+                    studentCount: 0,
+                    maxScore: 0,
+                    minScore: m.marksObtained,
+                    maxPossible: 0
+                };
+            }
+            stats[subject].totalScore += m.marksObtained;
+            stats[subject].studentCount++;
+            stats[subject].maxScore = Math.max(stats[subject].maxScore, m.marksObtained);
+            stats[subject].minScore = Math.min(stats[subject].minScore, m.marksObtained);
+            stats[subject].maxPossible += m.examId.maxMarks;
+        });
+
+        const result = Object.values(stats).map(s => ({
+            subject: s.subject,
+            averageScore: (s.totalScore / s.studentCount),
+            averagePercentage: (s.totalScore / s.maxPossible) * 100,
+            maxScore: s.maxScore,
+            minScore: s.minScore,
+            studentCount: s.studentCount
+        }));
+
+        res.json(result);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -677,11 +709,11 @@ exports.getStudentFullAttendance = async (req, res) => {
         const { studentId } = req.params;
         const student = await Student.findById(studentId);
         if (!student) return res.status(404).json({ message: 'Student archive not found' });
-        
+
         const attendance = await Attendance.find({
             'records.studentId': studentId
         }).sort({ date: -1 });
-        
+
         const history = attendance.map(a => {
             const record = a.records.find(r => r.studentId.toString() === studentId);
             return {
@@ -690,7 +722,7 @@ exports.getStudentFullAttendance = async (req, res) => {
                 remarks: record.remarks
             };
         });
-        
+
         res.json(history);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -700,12 +732,12 @@ exports.deleteAnnouncement = async (req, res) => {
     try {
         const { id } = req.params;
         const message = await Message.findById(id);
-        
+
         if (!message) return res.status(404).json({ message: 'Directive not found' });
         if (message.sender.toString() !== req.user._id.toString()) {
             return res.status(403).json({ message: 'Unauthorized: Transmission retraction denied' });
         }
-        
+
         await Message.findByIdAndDelete(id);
         res.json({ message: 'Institutional directive retracted successfully' });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -714,19 +746,37 @@ exports.deleteAnnouncement = async (req, res) => {
 exports.bulkAttendanceImport = async (req, res) => {
     try {
         const { classSectionId, date, attendanceData } = req.body;
-        if (!classSectionId || !date || !attendanceData) return res.status(400).json({ message: "Institutional telemetry breach: Incomplete sector data" });
+        if (!classSectionId || !date || !attendanceData) return res.status(400).json({ message: "Incomplete sector data" });
 
-        const records = await Promise.all(attendanceData.map(async (entry) => {
-            return await Attendance.findOneAndUpdate(
-                { studentId: entry.studentId, classSectionId, date: new Date(date) },
-                { status: entry.status, markedBy: req.user._id, role: 'Teacher' },
-                { upsert: true, new: true }
-            );
-        }));
+        const teacher = await getTeacher(req.user._id);
 
-        res.json({ message: `Synchronized ${records.length} temporal cycles successfully.`, count: records.length });
-    } catch (error) { 
-        res.status(500).json({ message: "Cluster synchronization failure", error: error.message }); 
+        // Find or create the attendance document for this class and date
+        const attendance = await Attendance.findOneAndUpdate(
+            { schoolId: teacher.schoolId._id, classSection: classSectionId, date: new Date(date) },
+            {
+                $setOnInsert: { standardId: (await ClassSection.findById(classSectionId)).standardId, submittedBy: req.user._id }
+            },
+            { upsert: true, new: true }
+        );
+
+        // Update records array - replace or add student records
+        const currentRecords = attendance.records || [];
+        attendanceData.forEach(entry => {
+            const index = currentRecords.findIndex(r => r.studentId.toString() === entry.studentId.toString());
+            if (index !== -1) {
+                currentRecords[index].status = entry.status;
+            } else {
+                currentRecords.push({ studentId: entry.studentId, status: entry.status });
+            }
+        });
+
+        attendance.records = currentRecords;
+        attendance.submittedBy = req.user._id;
+        await attendance.save();
+
+        res.json({ message: `Synchronized ${attendanceData.length} records successfully.`, count: attendanceData.length });
+    } catch (error) {
+        res.status(500).json({ message: "Cluster synchronization failure", error: error.message });
     }
 };
 
@@ -763,35 +813,69 @@ exports.getUnifiedCalendar = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// 19. Get exams for teacher's assigned classes ──────────────────────────────
+exports.getExamsByClass = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const assignedClasses = await ClassSection.find({
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
+        const standardIds = assignedClasses.map(c => c.standardId);
+
+        const exams = await Exam.find({ 
+            $or: [
+                { classSection: { $in: assignedClasses.map(c => c._id) } },
+                { standardId: { $in: standardIds }, classSection: null }
+            ],
+            schoolId: teacher.schoolId._id 
+        })
+        .populate('subject', 'name')
+        .sort({ date: 1 });
+
+        // Transform to match frontend expectations if necessary
+        const formatted = exams.map(e => ({
+            _id: e._id,
+            subject: e.subject?.name || 'Unknown',
+            title: e.name,
+            date: e.date,
+            maxMarks: e.maxMarks,
+            type: e.type
+        }));
+
+        res.json(formatted);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};  
+
 module.exports = {
-  getTeacherDashboard: exports.getTeacherDashboard,
-  getAssignedClasses: exports.getAssignedClasses,
-  getAssignedClassStudents: exports.getAssignedClassStudents,
-  getStudentDetail: exports.getStudentDetail,
-  getExamsByClass: exports.getExamsByClass,
-  getAttendanceByClassAndDate: exports.getAttendanceByClassAndDate,
-  getMarksByExam: exports.getMarksByExam,
-  markAttendance: exports.markAttendance,
-  addMarks: exports.addMarks,
-  uploadAssignment: exports.uploadAssignment,
-  getAssignments: exports.getAssignments,
-  updateAssignment: exports.updateAssignment,
-  getAssignmentSubmissions: exports.getAssignmentSubmissions,
-  gradeSubmission: exports.gradeSubmission,
-  deleteAssignment: exports.deleteAssignment,
-  applyLeave: exports.applyLeave,
-  getMyLeaves: exports.getMyLeaves,
-  getAttendanceAnalytics: exports.getAttendanceAnalytics,
-  getProfile: exports.getProfile,
-  updateProfile: exports.updateProfile,
-  changePassword: exports.changePassword,
-  sendMessage: exports.sendMessage,
-  getMyPayroll: exports.getMyPayroll,
-  getStudentFeeStatus: exports.getStudentFeeStatus,
-  getPerformanceAnalytics: exports.getPerformanceAnalytics,
-  getStudentFullAttendance: exports.getStudentFullAttendance,
-  deleteAnnouncement: exports.deleteAnnouncement,
-  bulkAttendanceImport: exports.bulkAttendanceImport,
-  getMyReviews: exports.getMyReviews,
-  getUnifiedCalendar: exports.getUnifiedCalendar
+    getTeacherDashboard: exports.getTeacherDashboard,
+    getAssignedClasses: exports.getAssignedClasses,
+    getAssignedClassStudents: exports.getAssignedClassStudents,
+    getStudentDetail: exports.getStudentDetail,
+    getExamsByClass: exports.getExamsByClass,
+    getAttendanceByClassAndDate: exports.getAttendanceByClassAndDate,
+    getMarksByExam: exports.getMarksByExam,
+    markAttendance: exports.markAttendance,
+    addMarks: exports.addMarks,
+    uploadAssignment: exports.uploadAssignment,
+    getAssignments: exports.getAssignments,
+    updateAssignment: exports.updateAssignment,
+    getAssignmentSubmissions: exports.getAssignmentSubmissions,
+    gradeSubmission: exports.gradeSubmission,
+    deleteAssignment: exports.deleteAssignment,
+    applyLeave: exports.applyLeave,
+    getMyLeaves: exports.getMyLeaves,
+    getAttendanceAnalytics: exports.getAttendanceAnalytics,
+    getProfile: exports.getProfile,
+    updateProfile: exports.updateProfile,
+    changePassword: exports.changePassword,
+    sendMessage: exports.sendMessage,
+    getMyPayroll: exports.getMyPayroll,
+    getStudentFeeStatus: exports.getStudentFeeStatus,
+    getPerformanceAnalytics: exports.getPerformanceAnalytics,
+    getStudentFullAttendance: exports.getStudentFullAttendance,
+    deleteAnnouncement: exports.deleteAnnouncement,
+    bulkAttendanceImport: exports.bulkAttendanceImport,
+    getMyReviews: exports.getMyReviews,
+    getUnifiedCalendar: exports.getUnifiedCalendar
 };
+

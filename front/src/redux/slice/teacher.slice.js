@@ -101,9 +101,9 @@ export const sendMessage = createAsyncThunk('teacher/sendMessage', async (formDa
         return rejectWithValue(error.response.data.message);
     }
 });
-export const fetchExamsByClass = createAsyncThunk('teacher/fetchExams', async (classId, { rejectWithValue }) => {
+export const fetchExamSchedule = createAsyncThunk('teacher/fetchExams', async (_, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get(`/teacher/exams/${classId}`);
+        const response = await axiosInstance.get('/teacher/exam-schedule');
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -236,9 +236,10 @@ export const fetchMyMessages = createAsyncThunk('teacher/fetchMessages', async (
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
-export const fetchPerformanceAnalytics = createAsyncThunk('teacher/fetchPerformance', async ({ classId, subjectId }, { rejectWithValue }) => {
+export const fetchPerformanceAnalytics = createAsyncThunk('teacher/fetchPerformance', async (params = {}, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get(`/teacher/performance-analytics?classId=${classId}&subjectId=${subjectId}`);
+        const { classId, subjectId } = params;
+        const response = await axiosInstance.get(`/teacher/performance-analytics?classId=${classId || ''}&subjectId=${subjectId || ''}`);
         return response.data;
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
@@ -313,7 +314,6 @@ const teacherSlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(fetchDashboard.pending, (state) => { state.loading = true; })
             .addCase(fetchDashboard.fulfilled, (state, action) => {
                 state.loading = false;
                 state.dashboard = action.payload;
@@ -343,7 +343,7 @@ const teacherSlice = createSlice({
                 state.loading = false;
                 state.payroll = action.payload;
             })
-            .addCase(fetchExamsByClass.fulfilled, (state, action) => {
+            .addCase(fetchExamSchedule.fulfilled, (state, action) => {
                 state.exams = action.payload;
             })
             .addCase(fetchTeacherAttendance.fulfilled, (state, action) => {
@@ -408,6 +408,7 @@ const teacherSlice = createSlice({
                 state.feeStatus = action.payload;
             })
             .addCase(fetchPerformanceAnalytics.fulfilled, (state, action) => {
+                state.loading = false;
                 state.analytics = action.payload;
             })
             .addCase(fetchDetailedAttendance.fulfilled, (state, action) => {
@@ -430,7 +431,22 @@ const teacherSlice = createSlice({
             .addCase(fetchUnifiedCalendar.fulfilled, (state, action) => {
                 state.unifiedCalendar = action.payload;
                 state.loading = false;
-            });
+            })
+            .addMatcher(
+                (action) => action.type.endsWith('/fulfilled'),
+                (state) => { state.loading = false; }
+            )
+            .addMatcher(
+                (action) => action.type.endsWith('/pending'),
+                (state) => { state.loading = true; }
+            )
+            .addMatcher(
+                (action) => action.type.endsWith('/rejected'),
+                (state, action) => { 
+                    state.loading = false; 
+                    state.error = action.payload || "Operation failed in the academic logic layer";
+                }
+            );
     }
 });
 

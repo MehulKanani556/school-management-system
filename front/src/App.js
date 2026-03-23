@@ -98,6 +98,7 @@ const TeacherFeeStatus = React.lazy(() => import('./pages/Teacher/ClassFeeStatus
 const StudentDetailedAttendance = React.lazy(() => import('./pages/Teacher/StudentDetailedAttendance'));
 const PerformanceAnalytics = React.lazy(() => import('./pages/Teacher/PerformanceAnalytics'));
 const TeacherReviews = React.lazy(() => import('./pages/Teacher/TeacherReviews'));
+const TeacherExams = React.lazy(() => import('./pages/Teacher/Exams'));
 const TeacherUnifiedCalendar = React.lazy(() => import('./pages/Teacher/UnifiedCalendar'));
 const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
 
@@ -171,6 +172,7 @@ function AppRoutes() {
           <Route path="student-attendance/:studentId" element={<StudentDetailedAttendance />} />
           <Route path="performance-report" element={<PerformanceAnalytics />} />
           <Route path="reviews" element={<TeacherReviews />} />
+          <Route path="exam-schedule" element={<TeacherExams />} />
           <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
           <Route path="noticeboard" element={<ClassNoticeboard />} />
         </Route>

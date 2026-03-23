@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 import { 
     fetchAssignedClasses, 
     fetchClassStudents, 
-    fetchExamsByClass, 
+    fetchExamSchedule, 
     fetchTeacherMarks,
     submitMarks, 
     clearTeacherMessage 
@@ -60,7 +60,7 @@ const AddMarks = () => {
     useEffect(() => {
         if (formik.values.selectedClass) {
             dispatch(fetchClassStudents(formik.values.selectedClass));
-            dispatch(fetchExamsByClass(formik.values.selectedClass));
+            dispatch(fetchExamSchedule());
             formik.setFieldValue('selectedExam', ''); // Reset exam on class change
         }
     }, [formik.values.selectedClass, dispatch]);

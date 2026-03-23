@@ -24,7 +24,7 @@ import {
     XCircle
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { retractAnnouncement } from '../../redux/slice/teacher.slice';
+import { retractAnnouncement, fetchAssignedClasses } from '../../redux/slice/teacher.slice';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
@@ -50,6 +50,8 @@ const Communication = () => {
 
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
+    const { classes: assignedClasses, loading: teacherLoading } = useSelector(state => state.teacher);
+    const [noticeInput, setNoticeInput] = useState({ subject: '', content: '', classSection: '' });
 
     // Paginated Chat History
     const [chatMessages, setChatMessages] = useState([]);
@@ -203,6 +205,22 @@ const Communication = () => {
             fetchData();
         } catch (err) {
             toast.error('Broadcast failed');
+        }
+    };
+
+    const handleSendNotice = async (e) => {
+        e.preventDefault();
+        if (!noticeInput.subject || !noticeInput.content) return toast.error('PROTOCOL VOID: Input required');
+        try {
+            await axiosInstance.post('/teacher/send-message', {
+                ...noticeInput,
+                type: 'Notice'
+            });
+            toast.success('Bulletin Deployed');
+            setNoticeInput({ subject: '', content: '', classSection: '' });
+            fetchData();
+        } catch (err) {
+            toast.error('Bulletin failed');
         }
     };
 
@@ -559,53 +577,121 @@ const Communication = () => {
                             </div>
                         </div>
                     </>
-                ) : ( // activeTab === 'notices'
-                    <div className="lg:col-span-12 flex flex-col gap-4 min-h-0">
-                        <div className="flex items-center justify-between px-2 shrink-0">
-                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
-                                <Layout size={16} className="text-emerald-500" />
-                                INSTITUTIONAL BULLETIN
-                            </h3>
-                            <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{notices.length} RECORDS RECEIVED</span>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 overflow-y-auto custom-scrollbar p-1">
-                            <AnimatePresence mode="popLayout">
-                                {notices.map((not, idx) => (
-                                    <motion.div
-                                        key={not._id}
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        transition={{ delay: idx * 0.05 }}
-                                        className="bg-slate-900 border border-slate-800 rounded-md p-6 backdrop-blur-3xl hover:border-emerald-500/30 transition-all border-t-[3px] border-t-emerald-500/40 group relative overflow-hidden flex flex-col justify-between h-[200px]"
-                                    >
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-lg">
-                                                    <AlertCircle size={18} />
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <h4 className="text-sm font-black text-white uppercase italic tracking-tighter truncate leading-none mb-1">{not.subject}</h4>
-                                                    <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">{new Date(not.createdAt).toLocaleDateString()}</span>
-                                                </div>
-                                            </div>
-                                            <p className="text-slate-500 text-[10px] font-bold italic leading-relaxed uppercase tracking-tighter line-clamp-3">{not.content}</p>
-                                        </div>
-                                        <div className="pt-4 border-t border-white/5 flex items-center justify-between text-[7px] font-black uppercase tracking-widest text-slate-800">
-                                            <span>VERIFIED BULLETIN</span>
-                                            <span className="text-emerald-500/30 font-black">SYSTEM RELAY</span>
-                                        </div>
-                                    </motion.div>
-                                ))}
-                            </AnimatePresence>
-
-                            {notices.length === 0 && !fetching && (
-                                <div className="col-span-full py-20 text-center opacity-10 italic font-black uppercase tracking-widest text-lg">
-                                    Void Archive
+                ) : (
+                    <>
+                        <div className="lg:col-span-4 flex flex-col gap-4 min-h-0">
+                            <div className="bg-slate-900 border border-slate-800/60 rounded-md p-6 backdrop-blur-3xl shadow-2xl space-y-6">
+                                <div className="space-y-1">
+                                    <div className="flex items-center gap-2">
+                                        <Shield size={14} className="text-emerald-500" />
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Issue Advisory</h3>
+                                    </div>
+                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">Targeted regional academic directive.</p>
                                 </div>
-                            )}
+
+                                <form onSubmit={handleSendNotice} className="space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Target Cluster Sector</label>
+                                        <select 
+                                            value={noticeInput.classSection} 
+                                            onChange={(e) => setNoticeInput({...noticeInput, classSection: e.target.value})}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[10px] uppercase font-black tracking-widest outline-none focus:border-emerald-500/50 transition-all italic h-12 appearance-none"
+                                        >
+                                            <option value="" className="text-slate-800">ALL SECTORS (GLOBAL)</option>
+                                            {assignedClasses.map(c => (
+                                                <option key={c._id} value={c._id}>SEC: GRADE {c.gradeLevel} - {c.sectionLabel}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Directive Subject</label>
+                                        <input 
+                                            placeholder="IDENTITY SUBJECT..."
+                                            value={noticeInput.subject}
+                                            onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[11px] font-bold outline-none focus:border-emerald-500/50 transition-all italic h-12 uppercase tracking-tight"
+                                        />
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Body Protocol</label>
+                                        <textarea 
+                                            rows={5}
+                                            placeholder="ARCHIVE BROADCAST CONTENT..."
+                                            value={noticeInput.content}
+                                            onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-emerald-500/50 transition-all italic resize-none uppercase tracking-tight"
+                                        />
+                                    </div>
+
+                                    <button type="submit" className="w-full py-4 rounded-md bg-emerald-500 text-slate-950 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95 hover:bg-emerald-400">
+                                        <Layout size={16} />
+                                        DEPLOY BULLETIN
+                                    </button>
+                                </form>
+                            </div>
                         </div>
-                    </div>
+
+                        <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
+                            <div className="flex items-center justify-between px-2 shrink-0">
+                                <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
+                                    <Layout size={16} className="text-emerald-500" />
+                                    INSTITUTIONAL BULLETIN
+                                </h3>
+                                <div className="flex items-center gap-3">
+                                    <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{notices.length} RECORDS RECEIVED</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto custom-scrollbar p-1">
+                                <AnimatePresence mode="popLayout">
+                                    {notices.map((not, idx) => (
+                                        <motion.div
+                                            key={not._id}
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="bg-slate-900 border border-slate-800 rounded-md p-6 backdrop-blur-3xl hover:border-emerald-500/30 transition-all border-t-[3px] border-t-emerald-500/40 group relative overflow-hidden flex flex-col justify-between"
+                                        >
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-lg group-hover:scale-110 transition-transform">
+                                                            <AlertCircle size={18} />
+                                                        </div>
+                                                        <div className="min-w-0">
+                                                            <h4 className="text-sm font-black text-white uppercase italic tracking-tighter truncate leading-none mb-1">{not.subject}</h4>
+                                                            <span className="text-[8px] font-bold text-slate-700 uppercase tracking-widest">{new Date(not.createdAt).toLocaleDateString()}</span>
+                                                        </div>
+                                                    </div>
+                                                    {not.sender?._id === currentUser?._id && (
+                                                        <button 
+                                                            onClick={() => handleDeleteAnnouncement(not._id)}
+                                                            className="p-1.5 bg-red-500/10 text-red-500 rounded-md border border-red-500/20 hover:bg-red-500 hover:text-white transition-all opacity-0 group-hover:opacity-100"
+                                                        >
+                                                            <XCircle size={14} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-slate-500 text-[10px] font-bold italic leading-relaxed uppercase tracking-tighter line-clamp-4">{not.content}</p>
+                                            </div>
+                                            <div className="pt-4 border-t border-white/5 flex items-center justify-between text-[7px] font-black uppercase tracking-widest text-slate-800 mt-6">
+                                                <span>{not.classSection ? `SEC: ${not.classSection.gradeLevel}-${not.classSection.sectionLabel}` : 'GLOBAL PROTOCOL'}</span>
+                                                <span className="text-emerald-500/30 font-black">SYSTEM RELAY</span>
+                                            </div>
+                                        </motion.div>
+                                    ))}
+                                </AnimatePresence>
+
+                                {notices.length === 0 && !fetching && (
+                                    <div className="col-span-full py-40 text-center opacity-10 italic font-black uppercase tracking-widest text-lg">
+                                        Void Archive
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </>
                 )}
             </div>
         </div>

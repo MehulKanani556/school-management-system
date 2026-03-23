@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Users, BookOpen, ClipboardList,
     Upload, MessageSquare, LogOut, ChevronRight, ChevronDown,
     Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout,
-    Megaphone, Shield
+    Megaphone, Shield, Trophy
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion } from 'framer-motion';
@@ -58,6 +58,7 @@ const TeacherLayout = () => {
                 { path: '/teacher/classes', icon: BookOpen, label: 'Assigned Sectors' },
                 { path: '/teacher/attendance', icon: ClipboardList, label: 'Mark Attendance' },
                 { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
+                { path: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
                 { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
                 { path: '/teacher/timetable', icon: Clock, label: 'Timetable' },
             ]
@@ -128,7 +129,7 @@ const TeacherLayout = () => {
     return (
         <div className="min-h-screen bg-slate-900 text-slate-100 flex font-inter antialiased">
             {/* Sidebar */}
-            <aside className="hidden lg:flex w-72 rounded-mdg-slate-900 border-r border-slate-800/60 sticky top-0 h-screen z-20">
+            <aside className="hidden lg:flex w-72 flex-col rounded-md bg-slate-900 border-r border-slate-800/60 sticky top-0 h-screen z-20">
                 <div className="p-8">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-md bg-gradient-to-br from-brand-primary to-brand-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SM</div>

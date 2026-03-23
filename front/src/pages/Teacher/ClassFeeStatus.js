@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchFeeStatus } from '../../redux/slice/teacher.slice';
 import { motion } from 'framer-motion';
 import { Search, Filter, Download, AlertCircle, CheckCircle2, DollarSign, Users, ArrowRight } from 'lucide-react';
 
 const ClassFeeStatus = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { feeStatus, loading } = useSelector((s) => s.teacher);
 
     useEffect(() => {
@@ -127,7 +129,10 @@ const ClassFeeStatus = () => {
                                         </div>
                                     </td>
                                     <td className="px-8 py-6 text-right">
-                                        <button className="p-2.5 rounded-md border border-slate-800 bg-slate-900/50 text-slate-500 hover:text-brand-primary hover:border-brand-primary/40 transition-all hover:scale-110 active:scale-95 shadow-lg group">
+                                        <button 
+                                            onClick={() => navigate(`/teacher/student-attendance/${item.studentId}`)}
+                                            className="p-2.5 rounded-md border border-slate-800 bg-slate-900/50 text-slate-500 hover:text-brand-primary hover:border-brand-primary/40 transition-all hover:scale-110 active:scale-95 shadow-lg group"
+                                        >
                                             <ArrowRight size={16} className="group-hover:translate-x-0.5 transition-transform" />
                                         </button>
                                     </td>
