@@ -3,7 +3,11 @@ const router = express.Router();
 const { upload, localUpload } = require('../middleware/upload');
 const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
 const { auth, isSuperAdmin } = require('../middleware/auth');
+const checkMaintenance = require('../middleware/maintenance');
 const { requireRole } = require('../middleware/roleCheck');
+
+// Platform Wide Routing Policies
+router.use(checkMaintenance); 
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
 const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
@@ -14,6 +18,7 @@ const hc = require('../controllers/holiday.controller');
 const tbc = require('../controllers/timetable.controller');
 const ttc = require('../controllers/timetableTemplate.controller');
 const pc = require('../controllers/parent.controller');
+const sac = require('../controllers/superAdmin.controller');
 
 
 // Auth Routes
@@ -154,6 +159,21 @@ router.get('/superadmin/stats', ...superAdmin, getSchoolStats);
 router.put('/superadmin/update-school/:id', ...superAdmin, upload.single('logo'), updateSchool); // NEW
 router.delete('/superadmin/delete-school/:id', ...superAdmin, deleteSchool);
 router.patch('/superadmin/update-status/:id', ...superAdmin, updateSchoolStatus);
+
+// Analytics
+router.get('/superadmin/analytics', ...superAdmin, sac.getPlatformAnalytics);
+
+// Audit Logs
+router.get('/superadmin/audit-logs', ...superAdmin, sac.getAuditLogs);
+
+// System Settings
+router.get('/superadmin/settings', ...superAdmin, sac.getSystemSettings);
+router.post('/superadmin/settings', ...superAdmin, sac.updateSystemSetting);
+
+// Profile Management
+router.get('/superadmin/profile', ...superAdmin, sac.getProfile);
+router.put('/superadmin/profile', ...superAdmin, upload.single('photo'), sac.updateProfile);
+router.post('/superadmin/change-password', ...superAdmin, sac.changePassword);
 
 // ─── Teacher Routes ───────────────────────────────────────────────────────────
 const teacher = [auth, requireRole('Teacher')];

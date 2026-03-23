@@ -1,5 +1,6 @@
 import React from 'react';
 import { LogOut, User, Search } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const Header = ({ user, onLogout }) => {
     return (
@@ -16,19 +17,19 @@ const Header = ({ user, onLogout }) => {
             </div>
 
             <div className="flex items-center gap-5">
-                <div className="hidden sm:flex items-center gap-3 pl-5 border-l border-brand-border">
+                <Link to="/superadmin/profile" className="hidden sm:flex items-center gap-3 pl-5 border-l border-brand-border group/profile">
                     <div className="text-right">
-                        <p className="text-sm font-semibold text-slate-100 font-inter leading-none">{user?.firstName} {user?.lastName}</p>
+                        <p className="text-sm font-semibold text-slate-100 font-inter leading-none group-hover/profile:text-brand-primary transition-colors">{user?.firstName} {user?.lastName}</p>
                         <p className="text-[11px] font-medium text-slate-400 mt-1 tracking-wide leading-none">{user?.role?.replace('_', ' ')}</p>
                     </div>
                     {user?.photo ? (
-                        <img src={user.photo} alt="Avatar" className="w-10 h-10 rounded-md object-cover ring-1 ring-brand-border shadow-sm cursor-pointer hover:ring-brand-primary transition-all" />
+                        <img src={user.photo} alt="Avatar" className="w-10 h-10 rounded-md object-cover ring-1 ring-brand-border shadow-sm cursor-pointer group-hover/profile:ring-brand-primary transition-all" />
                     ) : (
-                        <div className="w-10 h-10 rounded-md bg-brand-background flex items-center justify-center border border-brand-border cursor-pointer hover:border-brand-primary transition-colors hover:bg-brand-primary/10 group">
-                            <User size={18} className="text-slate-400 group-hover:text-brand-primary transition-colors" />
+                        <div className="w-10 h-10 rounded-md bg-brand-background flex items-center justify-center border border-brand-border cursor-pointer group-hover/profile:border-brand-primary transition-colors group-hover/profile:bg-brand-primary/10">
+                            <User size={18} className="text-slate-400 group-hover/profile:text-brand-primary transition-colors" />
                         </div>
                     )}
-                </div>
+                </Link>
                 <button
                     onClick={onLogout}
                     className="p-2.5 rounded-md text-slate-400 hover:bg-luxury-rose/10 hover:text-luxury-rose transition-colors"

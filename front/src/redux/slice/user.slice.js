@@ -1,15 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import axios from 'axios';
-
-// Global API instance mapping
-const API = axios.create({ baseURL: '/api' });
+import axiosInstance from '../../utils/axiosInstance';
 
 // Async Thunk for Situational User Registry Fetching
 export const fetchUsers = createAsyncThunk(
     'user/fetchAll',
     async (_, { rejectWithValue }) => {
         try {
-            const response = await API.get('/users');
+            const response = await axiosInstance.get('/users');
             return response.data.users;
         } catch (error) {
             return rejectWithValue(error.response?.data?.message || 'Security feed interruption');

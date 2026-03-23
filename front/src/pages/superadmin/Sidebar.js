@@ -1,13 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, Globe, DollarSign, ShieldCheck, ArrowUpRight, Activity, Menu } from 'lucide-react';
+import { LayoutDashboard, Globe, DollarSign, ShieldCheck, ArrowUpRight, Activity, Menu, Settings } from 'lucide-react';
 
 const Sidebar = () => {
     const menuItems = [
         { icon: LayoutDashboard, label: 'Control Center', path: '/superadmin/dashboard' },
         { icon: Globe, label: 'Institution Nodes', path: '/superadmin/schools' },
+        { icon: Activity, label: 'Performance Analytics', path: '/superadmin/analytics' },
         { icon: DollarSign, label: 'Gross Revenue', path: '/superadmin/revenue' },
-        { icon: ShieldCheck, label: 'Security & Access', path: '/superadmin/security' },
+        { icon: ShieldCheck, label: 'Security & Audit Logs', path: '/superadmin/security' },
+        { icon: Settings, label: 'System Settings', path: '/superadmin/settings' },
     ];
 
     return (

@@ -9,6 +9,7 @@ import notificationReducer from './slice/notification.slice';
 
 import communicationReducer from './slice/communication.slice';
 import parentReducer from './slice/parent.slice';
+import superAdminReducer from './slice/superAdmin.slice';
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -19,7 +20,8 @@ const rootReducer = combineReducers({
     student: studentReducer,
     notifications: notificationReducer,
     communication: communicationReducer,
-    parent: parentReducer
+    parent: parentReducer,
+    superAdmin: superAdminReducer,
 });
 
 export default rootReducer;

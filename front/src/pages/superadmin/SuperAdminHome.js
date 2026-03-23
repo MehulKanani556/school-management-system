@@ -1,19 +1,46 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStats } from '../../redux/slice/school.slice';
-import { School, Activity, Settings, Users, ArrowUpRight } from 'lucide-react';
+import { fetchPlatformAnalytics, fetchAuditLogs } from '../../redux/slice/superAdmin.slice';
+import { School, Activity, Settings, Users, ArrowUpRight, ShieldCheck, Terminal } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import moment from 'moment';
 
 const SuperAdminHome = () => {
     const dispatch = useDispatch();
-    const { stats } = useSelector((state) => state.school);
+    const { analytics, auditLogs, loading } = useSelector((state) => state.superAdmin);
 
     useEffect(() => {
-        dispatch(fetchStats());
+        dispatch(fetchPlatformAnalytics());
+        dispatch(fetchAuditLogs({ limit: 5 }));
     }, [dispatch]);
 
+    const stats = [
+        { 
+            label: 'Institutional Nodes', 
+            value: analytics?.infrastructure?.totalSchools || 0, 
+            icon: School, 
+            color: 'text-brand-primary bg-brand-primary/10 border-brand-primary/20', 
+            trend: `${analytics?.infrastructure?.activeSchools || 0} Active` 
+        },
+        { 
+            label: 'Aggregate Revenue', 
+            value: `$${(analytics?.revenue?.total || 0).toLocaleString()}`, 
+            icon: Activity, 
+            color: 'text-luxury-emerald bg-luxury-emerald/10 border-luxury-emerald/20', 
+            trend: 'Live Stream' 
+        },
+        { 
+            label: 'Citizen Census', 
+            value: (analytics?.users?.total || 0).toLocaleString(), 
+            icon: Users, 
+            color: 'text-brand-accent bg-brand-accent/10 border-brand-accent/20', 
+            trend: `${analytics?.users?.active || 0} Active` 
+        },
+    ];
+
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 md:space-y-10">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 md:space-y-10 pb-10">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-2">
                 <div className="flex flex-col">
                     <h1 className="text-2xl xs:text-3xl font-bold tracking-tight text-slate-100 font-inter">Global Control Center</h1>
@@ -26,11 +53,7 @@ const SuperAdminHome = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 xs:gap-8">
-                {[
-                    { label: 'Institutional Nodes', value: stats.totalSchools, icon: School, color: 'text-brand-primary bg-brand-primary/10 border-brand-primary/20', trend: `${stats.activeSchools} Active` },
-                    { label: 'Aggregate Revenue', value: `$${stats.totalRevenue.toLocaleString()}`, icon: Activity, color: 'text-luxury-emerald bg-luxury-emerald/10 border-luxury-emerald/20', trend: 'Live Stream' },
-                    { label: 'Infrastructure Load', value: 'Optimized', icon: Settings, color: 'text-brand-accent bg-brand-accent/10 border-brand-accent/20', trend: 'Normal Perf' },
-                ].map((stat, idx) => (
+                {stats.map((stat, idx) => (
                     <div key={idx} className="p-6 xs:p-8 rounded-md bg-brand-surface border border-brand-border shadow-2xl group hover:border-brand-primary/30 transition-all duration-300 relative overflow-hidden">
                         <div className="flex justify-between items-start mb-6 font-bold uppercase tracking-widest text-[9px] xs:text-[10px] text-slate-500 italic">{stat.label} <span className="text-brand-accent/60">{stat.trend}</span></div>
                         <div className="flex items-center justify-between">
@@ -44,26 +67,54 @@ const SuperAdminHome = () => {
             </div>
 
             <div className="grid grid-cols-1 md600:grid-cols-2 gap-6 xs:gap-8">
-                <div className="bg-brand-surface border border-brand-border border-dashed rounded-md p-8 xs:p-10 h-[340px] xs:h-[380px] flex items-center justify-center group relative cursor-default hover:bg-brand-primary/5 transition-colors">
+                <Link to="/superadmin/analytics" className="bg-brand-surface border border-brand-border rounded-md p-8 xs:p-10 min-h-[340px] flex flex-col group relative hover:bg-brand-primary/5 transition-colors overflow-hidden">
                     <div className="absolute top-6 right-6 text-slate-600 group-hover:text-brand-primary transition-colors duration-500"><ArrowUpRight size={18} /></div>
-                    <div className="text-center group-hover:scale-[1.02] transition-transform duration-700 p-4">
-                        <div className="w-12 h-12 xs:w-16 xs:h-16 rounded-md bg-slate-800/50 border border-brand-border flex items-center justify-center mx-auto mb-6 group-hover:bg-brand-primary/10 transition-colors">
-                            <Activity size={24} className="text-slate-500 group-hover:text-brand-primary transition-colors" />
-                        </div>
-                        <p className="text-[10px] xs:text-xs font-bold text-slate-200 uppercase tracking-widest font-outfit mb-2">Telemetry Visualization</p>
-                        <p className="text-[10px] xs:text-[11px] font-medium text-slate-500 italic tracking-wide">Institutional data synchronization in progress...</p>
+                    <div className="mb-8">
+                        <h4 className="text-[10px] font-black text-slate-100 uppercase tracking-[0.2em] italic mb-1">Telemetry Visualization</h4>
+                        <p className="text-[10px] font-medium text-slate-500 italic">Institutional data synchronization in progress...</p>
                     </div>
-                </div>
-                <div className="bg-brand-surface border border-brand-border border-dashed rounded-md p-8 xs:p-10 h-[340px] xs:h-[380px] flex items-center justify-center group relative cursor-default hover:bg-brand-primary/5 transition-colors">
+                    <div className="flex-1 flex flex-col justify-end space-y-3">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="h-2 bg-slate-800/50 rounded-full overflow-hidden">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${30 + (i * 20)}%` }}
+                                    transition={{ duration: 1, delay: i * 0.2 }}
+                                    className="h-full bg-brand-primary/40 rounded-full"
+                                />
+                            </div>
+                        ))}
+                        <p className="text-[9px] font-bold text-brand-primary uppercase tracking-widest mt-2">View Detailed Analytics</p>
+                    </div>
+                </Link>
+
+                <Link to="/superadmin/security" className="bg-brand-surface border border-brand-border rounded-md p-8 xs:p-10 min-h-[340px] flex flex-col group relative hover:bg-brand-primary/5 transition-colors overflow-hidden">
                     <div className="absolute top-6 right-6 text-slate-600 group-hover:text-brand-primary transition-colors duration-500"><ArrowUpRight size={18} /></div>
-                    <div className="text-center group-hover:scale-[1.02] transition-transform duration-700 p-4">
-                        <div className="w-12 h-12 xs:w-16 xs:h-16 rounded-md bg-slate-800/50 border border-brand-border flex items-center justify-center mx-auto mb-6 group-hover:bg-brand-primary/10 transition-colors">
-                            <Users size={24} className="text-slate-500 group-hover:text-brand-primary transition-colors" />
-                        </div>
-                        <p className="text-[10px] xs:text-xs font-bold text-slate-200 uppercase tracking-widest font-outfit mb-2">Global Access Audit Feed</p>
-                        <p className="text-[10px] xs:text-[11px] font-medium text-slate-500 italic tracking-wide">Monitoring real-time infrastructure interaction.</p>
+                    <div className="mb-6">
+                        <h4 className="text-[10px] font-black text-slate-100 uppercase tracking-[0.2em] italic mb-1">Global Access Audit Feed</h4>
+                        <p className="text-[10px] font-medium text-slate-500 italic tracking-wide">Monitoring real-time infrastructure interaction.</p>
                     </div>
-                </div>
+                    
+                    <div className="space-y-4">
+                        {auditLogs.length > 0 ? auditLogs.slice(0, 3).map((log, i) => (
+                            <div key={i} className="flex items-start gap-3 pb-3 border-b border-brand-border/30 last:border-0">
+                                <div className="w-8 h-8 rounded bg-slate-800 flex items-center justify-center text-brand-primary flex-shrink-0">
+                                    <Terminal size={14} />
+                                </div>
+                                <div className="min-w-0">
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <span className="text-[9px] font-black text-slate-200 uppercase truncate">@{log.userId?.firstName} {log.userId?.lastName}</span>
+                                        <span className="text-[8px] font-bold text-slate-600 uppercase whitespace-nowrap">{moment(log.createdAt).fromNow()}</span>
+                                    </div>
+                                    <p className="text-[9px] font-medium text-slate-500 italic truncate uppercase">{log.action}</p>
+                                </div>
+                            </div>
+                        )) : (
+                            <p className="text-[9px] font-medium text-slate-500 italic">No recent activity logs.</p>
+                        )}
+                    </div>
+                    <p className="text-[9px] font-bold text-brand-primary uppercase tracking-widest mt-auto">Open Security Center</p>
+                </Link>
             </div>
         </motion.div>
     );

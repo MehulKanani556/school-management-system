@@ -39,6 +39,9 @@ import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
 import Revenue from './pages/superadmin/Revenue';
 import Security from './pages/superadmin/Security';
+import Analytics from './pages/superadmin/Analytics';
+import SystemSettings from './pages/superadmin/SystemSettings';
+import SuperAdminProfile from './pages/superadmin/SuperAdminProfile';
 
 // Teacher Pages
 import TeacherDashboard from './pages/Teacher/TeacherDashboard';
@@ -77,6 +80,8 @@ import ChildProfile from './pages/Parent/ChildProfile';
 
 // Common Pages
 import Holidays from './pages/common/Holidays';
+
+import Maintenance from './pages/common/Maintenance';
 
 // Utilities & Context
 import ToastManager from './ToastManager';
@@ -124,6 +129,7 @@ function AppRoutes() {
       <Routes>
         <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
         <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+        <Route path="/maintenance" element={<Maintenance />} />
         <Route path="/" element={<HomeRedirect />} />
 
         {/* Student Panel */}
@@ -215,12 +221,16 @@ function AppRoutes() {
 
         {/* Super Admin Panel */}
         <Route path="/superadmin" element={
-          <RoleRoute role="Super_Admin"><SuperAdminHome /></RoleRoute>
+          <RoleRoute role="Super_Admin"><SuperAdminDashboard /></RoleRoute>
         }>
-          <Route index element={<SuperAdminDashboard />} />
-          <Route path="all-schools" element={<AllSchools />} />
+          <Route index element={<SuperAdminHome />} />
+          <Route path="dashboard" element={<SuperAdminHome />} />
+          <Route path="schools" element={<AllSchools />} />
+          <Route path="analytics" element={<Analytics />} />
           <Route path="revenue" element={<Revenue />} />
           <Route path="security" element={<Security />} />
+          <Route path="settings" element={<SystemSettings />} />
+          <Route path="profile" element={<SuperAdminProfile />} />
         </Route>
       </Routes>
     </Router>
