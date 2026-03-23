@@ -20,6 +20,14 @@ const FeeStructures = () => {
         totalAmount: 0
     });
 
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Execute Protocol'
+    });
+
     useEffect(() => {
         dispatch(fetchFeeStructures());
         fetchStandards();
@@ -81,9 +89,16 @@ const FeeStructures = () => {
     };
 
     const handleDelete = (id) => {
-        if (window.confirm("Permanent erasure of this fiscal node? This cannot be undone.")) {
-            dispatch(deleteFeeStructure(id));
-        }
+        setConfirmModal({
+            show: true,
+            title: 'Permanent Erasure Protocol',
+            message: 'You are about to permanently erase this fiscal structure node. This action will invalidate future fee generations for this grade. Proceed with irreversible deletion?',
+            confirmText: 'Erase Node',
+            onConfirm: () => {
+                dispatch(deleteFeeStructure(id));
+                setConfirmModal({ ...confirmModal, show: false });
+            }
+        });
     };
 
     const [applyModalData, setApplyModalData] = useState(null);
@@ -101,7 +116,6 @@ const FeeStructures = () => {
             academicYear: applyModalData.academicYear
         })).then((res) => {
             if (!res.error) {
-                alert("Fee Inflow Cycle Triggered Successfully.");
                 setApplyModalData(null);
             }
         });
@@ -440,6 +454,50 @@ const FeeStructures = () => {
                                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic mb-1">Verified Structural Record</p>
                                     <p className="text-[9px] font-medium text-slate-500 leading-normal uppercase">This fee structure is verified as an active fiscal protocol. Modifications to this node will affect future inflow generations.</p>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Confirmation Modal */}
+            <AnimatePresence>
+                {confirmModal.show && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/90 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+                            className="bg-brand-surface border border-brand-border rounded-md p-8 w-full max-w-md shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        >
+                            <div className="flex items-center gap-4 mb-6 text-left">
+                                <div className="w-12 h-12 rounded bg-luxury-rose/10 flex items-center justify-center text-luxury-rose border border-luxury-rose/20">
+                                    <AlertCircle size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">{confirmModal.title}</h3>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">High-Level Administrative Authorization</span>
+                                </div>
+                            </div>
+                            
+                            <p className="text-xs font-bold text-slate-400 italic leading-relaxed mb-8 text-left uppercase tracking-tight opacity-70">
+                                {confirmModal.message}
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                                    className="flex-1 py-3 bg-brand-background border border-brand-border rounded text-[10px] font-black text-slate-500 uppercase tracking-widest italic hover:text-slate-100 transition-all font-outfit"
+                                >
+                                    Abort
+                                </button>
+                                <button 
+                                    onClick={confirmModal.onConfirm}
+                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-rose-500 transition-all font-outfit"
+                                >
+                                    {confirmModal.confirmText}
+                                </button>
                             </div>
                         </motion.div>
                     </motion.div>

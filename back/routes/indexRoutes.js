@@ -41,10 +41,10 @@ router.get('/notifications', auth, nc.getNotifications);
 router.put('/notifications/:id/read', auth, nc.markAsRead);
 router.put('/notifications/read-all', auth, nc.markAllAsRead);
 router.delete('/notifications/:id', auth, nc.deleteNotification);
-router.get('/users', getAllUsers);
-router.get('/users/:id', getSingleUser);
+router.get('/users', auth, getAllUsers);
+router.get('/users/:id', auth, getSingleUser);
 router.delete('/users/:id', auth, deleteUser);
-router.put('/users/:id', updateUser);
+router.put('/users/:id', auth, updateUser);
 
 // ─── School Admin Routes ───────────────────────────────────────────────────────
 const schoolAdmin = [auth, requireRole('School_Admin')];
@@ -311,10 +311,6 @@ router.get('/announcements', auth, mc.getAnnouncements);
 router.get('/notices', auth, mc.getNotices);
 
 // Institutional Alerts (Notifications)
-router.get('/notifications', auth, nc.getNotifications);
-router.put('/notifications/:id/read', auth, nc.markAsRead);
-router.put('/notifications/mark-all-read', auth, nc.markAllAsRead);
-router.delete('/notifications/:id', auth, nc.deleteNotification);
 router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
 router.post('/my-messages', auth, mc.sendMessage);
@@ -331,12 +327,14 @@ const accountant = [auth, requireRole('Accountant')];
 router.get('/accountant/fees', ...accountant, ac.getFees);
 router.get('/accountant/standards', ...accountant, sa.getStandards);
 router.put('/accountant/fees/:id', ...accountant, ac.collectFee);
+router.get('/accountant/fees/:id/receipt', ...accountant, ac.downloadFeeReceipt);
 router.get('/accountant/payroll', ...accountant, ac.getPayroll);
 router.post('/accountant/payroll/generate', ...accountant, ac.generatePayroll);
 router.post('/accountant/payroll/single', ...accountant, ac.createSinglePayroll);
 router.put('/accountant/payroll/:id/process', ...accountant, ac.processPayroll);
 router.put('/accountant/payroll/:id', ...accountant, ac.updatePayroll);
 router.delete('/accountant/payroll/:id', ...accountant, ac.deletePayroll);
+router.get('/accountant/payroll/:id/payslip', ...accountant, ac.downloadPayslip);
 router.get('/accountant/reports', ...accountant, ac.getFinancialReport);
 router.get('/accountant/teachers', ...accountant, sa.getTeachers);
 router.get('/accountant/fee-structures', ...accountant, ac.getFeeStructures);
@@ -345,6 +343,7 @@ router.put('/accountant/fee-structures/:id', ...accountant, ac.updateFeeStructur
 router.delete('/accountant/fee-structures/:id', ...accountant, ac.deleteFeeStructure);
 router.post('/accountant/apply-fee-structure', ...accountant, ac.applyFeeStructure);
 router.post('/accountant/send-fee-reminders', ...accountant, sa.sendFeeReminders);
+router.get('/accountant/audit-logs', ...accountant, ac.getAuditLogs);
 
 // ─── Librarian Routes ─────────────────────────────────────────────────────────
 const librarian = [auth, requireRole('Librarian')];

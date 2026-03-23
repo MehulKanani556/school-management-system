@@ -1548,16 +1548,25 @@ exports.getAllPayroll = async (req, res) => {
 
 exports.createPayroll = async (req, res) => {
   try {
-    const { teacherId, month, year, bonus, deductions, status, paymentDate, remarks } = req.body;
+    const { teacherId, month, year, basicSalary, bonus, deductions, status, paymentDate, remarks } = req.body;
     const teacher = await Teacher.findById(teacherId);
     if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
 
-    const baseSalary = teacher.baseSalary || 0;
-    const totalAmount = baseSalary + (Number(bonus) || 0) - (Number(deductions) || 0);
+    const bSalary = Number(basicSalary) || teacher.baseSalary || 0;
+    const nSalary = bSalary + (Number(bonus) || 0) - (Number(deductions) || 0);
 
     const payroll = await Payroll.create({
       schoolId: getSchoolId(req),
-      teacherId, month, year, baseSalary, bonus, deductions, totalAmount, status, paymentDate, remarks,
+      teacherId, 
+      month, 
+      year, 
+      basicSalary: bSalary, 
+      bonus: Number(bonus) || 0, 
+      deductions: Number(deductions) || 0, 
+      netSalary: nSalary, 
+      status: status || 'unpaid', 
+      paidAt: status === 'paid' ? (paymentDate || new Date()) : undefined,
+      remarks,
       submittedBy: req.user._id
     });
     const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
@@ -1567,16 +1576,17 @@ exports.createPayroll = async (req, res) => {
 
 exports.updatePayroll = async (req, res) => {
   try {
-    const { bonus, deductions, status, paymentDate, remarks } = req.body;
+    const { basicSalary, bonus, deductions, status, paymentDate, remarks } = req.body;
     const payroll = await Payroll.findOne({ _id: req.params.id, schoolId: getSchoolId(req) });
     if (!payroll) return res.status(404).json({ message: 'Payroll record not found' });
 
+    payroll.basicSalary = basicSalary !== undefined ? Number(basicSalary) : payroll.basicSalary;
     payroll.bonus = bonus !== undefined ? Number(bonus) : payroll.bonus;
     payroll.deductions = deductions !== undefined ? Number(deductions) : payroll.deductions;
     payroll.status = status || payroll.status;
-    payroll.paymentDate = paymentDate || payroll.paymentDate;
+    payroll.paidAt = payroll.status === 'paid' ? (paymentDate || payroll.paidAt || new Date()) : undefined;
     payroll.remarks = remarks || payroll.remarks;
-    payroll.totalAmount = payroll.baseSalary + (Number(payroll.bonus) || 0) - (Number(payroll.deductions) || 0);
+    payroll.netSalary = payroll.basicSalary + (Number(payroll.bonus) || 0) - (Number(payroll.deductions) || 0);
 
     await payroll.save();
     const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');

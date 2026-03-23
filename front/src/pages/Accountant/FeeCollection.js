@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchFees, collectFee, sendFeeReminders, clearStatus } from '../../redux/slice/accountant.slice';
-import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Bell, Calculator, Filter, X, CheckCircle2, ChevronLeft, AlertCircle } from 'lucide-react';
+import axiosInstance from '../../utils/axiosInstance';
+import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Bell, Calculator, Filter, X, CheckCircle2, ChevronLeft, AlertCircle, Printer, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
@@ -12,6 +13,7 @@ const FeeCollection = () => {
     const [statusFilter, setStatusFilter] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
     const [currentPage, setCurrentPage] = useState(1);
+    const [selectedFees, setSelectedFees] = useState([]);
     
     const [selectedFee, setSelectedFee] = useState(null);
     const [collectionData, setCollectionData] = useState({
@@ -19,7 +21,16 @@ const FeeCollection = () => {
         paymentMethod: 'cash',
         transactionId: '',
         lateFees: 0,
+        discount: 0,
         note: ''
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Execute Protocol'
     });
 
     useEffect(() => {
@@ -50,6 +61,7 @@ const FeeCollection = () => {
             paymentMethod: 'cash',
             transactionId: '',
             lateFees: calculatedLateFee || fee.lateFees || 0,
+            discount: fee.discount || 0,
             note: calculatedLateFee > 0 ? `Auto-calculated late penalty: $${calculatedLateFee}` : 'Manual collection via Fiscal Terminal'
         });
     };
@@ -85,6 +97,23 @@ const FeeCollection = () => {
         document.body.removeChild(link);
     };
 
+    const downloadReceipt = async (fee) => {
+        try {
+            const response = await axiosInstance.get(`/accountant/fees/${fee._id}/receipt`, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Receipt_${fee.studentId?.firstName}_${fee.category}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Download failed', error);
+        }
+    };
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -96,13 +125,46 @@ const FeeCollection = () => {
                         <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest italic leading-none">{pagination.fees.total} Records Detected</p>
                     </div>
                 </div>
-                <button 
-                    onClick={exportCSV}
-                    className="flex items-center gap-2 px-4 py-2 bg-brand-background border border-brand-border rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-xl"
-                >
-                    <Download size={14} />
-                    Export Fiscal Data
-                </button>
+                <div className="flex items-center gap-3">
+                    {selectedFees.length > 0 && (
+                        <button 
+                            onClick={() => {
+                                setConfirmModal({
+                                    show: true,
+                                    title: 'Bulk Fiscal Synchronization',
+                                    message: `Authorize the synchronization of ${selectedFees.length} fiscal nodes to PAID status? This action will generate multiple transaction receipts.`,
+                                    confirmText: 'Authorize Cycle',
+                                    onConfirm: () => {
+                                        selectedFees.forEach(fId => {
+                                            dispatch(collectFee({ 
+                                                id: fId, 
+                                                data: { 
+                                                    paidAmount: (fees.find(f => f._id === fId)?.totalAmount || 0), 
+                                                    status: 'paid', 
+                                                    paymentMethod: 'cash',
+                                                    note: 'Bulk reconciliation issued via control node.'
+                                                } 
+                                            }));
+                                        });
+                                        setSelectedFees([]);
+                                        setConfirmModal({ ...confirmModal, show: false });
+                                    }
+                                });
+                            }}
+                            className="flex items-center gap-2 px-6 py-3 bg-luxury-emerald text-slate-100 rounded-md text-[10px] font-black uppercase tracking-[0.2em] italic shadow-[0_0_30px_rgba(16,185,129,0.3)] animate-pulse"
+                        >
+                            <ShieldCheck size={14} />
+                            Complete Bulk Cycle ({selectedFees.length})
+                        </button>
+                    )}
+                    <button 
+                        onClick={exportCSV}
+                        className="flex items-center gap-2 px-4 py-2 bg-brand-background border border-brand-border rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-xl"
+                    >
+                        <Download size={14} />
+                        Export Fiscal Data
+                    </button>
+                </div>
             </div>
 
             {/* Filters Bar */}
@@ -147,16 +209,39 @@ const FeeCollection = () => {
                     <table className="w-full text-left border-separate border-spacing-0">
                         <thead>
                             <tr className="bg-brand-background/50">
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">
+                                    <input 
+                                        type="checkbox" 
+                                        checked={selectedFees.length === fees?.length && fees?.length > 0}
+                                        onChange={(e) => {
+                                            if (e.target.checked) setSelectedFees(fees.map(f => f._id));
+                                            else setSelectedFees([]);
+                                        }}
+                                        className="w-4 h-4 rounded border-brand-border bg-brand-background text-brand-primary focus:ring-brand-primary"
+                                    />
+                                </th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Identity Identifier</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-center">Fiscal Status</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Net Balance</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Paid Amount</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Timeline</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-right whitespace-nowrap">Control Nodes</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-border">
                             {fees && fees.length > 0 ? fees.map((fee, i) => (
-                                <tr key={i} className="group/row hover:bg-brand-background/40 transition-all">
+                                <tr key={i} className={`group/row hover:bg-brand-background/40 transition-all ${selectedFees.includes(fee._id) ? 'bg-brand-primary/5' : ''}`}>
+                                    <td className="px-6 py-5">
+                                        <input 
+                                            type="checkbox" 
+                                            checked={selectedFees.includes(fee._id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) setSelectedFees([...selectedFees, fee._id]);
+                                                else setSelectedFees(selectedFees.filter(id => id !== fee._id));
+                                            }}
+                                            className="w-4 h-4 rounded border-brand-border bg-brand-background text-brand-primary focus:ring-brand-primary"
+                                        />
+                                    </td>
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-4">
                                             <div className="w-10 h-10 rounded-md bg-slate-800 border border-brand-border overflow-hidden p-0.5 group-hover/row:border-brand-primary/30 transition-all shadow-sm flex items-center justify-center text-slate-500">
@@ -177,10 +262,16 @@ const FeeCollection = () => {
                                             <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of ${(fee.totalAmount || fee.amount || 0).toLocaleString()}</span>
                                         </div>
                                     </td>
+
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-2">
                                             <Calendar size={12} className={moment(fee.dueDate).isBefore(moment()) && fee.status !== 'paid' ? 'text-luxury-rose animate-pulse' : 'text-slate-600'} />
                                             <span className={`text-[10px] font-bold uppercase italic opacity-80 ${moment(fee.dueDate).isBefore(moment()) && fee.status !== 'paid' ? 'text-luxury-rose' : 'text-slate-400'}`}>{moment(fee.dueDate).format('YYYY-MM-DD')}</span>
+                                        </div>
+                                    </td>
+                                    <td className="px-6 py-5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">${(fee.paidAmount || 0).toLocaleString()}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">
@@ -203,19 +294,35 @@ const FeeCollection = () => {
                                                     </button>
                                                 </>
                                             ) : (
-                                                <button 
-                                                    onClick={() => {
-                                                        if(window.confirm("Reverse this payment? Status will reset to pending.")) {
-                                                            dispatch(collectFee({ 
-                                                                id: fee._id, 
-                                                                data: { paidAmount: 0, status: 'pending', note: 'Manual Reversal Protocol Issued' } 
-                                                            }));
-                                                        }
-                                                    }}
-                                                    className="flex items-center gap-2 px-3 py-1.5 bg-brand-background border border-luxury-rose/30 rounded-md text-[9px] font-black text-luxury-rose uppercase tracking-widest italic hover:bg-luxury-rose hover:text-white transition-all opacity-0 group-hover/row:opacity-100"
-                                                >
-                                                    Reverse Node
-                                                </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button 
+                                                        onClick={() => downloadReceipt(fee)}
+                                                        className="p-2 text-slate-500 hover:text-brand-primary transition-all opacity-0 group-hover/row:opacity-100"
+                                                        title="Generate Receipt"
+                                                    >
+                                                        <Printer size={16} />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            setConfirmModal({
+                                                                show: true,
+                                                                title: 'Protocol Reversal',
+                                                                message: 'Reverse this payment node? The fiscal status will reset to pending and the paid balance will be zeroed out.',
+                                                                confirmText: 'Reverse Node',
+                                                                onConfirm: () => {
+                                                                    dispatch(collectFee({ 
+                                                                        id: fee._id, 
+                                                                        data: { paidAmount: 0, status: 'pending', note: 'Manual Reversal Protocol Issued' } 
+                                                                    }));
+                                                                    setConfirmModal({ ...confirmModal, show: false });
+                                                                }
+                                                            });
+                                                        }}
+                                                        className="flex items-center gap-2 px-3 py-1.5 bg-brand-background border border-luxury-rose/30 rounded-md text-[9px] font-black text-luxury-rose uppercase tracking-widest italic hover:bg-luxury-rose hover:text-white transition-all opacity-0 group-hover/row:opacity-100"
+                                                    >
+                                                        Reverse Node
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     </td>
@@ -324,6 +431,15 @@ const FeeCollection = () => {
                                             className="w-full bg-brand-background border border-brand-border rounded-md py-3 px-4 text-[10px] font-black text-slate-100 focus:outline-none focus:border-brand-primary/50 uppercase italic"
                                         />
                                     </div>
+                                    <div>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Scholarship / Discount ($)</label>
+                                        <input 
+                                            type="number"
+                                            value={collectionData.discount}
+                                            onChange={(e) => setCollectionData({...collectionData, discount: Number(e.target.value)})}
+                                            className="w-full bg-brand-background border border-brand-border rounded-md py-3 px-4 text-sm font-black text-slate-100 focus:outline-none focus:border-brand-primary/50"
+                                        />
+                                    </div>
                                 </div>
                             </div>
 
@@ -349,6 +465,50 @@ const FeeCollection = () => {
                                     </>
                                 )}
                             </button>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Confirmation Modal */}
+            <AnimatePresence>
+                {confirmModal.show && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+                            className="bg-brand-surface border border-brand-border rounded-md p-8 w-full max-w-md shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        >
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded bg-luxury-rose/10 flex items-center justify-center text-luxury-rose border border-luxury-rose/20">
+                                    <AlertCircle size={24} />
+                                </div>
+                                <div className="text-left">
+                                    <h3 className="text-lg font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">{confirmModal.title}</h3>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Critical Protocol Confirmation Required</span>
+                                </div>
+                            </div>
+                            
+                            <p className="text-xs font-bold text-slate-400 italic leading-relaxed mb-8 text-left uppercase tracking-tight opacity-80">
+                                {confirmModal.message}
+                            </p>
+
+                            <div className="flex gap-3">
+                                <button 
+                                    onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                                    className="flex-1 py-3 bg-brand-background border border-brand-border rounded text-[10px] font-black text-slate-500 uppercase tracking-widest italic hover:text-slate-100 transition-all"
+                                >
+                                    Abort Operation
+                                </button>
+                                <button 
+                                    onClick={confirmModal.onConfirm}
+                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-rose-500 transition-all"
+                                >
+                                    {confirmModal.confirmText}
+                                </button>
+                            </div>
                         </motion.div>
                     </motion.div>
                 )}

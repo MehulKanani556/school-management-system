@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPayroll, processPayroll, generatePayroll, createSinglePayroll, updatePayroll, deletePayroll, clearStatus } from '../../redux/slice/accountant.slice';
 import axiosInstance from '../../utils/axiosInstance';
-import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Plus, Calculator, Filter, X, CheckCircle2, ChevronLeft, Hash, Printer, FileText, TrendingUp, TrendingDown, ShieldCheck, Zap, Pencil, Trash2, Banknote } from 'lucide-react';
+import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Plus, Calculator, Filter, X, CheckCircle2, ChevronLeft, Hash, Printer, FileText, TrendingUp, TrendingDown, ShieldCheck, Zap, Pencil, Trash2, Banknote, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
@@ -33,6 +33,14 @@ const PayrollManagement = () => {
         status: 'paid',
         paymentMethod: 'Bank Transfer',
         remarks: '' 
+    });
+
+    const [confirmModal, setConfirmModal] = useState({
+        show: false,
+        title: '',
+        message: '',
+        onConfirm: null,
+        confirmText: 'Execute Protocol'
     });
 
     useEffect(() => {
@@ -113,9 +121,16 @@ const PayrollManagement = () => {
     };
 
     const handleDelete = (id) => {
-      if (window.confirm('Delete this payroll record?')) {
-        dispatch(deletePayroll(id));
-      }
+      setConfirmModal({
+        show: true,
+        title: 'Registry Erasure',
+        message: 'Are you certain you wish to permanently erase this payroll record? This action will remove the entry from the fiscal ledger and cannot be recovered.',
+        confirmText: 'Erase Record',
+        onConfirm: () => {
+          dispatch(deletePayroll(id));
+          setConfirmModal({ ...confirmModal, show: false });
+        }
+      });
     };
 
     const exportCSV = () => {
@@ -134,12 +149,21 @@ const PayrollManagement = () => {
         link.click();
     };
 
-    const generatePayslip = (item) => {
-        const printWindow = window.open('', '_blank');
-        const content = `<html><body><h1>Payslip - ${item.teacherId?.firstName}</h1></body></html>`;
-        printWindow.document.write(content);
-        printWindow.document.close();
-        printWindow.print();
+    const generatePayslip = async (item) => {
+        try {
+            const response = await axiosInstance.get(`/accountant/payroll/${item._id}/payslip`, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Payslip_${item.teacherId?.firstName}_${item.month}_${item.year}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        } catch (error) {
+            console.error('Download failed', error);
+        }
     };
 
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
@@ -226,7 +250,7 @@ const PayrollManagement = () => {
                                     <span className="text-sm font-medium text-slate-400 italic uppercase tracking-tighter">{months[item.month - 1]} {item.year}</span>
                                 </td>
                                 <td className="px-8 py-6 text-sm font-mono text-slate-400">
-                                    ₹{(item.baseSalary || 0).toLocaleString()}
+                                    ₹{(item.basicSalary || 0).toLocaleString()}
                                 </td>
                                 <td className="px-8 py-6">
                                     <div className="flex items-center gap-1.5 text-[10px] font-black tracking-tighter">
@@ -236,7 +260,7 @@ const PayrollManagement = () => {
                                     </div>
                                 </td>
                                 <td className="px-8 py-6 font-black text-[15px] text-brand-primary italic tracking-tighter">
-                                    ₹{(item.totalAmount || 0).toLocaleString()}
+                                    ₹{(item.netSalary || 0).toLocaleString()}
                                 </td>
                                 <td className="px-8 py-6">
                                     <span className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest italic border ${item.status === 'paid' ? 'text-luxury-emerald border-luxury-emerald/20 bg-luxury-emerald/5' : 'text-amber-500 border-amber-500/20 bg-amber-500/5'}`}>
@@ -248,7 +272,10 @@ const PayrollManagement = () => {
                                         {item.status !== 'paid' && (
                                           <button onClick={() => handleOpenProcess(item)} title="Authorize" className="text-slate-500 hover:text-luxury-emerald transition-all"><CreditCard size={17} /></button>
                                         )}
-                                        <button onClick={() => handleEdit(item)} className="text-slate-500 hover:text-brand-primary transition-all"><Pencil size={17} /></button>
+                                        {item.status === 'paid' && (
+                                          <button onClick={() => generatePayslip(item)} title="Download Payslip" className="text-slate-500 hover:text-brand-primary transition-all"><Printer size={17} /></button>
+                                        )}
+                                        <button onClick={() => handleEdit(item)} className="text-slate-500 hover:text-luxury-gold transition-all"><Pencil size={17} /></button>
                                         <button onClick={() => handleDelete(item._id)} className="text-slate-500 hover:text-red-500 transition-all"><Trash2 size={17} /></button>
                                     </div>
                                 </td>
@@ -336,8 +363,52 @@ const PayrollManagement = () => {
                 )}
             </AnimatePresence>
 
+            {/* Confirmation Modal */}
             <AnimatePresence>
-              {(success || error) && (
+                {confirmModal.show && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, y: 10 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95, y: 10 }}
+                            className="bg-brand-surface border border-brand-border rounded-md p-8 w-full max-w-md shadow-[0_0_100px_rgba(0,0,0,0.8)] relative"
+                        >
+                            <div className="flex items-center gap-4 mb-6 text-left">
+                                <div className="w-12 h-12 rounded bg-luxury-rose/10 flex items-center justify-center text-luxury-rose border border-luxury-rose/20">
+                                    <AlertCircle size={24} />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">{confirmModal.title}</h3>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">High-Level Authorization Protocol</span>
+                                </div>
+                            </div>
+                            
+                            <p className="text-xs font-bold text-slate-400 italic leading-relaxed mb-8 text-left uppercase tracking-tight opacity-70 font-outfit">
+                                {confirmModal.message}
+                            </p>
+
+                            <div className="flex gap-3 font-outfit">
+                                <button 
+                                    onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                                    className="flex-1 py-3 bg-brand-background border border-brand-border rounded text-[10px] font-black text-slate-500 uppercase tracking-widest italic hover:text-slate-100 transition-all font-outfit"
+                                >
+                                    Abort Operation
+                                </button>
+                                <button 
+                                    onClick={confirmModal.onConfirm}
+                                    className="flex-1 py-3 bg-red-600 text-white rounded text-[10px] font-black uppercase tracking-[0.1em] italic shadow-xl shadow-red-600/20 hover:bg-red-700 transition-all font-outfit"
+                                >
+                                    {confirmModal.confirmText}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {(success || error) && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className={`fixed bottom-10 right-10 z-[110] px-7 py-5 rounded-lg border shadow-3xl flex items-center gap-5 backdrop-blur-xl ${success ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border-red-500/30 text-red-500'}`}>
                   <div className="flex flex-col text-left font-outfit uppercase"><span className="text-[10px] font-black tracking-widest italic leading-none mb-1.5">{success ? 'Registry Confirmed' : 'Protocol Failure'}</span><span className="text-xs font-bold text-slate-100 italic leading-none">{success || error}</span></div>
                   <button onClick={() => dispatch(clearStatus())} className="p-1.5 hover:opacity-60 transition-all bg-white/5 rounded-md"><X size={16} /></button>

@@ -1,18 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { logout } from '../../redux/slice/auth.slice';
 import {
-  LayoutDashboard, CreditCard, Banknote, ClipboardList,
+    LayoutDashboard, CreditCard, Banknote, ClipboardList,
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
   LogOut, ChevronDown, ChevronRight, User, TrendingUp, BarChart3,
-  PieChart, FileText, Wallet, Calculator
+  PieChart, FileText, Wallet, Calculator,
+  Shield,
+  DollarSign,
+  BookOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
+import { logout } from '../../redux/slice/auth.slice';
 
 const navItems = [
   { to: '/accountant', icon: LayoutDashboard, label: 'Fiscal Control', end: true },
@@ -85,6 +88,14 @@ const AccountantLayout = () => {
         );
         if (activeParent) setExpanded(activeParent.label);
     }, [location.pathname]);
+    const menuItems = [
+        { icon: LayoutDashboard, label: 'Dashboard', path: '/accountant' },
+        { icon: DollarSign, label: 'Fee Collection', path: '/accountant/fees' },
+        { icon: CreditCard, label: 'Payroll', path: '/accountant/payroll' },
+        { icon: BookOpen, label: 'Fee Structures', path: '/accountant/fee-structures' },
+        { icon: PieChart, label: 'Reports', path: '/accountant/reports' },
+        { icon: Shield, label: 'Audit Logs', path: '/accountant/audit-logs' },
+    ];
 
     const handleLogout = () => {
         dispatch(logout());

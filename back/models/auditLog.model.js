@@ -6,6 +6,10 @@ const auditLogSchema = new mongoose.Schema({
         ref: 'User',
         required: true,
     },
+    schoolId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'School',
+    },
     action: {
         type: String,
         required: true,

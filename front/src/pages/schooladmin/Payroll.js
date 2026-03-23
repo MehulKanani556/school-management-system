@@ -12,6 +12,7 @@ const validationSchema = Yup.object({
   teacherId: Yup.string().required('Teacher is required'),
   month: Yup.number().min(1).max(12).required('Month is required'),
   year: Yup.number().required('Year is required'),
+  basicSalary: Yup.number().min(0).required('Basic Salary is required'),
   bonus: Yup.number().min(0),
   deductions: Yup.number().min(0),
   status: Yup.string().oneOf(['paid', 'unpaid']).required(),
@@ -29,6 +30,7 @@ const emptyValues = {
   teacherId: '', 
   month: new Date().getMonth() + 1, 
   year: new Date().getFullYear(), 
+  basicSalary: '',
   bonus: 0, 
   deductions: 0, 
   status: 'unpaid', 
@@ -38,7 +40,7 @@ const emptyValues = {
 
 const Payroll = () => {
   const dispatch = useDispatch();
-  const { payroll, teachers, loading } = useSelector((s) => s.schoolAdmin);
+  const { payroll, teachers, loading, error } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -55,9 +57,12 @@ const Payroll = () => {
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
+      const netSalary = (Number(values.basicSalary) || 0) + (Number(values.bonus) || 0) - (Number(values.deductions) || 0);
+      const submissionData = { ...values, netSalary };
+      
       const action = editing
-        ? dispatch(updatePayroll({ id: editing, data: values }))
-        : dispatch(createPayroll(values));
+        ? dispatch(updatePayroll({ id: editing, data: submissionData }))
+        : dispatch(createPayroll(submissionData));
       const result = await action;
       if (!result.error) {
         setModal(false);
@@ -76,11 +81,12 @@ const Payroll = () => {
   const openEdit = (p) => {
     setEditing(p._id);
     formik.setValues({
-      teacherId: p.teacherId?._id || '',
-      month: p.month,
-      year: p.year,
-      bonus: p.bonus,
-      deductions: p.deductions,
+    teacherId: p.teacherId?._id || '',
+    month: p.month,
+    year: p.year,
+    basicSalary: p.basicSalary || '',
+    bonus: p.bonus,
+    deductions: p.deductions,
       status: p.status,
       paymentDate: p.paymentDate ? p.paymentDate.split('T')[0] : '',
       remarks: p.remarks || '',
@@ -126,7 +132,7 @@ const Payroll = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30 bg-white/5">
-              {['Teacher', 'Month/Year', 'Base Salary', 'Bonus/Ded', 'Total', 'Status', 'Actions'].map(h => (
+              {['Teacher', 'Month/Year', 'Basic Salary', 'Bonus/Ded', 'Net Salary', 'Status', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
               ))}
             </tr>
@@ -148,7 +154,7 @@ const Payroll = () => {
                 <td className="px-6 py-5">
                   <span className="text-sm font-medium text-slate-300">{months[p.month - 1]} {p.year}</span>
                 </td>
-                <td className="px-6 py-5 text-sm font-mono text-slate-400">₹{p.baseSalary?.toLocaleString()}</td>
+                <td className="px-6 py-5 text-sm font-mono text-slate-400">₹{p.basicSalary?.toLocaleString()}</td>
                 <td className="px-6 py-5">
                   <div className="flex items-center gap-1.5 text-[10px] font-bold">
                     <span className="text-emerald-500">+{p.bonus || 0}</span>
@@ -156,7 +162,7 @@ const Payroll = () => {
                     <span className="text-rose-500">-{p.deductions || 0}</span>
                   </div>
                 </td>
-                <td className="px-6 py-5 font-black text-brand-primary">₹{p.totalAmount?.toLocaleString()}</td>
+                <td className="px-6 py-5 font-black text-brand-primary">₹{p.netSalary?.toLocaleString()}</td>
                 <td className="px-6 py-5">
                   <span className={`px-3 py-1 rounded-md text-[10px] font-black uppercase tracking-wider ${p.status === 'paid' ? 'text-emerald-400 bg-emerald-400/10' : 'text-amber-500 bg-amber-500/10'}`}>
                     {p.status}
@@ -212,10 +218,25 @@ const Payroll = () => {
 
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Update Payroll' : 'Add Payroll Record'}>
         <form onSubmit={formik.handleSubmit} className="space-y-4">
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 rounded-md p-4 mb-4 flex items-start gap-3">
+              <XCircle className="text-red-500 shrink-0 mt-0.5" size={16} />
+              <div className="flex flex-col"><span className="text-[10px] font-black text-red-500 uppercase italic">Validation Protocol Failure</span><p className="text-[11px] font-bold text-red-200 mt-1 italic">{error}</p></div>
+            </div>
+          )}
           <div>
             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Select Teacher</label>
             <select 
-              {...formik.getFieldProps('teacherId')} 
+              name="teacherId"
+              value={formik.values.teacherId}
+              onChange={(e) => {
+                const tId = e.target.value;
+                formik.setFieldValue('teacherId', tId);
+                const teacher = teachers.find(t => t._id === tId);
+                if (teacher) {
+                  formik.setFieldValue('basicSalary', teacher.baseSalary || 0);
+                }
+              }}
               className={inputClass(formik.touched.teacherId, formik.errors.teacherId)}
               disabled={!!editing}
             >
@@ -238,6 +259,12 @@ const Payroll = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Year</label>
               <input type="number" {...formik.getFieldProps('year')} className={inputClass(formik.touched.year, formik.errors.year)} />
             </div>
+          </div>
+
+          <div>
+             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Basic Salary</label>
+             <input type="number" {...formik.getFieldProps('basicSalary')} className={inputClass(formik.touched.basicSalary, formik.errors.basicSalary)} placeholder="Enter base amount..." />
+             <FieldError touched={formik.touched.basicSalary} error={formik.errors.basicSalary} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">

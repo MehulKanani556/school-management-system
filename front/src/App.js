@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import './App.css';
 import { Toaster } from 'react-hot-toast';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { Provider, useSelector } from 'react-redux';
 import { configureStore } from './redux/Store';
 import { PersistGate } from 'redux-persist/integration/react';
+import { Loader2 } from 'lucide-react';
 import Auth from './pages/auth/Auth';
 import Home from './pages/Home';
 
@@ -125,6 +126,7 @@ const FeeCollection = React.lazy(() => import('./pages/Accountant/FeeCollection'
 const PayrollManagement = React.lazy(() => import('./pages/Accountant/PayrollManagement'));
 const FinancialReports = React.lazy(() => import('./pages/Accountant/FinancialReports'));
 const FeeStructures = React.lazy(() => import('./pages/Accountant/FeeStructures'));
+const AuditLogs = React.lazy(() => import('./pages/Accountant/AuditLogs'));
 
 // Librarian Pages
 const LibrarianDashboard = React.lazy(() => import('./pages/Librarian/LibrarianDashboard'));
@@ -165,155 +167,162 @@ function AppRoutes() {
 
   return (
     <Router>
-      <Routes>
-        <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
-        <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
-        <Route path="/maintenance" element={<Maintenance />} />
-        <Route path="/" element={<HomeRedirect />} />
+      <Suspense fallback={
+        <div className="flex flex-col items-center justify-center h-screen bg-[#020617]">
+          <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
+          <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] italic animate-pulse">Synchronizing Neural Core...</span>
+        </div>
+      }>
+        <Routes>
+          <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+          <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+          <Route path="/maintenance" element={<Maintenance />} />
+          <Route path="/" element={<HomeRedirect />} />
 
-        {/* Student Panel */}
-        <Route path="/student" element={
-          <RoleRoute role="Student"><StudentLayout /></RoleRoute>
-        }>
-          <Route index element={<StudentDashboard />} />
-          <Route path="profile" element={<StudentProfile />} />
-          <Route path="attendance" element={<AttendanceHistory />} />
-          <Route path="results" element={<AcademicResults />} />
-          <Route path="assignments" element={<AssignmentsStudent />} />
-          <Route path="timetable" element={<Timetable />} />
-          <Route path="holidays" element={<Holidays />} />
-          <Route path="fees" element={<FeesStudent />} />
-          <Route path="notifications" element={<NotificationsStudent />} />
-          <Route path="announcements" element={<AnnouncementsStudent />} />
-          <Route path="messages" element={<MessagesStudent />} />
-          <Route path="exams" element={<ExamsStudent />} />
-        </Route>
+          {/* Student Panel */}
+          <Route path="/student" element={
+            <RoleRoute role="Student"><StudentLayout /></RoleRoute>
+          }>
+            <Route index element={<StudentDashboard />} />
+            <Route path="profile" element={<StudentProfile />} />
+            <Route path="attendance" element={<AttendanceHistory />} />
+            <Route path="results" element={<AcademicResults />} />
+            <Route path="assignments" element={<AssignmentsStudent />} />
+            <Route path="timetable" element={<Timetable />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="fees" element={<FeesStudent />} />
+            <Route path="notifications" element={<NotificationsStudent />} />
+            <Route path="announcements" element={<AnnouncementsStudent />} />
+            <Route path="messages" element={<MessagesStudent />} />
+            <Route path="exams" element={<ExamsStudent />} />
+          </Route>
 
-        {/* Teacher Panel */}
-        <Route path="/teacher" element={
-          <RoleRoute role="Teacher"><TeacherLayout /></RoleRoute>
-        }>
-          <Route index element={<TeacherDashboard />} />
-          <Route path="classes" element={<AssignedClasses />} />
-          <Route path="students/:classId" element={<ClassStudents />} />
-          <Route path="attendance" element={<MarkAttendance />} />
-          <Route path="marks" element={<AddMarks />} />
-          <Route path="assignments" element={<Assignments />} />
-          <Route path="timetable" element={<TeacherTimetable />} />
-          <Route path="messages" element={<TeacherMessages />} />
-          <Route path="profile" element={<TeacherProfile />} />
-          <Route path="analytics" element={<TeacherAnalytics />} />
-          <Route path="payroll" element={<TeacherPayroll />} />
-          <Route path="leaves" element={<TeacherLeaves />} />
-          <Route path="holidays" element={<Holidays />} />
-          <Route path="fee-status" element={<TeacherFeeStatus />} />
-          <Route path="student-attendance/:studentId" element={<StudentDetailedAttendance />} />
-          <Route path="performance-report" element={<PerformanceAnalytics />} />
-          <Route path="reviews" element={<TeacherReviews />} />
-          <Route path="exam-schedule" element={<TeacherExams />} />
-          <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
-          <Route path="lesson-plans" element={<LessonPlans />} />
-          <Route path="behavior-log" element={<BehaviorLog />} />
-          <Route path="meetings" element={<PTMMeetings />} />
-          <Route path="noticeboard" element={<ClassNoticeboard />} />
-        </Route>
+          {/* Teacher Panel */}
+          <Route path="/teacher" element={
+            <RoleRoute role="Teacher"><TeacherLayout /></RoleRoute>
+          }>
+            <Route index element={<TeacherDashboard />} />
+            <Route path="classes" element={<AssignedClasses />} />
+            <Route path="students/:classId" element={<ClassStudents />} />
+            <Route path="attendance" element={<MarkAttendance />} />
+            <Route path="marks" element={<AddMarks />} />
+            <Route path="assignments" element={<Assignments />} />
+            <Route path="timetable" element={<TeacherTimetable />} />
+            <Route path="messages" element={<TeacherMessages />} />
+            <Route path="profile" element={<TeacherProfile />} />
+            <Route path="analytics" element={<TeacherAnalytics />} />
+            <Route path="payroll" element={<TeacherPayroll />} />
+            <Route path="leaves" element={<TeacherLeaves />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="fee-status" element={<TeacherFeeStatus />} />
+            <Route path="student-attendance/:studentId" element={<StudentDetailedAttendance />} />
+            <Route path="performance-report" element={<PerformanceAnalytics />} />
+            <Route path="reviews" element={<TeacherReviews />} />
+            <Route path="exam-schedule" element={<TeacherExams />} />
+            <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
+            <Route path="lesson-plans" element={<LessonPlans />} />
+            <Route path="behavior-log" element={<BehaviorLog />} />
+            <Route path="meetings" element={<PTMMeetings />} />
+            <Route path="noticeboard" element={<ClassNoticeboard />} />
+          </Route>
 
-        {/* Parent Panel */}
-        <Route path="/parent" element={
-          <RoleRoute role="Parent"><ParentLayout /></RoleRoute>
-        }>
-          <Route index element={<ParentDashboard />} />
-          <Route path="attendance" element={<ChildAttendance />} />
-          <Route path="results" element={<ChildResults />} />
-          <Route path="assignments" element={<ChildAssignments />} />
-          <Route path="fees" element={<ChildFees />} />
+          {/* Parent Panel */}
+          <Route path="/parent" element={
+            <RoleRoute role="Parent"><ParentLayout /></RoleRoute>
+          }>
+            <Route index element={<ParentDashboard />} />
+            <Route path="attendance" element={<ChildAttendance />} />
+            <Route path="results" element={<ChildResults />} />
+            <Route path="assignments" element={<ChildAssignments />} />
+            <Route path="fees" element={<ChildFees />} />
+            <Route path="timetable" element={<ChildTimetable />} />
+            <Route path="exams" element={<ChildExams />} />
+            <Route path="behavior" element={<ChildBehavior />} />
+            <Route path="meetings" element={<ChildMeetings />} />
+            <Route path="announcements" element={<AnnouncementsStudent />} />
+            <Route path="notifications" element={<ParentNotifications />} />
+            <Route path="messages" element={<ParentMessages />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="profile" element={<ParentProfile />} />
+            <Route path="child-profile" element={<ChildProfile />} />
+            <Route path="transport" element={<ChildTransport />} />
+          </Route>
 
-          <Route path="timetable" element={<ChildTimetable />} />
-          <Route path="exams" element={<ChildExams />} />
-          <Route path="behavior" element={<ChildBehavior />} />
-          <Route path="meetings" element={<ChildMeetings />} />
-          <Route path="announcements" element={<AnnouncementsStudent />} />
-          <Route path="notifications" element={<ParentNotifications />} />
-          <Route path="messages" element={<ParentMessages />} />
-          <Route path="holidays" element={<Holidays />} />
-          <Route path="profile" element={<ParentProfile />} />
-          <Route path="child-profile" element={<ChildProfile />} />
-          <Route path="transport" element={<ChildTransport />} />
-        </Route>
 
+          {/* School Admin Panel */}
+          <Route path="/school-admin" element={
+            <RoleRoute role="School_Admin"><SchoolAdminLayout /></RoleRoute>
+          }>
+            <Route index element={<Dashboard />} />
+            <Route path="students" element={<Students />} />
+            <Route path="teachers" element={<Teachers />} />
+            <Route path="classes" element={<Classes />} />
+            <Route path="fees" element={<Fees />} />
+            <Route path="exams" element={<Exams />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
+            <Route path="subjects" element={<Subjects />} />
+            <Route path="timetable" element={<AdminTimetable />} />
+            <Route path="communication" element={<AdminCommunication />} />
+            <Route path="payroll" element={<Payroll />} />
+            <Route path="leaves" element={<Leaves />} />
+            <Route path="reviews" element={<Reviews />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="profile" element={<SchoolProfile />} />
+            <Route path="staff" element={<StaffRegistry />} />
+            <Route path="holidays" element={<Holidays />} />
+            <Route path="academic-years" element={<AcademicYears />} />
+            <Route path="admissions" element={<Admissions />} />
+          </Route>
 
-        {/* School Admin Panel */}
-        <Route path="/school-admin" element={
-          <RoleRoute role="School_Admin"><SchoolAdminLayout /></RoleRoute>
-        }>
-          <Route index element={<Dashboard />} />
-          <Route path="students" element={<Students />} />
-          <Route path="teachers" element={<Teachers />} />
-          <Route path="classes" element={<Classes />} />
-          <Route path="fees" element={<Fees />} />
-          <Route path="exams" element={<Exams />} />
-          <Route path="attendance" element={<Attendance />} />
-          <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
-          <Route path="subjects" element={<Subjects />} />
-          <Route path="timetable" element={<AdminTimetable />} />
-          <Route path="communication" element={<AdminCommunication />} />
-          <Route path="payroll" element={<Payroll />} />
-          <Route path="leaves" element={<Leaves />} />
-          <Route path="reviews" element={<Reviews />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="profile" element={<SchoolProfile />} />
-          <Route path="staff" element={<StaffRegistry />} />
-          <Route path="holidays" element={<Holidays />} />
-          <Route path="academic-years" element={<AcademicYears />} />
-          <Route path="admissions" element={<Admissions />} />
-        </Route>
+          {/* Super Admin Panel */}
+          <Route path="/superadmin" element={
+            <RoleRoute role="Super_Admin"><SuperAdminDashboard /></RoleRoute>
+          }>
+            <Route index element={<SuperAdminHome />} />
+            <Route path="dashboard" element={<SuperAdminHome />} />
+            <Route path="schools" element={<AllSchools />} />
+            <Route path="analytics" element={<Analytics />} />
+            <Route path="revenue" element={<Revenue />} />
+            <Route path="security" element={<Security />} />
+            <Route path="settings" element={<SystemSettings />} />
+            <Route path="profile" element={<SuperAdminProfile />} />
+          </Route>
 
-        {/* Super Admin Panel */}
-        <Route path="/superadmin" element={
-          <RoleRoute role="Super_Admin"><SuperAdminDashboard /></RoleRoute>
-        }>
-          <Route index element={<SuperAdminHome />} />
-          <Route path="dashboard" element={<SuperAdminHome />} />
-          <Route path="schools" element={<AllSchools />} />
-          <Route path="analytics" element={<Analytics />} />
-          <Route path="revenue" element={<Revenue />} />
-          <Route path="security" element={<Security />} />
-          <Route path="settings" element={<SystemSettings />} />
-          <Route path="profile" element={<SuperAdminProfile />} />
-        </Route>
+          {/* Accountant Panel */}
+          <Route path="/accountant" element={
+            <RoleRoute role="Accountant"><AccountantLayout /></RoleRoute>
+          }>
+            <Route index element={<AccountantDashboard />} />
+            <Route path="fees" element={<FeeCollection />} />
+            <Route path="payroll" element={<PayrollManagement />} />
+            <Route path="fee-structures" element={<FeeStructures />} />
+            <Route path="reports" element={<FinancialReports />} />
+            <Route path="audit-logs" element={<AuditLogs />} />
+          </Route>
 
-        {/* Accountant Panel */}
-        <Route path="/accountant" element={
-          <RoleRoute role="Accountant"><AccountantLayout /></RoleRoute>
-        }>
-          <Route index element={<AccountantDashboard />} />
-          <Route path="fees" element={<FeeCollection />} />
-          <Route path="payroll" element={<PayrollManagement />} />
-          <Route path="fee-structures" element={<FeeStructures />} />
-          <Route path="reports" element={<FinancialReports />} />
-        </Route>
+          {/* Librarian Panel */}
+          <Route path="/librarian" element={
+            <RoleRoute role="Librarian"><LibrarianLayout /></RoleRoute>
+          }>
+            <Route index element={<LibrarianDashboard />} />
+            <Route path="inventory" element={<BookInventory />} />
+            <Route path="issue" element={<IssueRecords />} />
+            <Route path="return" element={<IssueRecords />} />
+            <Route path="records" element={<IssueRecords />} />
+          </Route>
 
-        {/* Librarian Panel */}
-        <Route path="/librarian" element={
-          <RoleRoute role="Librarian"><LibrarianLayout /></RoleRoute>
-        }>
-          <Route index element={<LibrarianDashboard />} />
-          <Route path="inventory" element={<BookInventory />} />
-          <Route path="issue" element={<IssueRecords />} />
-          <Route path="return" element={<IssueRecords />} />
-          <Route path="records" element={<IssueRecords />} />
-        </Route>
-
-        {/* Transporter Panel */}
-        <Route path="/transporter" element={
-          <RoleRoute role="Transport_Manager"><TransporterLayout /></RoleRoute>
-        }>
-          <Route index element={<TransporterDashboard />} />
-          <Route path="vehicles" element={<Vehicles />} />
-          <Route path="routes" element={<TransporterRoutes />} />
-          <Route path="students" element={<StudentAssignment />} />
-        </Route>
-      </Routes>
+          {/* Transporter Panel */}
+          <Route path="/transporter" element={
+            <RoleRoute role="Transport_Manager"><TransporterLayout /></RoleRoute>
+          }>
+            <Route index element={<TransporterDashboard />} />
+            <Route path="vehicles" element={<Vehicles />} />
+            <Route path="routes" element={<TransporterRoutes />} />
+            <Route path="students" element={<StudentAssignment />} />
+          </Route>
+        </Routes>
+      </Suspense>
     </Router>
   );
 }
