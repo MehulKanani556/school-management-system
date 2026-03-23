@@ -767,7 +767,11 @@ exports.getFees = async (req, res) => {
 
     const fees = await FeePayment.find({ schoolId })
       .sort({ createdAt: -1 })
-      .populate('studentId', 'firstName lastName admissionNumber');
+      .populate({
+        path: 'studentId',
+        select: 'firstName lastName admissionNumber standard',
+        populate: { path: 'standard', select: 'level' }
+      });
     res.json(fees);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -775,7 +779,11 @@ exports.getFees = async (req, res) => {
 exports.createFee = async (req, res) => {
   try {
     const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req) });
-    const populated = await FeePayment.findById(fee._id).populate('studentId', 'firstName lastName admissionNumber');
+    const populated = await FeePayment.findById(fee._id).populate({
+        path: 'studentId',
+        select: 'firstName lastName admissionNumber standard',
+        populate: { path: 'standard', select: 'level' }
+    });
     res.status(201).json({ message: 'Fee node created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -814,7 +822,11 @@ exports.updateFee = async (req, res) => {
     const updated = await FeePayment.findByIdAndUpdate(
       req.params.id,
       updateData, { new: true }
-    ).populate('studentId', 'firstName lastName admissionNumber');
+    ).populate({
+        path: 'studentId',
+        select: 'firstName lastName admissionNumber standard',
+        populate: { path: 'standard', select: 'level' }
+    });
 
     res.json({ message: 'Fee node modified successfully', data: updated });
   } catch (err) { res.status(500).json({ message: err.message }); }

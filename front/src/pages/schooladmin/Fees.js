@@ -1,13 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { 
-  fetchFees, fetchStudents, fetchFeeStructures, fetchStandards,
+  fetchFees, fetchStudents, fetchFeeStructures, fetchStandards, fetchClasses,
   createFee, updateFee, deleteFee, createFeeStructure, 
   updateFeeStructure, deleteFeeStructure, applyFeeStructure,
   fetchFeeSummary, sendFeeReminders
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -29,6 +29,7 @@ const Fees = () => {
   const [editing, setEditing] = useState(null);
   const [receiptData, setReceiptData] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [selectedStandard, setSelectedStandard] = useState('all');
   const [payingMap, setPayingMap] = useState({}); // { fee_id: internal_paying_now_amount }
   const [formLoading, setFormLoading] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
@@ -38,6 +39,7 @@ const Fees = () => {
     dispatch(fetchStudents()); 
     dispatch(fetchFeeStructures());
     dispatch(fetchStandards());
+    dispatch(fetchClasses());
     dispatch(fetchFeeSummary());
   }, [dispatch]);
 
@@ -194,7 +196,12 @@ const Fees = () => {
 
   // ─── Renderers ───────────────────────────────────────────────────────────────
 
-  const filteredFees = filter === 'all' ? fees : fees.filter(f => f.status === filter);
+  const filteredFees = fees.filter(f => {
+    const matchStatus = filter === 'all' || f.status === filter;
+    const studentStandardId = f.studentId?.standard?._id || f.studentId?.standard;
+    const matchStandard = selectedStandard === 'all' || studentStandardId === selectedStandard;
+    return matchStatus && matchStandard;
+  });
   
   const combinedFees = React.useMemo(() => {
     const grouped = filteredFees.reduce((acc, f) => {
@@ -248,9 +255,9 @@ const Fees = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black uppercase tracking-tighter font-outfit text-white">Financial Hub</h1>
-          <p className="text-slate-500 text-sm font-medium mt-1 uppercase tracking-widest flex items-center gap-2">
-            <Sparkles size={14} className="text-brand-primary" /> Management of Fees & Structures
+          <h1 className="text-3xl font-black uppercase tracking-tighter font-outfit text-white italic">Financial <span className="text-brand-primary">Protocol</span></h1>
+          <p className="text-slate-500 text-[10px] font-black mt-1 uppercase tracking-[0.2em] flex items-center gap-2">
+            <Sparkles size={11} className="text-brand-primary" /> Management of Fees & Global Structures
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -304,12 +311,35 @@ const Fees = () => {
               ))}
             </div>
 
-            {/* Filters & Table */}
+            {/* Standard Picker - Class Wise */}
+            <div className="bg-slate-900/40 border border-slate-800/60 p-2 rounded-md overflow-x-auto custom-scrollbar flex items-center gap-2 group">
+              <div className="flex items-center gap-2 px-4 border-r border-slate-800 mr-2">
+                <Filter size={14} className="text-slate-500 group-hover:text-brand-primary transition-colors" />
+                <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest whitespace-nowrap">Selector</span>
+              </div>
+              <button 
+                onClick={() => setSelectedStandard('all')}
+                className={`flex-shrink-0 px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all ${selectedStandard === 'all' ? 'bg-brand-primary text-white' : 'bg-slate-800 hover:bg-slate-700 text-slate-500 hover:text-white'}`}
+              >
+                Full Access (All)
+              </button>
+              {standards.map(std => (
+                <button 
+                  key={std._id}
+                  onClick={() => setSelectedStandard(std._id)}
+                  className={`flex-shrink-0 px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${selectedStandard === std._id ? 'bg-brand-primary text-white border-transparent' : 'bg-slate-800/40 border-slate-800 text-slate-500 hover:text-white hover:border-slate-700'}`}
+                >
+                  Grade {std.level}
+                </button>
+              ))}
+            </div>
+
+            {/* Filters Row */}
             <div className="flex flex-wrap gap-2">
               {['all', 'paid', 'pending', 'overdue'].map(s => (
                 <button key={s} onClick={() => setFilter(s)}
-                  className={`px-5 py-2.5 rounded-md text-xs font-black uppercase tracking-wider transition-all font-outfit border ${filter === s ? 'bg-brand-primary text-white border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-500 border-white/5 hover:text-white'}`}>
-                  {s}
+                  className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all font-outfit border ${filter === s ? 'bg-slate-100 text-black border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-400 border-slate-700/50 hover:text-white'}`}>
+                  {s} Status
                 </button>
               ))}
             </div>
@@ -334,7 +364,7 @@ const Fees = () => {
                             </div>
                             <div>
                               <p className="text-sm font-black text-white italic uppercase">{f.studentId?.firstName || 'Unknown'} {f.studentId?.lastName || ''}</p>
-                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{f.studentId?.admissionNumber || 'N/A'}</p>
+                              <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{f.studentId?.admissionNumber || 'N/A'} • Grade {f.studentId?.standard?.level || 'N/A'}</p>
                             </div>
                           </div>
                         </td>
