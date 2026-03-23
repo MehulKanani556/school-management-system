@@ -1,18 +1,43 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchChildFees, downloadFeeReceipt } from '../../redux/slice/parent.slice';
+import { fetchChildFees, downloadFeeReceipt, payChildFee, verifyFeePayment } from '../../redux/slice/parent.slice';
+import { toast } from 'react-hot-toast';
 import { motion } from 'framer-motion';
 import { CreditCard, CheckCircle, AlertCircle, Clock, Download, FileText, Search, Activity } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { load } from '@cashfreepayments/cashfree-js';
 
 const ChildFees = () => {
     const dispatch = useDispatch();
     const { selectedChild, fees, feesLoading: loading } = useSelector((state) => state.parent);
+
+    const [searchParams] = useSearchParams();
+    const orderIdParam = searchParams.get('order_id');
 
     useEffect(() => {
         if (selectedChild?._id) {
             dispatch(fetchChildFees(selectedChild._id));
         }
     }, [selectedChild?._id, dispatch]);
+
+    useEffect(() => {
+        if (orderIdParam) {
+            handleVerify(orderIdParam);
+        }
+    }, [orderIdParam]);
+
+    const handleVerify = async (oid) => {
+        const toastId = toast.loading("Verifying financial transaction...");
+        try {
+            await dispatch(verifyFeePayment(oid)).unwrap();
+            toast.success("Institutional credit verified and ledger updated.", { id: toastId });
+            // Remove order_id from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+            if (selectedChild?._id) dispatch(fetchChildFees(selectedChild._id));
+        } catch (err) {
+            toast.error(err.message || "Financial verification failed.", { id: toastId });
+        }
+    };
 
     if (loading && fees.length === 0) {
         return (
@@ -25,6 +50,30 @@ const ChildFees = () => {
 
     const handleDownload = (feeId, category) => {
         dispatch(downloadFeeReceipt({ feeId, category }));
+    };
+
+    const handlePay = async (feeId) => {
+        if (!window.confirm("Authorize this institutional transaction?")) return;
+        try {
+            const res = await dispatch(payChildFee(feeId)).unwrap();
+            
+            if (res.payment_session_id) {
+                const cashfree = await load({
+                    mode: "sandbox" // Change to "production" for live
+                });
+
+                const checkoutOptions = {
+                    paymentSessionId: res.payment_session_id,
+                    redirectTarget: "_self", // can be _modal or _self
+                };
+
+                cashfree.checkout(checkoutOptions);
+            } else {
+                toast.success(res.message || 'Financial Delta Synchronized');
+            }
+        } catch (err) {
+            toast.error(err.message || 'Transaction Interrupted');
+        }
     };
 
     const statusConfig = {
@@ -127,7 +176,10 @@ const ChildFees = () => {
                                                              <Download size={18} />
                                                          </button>
                                                      ) : (
-                                                         <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest">Locked</span>
+                                                         <button 
+                                                              onClick={() => handlePay(fee._id)} 
+                                                              className="px-6 py-2.5 bg-luxury-rose hover:bg-rose-500 text-white rounded-[4px] text-[10px] font-black uppercase tracking-widest shadow-lg shadow-luxury-rose/20 active:scale-95 transition-all"
+                                                          >Pay Now</button>
                                                      )}
                                                  </td>
                                              </tr>

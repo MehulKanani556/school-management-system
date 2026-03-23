@@ -109,6 +109,27 @@ export const downloadFeeReceipt = createAsyncThunk('parent/downloadReceipt', asy
     } catch (err) { return rejectWithValue(err.message); }
 });
 
+export const fetchChildTransport = createAsyncThunk('parent/fetchTransport', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/parent/child/${studentId}/transport`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
+export const payChildFee = createAsyncThunk('parent/payFee', async (feeId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post(`/parent/pay-fee/${feeId}`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
+export const verifyFeePayment = createAsyncThunk('parent/verifyFee', async (orderId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post(`/parent/verify-fee/${orderId}`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
 const parentSlice = createSlice({
     name: 'parent',
     initialState: {
@@ -123,6 +144,7 @@ const parentSlice = createSlice({
         exams: [],
         behaviorLogs: [],
         meetings: [],
+        transport: null,
         
         // Granular Loading Nodes
         childrenLoading: false,
@@ -135,7 +157,7 @@ const parentSlice = createSlice({
         examsLoading: false,
         behaviorLoading: false,
         meetingsLoading: false,
-        
+        transportLoading: false,
         loading: false, // Legacy fallback
         error: null,
     },
@@ -236,7 +258,34 @@ const parentSlice = createSlice({
                 state.meetingsLoading = false;
                 state.meetings = action.payload;
             })
-            .addCase(fetchChildMeetings.rejected, (state) => { state.meetingsLoading = false; });
+            .addCase(fetchChildMeetings.rejected, (state) => { state.meetingsLoading = false; })
+            // Transport Node
+            .addCase(fetchChildTransport.pending, (state) => { state.transportLoading = true; })
+            .addCase(fetchChildTransport.fulfilled, (state, action) => {
+                state.transportLoading = false;
+                state.transport = action.payload;
+            })
+            .addCase(fetchChildTransport.rejected, (state) => { state.transportLoading = false; })
+
+            // Fee Payment
+            .addCase(payChildFee.pending, (state) => { state.feesLoading = true; })
+            .addCase(payChildFee.fulfilled, (state, action) => {
+                state.feesLoading = false;
+                if (action.payload.fee) {
+                    state.fees = state.fees.map(f => f._id === action.payload.fee._id ? action.payload.fee : f);
+                }
+            })
+            .addCase(payChildFee.rejected, (state) => { state.feesLoading = false; })
+            
+            // Verify Fee
+            .addCase(verifyFeePayment.pending, (state) => { state.feesLoading = true; })
+            .addCase(verifyFeePayment.fulfilled, (state, action) => {
+                state.feesLoading = false;
+                if (action.payload.fee) {
+                    state.fees = state.fees.map(f => f._id === action.payload.fee._id ? action.payload.fee : f);
+                }
+            })
+            .addCase(verifyFeePayment.rejected, (state) => { state.feesLoading = false; });
     }
 });
 

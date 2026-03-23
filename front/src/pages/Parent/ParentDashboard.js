@@ -11,20 +11,62 @@ import {
     Calendar,
     Target,
     AlertCircle,
-    CheckCircle2
+    CheckCircle2,
+    Megaphone
 } from 'lucide-react';
 import { fetchChildOverview } from '../../redux/slice/parent.slice';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useSocket } from '../../context/SocketContext';
+import axiosInstance from '../../utils/axiosInstance';
+import { toast } from 'react-hot-toast';
 
 const ParentDashboard = () => {
     const dispatch = useDispatch();
+    const { socket } = useSocket();
     const { selectedChild, overview, overviewLoading: loading } = useSelector(state => state.parent);
+    
+    const [notifications, setNotifications] = React.useState([]);
+    const [announcements, setAnnouncements] = React.useState([]);
+    const [timetable, setTimetable] = React.useState(null);
+
+    const fetchData = React.useCallback(async () => {
+        try {
+            const [nRes, aRes, tRes] = await Promise.all([
+                axiosInstance.get('/notifications'),
+                axiosInstance.get('/announcements'),
+                selectedChild?._id ? axiosInstance.get(`/parent/child/${selectedChild._id}/timetable`) : Promise.resolve({ data: null })
+            ]);
+            setNotifications(nRes.data);
+            setAnnouncements(aRes.data);
+            setTimetable(tRes.data);
+        } catch (err) {
+            console.error('Snapshot sync failed');
+        }
+    }, [selectedChild?._id]);
 
     useEffect(() => {
         if (selectedChild?._id) {
             dispatch(fetchChildOverview(selectedChild._id));
+            fetchData();
         }
-    }, [selectedChild?._id, dispatch]);
+    }, [selectedChild?._id, dispatch, fetchData]);
+
+    useEffect(() => {
+        if (!socket) return;
+        
+        socket.on('new_announcement', (data) => {
+            setAnnouncements(prev => [data, ...prev]);
+        });
+
+        socket.on('new_notification', (data) => {
+            setNotifications(prev => [data, ...prev]);
+        });
+
+        return () => {
+            socket.off('new_announcement');
+            socket.off('new_notification');
+        };
+    }, [socket]);
 
     const StatCard = ({ icon: Icon, label, value, subtext, color, trend }) => (
         <motion.div
@@ -86,22 +128,25 @@ const ParentDashboard = () => {
                 />
                 <StatCard 
                     icon={Trophy} 
-                    label="Rank Score" 
-                    value="B+"
-                    subtext="Performance vs Grade Average"
+                    label="Index Score" 
+                    value={overview?.recentMarks?.length > 0 
+                        ? (overview.recentMarks.reduce((acc, m) => acc + (m.marksObtained / m.totalMarks), 0) / overview.recentMarks.length * 100).toFixed(1) + '%'
+                        : 'N/A'
+                    }
+                    subtext="Aggregate institutional performance"
                     color="text-brand-primary"
                 />
                 <StatCard 
                     icon={CreditCard} 
                     label="Account Bal" 
-                    value="₹12.5k"
+                    value={`₹${overview?.pendingFees?.reduce((acc, f) => acc + (f.totalAmount || 0), 0).toLocaleString() || '0'}`}
                     subtext="Upcoming tuition fees due"
                     color="text-luxury-rose"
                 />
                 <StatCard 
                     icon={Bell} 
                     label="Notifications" 
-                    value="04"
+                    value={notifications.filter(n => !n.isRead).length.toString().padStart(2, '0')}
                     subtext="Unread institutional alerts"
                     color="text-amber-400"
                 />
@@ -125,15 +170,10 @@ const ParentDashboard = () => {
                     
                     <div className="h-[350px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={[
-                                { name: 'Term 1', score: 65 },
-                                { name: 'Term 2', score: 72 },
-                                { name: 'Sept Exam', score: 68 },
-                                { name: 'Oct Exam', score: 78 },
-                                { name: 'Nov Exam', score: 82 },
-                                { name: 'Dec Exam', score: 75 },
-                                { name: 'Final', score: 85 },
-                            ]}>
+                            <AreaChart data={(overview?.recentMarks || []).map(m => ({
+                                name: m.examId?.title || m.subjectId?.name || 'N/A',
+                                score: m.totalMarks > 0 ? (m.marksObtained / m.totalMarks) * 100 : 0
+                            })).reverse()}>
                                 <defs>
                                     <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="#f43f5e" stopOpacity={0.3}/>
@@ -210,6 +250,44 @@ const ParentDashboard = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                {/* Institutional Announcements Broadcast */}
+                <div className="md:col-span-2 bg-brand-surface/40 backdrop-blur-3xl border border-brand-border/40 rounded-md p-8 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-luxury-rose/5 blur-[100px] -mr-32 -mt-32" />
+                    <div className="flex items-center justify-between mb-8 relative">
+                        <div>
+                            <h4 className="text-[11px] font-black text-slate-500 uppercase tracking-[0.4em] mb-1">Broadcasting Node</h4>
+                            <p className="text-lg font-black uppercase tracking-tight">Institutional Announcements</p>
+                        </div>
+                        <Megaphone className="text-luxury-rose animate-pulse" size={24} />
+                    </div>
+                    <div className="flex flex-col gap-4 relative">
+                        {announcements.length > 0 ? (
+                            announcements.slice(0, 3).map((ann, i) => (
+                                <motion.div 
+                                    key={i} 
+                                    initial={{ x: -20, opacity: 0 }}
+                                    animate={{ x: 0, opacity: 1 }}
+                                    transition={{ delay: i * 0.1 }}
+                                    className="p-6 bg-slate-900/40 border-l-4 border-luxury-rose rounded-md group hover:bg-slate-900/60 transition-all"
+                                >
+                                    <div className="flex items-center justify-between mb-2">
+                                        <h5 className="text-[11px] font-black text-white uppercase tracking-wider">{ann.subject || "Security Protocol Update"}</h5>
+                                        <span className="text-[9px] font-bold text-slate-600 uppercase tracking-widest">{new Date(ann.createdAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <p className="text-sm font-medium text-slate-400 line-clamp-2 italic leading-relaxed group-hover:text-slate-300 transition-colors">
+                                        "{ann.content}"
+                                    </p>
+                                </motion.div>
+                            ))
+                        ) : (
+                            <div className="text-center py-10 opacity-30">
+                                <Megaphone size={48} className="mx-auto mb-4" />
+                                <p className="text-[10px] font-black uppercase tracking-[0.2em]">Silence across all channels</p>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
                 {/* Financial Ledger (Pending Fees) */}
                 <div className="bg-brand-surface/40 backdrop-blur-3xl border border-brand-border/40 rounded-md p-8">
                     <div className="flex items-center justify-between mb-8">
@@ -254,32 +332,34 @@ const ParentDashboard = () => {
                         <Clock className="text-brand-primary" size={24} />
                     </div>
                     <div className="space-y-4">
-                        <div className="p-4 bg-slate-900/40 rounded-md border border-slate-800 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-brand-primary/10 rounded flex flex-col items-center min-w-[50px]">
-                                    <span className="text-[9px] font-black text-brand-primary uppercase">09:00</span>
-                                    <span className="text-[8px] font-bold text-slate-500 uppercase">AM</span>
+                        {(() => {
+                            const today = new Date().toLocaleDateString('en-US', { weekday: 'long' });
+                            const todaySlots = timetable?.days?.find(d => d.day === today)?.slots || [];
+                            
+                            if (todaySlots.length === 0) {
+                                return (
+                                    <div className="text-center py-8 opacity-30">
+                                        <Clock size={32} className="mx-auto mb-2" />
+                                        <p className="text-[10px] font-black uppercase tracking-[0.2em]">No operations scheduled today</p>
+                                    </div>
+                                );
+                            }
+
+                            return todaySlots.slice(0, 3).map((slot, i) => (
+                                <div key={i} className="p-4 bg-slate-900/40 rounded-md border border-slate-800 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-2 bg-brand-primary/10 rounded flex flex-col items-center min-w-[50px]">
+                                            <span className="text-[9px] font-black text-brand-primary uppercase">{slot.startTime}</span>
+                                        </div>
+                                        <div>
+                                            <p className="font-black text-[10px] uppercase tracking-widest">{slot.subject?.name}</p>
+                                            <p className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">{slot.teacher?.firstName} {slot.teacher?.lastName}</p>
+                                        </div>
+                                    </div>
+                                    <span className="px-2 py-1 bg-brand-primary/10 text-brand-primary text-[8px] font-black uppercase tracking-widest rounded">Scheduled</span>
                                 </div>
-                                <div>
-                                    <p className="font-black text-[10px] uppercase tracking-widest">Advanced Mathematics</p>
-                                    <p className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">DR. SARAH PARKER // ROOM 402</p>
-                                </div>
-                            </div>
-                            <span className="px-2 py-1 bg-brand-primary/10 text-brand-primary text-[8px] font-black uppercase tracking-widest rounded">In Progress</span>
-                        </div>
-                        <div className="p-4 bg-slate-900/40 rounded-md border border-slate-800 flex items-center justify-between opacity-60">
-                            <div className="flex items-center gap-4">
-                                <div className="p-2 bg-slate-800 rounded flex flex-col items-center min-w-[50px]">
-                                    <span className="text-[9px] font-black text-slate-400 uppercase">10:30</span>
-                                    <span className="text-[8px] font-bold text-slate-500 uppercase">AM</span>
-                                </div>
-                                <div>
-                                    <p className="font-black text-[10px] uppercase tracking-widest">Quantum Physics</p>
-                                    <p className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">PROF. J. MILLER // LAB A</p>
-                                </div>
-                            </div>
-                            <span className="px-2 py-1 bg-slate-800 text-slate-400 text-[8px] font-black uppercase tracking-widest rounded">Next</span>
-                        </div>
+                            ));
+                        })()}
                     </div>
                     <button className="w-full mt-6 py-4 bg-slate-800/50 hover:bg-slate-800 rounded-md text-[10px] font-black uppercase tracking-[0.4em] transition-all border border-slate-700/50">
                         View Full Schedule

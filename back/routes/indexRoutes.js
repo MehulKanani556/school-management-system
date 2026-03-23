@@ -24,6 +24,7 @@ const sac = require('../controllers/superAdmin.controller');
 const ac = require('../controllers/accountant.controller');
 const lc = require('../controllers/librarian.controller');
 const trc = require('../controllers/transport.controller');
+const mc = require('../controllers/message.controller');
 
 
 // Auth Routes
@@ -289,9 +290,10 @@ router.get('/parent/receipt/:feeId', ...parent, pc.downloadChildFeeReceipt);
 // Settings
 router.put('/parent/profile', ...parent, upload.single('photo'), pc.updateParentProfile);
 router.post('/parent/change-password', ...parent, pc.changeParentPassword);
+router.get('/parent/child/:studentId/transport', ...parent, pc.getChildTransport);
+router.post('/parent/pay-fee/:feeId', ...parent, pc.payFee);
+router.post('/parent/verify-fee/:orderId', ...parent, pc.verifyFeePayment);
 
-
-const mc = require('../controllers/message.controller');
 
 // ─── Communication Routes ───────────────────────────────────────────────────
 router.get('/school-admin/announcements', ...schoolAdmin, mc.getAnnouncements);
@@ -304,9 +306,15 @@ router.delete('/school-admin/messages/:id', ...schoolAdmin, mc.deleteMessage);
 router.get('/school-admin/notices', ...schoolAdmin, mc.getNotices);
 router.post('/school-admin/notices', ...schoolAdmin, upload.single('file'), mc.createNotice);
 
-// Global (for teachers/students to see)
+// Global (for teachers/students/parents to see)
 router.get('/announcements', auth, mc.getAnnouncements);
 router.get('/notices', auth, mc.getNotices);
+
+// Institutional Alerts (Notifications)
+router.get('/notifications', auth, nc.getNotifications);
+router.put('/notifications/:id/read', auth, nc.markAsRead);
+router.put('/notifications/mark-all-read', auth, nc.markAllAsRead);
+router.delete('/notifications/:id', auth, nc.deleteNotification);
 router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
 router.post('/my-messages', auth, mc.sendMessage);

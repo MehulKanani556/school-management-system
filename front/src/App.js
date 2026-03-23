@@ -80,7 +80,9 @@ import ChildAssignments from './pages/Parent/ChildAssignments';
 import ChildExams from './pages/Parent/ChildExams';
 import ParentProfile from './pages/Parent/ParentProfile';
 import ParentNotifications from './pages/Parent/ParentNotifications';
+import ParentMessages from './pages/Parent/Messages';
 import ChildProfile from './pages/Parent/ChildProfile';
+import ChildTransport from './pages/Parent/ChildTransport';
 
 
 
@@ -235,7 +237,9 @@ function AppRoutes() {
           <Route path="holidays" element={<Holidays />} />
           <Route path="profile" element={<ParentProfile />} />
           <Route path="notifications" element={<ParentNotifications />} />
+          <Route path="messages" element={<ParentMessages />} />
           <Route path="child-profile" element={<ChildProfile />} />
+          <Route path="transport" element={<ChildTransport />} />
         </Route>
 
 

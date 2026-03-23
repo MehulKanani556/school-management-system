@@ -88,6 +88,22 @@ exports.assignStudent = async (req, res) => {
         }
 
         await route.save();
+
+        // Notify Parent
+        const student = await Student.findById(studentId);
+        if (student && student.parentId) {
+            const nc = require('./notification.controller');
+            await nc.sendNotification({
+                schoolId,
+                recipient: student.parentId,
+                sender: req.user._id,
+                type: 'Transport',
+                title: 'Transport Logistics Synchronized',
+                message: `Transport route assignments for ${student.firstName} have been dynamically updated in the central registry.`,
+                link: '/parent/transport'
+            });
+        }
+
         res.json({ message: 'Student assigned to route successfully', data: route });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

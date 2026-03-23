@@ -36,9 +36,11 @@ const Communication = () => {
     const [searchParams] = useSearchParams();
     const tabParam = searchParams.get('tab');
     const [activeTab, setActiveTab] = useState('feed'); // 'feed', 'chat', 'notices'
+    const [chatSubTab, setChatSubTab] = useState('Teachers'); // 'Teachers', 'Parents'
     const [sentMessages, setSentMessages] = useState([]);
     const [notices, setNotices] = useState([]);
     const [contacts, setContacts] = useState([]);
+    const [unreadCounts, setUnreadCounts] = useState({}); // { partnerId: count }
     const [fetching, setFetching] = useState(false);
     const [selectedChat, setSelectedChat] = useState(null);
     const [messageInput, setMessageInput] = useState('');
@@ -96,6 +98,12 @@ const Communication = () => {
                     setTimeout(() => {
                         if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
                     }, 100);
+                } else {
+                    // Update unread count if not selected
+                    setUnreadCounts(prev => ({
+                        ...prev,
+                        [partnerId]: (prev[partnerId] || 0) + 1
+                    }));
                 }
 
                 // Update contact preview
@@ -173,6 +181,7 @@ const Communication = () => {
             setChatPage(1);
             setChatMessages([]);
             setHasMore(true);
+            setUnreadCounts(prev => ({ ...prev, [selectedChat]: 0 }));
             fetchChatHistory(selectedChat, 1);
         }
     }, [selectedChat]);
@@ -282,6 +291,36 @@ const Communication = () => {
         return conversations.find(c => (c.partner._id || c.partner) === selectedChat);
     }, [conversations, selectedChat]);
 
+    const filteredConversations = useMemo(() => {
+        return conversations.filter(c => {
+            const role = c.partner.role;
+            if (chatSubTab === 'Teachers') return role === 'Teacher' || role === 'School_Admin';
+            if (chatSubTab === 'Parents') return role === 'Parent' || role === 'Student';
+            return true;
+        });
+    }, [conversations, chatSubTab]);
+
+    const filteredContacts = useMemo(() => {
+        return contacts.filter(t => {
+            if (conversations.some(c => (c.partner._id || c.partner) === t._id)) return false;
+            const role = t.role;
+            if (chatSubTab === 'Teachers') return role === 'Teacher' || role === 'School_Admin';
+            if (chatSubTab === 'Parents') return role === 'Parent' || role === 'Student';
+            return true;
+        });
+    }, [contacts, conversations, chatSubTab]);
+
+    const getTabUnreadCount = (tabName) => {
+        return conversations.reduce((acc, conv) => {
+            const role = conv.partner.role;
+            const isMatch = tabName === 'Teachers' 
+                ? (role === 'Teacher' || role === 'School_Admin')
+                : (role === 'Parent' || role === 'Student');
+            if (isMatch) return acc + (unreadCounts[conv.partner._id] || 0);
+            return acc;
+        }, 0);
+    };
+
     return (
         <div className="h-[calc(100vh-140px)] text-slate-300 font-outfit overflow-hidden flex flex-col p-4 lg:p-5">
             {/* Header */}
@@ -331,26 +370,47 @@ const Communication = () => {
                                         className="w-full h-10 bg-slate-950/50 border border-slate-800 rounded-md pl-10 pr-4 text-[9px] font-black text-white italic tracking-widest outline-none focus:border-brand-primary transition-all placeholder:text-slate-800 uppercase"
                                     />
                                 </div>
+                                <div className="grid grid-cols-2 gap-2 mt-2">
+                                    {['Teachers', 'Parents'].map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setChatSubTab(tab)}
+                                            className={`relative py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all italic ${chatSubTab === tab ? 'bg-brand-primary text-white shadow-lg' : 'bg-slate-950/20 text-slate-500 border border-white/5 hover:text-white'}`}
+                                        >
+                                            {tab}
+                                            {getTabUnreadCount(tab) > 0 && (
+                                                <div className="absolute -top-1 -right-1 w-4 h-4 rounded-md bg-brand-primary flex items-center justify-center text-[8px] font-black text-white shadow-glow animate-pulse">
+                                                    {getTabUnreadCount(tab)}
+                                                </div>
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
                                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mb-2 italic">Active Sessions</p>
-                                {conversations.map(conv => (
+                                {filteredConversations.map(conv => (
                                     <button
                                         key={conv.partner._id}
                                         onClick={() => setSelectedChat(conv.partner._id)}
                                         className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border ${selectedChat === conv.partner._id ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
                                     >
-                                        <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center shadow-lg shrink-0">
+                                        <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center shadow-lg shrink-0 relative">
                                             {conv.partner.photo ? <img src={conv.partner.photo} alt="" className="w-full h-full object-cover" /> : <User size={18} className="text-slate-700" />}
+                                            {unreadCounts[conv.partner._id] > 0 && (
+                                                <div className="absolute top-0 right-0 w-3 h-3 bg-brand-primary rounded-bl-sm flex items-center justify-center text-[7px] font-black text-white shadow-glow">{unreadCounts[conv.partner._id]}</div>
+                                            )}
                                         </div>
                                         <div className="text-left min-w-0 flex-1">
                                             <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{conv.partner.firstName} {conv.partner.lastName}</h4>
-                                            <p className="text-[8px] text-slate-600 font-bold truncate mt-0.5 italic uppercase tracking-tighter">{conv.messages[0].content}</p>
+                                            <p className={`text-[8px] font-bold truncate mt-0.5 italic uppercase tracking-tighter ${unreadCounts[conv.partner._id] > 0 ? 'text-brand-primary brightness-125' : 'text-slate-600'}`}>
+                                                {conv.messages[0].content}
+                                            </p>
                                         </div>
                                         <div className="text-[8px] font-black text-slate-800 italic shrink-0">LOCKED</div>
                                     </button>
                                 ))}
-                                {conversations.length === 0 && (
+                                {filteredConversations.length === 0 && (
                                     <div className="text-center py-10 opacity-20">
                                         <Bell size={24} className="mx-auto mb-2" />
                                         <p className="text-[8px] font-black uppercase tracking-widest italic">No Open Channels</p>
@@ -358,7 +418,7 @@ const Communication = () => {
                                 )}
 
                                 <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mt-4 mb-2 italic">Available Contacts</p>
-                                {contacts.filter(t => !conversations.some(c => (c.partner._id || c.partner) === t._id)).map(t => (
+                                {filteredContacts.map(t => (
                                     <button
                                         key={t._id}
                                         onClick={() => setSelectedChat(t._id)}

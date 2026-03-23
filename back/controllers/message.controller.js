@@ -1,6 +1,7 @@
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
 const socketManager = require('../socketManager/socketManager');
+const nc = require('./notification.controller');
 
 // Create an announcement
 exports.createAnnouncement = async (req, res) => {
@@ -21,7 +22,19 @@ exports.createAnnouncement = async (req, res) => {
 
         const populated = await announcement.populate('sender', 'firstName lastName photo role');
         
-        // Real-time broadcast
+        // Institutional Alerts (Notifications)
+        // We broadcast to all connected sockets for general announcements
+        socketManager.broadcastToRole(targetRole, 'new_notification', {
+            _id: announcement._id,
+            title: `Broadcast: ${subject}`,
+            message: content.substring(0, 50) + '...',
+            type: 'Announcement',
+            createdAt: new Date(),
+            sender: populated.sender,
+            link: '/parent'
+        });
+
+        // Real-time broadcast for dedicated announcement feed
         socketManager.broadcastToRole(targetRole, 'new_announcement', populated);
 
         res.status(201).json(populated);

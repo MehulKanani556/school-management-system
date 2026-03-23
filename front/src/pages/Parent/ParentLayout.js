@@ -22,11 +22,16 @@ import {
     FileText,
     Megaphone,
     Sun,
-    Trophy as TrophyIcon
+    Trophy as TrophyIcon,
+    Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchMyChildren, setSelectedChild } from '../../redux/slice/parent.slice';
 import { logout } from '../../redux/slice/auth.slice';
+import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
+import { useSocket } from '../../context/SocketContext';
+import NotificationPanel from '../../components/NotificationPanel';
+import toast from 'react-hot-toast';
 
 const SidebarLink = ({ item, location }) => {
     const isActive = location.pathname === item.path;
@@ -52,19 +57,46 @@ const ParentLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isChildSwitcherOpen, setIsChildSwitcherOpen] = useState(false);
+    const [isNotifOpen, setIsNotifOpen] = useState(false);
     
     const location = useLocation();
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const { socket } = useSocket();
     
     const { user } = useSelector(state => state.auth);
     const { children, selectedChild, loading } = useSelector(state => state.parent);
+    const { unreadCount: notifCount } = useSelector(state => state.notifications);
 
     useEffect(() => {
         if (children.length === 0) {
             dispatch(fetchMyChildren());
         }
+        dispatch(fetchNotifications());
     }, [dispatch, children.length]);
+
+    useEffect(() => {
+        if (!socket) return;
+        
+        socket.on('new_notification', (notif) => {
+            dispatch(receiveNotification(notif));
+            toast.success(`Institutional Alert: ${notif.title}`, {
+                icon: '🔔',
+                style: {
+                    borderRadius: '0.5rem',
+                    background: '#0f172a',
+                    color: '#fff',
+                    border: '1px solid #f43f5e',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    fontSize: '10px'
+                }
+            });
+        });
+
+        return () => socket.off('new_notification');
+    }, [socket, dispatch]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -86,6 +118,9 @@ const ParentLayout = () => {
         { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
         { icon: Sun, label: 'Holidays', path: '/parent/holidays' },
         { icon: User, label: 'Profile', path: '/parent/profile' },
+        { icon: Bell, label: 'Notifications', path: '/parent/notifications' },
+        { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
+        { icon: Truck, label: 'Transport', path: '/parent/transport' },
     ];
 
     return (
@@ -196,15 +231,31 @@ const ParentLayout = () => {
                             </h2>
                         </div>
                         
-                        <div className="flex items-center gap-4">
-                            <div className="hidden md:flex flex-col items-end mr-4">
-                                <span className="font-black text-[11px] uppercase tracking-wider">{user?.firstName} {user?.lastName}</span>
-                                <span className="text-[9px] font-black text-luxury-rose uppercase tracking-[0.3em] opacity-80">Connected Principal</span>
+                        <div className="flex items-center gap-6">
+                            {/* Notification Dropdown */}
+                            <div className="relative">
+                                <button
+                                    onClick={() => setIsNotifOpen(!isNotifOpen)}
+                                    className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-luxury-rose text-white border-luxury-rose shadow-xl scale-105' : 'bg-slate-800/40 border-slate-700/50 text-slate-400 hover:text-luxury-rose'}`}
+                                >
+                                    <Bell size={20} />
+                                    {notifCount > 0 && <span className="absolute top-2 right-2 w-2 h-2 bg-luxury-rose rounded-full border border-slate-900 animate-pulse"></span>}
+                                </button>
+                                <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} />
                             </div>
-                            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                {user?.photo ? (
-                                    <img src={user.photo} alt="Parent Profile" className="w-full h-full object-cover" />
-                                ) : <User className="text-slate-500" />}
+
+                            <div className="h-8 w-px bg-slate-800/60 hidden md:block"></div>
+
+                            <div className="flex items-center gap-4">
+                                <div className="hidden md:flex flex-col items-end">
+                                    <span className="font-black text-[11px] uppercase tracking-wider">{user?.firstName} {user?.lastName}</span>
+                                    <span className="text-[9px] font-black text-luxury-rose uppercase tracking-[0.3em] opacity-80 leading-none mt-1">Guardian 00{user?._id.toString().slice(-3)}</span>
+                                </div>
+                                <div className="w-10 h-10 rounded-md bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 flex items-center justify-center overflow-hidden shadow-xl shadow-black/40">
+                                    {user?.photo ? (
+                                        <img src={user.photo} alt="Parent Profile" className="w-full h-full object-cover" />
+                                    ) : <User className="text-slate-500" size={20} />}
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -11,9 +11,20 @@ const User = require('../models/user.model');
 const School = require('../models/school.model');
 const Meeting = require('../models/meeting.model');
 const BehaviorLog = require('../models/behaviorLog.model');
+const Route = require('../models/route.model');
+const Vehicle = require('../models/vehicle.model');
 const mongoose = require('mongoose');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
+const nc = require('./notification.controller');
+const { Cashfree, CFEnvironment } = require('cashfree-pg');
+
+// Institutional Global Gateway Registry (v5/v6 Instance Mode)
+const cashfree = new Cashfree();
+cashfree.XClientId = process.env.CASHFREE_APP_ID || "TEST10263665790d965e6df7fd632e8b56636201";
+cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY || "cfsk_ma_test_04746f3661be4e6fb57ca7857ed8ac36_593ca4bd";
+cashfree.XEnvironment = process.env.CASHFREE_ENVIRONMENT === 'PRODUCTION' ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX;
+cashfree.XApiVersion = "2023-08-01";
 
 exports.getMyChildren = async (req, res) => {
     try {
@@ -322,5 +333,125 @@ exports.getChildBehaviorLogs = async (req, res) => {
             .lean();
         res.json(logs);
     } catch (err) { res.status(500).json({ message: err.message }); }
+}
+// ─── Transport & Logistics ──────────────────────────────────────────────────
+exports.getChildTransport = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const route = await Route.findOne({ 
+            'assignedStudents.studentId': studentId 
+        }).populate('vehicleId').lean();
+
+        if (!route) {
+            return res.status(404).json({ message: 'No transport route assigned' });
+        }
+
+        const assignment = route.assignedStudents.find(as => as.studentId.toString() === studentId);
+        
+        res.status(200).json({
+            route,
+            assignment
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Financial Transactions ──────────────────────────────────────────────────
+exports.payFee = async (req, res) => {
+  try {
+    const { feeId } = req.params;
+    const fee = await FeePayment.findById(feeId);
+    if (!fee) return res.status(404).json({ message: 'Fee record not found' });
+    
+    const student = await Student.findById(fee.studentId);
+    if (student.parentId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Unauthorized transaction' });
+    }
+
+    // Creating Cashfree Order
+    const orderId = `ORDER-${fee._id}-${Date.now()}`;
+    const request = {
+        "order_amount": fee.totalAmount,
+        "order_currency": "INR",
+        "order_id": orderId,
+        "customer_details": {
+            "customer_id": req.user._id.toString(),
+            "customer_name": `${req.user.firstName} ${req.user.lastName}`,
+            "customer_email": req.user.email,
+            "customer_phone": req.user.phone || "9999999999"
+        },
+        "order_meta": {
+            "return_url": `${process.env.CLIENT_URL || 'http://localhost:3000'}/parent/fees?order_id={order_id}`
+        }
+    };
+
+    const response = await cashfree.PGCreateOrder(request);
+    res.status(200).json({ 
+        success: true, 
+        payment_session_id: response.data.payment_session_id,
+        order_id: response.data.order_id 
+    });
+
+  } catch (err) { 
+    console.error('CASHFREE_INIT_ERROR:', err.response?.data || err.message);
+    res.status(500).json({ 
+        message: err.message, 
+        detail: err.response?.data || 'Check backend logs for mission details' 
+    }); 
+  }
+};
+
+exports.verifyFeePayment = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const response = await cashfree.PGOrderFetchPayments(orderId);
+    
+    // Check if any payment is successful
+    const successPayment = response.data.find(p => p.payment_status === 'SUCCESS');
+    
+    if (successPayment) {
+        // Find feeId from orderId (Format: ORDER-{feeId}-...)
+        const feeId = orderId.split('-')[1];
+        const fee = await FeePayment.findById(feeId);
+        if (fee && fee.status !== 'paid') {
+            fee.status = 'paid';
+            fee.paidAmount = fee.totalAmount;
+            fee.paymentMethod = 'online';
+            fee.transactionId = successPayment.cf_payment_id;
+            await fee.save();
+
+            const student = await Student.findById(fee.studentId).populate('standard');
+            
+            // Notify Parent
+            await nc.sendNotification({
+                schoolId: student.schoolId,
+                recipient: student.parentId,
+                sender: student.parentId,
+                type: 'Fee',
+                title: 'Institutional Reconciliation Complete',
+                message: `Financial delta of ₹${fee.totalAmount} for ${student.firstName} has been synchronized. Receipt Generated.`,
+                link: '/parent/fees'
+            });
+
+            // Notify Accountant
+            const accountants = await User.find({ schoolId: student.schoolId, role: 'Accountant' });
+            for (const accountant of accountants) {
+                await nc.sendNotification({
+                    schoolId: student.schoolId,
+                    recipient: accountant._id,
+                    sender: student.parentId,
+                    type: 'Fee',
+                    title: 'New Online Fee Settlement',
+                    message: `Payment of ₹${fee.totalAmount} has been registered for ${student.firstName} (Standard: ${student.standard?.name || 'N/A'}).`,
+                    link: '/school-admin/fees' // Assuming path for accountant/admin
+                });
+            }
+
+            return res.status(200).json({ success: true, message: 'Institutional credit verified and ledger updated.', fee });
+        }
+    }
+
+    res.status(400).json({ success: false, message: 'Transaction pending or verification failed.' });
+
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
