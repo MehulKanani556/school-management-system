@@ -69,6 +69,20 @@ export const fetchChildExams = createAsyncThunk('parent/fetchChildExams', async 
     } catch (err) { return rejectWithValue(err.response.data); }
 });
 
+export const fetchChildBehaviorLogs = createAsyncThunk('parent/fetchChildBehaviorLogs', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/parent/child/${studentId}/behavior`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
+export const fetchChildMeetings = createAsyncThunk('parent/fetchChildMeetings', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/parent/child/${studentId}/meetings`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
 export const downloadReportCard = createAsyncThunk('parent/downloadReportCard', async ({ studentId, name }, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/parent/child/${studentId}/report-card`, { responseType: 'blob' });
@@ -107,6 +121,8 @@ const parentSlice = createSlice({
         timetable: null,
         assignments: [],
         exams: [],
+        behaviorLogs: [],
+        meetings: [],
         
         // Granular Loading Nodes
         childrenLoading: false,
@@ -117,6 +133,8 @@ const parentSlice = createSlice({
         timetableLoading: false,
         assignmentsLoading: false,
         examsLoading: false,
+        behaviorLoading: false,
+        meetingsLoading: false,
         
         loading: false, // Legacy fallback
         error: null,
@@ -202,7 +220,23 @@ const parentSlice = createSlice({
                 state.examsLoading = false;
                 state.exams = action.payload;
             })
-            .addCase(fetchChildExams.rejected, (state) => { state.examsLoading = false; });
+            .addCase(fetchChildExams.rejected, (state) => { state.examsLoading = false; })
+
+            // Conduct Registry
+            .addCase(fetchChildBehaviorLogs.pending, (state) => { state.behaviorLoading = true; })
+            .addCase(fetchChildBehaviorLogs.fulfilled, (state, action) => {
+                state.behaviorLoading = false;
+                state.behaviorLogs = action.payload;
+            })
+            .addCase(fetchChildBehaviorLogs.rejected, (state) => { state.behaviorLoading = false; })
+
+            // Meeting Protocols
+            .addCase(fetchChildMeetings.pending, (state) => { state.meetingsLoading = true; })
+            .addCase(fetchChildMeetings.fulfilled, (state, action) => {
+                state.meetingsLoading = false;
+                state.meetings = action.payload;
+            })
+            .addCase(fetchChildMeetings.rejected, (state) => { state.meetingsLoading = false; });
     }
 });
 

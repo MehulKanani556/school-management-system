@@ -14,6 +14,9 @@ const User = require('../models/user.model');
 const Submission = require('../models/submission.model');
 const Review = require('../models/review.model');
 const Payroll = require('../models/payroll.model');
+const LessonPlan = require('../models/lessonPlan.model');
+const BehaviorLog = require('../models/behaviorLog.model');
+const Meeting = require('../models/meeting.model');
 const bcrypt = require('bcrypt');
 
 // Helper to get teacher record by user ID
@@ -844,6 +847,78 @@ exports.getExamsByClass = async (req, res) => {
 
         res.json(formatted);
     } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 21. Lesson Plans ──────────────────────────────────────────────────────────
+exports.getLessonPlans = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const plans = await LessonPlan.find({ teacherId: teacher._id })
+            .populate('classSection', 'sectionLabel')
+            .populate('subject', 'name')
+            .sort({ date: -1 });
+        res.json(plans);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createLessonPlan = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const newPlan = new LessonPlan({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        await newPlan.save();
+        res.status(201).json({ message: 'Pedagogical directive ARCHIVED successfully', plan: newPlan });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateLessonPlan = async (req, res) => {
+    try {
+        await LessonPlan.findByIdAndUpdate(req.params.id, req.body);
+        res.json({ message: 'Synchronized pedagogical metadata' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 22. Behavior / Discipline Log ────────────────────────────────────────────────
+exports.logBehavior = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const log = new BehaviorLog({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        await log.save();
+        res.status(201).json({ message: 'Conduct vector localized to student registry' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getBehaviorLogs = async (req, res) => {
+    try {
+        const { studentId, classId } = req.query;
+        let query = {};
+        if (studentId) query.studentId = studentId;
+        if (classId) {
+            const students = await Student.find({ classSection: classId }).select('_id');
+            query.studentId = { $in: students };
+        }
+        const logs = await BehaviorLog.find(query).populate('studentId', 'firstName lastName').populate('teacherId', 'firstName lastName').sort({ date: -1 });
+        res.json(logs);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 23. Parent-Teacher Meetings (PTM) ───────────────────────────────────────────
+exports.scheduleMeeting = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const meeting = new Meeting({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        await meeting.save();
+        res.status(201).json({ message: 'Temporal assessment protocol SYNCHRONIZED' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getMeetings = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const meetings = await Meeting.find({ teacherId: teacher._id })
+            .populate('studentId', 'firstName lastName')
+            .sort({ date: 1, startTime: 1 });
+        res.json(meetings);
+    } catch (err) { res.status(500).json({ message: err.message }); }
 };  
 
 module.exports = {
@@ -876,6 +951,13 @@ module.exports = {
     deleteAnnouncement: exports.deleteAnnouncement,
     bulkAttendanceImport: exports.bulkAttendanceImport,
     getMyReviews: exports.getMyReviews,
-    getUnifiedCalendar: exports.getUnifiedCalendar
+    getUnifiedCalendar: exports.getUnifiedCalendar,
+    getLessonPlans: exports.getLessonPlans,
+    createLessonPlan: exports.createLessonPlan,
+    updateLessonPlan: exports.updateLessonPlan,
+    logBehavior: exports.logBehavior,
+    getBehaviorLogs: exports.getBehaviorLogs,
+    scheduleMeeting: exports.scheduleMeeting,
+    getMeetings: exports.getMeetings
 };
 

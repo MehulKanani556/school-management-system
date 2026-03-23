@@ -104,7 +104,14 @@ const PerformanceAnalytics = React.lazy(() => import('./pages/Teacher/Performanc
 const TeacherReviews = React.lazy(() => import('./pages/Teacher/TeacherReviews'));
 const TeacherExams = React.lazy(() => import('./pages/Teacher/Exams'));
 const TeacherUnifiedCalendar = React.lazy(() => import('./pages/Teacher/UnifiedCalendar'));
+const LessonPlans = React.lazy(() => import('./pages/Teacher/LessonPlans'));
+const BehaviorLog = React.lazy(() => import('./pages/Teacher/BehaviorLog'));
+const PTMMeetings = React.lazy(() => import('./pages/Teacher/PTMMeetings'));
 const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
+
+// Parent Pages
+const ChildBehavior = React.lazy(() => import('./pages/Parent/ChildBehavior'));
+const ChildMeetings = React.lazy(() => import('./pages/Parent/ChildMeetings'));
 
 // Accountant Pages
 const AccountantDashboard = React.lazy(() => import('./pages/Accountant/AccountantDashboard'));
@@ -198,6 +205,9 @@ function AppRoutes() {
           <Route path="reviews" element={<TeacherReviews />} />
           <Route path="exam-schedule" element={<TeacherExams />} />
           <Route path="unified-calendar" element={<TeacherUnifiedCalendar />} />
+          <Route path="lesson-plans" element={<LessonPlans />} />
+          <Route path="behavior-log" element={<BehaviorLog />} />
+          <Route path="meetings" element={<PTMMeetings />} />
           <Route path="noticeboard" element={<ClassNoticeboard />} />
         </Route>
 
@@ -213,6 +223,8 @@ function AppRoutes() {
 
           <Route path="timetable" element={<ChildTimetable />} />
           <Route path="exams" element={<ChildExams />} />
+          <Route path="behavior" element={<ChildBehavior />} />
+          <Route path="meetings" element={<ChildMeetings />} />
           <Route path="announcements" element={<AnnouncementsStudent />} />
           <Route path="messages" element={<MessagesStudent />} />
           <Route path="holidays" element={<Holidays />} />

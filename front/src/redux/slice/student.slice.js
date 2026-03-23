@@ -109,7 +109,7 @@ const studentSlice = createSlice({
         submissions: [],
         fees: [],
         exams: [],
-        timetable: [],
+        timetable: null,
         loading: false,
         error: null,
         message: null

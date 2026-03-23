@@ -9,6 +9,8 @@ const Exam = require('../models/exam.model');
 const Submission = require('../models/submission.model');
 const User = require('../models/user.model');
 const School = require('../models/school.model');
+const Meeting = require('../models/meeting.model');
+const BehaviorLog = require('../models/behaviorLog.model');
 const mongoose = require('mongoose');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
@@ -30,7 +32,7 @@ exports.getChildOverview = async (req, res) => {
     try {
         const { studentId } = req.params;
         const student = await Student.findOne({ _id: studentId })
-            .populate('standardId', 'level')
+            .populate('standard', 'level')
             .populate('classSection', 'sectionLabel');
         if (!student) return res.status(404).json({ message: "Child link not found" });
 
@@ -291,6 +293,34 @@ exports.changeParentPassword = async (req, res) => {
         user.password = await bcrypt.hash(newPassword, 10);
         await user.save();
         res.json({ success: true, message: 'Security node synchronized' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getChildMeetings = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
+        if (!student) return res.status(403).json({ message: 'Child link unauthorized' });
+
+        const meetings = await Meeting.find({ studentId })
+            .populate('teacherId', 'firstName lastName')
+            .sort({ date: 1, startTime: 1 })
+            .lean();
+        res.json(meetings);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getChildBehaviorLogs = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
+        if (!student) return res.status(403).json({ message: 'Child link unauthorized' });
+
+        const logs = await BehaviorLog.find({ studentId })
+            .populate('teacherId', 'firstName lastName')
+            .sort({ date: -1 })
+            .lean();
+        res.json(logs);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

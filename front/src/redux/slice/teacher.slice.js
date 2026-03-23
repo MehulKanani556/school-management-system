@@ -279,6 +279,49 @@ export const fetchUnifiedCalendar = createAsyncThunk('teacher/fetchUnifiedCalend
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
+export const fetchLessonPlans = createAsyncThunk('teacher/fetchLessonPlans', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/lesson-plans');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const createLessonPlan = createAsyncThunk('teacher/createLessonPlan', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/lesson-plans', data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const logBehavior = createAsyncThunk('teacher/logBehavior', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/behavior-log', data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchBehaviorLogs = createAsyncThunk('teacher/fetchBehaviorLogs', async (params = {}, { rejectWithValue }) => {
+    try {
+        const { studentId, classId } = params;
+        const response = await axiosInstance.get(`/teacher/behavior-logs?studentId=${studentId || ''}&classId=${classId || ''}`);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const scheduleMeeting = createAsyncThunk('teacher/scheduleMeeting', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/teacher/meetings', data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchMeetings = createAsyncThunk('teacher/fetchMeetings', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/teacher/meetings');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -301,6 +344,9 @@ const teacherSlice = createSlice({
         reviews: [], // For teacher reviews
         messages: [], // For teacher communication
         unifiedCalendar: null, // For unified view
+        lessonPlans: [],
+        behaviorLogs: [],
+        meetings: [],
         profile: null,
         loading: false,
         error: null,
@@ -431,6 +477,29 @@ const teacherSlice = createSlice({
             .addCase(fetchUnifiedCalendar.fulfilled, (state, action) => {
                 state.unifiedCalendar = action.payload;
                 state.loading = false;
+            })
+            .addCase(fetchLessonPlans.fulfilled, (state, action) => {
+                state.lessonPlans = action.payload;
+                state.loading = false;
+            })
+            .addCase(createLessonPlan.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+                state.lessonPlans = [action.payload.plan, ...state.lessonPlans];
+            })
+            .addCase(fetchBehaviorLogs.fulfilled, (state, action) => {
+                state.behaviorLogs = action.payload;
+                state.loading = false;
+            })
+            .addCase(logBehavior.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+            })
+            .addCase(fetchMeetings.fulfilled, (state, action) => {
+                state.meetings = action.payload;
+                state.loading = false;
+            })
+            .addCase(scheduleMeeting.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+                state.meetings = [...state.meetings, action.payload.meeting].sort((a,b) => new Date(a.date) - new Date(b.date));
             })
             .addMatcher(
                 (action) => action.type.endsWith('/fulfilled'),

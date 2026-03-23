@@ -208,7 +208,21 @@ router.post('/teacher/change-password', ...teacher, tc.changePassword);
 router.post('/teacher/send-message', ...teacher, upload.single('file'), tc.sendMessage);
 router.get('/teacher/get-fee-status', ...teacher, tc.getStudentFeeStatus);
 router.get('/teacher/exam-schedule', ...teacher, tc.getExamsByClass);
+// Performance & Analytics
 router.get('/teacher/performance-analytics', ...teacher, tc.getPerformanceAnalytics);
+
+// Lesson Plans
+router.get('/teacher/lesson-plans', ...teacher, tc.getLessonPlans);
+router.post('/teacher/lesson-plans', ...teacher, tc.createLessonPlan);
+router.put('/teacher/lesson-plans/:id', ...teacher, tc.updateLessonPlan);
+
+// Behavior Log
+router.post('/teacher/behavior-log', ...teacher, tc.logBehavior);
+router.get('/teacher/behavior-logs', ...teacher, tc.getBehaviorLogs);
+
+// PTM Scheduling
+router.post('/teacher/meetings', ...teacher, tc.scheduleMeeting);
+router.get('/teacher/meetings', ...teacher, tc.getMeetings);
 router.get('/teacher/student-attendance/:studentId', ...teacher, tc.getStudentFullAttendance);
 router.delete('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
 router.post('/teacher/bulk-attendance', ...teacher, tc.bulkAttendanceImport);
@@ -244,6 +258,8 @@ router.get('/parent/child/:studentId/fees', ...parent, pc.getChildFees);
 router.get('/parent/child/:studentId/timetable', ...parent, pc.getChildTimetable);
 router.get('/parent/child/:studentId/assignments', ...parent, pc.getChildAssignments);
 router.get('/parent/child/:studentId/exams', ...parent, pc.getChildExams);
+router.get('/parent/child/:studentId/behavior', ...parent, pc.getChildBehaviorLogs);
+router.get('/parent/child/:studentId/meetings', ...parent, pc.getChildMeetings);
 router.get('/parent/holidays', ...parent, pc.getHolidays);
 
 // Documents

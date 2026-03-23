@@ -56,11 +56,12 @@ const TeacherLayout = () => {
             icon: BookOpen,
             children: [
                 { path: '/teacher/classes', icon: BookOpen, label: 'Assigned Sectors' },
+                { path: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Matrix' },
                 { path: '/teacher/attendance', icon: ClipboardList, label: 'Mark Attendance' },
                 { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
                 { path: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
                 { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
-                { path: '/teacher/timetable', icon: Clock, label: 'Timetable' },
+                { path: '/teacher/timetable', icon: Clock, label: 'Timetable Matrix' },
             ]
         },
         {
@@ -70,6 +71,7 @@ const TeacherLayout = () => {
                 { path: '/teacher/messages?tab=feed', icon: Megaphone, label: 'Announcements' },
                 { path: '/teacher/messages?tab=chat', icon: Shield, label: 'Direct Probe' },
                 { path: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
+                { path: '/teacher/meetings', icon: Calendar, label: 'PTM Protocols' },
             ]
         },
         {
@@ -86,6 +88,7 @@ const TeacherLayout = () => {
             icon: TrendingUp,
             children: [
                 { path: '/teacher/performance-report', icon: TrendingUp, label: 'Analytics' },
+                { path: '/teacher/behavior-log', icon: Shield, label: 'Conduct Registry' },
                 { path: '/teacher/reviews', icon: MessageSquare, label: 'Staff Reviews' },
             ]
         },

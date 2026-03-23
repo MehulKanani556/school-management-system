@@ -13,6 +13,7 @@ import {
     LogOut, 
     Menu, 
     X,
+    Shield,
     ChevronDown,
     Users,
     ChevronRight,
@@ -75,14 +76,16 @@ const ParentLayout = () => {
         { icon: Clock, label: 'Attendance', path: '/parent/attendance' },
         { icon: Trophy, label: 'Academics', path: '/parent/results' },
         { icon: FileText, label: 'Assignments', path: '/parent/assignments' },
-        { icon: CreditCard, label: 'Finances', path: '/parent/fees' },
-        { icon: BookOpen, label: 'Timetable', path: '/parent/timetable' },
+        { icon: Clock, label: 'Timetable', path: '/parent/timetable' },
+        { icon: CreditCard, label: 'Financial Ledger', path: '/parent/fees' },
+        { icon: Shield, label: 'Conduct Registry', path: '/parent/behavior' },
+        { icon: Calendar, label: 'PTM Protocols', path: '/parent/meetings' },
+        { icon: Bell, label: 'Notifications', path: '/parent/notifications' },
         { icon: Calendar, label: 'Exams', path: '/parent/exams' },
         { icon: Megaphone, label: 'Announcements', path: '/parent/announcements' },
         { icon: MessageSquare, label: 'Messages', path: '/parent/messages' },
         { icon: Sun, label: 'Holidays', path: '/parent/holidays' },
         { icon: User, label: 'Profile', path: '/parent/profile' },
-        { icon: Bell, label: 'Notifications', path: '/parent/notifications' },
     ];
 
     return (
