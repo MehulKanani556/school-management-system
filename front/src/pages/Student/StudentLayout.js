@@ -5,7 +5,8 @@ import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, BookOpen, CalendarCheck, ClipboardList,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked,
-  Clock, Calendar, Bell, LogOut, ChevronDown, CalendarDays, Brain, Globe, CreditCard
+  Clock, Calendar, Bell, LogOut, ChevronDown, CalendarDays, Brain, Globe, CreditCard,
+  Award, Download, Megaphone,GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -14,34 +15,42 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/student', icon: LayoutDashboard, label: 'Overview', end: true },
+  { to: '/student', icon: LayoutDashboard, label: 'Portal Home', end: true },
   {
-    label: 'Academic Hub',
-    icon: BookOpen,
+    label: 'Academic Cluster',
+    icon: GraduationCap,
     children: [
-      { to: '/student/subjects', icon: BookMarked, label: 'Subject Matrix' },
-      { to: '/student/timetable', icon: Clock, label: 'Time Matrix' },
-      { to: '/student/attendance', icon: CalendarCheck, label: 'Attendance' },
+      { to: '/student/attendance', icon: ClipboardList, label: 'Attendance History' },
+      { to: '/student/results', icon: Award, label: 'Academic Results' },
+      { to: '/student/timetable', icon: Calendar, label: 'Timetable' },
+      { to: '/student/exams', icon: BookOpen, label: 'Evaluation Matrix' },
+      { to: '/student/assignments', icon: Download, label: 'Assignments' },
     ]
   },
   {
-    label: 'Assessments',
-    icon: ClipboardList,
-    children: [
-      { to: '/student/exams', icon: ClipboardList, label: 'Examination' },
-      { to: '/student/results', icon: Brain, label: 'Neural Results' },
-    ]
-  },
-  {
-    label: 'Events & News',
+    label: 'Institutional Hub',
     icon: Globe,
     children: [
-      { to: '/student/holidays', icon: CalendarDays, label: 'Breaks' },
-      { to: '/student/notices', icon: Globe, label: 'Live Notices' },
+      { to: '/student/notifications', icon: Bell, label: 'Pulse Feed' },
+      { to: '/student/announcements', icon: Megaphone, label: 'Bulletin Terminal' },
+      { to: '/student/messages', icon: MessageSquare, label: 'Neural Link' },
+      { to: '/student/holidays', icon: Clock, label: 'Holidays' },
     ]
   },
-  { to: '/student/fees', icon: CreditCard, label: 'Fiscal Ledger' },
-  { to: '/student/messages', icon: MessageSquare, label: 'Direct Comm' },
+  {
+    label: 'Financials',
+    icon: CreditCard,
+    children: [
+      { to: '/student/fees', icon: CreditCard, label: 'Financial Ledger' },
+    ]
+  },
+  {
+    label: 'Personal Matrix',
+    icon: User,
+    children: [
+      { to: '/student/profile', icon: User, label: 'Student Profile' },
+    ]
+  }
 ];
 
 const StudentLayout = () => {
