@@ -111,7 +111,7 @@ const Communication = () => {
                 return mPartnerId !== partnerId;
             })]);
 
-            toast.success(`Direct Proton Received: ${data.subject}`);
+            // toast.success(`Direct Proton Received: ${data.subject}`);
         };
 
         const handleNotice = (data) => {

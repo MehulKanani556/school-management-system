@@ -270,6 +270,32 @@ exports.createStaff = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.updateStaff = async (req, res) => {
+  try {
+    const { firstName, lastName, email, phone, role } = req.body;
+    const schoolId = getSchoolId(req);
+
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.id, schoolId },
+      { firstName, lastName, email, role, phoneNumber: phone },
+      { new: true }
+    );
+
+    if (!user) return res.status(404).json({ message: 'Staff member not found' });
+
+    res.json({ message: 'Staff member updated successfully', user });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteStaff = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const user = await User.findOneAndDelete({ _id: req.params.id, schoolId });
+    if (!user) return res.status(404).json({ message: 'Staff member not found' });
+    res.json({ message: 'Staff member deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Standards ────────────────────────────────────────────────────────────────
 exports.getStandards = async (req, res) => {
   try {

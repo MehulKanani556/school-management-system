@@ -4,9 +4,8 @@ import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayrol
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import Modal from '../../components/Modal';
-import Pagination from '../../components/Pagination';
 import { format } from 'date-fns';
 
 const validationSchema = Yup.object({
@@ -101,6 +100,10 @@ const Payroll = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -169,15 +172,43 @@ const Payroll = () => {
             ))}
           </tbody>
         </table>
+        {totalPages > 1 && (
+          <div className="p-6 border-t border-brand-border/30 flex items-center justify-between bg-black/20">
+            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit italic">
+              Telemetry Page {currentPage} of {totalPages}
+            </div>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className={`p-2 rounded-md border transition-all ${currentPage === 1 ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div className="flex gap-1">
+                {[...Array(totalPages)].map((_, i) => (
+                  <button 
+                    key={i + 1}
+                    onClick={() => setCurrentPage(i + 1)}
+                    className={`w-8 h-8 rounded-md text-[10px] font-black transition-all font-outfit ${currentPage === i + 1 ? 'bg-brand-primary/20 border border-brand-primary text-brand-primary' : 'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'}`}
+                  >
+                    {i + 1}
+                  </button>
+                ))}
+              </div>
+              <button 
+                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className={`p-2 rounded-md border transition-all ${currentPage === totalPages ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      <Pagination 
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={setCurrentPage}
-        itemsPerPage={itemsPerPage}
-        totalItems={filtered.length}
-      />
+
 
       <Modal open={modal} onClose={() => setModal(false)} title={editing ? 'Update Payroll' : 'Add Payroll Record'}>
         <form onSubmit={formik.handleSubmit} className="space-y-4">

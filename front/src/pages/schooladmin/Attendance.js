@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClasses, fetchStudents, fetchAttendance, saveAttendance, fetchStandards } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Save, CheckCircle, XCircle, Clock, AlertCircle, Calendar, Users, Search, ChevronRight } from 'lucide-react';
+import { Save, CheckCircle, XCircle, Clock, AlertCircle, Calendar, Users, Search, ChevronRight, ChevronLeft } from 'lucide-react';
 
 const statusOptions = ['Present', 'Absent', 'Late', 'Half-Day'];
 const statusIcon = { Present: CheckCircle, Absent: XCircle, Late: Clock, 'Half-Day': Clock };
@@ -23,6 +23,8 @@ const Attendance = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [saved, setSaved] = useState(false);
     const [expandedStudent, setExpandedStudent] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
 
     useEffect(() => {
         dispatch(fetchClasses());
@@ -75,6 +77,15 @@ const Attendance = () => {
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
         s.admissionNumber?.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const indexOfLastStudent = currentPage * itemsPerPage;
+    const indexOfFirstStudent = indexOfLastStudent - itemsPerPage;
+    const paginatedStudents = filteredStudents.slice(indexOfFirstStudent, indexOfLastStudent);
+    const totalPages = Math.ceil(filteredStudents.length / itemsPerPage);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, selectedClass]);
 
     const handleSave = async () => {
         const recordsArr = Object.entries(records).map(([studentId, data]) => ({
@@ -200,6 +211,7 @@ const Attendance = () => {
                                     <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px] italic">No Student Nodes Detected in this Sector</p>
                                 </div>
                             ) : (
+                                <>
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/30">
@@ -209,7 +221,7 @@ const Attendance = () => {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/40">
-                                        {filteredStudents.map((s, i) => (
+                                        {paginatedStudents.map((s, i) => (
                                             <React.Fragment key={s._id}>
                                                 <motion.tr initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.02 }}
                                                     className={`hover:bg-white/[0.02] transition-colors group ${expandedStudent === s._id ? 'bg-white/[0.03]' : ''}`}>
@@ -307,6 +319,41 @@ const Attendance = () => {
                                         ))}
                                     </tbody>
                                 </table>
+                                {totalPages > 1 && (
+                                    <div className="p-6 border-t border-slate-800/40 flex items-center justify-between bg-black/20">
+                                        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit italic">
+                                            Telemetry Page {currentPage} of {totalPages}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                                disabled={currentPage === 1}
+                                                className={`p-2 rounded-md border transition-all ${currentPage === 1 ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+                                            >
+                                                <ChevronLeft size={16} />
+                                            </button>
+                                            <div className="flex gap-1">
+                                                {[...Array(totalPages)].map((_, i) => (
+                                                    <button 
+                                                        key={i + 1}
+                                                        onClick={() => setCurrentPage(i + 1)}
+                                                        className={`w-8 h-8 rounded-md text-[10px] font-black transition-all font-outfit ${currentPage === i + 1 ? 'bg-brand-primary/20 border border-brand-primary text-brand-primary' : 'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'}`}
+                                                    >
+                                                        {i + 1}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <button 
+                                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                                disabled={currentPage === totalPages}
+                                                className={`p-2 rounded-md border transition-all ${currentPage === totalPages ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+                                            >
+                                                <ChevronRight size={16} />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                </>
                             )}
                         </div>
                     </div>

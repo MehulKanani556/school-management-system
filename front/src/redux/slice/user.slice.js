@@ -26,6 +26,30 @@ export const addStaff = createAsyncThunk(
     }
 );
 
+export const updateStaff = createAsyncThunk(
+    'user/updateStaff',
+    async ({ id, staffData }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.put(`/school-admin/staff/${id}`, staffData);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Update failed');
+        }
+    }
+);
+
+export const deleteStaff = createAsyncThunk(
+    'user/deleteStaff',
+    async (id, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.delete(`/school-admin/staff/${id}`);
+            return { id, message: response.data.message };
+        } catch (error) {
+            return rejectWithValue(error.response?.data?.message || 'Deletion failed');
+        }
+    }
+);
+
 const initialState = {
     users: [],
     loading: false,
@@ -65,6 +89,30 @@ const userSlice = createSlice({
                 state.message = 'Staff member provisioned successfully';
             })
             .addCase(addStaff.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(updateStaff.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(updateStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.users = state.users.map(u => u._id === action.payload.user._id ? action.payload.user : u);
+                state.message = 'Staff member updated successfully';
+            })
+            .addCase(updateStaff.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
+            })
+            .addCase(deleteStaff.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(deleteStaff.fulfilled, (state, action) => {
+                state.loading = false;
+                state.users = state.users.filter(u => u._id !== action.payload.id);
+                state.message = 'Staff member removed successfully';
+            })
+            .addCase(deleteStaff.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
             });

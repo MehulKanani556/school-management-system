@@ -64,6 +64,8 @@ router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generate
 router.get('/school-admin/teachers', ...schoolAdmin, sa.getTeachers);
 router.post('/school-admin/teachers', ...schoolAdmin, sa.createTeacher);
 router.post('/school-admin/staff', ...schoolAdmin, sa.createStaff);
+router.put('/school-admin/staff/:id', ...schoolAdmin, sa.updateStaff);
+router.delete('/school-admin/staff/:id', ...schoolAdmin, sa.deleteStaff);
 router.put('/school-admin/teachers/:id', ...schoolAdmin, sa.updateTeacher);
 router.delete('/school-admin/teachers/:id', ...schoolAdmin, sa.deleteTeacher);
 router.patch('/school-admin/teachers/:id/toggle-status', ...schoolAdmin, sa.toggleTeacherStatus);

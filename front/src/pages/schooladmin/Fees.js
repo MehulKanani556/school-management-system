@@ -7,7 +7,7 @@ import {
   fetchFeeSummary, sendFeeReminders
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter,  ChevronLeft, ChevronRight } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -33,6 +33,8 @@ const Fees = () => {
   const [payingMap, setPayingMap] = useState({}); // { fee_id: internal_paying_now_amount }
   const [formLoading, setFormLoading] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   useEffect(() => { 
     dispatch(fetchFees()); 
@@ -247,6 +249,15 @@ const Fees = () => {
     }));
   }, [filteredFees]);
 
+  const indexOfLastFee = currentPage * itemsPerPage;
+  const indexOfFirstFee = indexOfLastFee - itemsPerPage;
+  const paginatedFees = combinedFees.slice(indexOfFirstFee, indexOfLastFee);
+  const totalPages = Math.ceil(combinedFees.length / itemsPerPage);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filter]);
+
   const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0);
   const totalPaid = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
 
@@ -355,7 +366,7 @@ const Fees = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {combinedFees.map((f, i) => (
+                    {paginatedFees.map((f, i) => (
                       <tr key={f._id} className="border-b border-brand-border/10 hover:bg-white/5 transition-colors group">
                         <td className="px-8 py-5">
                           <div className="flex items-center gap-3">
@@ -440,11 +451,45 @@ const Fees = () => {
                         </td>
                       </tr>
                     ))}
-                    {filteredFees.length === 0 && (
-                      <tr><td colSpan={6} className="px-8 py-16 text-center text-slate-500 italic font-medium uppercase tracking-widest">No financial records detected</td></tr>
+                    {paginatedFees.length === 0 && (
+                      <tr><td colSpan={8} className="px-8 py-16 text-center text-slate-500 italic font-medium uppercase tracking-widest">No financial records detected</td></tr>
                     )}
                   </tbody>
                 </table>
+                {totalPages > 1 && (
+                  <div className="p-6 border-t border-brand-border/30 flex items-center justify-between bg-slate-800/10">
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">
+                      Ledger Page {currentPage} of {totalPages}
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-md border transition-all ${currentPage === 1 ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <div className="flex gap-1">
+                        {[...Array(totalPages)].map((_, i) => (
+                          <button 
+                            key={i + 1}
+                            onClick={() => setCurrentPage(i + 1)}
+                            className={`w-8 h-8 rounded-md text-[10px] font-black transition-all font-outfit ${currentPage === i + 1 ? 'bg-brand-primary/20 border border-brand-primary text-brand-primary' : 'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'}`}
+                          >
+                            {i + 1}
+                          </button>
+                        ))}
+                      </div>
+                      <button 
+                        onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-md border transition-all ${currentPage === totalPages ? 'border-slate-800 text-slate-700 cursor-not-allowed' : 'border-slate-700 text-slate-400 hover:border-brand-primary hover:text-white'}`}
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
