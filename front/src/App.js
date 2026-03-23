@@ -36,6 +36,8 @@ import Reviews from './pages/schooladmin/Reviews';
 import Reports from './pages/schooladmin/Reports';
 import SchoolProfile from './pages/schooladmin/SchoolProfiles';
 import StaffRegistry from './pages/schooladmin/StaffRegistry';
+import AcademicYears from './pages/schooladmin/AcademicYear';
+import Admissions from './pages/schooladmin/Admissions';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -108,6 +110,8 @@ const LessonPlans = React.lazy(() => import('./pages/Teacher/LessonPlans'));
 const BehaviorLog = React.lazy(() => import('./pages/Teacher/BehaviorLog'));
 const PTMMeetings = React.lazy(() => import('./pages/Teacher/PTMMeetings'));
 const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
+// const AcademicYears = React.lazy(() => import('./pages/schooladmin/AcademicYears'));
+// const Admissions = React.lazy(() => import('./pages/schooladmin/Admissions'));
 
 // Parent Pages
 const ChildBehavior = React.lazy(() => import('./pages/Parent/ChildBehavior'));
@@ -256,6 +260,8 @@ function AppRoutes() {
           <Route path="profile" element={<SchoolProfile />} />
           <Route path="staff" element={<StaffRegistry />} />
           <Route path="holidays" element={<Holidays />} />
+          <Route path="academic-years" element={<AcademicYears />} />
+          <Route path="admissions" element={<Admissions />} />
         </Route>
 
         {/* Super Admin Panel */}

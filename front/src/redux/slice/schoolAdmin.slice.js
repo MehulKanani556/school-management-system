@@ -180,6 +180,37 @@ export const toggleExamPublishStatus = createAsyncThunk('sa/toggleExamPublishSta
   catch (e) { return rejectWithValue(e.response?.data); }
 });
 
+// Academic Years
+export const fetchAcademicYears = asyncGet('sa/academicYears', '/academic-years');
+export const createAcademicYear = post('sa/createAcademicYear', '/academic-years');
+export const updateAcademicYear = put('sa/updateAcademicYear', '/academic-years');
+export const deleteAcademicYear = del('sa/deleteAcademicYear', '/academic-years');
+
+// Announcements
+export const fetchAnnouncements = createAsyncThunk('sa/fetchAnnouncements', async (_, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get('/school-admin/announcements/managed'); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const createAnnouncement = post('sa/createAnnouncement', '/announcements');
+export const updateAnnouncement = put('sa/updateAnnouncement', '/announcements');
+export const deleteAnnouncement = del('sa/deleteAnnouncement', '/announcements');
+
+// Admissions
+export const fetchAdmissions = asyncGet('sa/admissions', '/admissions/enquiries');
+export const createEnquiry = post('sa/createEnquiry', '/admissions/enquiries');
+export const enrollCandidate = post('sa/enrollCandidate', '/admissions/enroll');
+
+// Notice Board
+export const fetchNotices = asyncGet('sa/notices', '/notice-board');
+export const createNotice = post('sa/createNotice', '/notice-board');
+export const updateNotice = put('sa/updateNotice', '/notice-board');
+export const deleteNotice = del('sa/deleteNotice', '/notice-board');
+export const toggleNoticePin = createAsyncThunk('sa/toggleNoticePin', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.patch(`/school-admin/notice-board/${id}/toggle-pin`); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+
 export const downloadReportCard = createAsyncThunk('sa/downloadReportCard', async ({ id, name }, { rejectWithValue }) => {
   try {
     const res = await axiosInstance.get(`/school-admin/students/${id}/report-card`, { responseType: 'blob' });
@@ -232,6 +263,7 @@ const initialState = {
   examAnalytics: null,
   feeSummary: null,
   schoolProfile: null,
+  academicYears: [], announcements: [], admissions: [], notices: [],
   loading: false, error: null, message: null
 };
 
@@ -500,6 +532,82 @@ const schoolAdminSlice = createSlice({
       .addCase(changeAdminPassword.fulfilled, (state, a) => {
         state.loading = false;
         state.message = a.payload.message || "Password changed successfully";
+      })
+      
+      // Academic Years
+      .addCase(fetchAcademicYears.fulfilled, handleList('academicYears'))
+      .addCase(createAcademicYear.fulfilled, (state, a) => {
+        state.academicYears.push(a.payload.data || a.payload);
+        state.loading = false;
+        state.message = a.payload.message || "Academic session initialized";
+      })
+      .addCase(updateAcademicYear.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.academicYears.findIndex(y => y._id === upd._id);
+        if (i !== -1) state.academicYears[i] = upd;
+        state.loading = false;
+        state.message = a.payload.message || "Academic session updated";
+      })
+      .addCase(deleteAcademicYear.fulfilled, (state, a) => {
+        state.academicYears = state.academicYears.filter(y => y._id !== a.payload.id);
+        state.loading = false;
+        state.message = "Academic session purged";
+      })
+
+      // Announcements
+      .addCase(fetchAnnouncements.fulfilled, handleList('announcements'))
+      .addCase(createAnnouncement.fulfilled, (state, a) => {
+        state.announcements.push(a.payload.data || a.payload);
+        state.loading = false;
+        state.message = "Announcement broadcasted successfully";
+      })
+      .addCase(updateAnnouncement.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.announcements.findIndex(n => n._id === upd._id);
+        if (i !== -1) state.announcements[i] = upd;
+        state.loading = false;
+      })
+      .addCase(deleteAnnouncement.fulfilled, (state, a) => {
+        state.announcements = state.announcements.filter(n => n._id !== a.payload.id);
+        state.loading = false;
+        state.message = "Announcement retracted";
+      })
+
+      // Admissions
+      .addCase(fetchAdmissions.fulfilled, handleList('admissions'))
+      .addCase(createEnquiry.fulfilled, (state, a) => {
+        state.admissions.push(a.payload.data || a.payload);
+        state.loading = false;
+        state.message = "Enquiry recorded in pipeline";
+      })
+      .addCase(enrollCandidate.fulfilled, (state, a) => {
+        state.loading = false;
+        state.message = a.payload.message || "Candidate enrolled successfully";
+      })
+
+      // Notice Board
+      .addCase(fetchNotices.fulfilled, handleList('notices'))
+      .addCase(createNotice.fulfilled, (state, a) => {
+        state.notices.push(a.payload.data || a.payload);
+        state.loading = false;
+        state.message = "Notice published to board";
+      })
+      .addCase(updateNotice.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.notices.findIndex(n => n._id === upd._id);
+        if (i !== -1) state.notices[i] = upd;
+        state.loading = false;
+      })
+      .addCase(deleteNotice.fulfilled, (state, a) => {
+        state.notices = state.notices.filter(n => n._id !== a.payload.id);
+        state.loading = false;
+        state.message = "Notice purged from board";
+      })
+      .addCase(toggleNoticePin.fulfilled, (state, a) => {
+        const upd = a.payload.data || a.payload;
+        const i = state.notices.findIndex(n => n._id === upd._id);
+        if (i !== -1) state.notices[i] = upd;
+        state.loading = false;
       });
 
 
@@ -516,7 +624,11 @@ const schoolAdminSlice = createSlice({
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard,        
       fetchFeeSummary, sendFeeReminders,
-      fetchSchoolProfile, updateSchoolProfile, changeAdminPassword
+      fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,
+      fetchAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear,
+      fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,
+      fetchAdmissions, createEnquiry, enrollCandidate,
+      fetchNotices, createNotice, updateNotice, deleteNotice, toggleNoticePin
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

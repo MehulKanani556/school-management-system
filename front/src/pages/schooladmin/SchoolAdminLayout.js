@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Users, GraduationCap, BookOpen,
   CreditCard, ClipboardList, CalendarCheck, LogOut,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked, Calendar, Clock,
-  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout
+  Banknote, CalendarDays, Rocket, BarChart3, PieChart, TrendingUp, Brain, Settings, ChevronDown, Megaphone, Layout, UserPlus, PhoneIncoming
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import MainHeader from '../../components/MainHeader';
@@ -23,6 +23,14 @@ const navItems = [
       { to: '/school-admin/classes', icon: BookOpen, label: 'Classes' },
       { to: '/school-admin/subjects', icon: BookMarked, label: 'Subjects' },
       { to: '/school-admin/timetable', icon: Clock, label: 'Timetable' },
+      { to: '/school-admin/academic-years', icon: Calendar, label: 'Academic Sessions' },
+    ]
+  },
+  {
+    label: 'Admissions',
+    icon: PhoneIncoming,
+    children: [
+      { to: '/school-admin/admissions', icon: UserPlus, label: 'Admission Terminal' },
     ]
   },
   {

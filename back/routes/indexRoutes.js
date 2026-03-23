@@ -11,6 +11,8 @@ router.use(checkMaintenance);
 const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
 const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
+const ayc = require('../controllers/academicYear.controller');
+const admc = require('../controllers/admission.controller');
 const tc = require("../controllers/teacher.controller");
 const nc = require("../controllers/notification.controller");
 const stc = require('../controllers/student.controller');
@@ -99,6 +101,22 @@ router.get('/school-admin/fee-structures', ...schoolAdmin, sa.getFeeStructures);
 router.post('/school-admin/fee-structures', ...schoolAdmin, sa.createFeeStructure);
 router.put('/school-admin/fee-structures/:id', ...schoolAdmin, sa.updateFeeStructure);
 router.delete('/school-admin/fee-structures/:id', ...schoolAdmin, sa.deleteFeeStructure);
+
+// Academic Years
+router.get('/school-admin/academic-years', ...schoolAdmin, ayc.getAcademicYears);
+router.post('/school-admin/academic-years', ...schoolAdmin, ayc.createAcademicYear);
+router.put('/school-admin/academic-years/:id', ...schoolAdmin, ayc.updateAcademicYear);
+router.delete('/school-admin/academic-years/:id', ...schoolAdmin, ayc.deleteAcademicYear);
+router.get('/school-admin/academic-years/current', ...schoolAdmin, ayc.getCurrentYear);
+
+// Admissions
+router.get('/school-admin/admissions/enquiries', ...schoolAdmin, admc.getEnquiries);
+router.post('/school-admin/admissions/enquiries', ...schoolAdmin, admc.addEnquiry);
+router.put('/school-admin/admissions/enquiries/:id', ...schoolAdmin, admc.updateEnquiryStatus);
+router.post('/school-admin/admissions/enroll', ...schoolAdmin, admc.admitCandidate);
+router.get('/school-admin/students/:studentId/promotion-history', ...schoolAdmin, admc.getPromotionHistory);
+
+// Global Announcements for Dashboards
 router.post('/school-admin/apply-fee-structure', ...schoolAdmin, sa.applyFeeStructure);
 
 // Exams
