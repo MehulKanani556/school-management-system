@@ -337,13 +337,41 @@ exports.deleteStandard = async (req, res) => {
 // ─── Students ─────────────────────────────────────────────────────────────────
 exports.getStudents = async (req, res) => {
   try {
-    const students = await Student.find({ schoolId: getSchoolId(req), deletedAt: null }).sort({ createdAt: -1 })
+    const schoolId = getSchoolId(req);
+    const students = await Student.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 })
       .populate('standard', 'level name')
       .populate('classSection', 'sectionLabel')
-      .populate('parentId', 'firstName lastName');
-    res.json(students);
+      .populate('parentId', 'firstName lastName')
+      .lean();
+
+    // Fetch all unpaid fee record summaries for the school to join with students
+    const feeSummary = await FeePayment.aggregate([
+      { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), status: { $ne: 'paid' } } },
+      { $group: {
+          _id: '$studentId',
+          pendingAmount: { $sum: { $subtract: ['$totalAmount', '$paidAmount'] } },
+          unpaidCount: { $sum: 1 }
+      }}
+    ]);
+
+    const feeMap = feeSummary.reduce((map, item) => {
+      map[item._id.toString()] = item;
+      return map;
+    }, {});
+
+    const enrichedStudents = students.map(s => {
+      const summary = feeMap[s._id.toString()];
+      return {
+        ...s,
+        pendingFees: summary ? summary.pendingAmount : 0,
+        isPaid: !summary || summary.unpaidCount === 0
+      };
+    });
+
+    res.json(enrichedStudents);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
+
 
 exports.createStudent = async (req, res) => {
   try {
@@ -547,9 +575,9 @@ exports.promoteStudents = async (req, res) => {
 
     const result = await Student.updateMany(filter, updateData);
 
-    res.json({ 
-      message: `Promotion cycle completed. ${result.modifiedCount} records migrated to Level ${targetStandard.level}.`, 
-      modifiedCount: result.modifiedCount 
+    res.json({
+      message: `Promotion cycle completed. ${result.modifiedCount} records migrated to Level ${targetStandard.level}.`,
+      modifiedCount: result.modifiedCount
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -740,7 +768,7 @@ exports.createClass = async (req, res) => {
     // Enforce standard subjects
     const standardSubjectIds = standard.subjects.map(s => s.toString());
     const incomingAssignments = req.body.subjectAssignments || [];
-    
+
     // Filter and normalize assignments
     const finalAssignments = standardSubjectIds.map(sId => {
       const existing = incomingAssignments.find(a => (a.subject?._id || a.subject)?.toString() === sId);
@@ -750,8 +778,8 @@ exports.createClass = async (req, res) => {
       };
     });
 
-    const cls = await ClassSection.create({ 
-      ...req.body, 
+    const cls = await ClassSection.create({
+      ...req.body,
       schoolId,
       subjectAssignments: finalAssignments,
       subjects: standardSubjectIds
@@ -807,8 +835,8 @@ exports.updateClass = async (req, res) => {
 
     const cls = await ClassSection.findOneAndUpdate(
       { _id: req.params.id, schoolId },
-      { 
-        ...req.body, 
+      {
+        ...req.body,
         subjectAssignments: finalAssignments,
         subjects: standardSubjectIds
       }, { new: true }
@@ -835,24 +863,24 @@ exports.getFees = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
     const today = new Date();
-    
+
     // Auto-check overdue and calculate late fees (e.g., 10 per day)
-    const overduePayments = await FeePayment.find({ 
-        schoolId, 
-        status: { $in: ['pending', 'overdue', 'partially_paid'] },
-        dueDate: { $lt: today }
+    const overduePayments = await FeePayment.find({
+      schoolId,
+      status: { $in: ['pending', 'overdue', 'partially_paid'] },
+      dueDate: { $lt: today }
     });
-    
+
     for (const payment of overduePayments) {
-        const daysLate = Math.floor((today - new Date(payment.dueDate)) / (1000 * 60 * 60 * 24));
-        if (daysLate > 0) {
-            const calculatedLateFees = daysLate * 10; // 10 per day
-            if (payment.lateFees !== calculatedLateFees) {
-                payment.lateFees = calculatedLateFees;
-                payment.status = 'overdue';
-                await payment.save(); // triggers pre-save for totalAmount
-            }
+      const daysLate = Math.floor((today - new Date(payment.dueDate)) / (1000 * 60 * 60 * 24));
+      if (daysLate > 0) {
+        const calculatedLateFees = daysLate * 10; // 10 per day
+        if (payment.lateFees !== calculatedLateFees) {
+          payment.lateFees = calculatedLateFees;
+          payment.status = 'overdue';
+          await payment.save(); // triggers pre-save for totalAmount
         }
+      }
     }
 
     const fees = await FeePayment.find({ schoolId })
@@ -870,9 +898,9 @@ exports.createFee = async (req, res) => {
   try {
     const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req) });
     const populated = await FeePayment.findById(fee._id).populate({
-        path: 'studentId',
-        select: 'firstName lastName admissionNumber standard',
-        populate: { path: 'standard', select: 'level' }
+      path: 'studentId',
+      select: 'firstName lastName admissionNumber standard',
+      populate: { path: 'standard', select: 'level' }
     });
     res.status(201).json({ message: 'Fee node created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -905,17 +933,17 @@ exports.updateFee = async (req, res) => {
 
     // sync school revenue if payment changed
     if (paidAmount !== undefined && paidAmount !== existing.paidAmount) {
-        const diff = paidAmount - (existing.paidAmount || 0);
-        await School.findByIdAndUpdate(schoolId, { $inc: { revenue: diff } });
+      const diff = paidAmount - (existing.paidAmount || 0);
+      await School.findByIdAndUpdate(schoolId, { $inc: { revenue: diff } });
     }
 
     const updated = await FeePayment.findByIdAndUpdate(
       req.params.id,
       updateData, { new: true }
     ).populate({
-        path: 'studentId',
-        select: 'firstName lastName admissionNumber standard',
-        populate: { path: 'standard', select: 'level' }
+      path: 'studentId',
+      select: 'firstName lastName admissionNumber standard',
+      populate: { path: 'standard', select: 'level' }
     });
 
     res.json({ message: 'Fee node modified successfully', data: updated });
@@ -927,7 +955,7 @@ exports.deleteFee = async (req, res) => {
     const schoolId = getSchoolId(req);
     const fee = await FeePayment.findOne({ _id: req.params.id, schoolId });
     if (fee && fee.paidAmount > 0) {
-        await School.findByIdAndUpdate(schoolId, { $inc: { revenue: -fee.paidAmount } });
+      await School.findByIdAndUpdate(schoolId, { $inc: { revenue: -fee.paidAmount } });
     }
     await FeePayment.deleteOne({ _id: req.params.id, schoolId });
     res.json({ message: 'Fee record deleted' });
@@ -987,26 +1015,26 @@ exports.applyFeeStructure = async (req, res) => {
 
     const payments = [];
     for (const student of filtered) {
-        // Calculate scholarship discount
-        const scholarship = student.scholarshipPercentage || 0;
-        
-        for (const item of structure.feeItems) {
-            if (!existingKeys.has(`${student._id}-${item.name}`)) {
-                const discount = (item.amount * scholarship) / 100;
-                payments.push({
-                    schoolId,
-                    studentId: student._id,
-                    amount: item.amount,
-                    discount: discount,
-                    totalAmount: item.amount - discount,
-                    category: item.name,
-                    academicYear,
-                    feeStructureId: structure._id,
-                    status: 'pending',
-                    dueDate: new Date(dueDate)
-                });
-            }
+      // Calculate scholarship discount
+      const scholarship = student.scholarshipPercentage || 0;
+
+      for (const item of structure.feeItems) {
+        if (!existingKeys.has(`${student._id}-${item.name}`)) {
+          const discount = (item.amount * scholarship) / 100;
+          payments.push({
+            schoolId,
+            studentId: student._id,
+            amount: item.amount,
+            discount: discount,
+            totalAmount: item.amount - discount,
+            category: item.name,
+            academicYear,
+            feeStructureId: structure._id,
+            status: 'pending',
+            dueDate: new Date(dueDate)
+          });
         }
+      }
     }
 
     if (!payments.length) return res.status(400).json({ message: 'Fees already applied for all students in this grade' });
@@ -1099,7 +1127,7 @@ exports.getExamAnalytics = async (req, res) => {
       totalMarks += m.marksObtained;
       if (m.marksObtained > highest) highest = m.marksObtained;
       if (m.marksObtained < lowest) lowest = m.marksObtained;
-      
+
       studentPerformance.push({
         name: `${m.studentId?.firstName} ${m.studentId?.lastName}`,
         admissionNumber: m.studentId?.admissionNumber,
@@ -1137,13 +1165,13 @@ exports.toggleExamPublishStatus = async (req, res) => {
     const schoolId = getSchoolId(req);
     const exam = await Exam.findOne({ _id: id, schoolId });
     if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
-    
+
     exam.isPublished = !exam.isPublished;
     await exam.save();
-    
-    res.json({ 
-      message: exam.isPublished ? 'Examination Results Published to Students' : 'Examination Pulse Reverted to Draft Status', 
-      isPublished: exam.isPublished 
+
+    res.json({
+      message: exam.isPublished ? 'Examination Results Published to Students' : 'Examination Pulse Reverted to Draft Status',
+      isPublished: exam.isPublished
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1182,7 +1210,7 @@ exports.generateReportCard = async (req, res) => {
     doc.rect(0, 0, 595, 120).fill(darkColor);
     doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
     doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('OFFICIAL ACADEMIC REPORT CARD', 40, 75, { characterSpacing: 2 });
-    
+
     // Academic Year / Term (Optional placeholder)
     doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text('ANNUAL SESSION 2025-26', 430, 45, { align: 'right', width: 125 });
 
@@ -1197,13 +1225,13 @@ exports.generateReportCard = async (req, res) => {
     const col1 = 40;
     const col2 = 300;
     doc.fillColor(darkColor).fontSize(9).font('Helvetica-Bold');
-    
+
     // Grid row 1
     doc.text('Student Name:', col1, currentY);
     doc.font('Helvetica').text(`${student.firstName} ${student.lastName}`, col1 + 80, currentY);
     doc.font('Helvetica-Bold').text('Admission No:', col2, currentY);
     doc.font('Helvetica').text(student.admissionNumber || 'N/A', col2 + 80, currentY);
-    
+
     currentY += 20;
     // Grid row 2
     doc.font('Helvetica-Bold').text('Standard/Grade:', col1, currentY);
@@ -1263,7 +1291,7 @@ exports.generateReportCard = async (req, res) => {
     const summaryX = 350;
     doc.rect(summaryX, currentY, 205, 100).fill(lightColor).strokeColor(borderColor).stroke();
     doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('FINAL SUMMARY', summaryX + 15, currentY + 15);
-    
+
     const percentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0;
     let grade = 'F';
     let color = '#ef4444';
@@ -1276,7 +1304,7 @@ exports.generateReportCard = async (req, res) => {
     doc.font('Helvetica').fontSize(9);
     doc.text(`Total Marks: ${totalObtained} / ${totalMax}`, summaryX + 15, currentY + 35);
     doc.text(`Percentage: ${percentage.toFixed(1)}%`, summaryX + 15, currentY + 50);
-    
+
     doc.fillColor(color).fontSize(28).font('Helvetica-Bold').text(grade, summaryX + 140, currentY + 35);
     doc.fontSize(8).fillColor('#64748b').text('GRADE', summaryX + 140, currentY + 65, { width: 40, align: 'center' });
 
@@ -1333,7 +1361,7 @@ exports.getAttendanceReport = async (req, res) => {
     const schoolId = getSchoolId(req);
     const filter = { schoolId };
     if (classSection) filter.classSection = new mongoose.Types.ObjectId(classSection);
-    
+
     if (startDate && endDate) {
       filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
@@ -1354,7 +1382,7 @@ exports.getAttendanceReport = async (req, res) => {
           total++;
           if (studentRec.status === 'Present') present++;
           else if (studentRec.status === 'Absent') absent++;
-          else if (studentRec.status === 'Late') { late++; present++; } 
+          else if (studentRec.status === 'Late') { late++; present++; }
           else if (studentRec.status === 'Half-Day') { halfDay++; present += 0.5; }
 
           if (studentRec.isLate) lateTimes.push({ date: record.date, time: studentRec.arrivalTime });
@@ -1399,174 +1427,174 @@ exports.getAttendanceAnalytics = async (req, res) => {
 
 // Low Attendance Alerts
 exports.getLowAttendanceAlerts = async (req, res) => {
-    try {
-        const schoolId = getSchoolId(req);
-        const threshold = 75; // 75% threshold
+  try {
+    const schoolId = getSchoolId(req);
+    const threshold = 75; // 75% threshold
 
-        const students = await Student.find({ schoolId, isActive: true })
-            .select('firstName lastName classSection admissionNumber photo')
-            .populate('classSection', 'sectionLabel');
-        const attendanceData = await Attendance.find({ schoolId }).lean();
+    const students = await Student.find({ schoolId, isActive: true })
+      .select('firstName lastName classSection admissionNumber photo')
+      .populate('classSection', 'sectionLabel');
+    const attendanceData = await Attendance.find({ schoolId }).lean();
 
-        const alerts = [];
-        students.forEach(student => {
-            const studentIdStr = student._id.toString();
-            let present = 0, total = 0;
-            attendanceData.forEach(record => {
-                const studentRec = record.records.find(r => r.studentId.toString() === studentIdStr);
-                if (studentRec) {
-                    total++;
-                    if (['Present', 'Late'].includes(studentRec.status)) present++;
-                    else if (studentRec.status === 'Half-Day') present += 0.5;
-                }
-            });
+    const alerts = [];
+    students.forEach(student => {
+      const studentIdStr = student._id.toString();
+      let present = 0, total = 0;
+      attendanceData.forEach(record => {
+        const studentRec = record.records.find(r => r.studentId.toString() === studentIdStr);
+        if (studentRec) {
+          total++;
+          if (['Present', 'Late'].includes(studentRec.status)) present++;
+          else if (studentRec.status === 'Half-Day') present += 0.5;
+        }
+      });
 
-            const percentage = total > 0 ? (present / total) * 100 : 100;
-            if (total > 0 && percentage < threshold) {
-                alerts.push({
-                    _id: student._id,
-                    firstName: student.firstName,
-                    lastName: student.lastName,
-                    photo: student.photo,
-                    admissionNumber: student.admissionNumber,
-                    class: student.classSection?.sectionLabel,
-                    stats: {
-                        percentage: percentage.toFixed(2),
-                        presentCount: present,
-                        totalCount: total
-                    }
-                });
-            }
+      const percentage = total > 0 ? (present / total) * 100 : 100;
+      if (total > 0 && percentage < threshold) {
+        alerts.push({
+          _id: student._id,
+          firstName: student.firstName,
+          lastName: student.lastName,
+          photo: student.photo,
+          admissionNumber: student.admissionNumber,
+          class: student.classSection?.sectionLabel,
+          stats: {
+            percentage: percentage.toFixed(2),
+            presentCount: present,
+            totalCount: total
+          }
         });
+      }
+    });
 
-        res.json(alerts);
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    res.json(alerts);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // ─── Reports & Analytics ──────────────────────────────────────────────────────
 exports.getSchoolWidePerformance = async (req, res) => {
-    try {
-        const schoolId = getSchoolId(req);
-        // published exams
-        const exams = await Exam.find({ schoolId, isPublished: true }).populate('subject standardId');
-        const examIds = exams.map(e => e._id);
-        const marks = await Mark.find({ examId: { $in: examIds }, schoolId }).lean();
+  try {
+    const schoolId = getSchoolId(req);
+    // published exams
+    const exams = await Exam.find({ schoolId, isPublished: true }).populate('subject standardId');
+    const examIds = exams.map(e => e._id);
+    const marks = await Mark.find({ examId: { $in: examIds }, schoolId }).lean();
 
-        const performance = {
-            totalExams: exams.length,
-            overallAverage: 0,
-            passRate: 0,
-            subjectWise: {},
-            gradeWise: {},
-            subjectChart: [],
-            gradeChart: []
-        };
+    const performance = {
+      totalExams: exams.length,
+      overallAverage: 0,
+      passRate: 0,
+      subjectWise: {},
+      gradeWise: {},
+      subjectChart: [],
+      gradeChart: []
+    };
 
-        if (marks.length > 0) {
-            let totalMarks = 0, totalPass = 0;
-            marks.forEach(m => {
-                const exam = exams.find(e => e._id.toString() === m.examId.toString());
-                if (!exam) return;
-                const percent = (m.marksObtained / (exam.maxMarks || 100)) * 100;
-                totalMarks += percent;
-                if (percent >= 40) totalPass++;
+    if (marks.length > 0) {
+      let totalMarks = 0, totalPass = 0;
+      marks.forEach(m => {
+        const exam = exams.find(e => e._id.toString() === m.examId.toString());
+        if (!exam) return;
+        const percent = (m.marksObtained / (exam.maxMarks || 100)) * 100;
+        totalMarks += percent;
+        if (percent >= 40) totalPass++;
 
-                const subName = exam.subject?.name || 'Other';
-                if (!performance.subjectWise[subName]) performance.subjectWise[subName] = { total: 0, count: 0 };
-                performance.subjectWise[subName].total += percent;
-                performance.subjectWise[subName].count++;
+        const subName = exam.subject?.name || 'Other';
+        if (!performance.subjectWise[subName]) performance.subjectWise[subName] = { total: 0, count: 0 };
+        performance.subjectWise[subName].total += percent;
+        performance.subjectWise[subName].count++;
 
-                const gradeName = `Grade ${exam.standardId?.level || 'N/A'}`;
-                if (!performance.gradeWise[gradeName]) performance.gradeWise[gradeName] = { total: 0, count: 0 };
-                performance.gradeWise[gradeName].total += percent;
-                performance.gradeWise[gradeName].count++;
-            });
+        const gradeName = `Grade ${exam.standardId?.level || 'N/A'}`;
+        if (!performance.gradeWise[gradeName]) performance.gradeWise[gradeName] = { total: 0, count: 0 };
+        performance.gradeWise[gradeName].total += percent;
+        performance.gradeWise[gradeName].count++;
+      });
 
-            performance.overallAverage = Number((totalMarks / marks.length).toFixed(1));
-            performance.passRate = Number(((totalPass / marks.length) * 100).toFixed(1));
-            performance.subjectChart = Object.keys(performance.subjectWise).map(s => ({
-                name: s, average: Number((performance.subjectWise[s].total / performance.subjectWise[s].count).toFixed(1))
-            }));
-            performance.gradeChart = Object.keys(performance.gradeWise).map(g => ({
-                name: g, average: Number((performance.gradeWise[g].total / performance.gradeWise[g].count).toFixed(1))
-            }));
-        }
+      performance.overallAverage = Number((totalMarks / marks.length).toFixed(1));
+      performance.passRate = Number(((totalPass / marks.length) * 100).toFixed(1));
+      performance.subjectChart = Object.keys(performance.subjectWise).map(s => ({
+        name: s, average: Number((performance.subjectWise[s].total / performance.subjectWise[s].count).toFixed(1))
+      }));
+      performance.gradeChart = Object.keys(performance.gradeWise).map(g => ({
+        name: g, average: Number((performance.gradeWise[g].total / performance.gradeWise[g].count).toFixed(1))
+      }));
+    }
 
-        res.json(performance);
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    res.json(performance);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.getFeeCollectionReport = async (req, res) => {
-    try {
-        const schoolId = getSchoolId(req);
-        const fees = await FeePayment.find({ schoolId }).lean();
-        
-        let totalExpected = 0, totalCollected = 0, totalOutstanding = 0;
-        fees.forEach(f => {
-            totalExpected += (f.amount || 0);
-            if (f.status === 'Paid') totalCollected += (f.amount || 0);
-            else totalOutstanding += (f.amount || 0);
-        });
+  try {
+    const schoolId = getSchoolId(req);
+    const fees = await FeePayment.find({ schoolId }).lean();
 
-        res.json({
-            totalExpected, totalCollected, totalOutstanding,
-            collectionRate: totalExpected > 0 ? Number(((totalCollected / totalExpected) * 100).toFixed(1)) : 0
-        });
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    let totalExpected = 0, totalCollected = 0, totalOutstanding = 0;
+    fees.forEach(f => {
+      totalExpected += (f.amount || 0);
+      if (f.status === 'Paid') totalCollected += (f.amount || 0);
+      else totalOutstanding += (f.amount || 0);
+    });
+
+    res.json({
+      totalExpected, totalCollected, totalOutstanding,
+      collectionRate: totalExpected > 0 ? Number(((totalCollected / totalExpected) * 100).toFixed(1)) : 0
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.exportFeeReport = async (req, res) => {
-    try {
-        const schoolId = getSchoolId(req);
-        const fees = await FeePayment.find({ schoolId }).populate('studentId standardId');
-        
-        const fields = [
-            { label: 'Student Name', value: (row) => `${row.studentId?.firstName || 'Unknown'} ${row.studentId?.lastName || ''}` },
-            { label: 'Admission No', value: 'studentId.admissionNumber' },
-            { label: 'Grade', value: 'standardId.level' },
-            { label: 'Month', value: 'month' },
-            { label: 'Amount', value: 'amount' },
-            { label: 'Status', value: 'status' },
-            { label: 'Payment Date', value: (row) => row.paymentDate ? row.paymentDate.toISOString().split('T')[0] : '' }
-        ];
+  try {
+    const schoolId = getSchoolId(req);
+    const fees = await FeePayment.find({ schoolId }).populate('studentId standardId');
 
-        const parser = new Parser({ fields });
-        const csvData = parser.parse(fees);
+    const fields = [
+      { label: 'Student Name', value: (row) => `${row.studentId?.firstName || 'Unknown'} ${row.studentId?.lastName || ''}` },
+      { label: 'Admission No', value: 'studentId.admissionNumber' },
+      { label: 'Grade', value: 'standardId.level' },
+      { label: 'Month', value: 'month' },
+      { label: 'Amount', value: 'amount' },
+      { label: 'Status', value: 'status' },
+      { label: 'Payment Date', value: (row) => row.paymentDate ? row.paymentDate.toISOString().split('T')[0] : '' }
+    ];
 
-        res.header('Content-Type', 'text/csv');
-        res.attachment(`FeeReport_${new Date().toISOString().split('T')[0]}.csv`);
-        return res.send(csvData);
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    const parser = new Parser({ fields });
+    const csvData = parser.parse(fees);
+
+    res.header('Content-Type', 'text/csv');
+    res.attachment(`FeeReport_${new Date().toISOString().split('T')[0]}.csv`);
+    return res.send(csvData);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.exportAttendanceReportCSV = async (req, res) => {
-    try {
-        const { classSection, startDate, endDate } = req.query;
-        const schoolId = getSchoolId(req);
-        const filter = { schoolId };
-        if (classSection) filter.classSection = classSection;
-        if (startDate && endDate) filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+  try {
+    const { classSection, startDate, endDate } = req.query;
+    const schoolId = getSchoolId(req);
+    const filter = { schoolId };
+    if (classSection) filter.classSection = classSection;
+    if (startDate && endDate) filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
 
-        const attendance = await Attendance.find(filter).populate('records.studentId');
-        
-        const results = [];
-        attendance.forEach(record => {
-            record.records.forEach(r => {
-                results.push({
-                    date: record.date.toISOString().split('T')[0],
-                    studentName: `${r.studentId?.firstName || 'N/A'} ${r.studentId?.lastName || ''}`,
-                    admissionNumber: r.studentId?.admissionNumber || '',
-                    status: r.status
-                });
-            });
+    const attendance = await Attendance.find(filter).populate('records.studentId');
+
+    const results = [];
+    attendance.forEach(record => {
+      record.records.forEach(r => {
+        results.push({
+          date: record.date.toISOString().split('T')[0],
+          studentName: `${r.studentId?.firstName || 'N/A'} ${r.studentId?.lastName || ''}`,
+          admissionNumber: r.studentId?.admissionNumber || '',
+          status: r.status
         });
+      });
+    });
 
-        const parser = new Parser({ fields: ['date', 'studentName', 'admissionNumber', 'status'] });
-        const csvData = parser.parse(results);
-        res.header('Content-Type', 'text/csv');
-        res.attachment('AttendanceReport.csv');
-        res.send(csvData);
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    const parser = new Parser({ fields: ['date', 'studentName', 'admissionNumber', 'status'] });
+    const csvData = parser.parse(results);
+    res.header('Content-Type', 'text/csv');
+    res.attachment('AttendanceReport.csv');
+    res.send(csvData);
+  } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 // ─── Subjects ─────────────────────────────────────────────────────────────────
@@ -1621,14 +1649,14 @@ exports.createPayroll = async (req, res) => {
 
     const payroll = await Payroll.create({
       schoolId: getSchoolId(req),
-      teacherId, 
-      month, 
-      year, 
-      basicSalary: bSalary, 
-      bonus: Number(bonus) || 0, 
-      deductions: Number(deductions) || 0, 
-      netSalary: nSalary, 
-      status: status || 'unpaid', 
+      teacherId,
+      month,
+      year,
+      basicSalary: bSalary,
+      bonus: Number(bonus) || 0,
+      deductions: Number(deductions) || 0,
+      netSalary: nSalary,
+      status: status || 'unpaid',
       paidAt: status === 'paid' ? (paymentDate || new Date()) : undefined,
       remarks,
       submittedBy: req.user._id
@@ -1671,11 +1699,11 @@ exports.getStaffAttendance = async (req, res) => {
   try {
     const { date } = req.query;
     const schoolId = getSchoolId(req);
-    const targetDate = date ? new Date(new Date(date).setHours(0,0,0,0)) : new Date(new Date().setHours(0,0,0,0));
+    const targetDate = date ? new Date(new Date(date).setHours(0, 0, 0, 0)) : new Date(new Date().setHours(0, 0, 0, 0));
 
     // Get all active teachers
     const teachers = await Teacher.find({ schoolId, isActive: true }).select('firstName lastName employeeId photo');
-    
+
     // Get attendance for this date
     const attendance = await StaffAttendance.find({ schoolId, date: targetDate });
 
@@ -1703,7 +1731,7 @@ exports.saveStaffAttendance = async (req, res) => {
   try {
     const { records, date } = req.body; // records: [{ teacherId, status, arrivalTime, ... }]
     const schoolId = getSchoolId(req);
-    const targetDate = date ? new Date(new Date(date).setHours(0,0,0,0)) : new Date(new Date().setHours(0,0,0,0));
+    const targetDate = date ? new Date(new Date(date).setHours(0, 0, 0, 0)) : new Date(new Date().setHours(0, 0, 0, 0));
 
     const ops = records.map(r => ({
       updateOne: {
@@ -1726,7 +1754,7 @@ exports.generateBulkPayroll = async (req, res) => {
     const schoolId = getSchoolId(req);
 
     const teachers = await Teacher.find({ schoolId, isActive: true });
-    
+
     // 1. Get attendance summary for the month
     const start = new Date(year, month - 1, 1);
     const end = new Date(year, month, 0);
@@ -1744,7 +1772,7 @@ exports.generateBulkPayroll = async (req, res) => {
 
       const tAttendance = attendance.filter(a => a.teacherId.toString() === t._id.toString());
       const absentCount = tAttendance.filter(a => a.status === 'Absent').length;
-      
+
       const basicSalary = t.baseSalary || 0;
       const dailyRate = basicSalary / 30;
       const deductions = dailyRate * absentCount;
@@ -1769,9 +1797,9 @@ exports.generateBulkPayroll = async (req, res) => {
       await Payroll.insertMany(payrolls);
     }
 
-    res.json({ 
-      message: `${payrolls.length} Payroll entries pushed to global node pipeline`, 
-      count: payrolls.length 
+    res.json({
+      message: `${payrolls.length} Payroll entries pushed to global node pipeline`,
+      count: payrolls.length
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1789,10 +1817,10 @@ exports.getAllAssignments = async (req, res) => {
     // Aggregate submissions per assignment
     const enriched = await Promise.all(assignments.map(async (a) => {
       const submissions = await Submission.find({ assignmentId: a._id });
-      const totalStudents = await Student.countDocuments({ 
-        schoolId, 
-        classSection: a.classSection?._id, 
-        isActive: true 
+      const totalStudents = await Student.countDocuments({
+        schoolId,
+        classSection: a.classSection?._id,
+        isActive: true
       });
 
       return {
@@ -2146,7 +2174,7 @@ exports.getFeeCollectionSummary = async (req, res) => {
 
     const data = summary[0] || { totalInvoiced: 0, totalCollected: 0, totalDiscount: 0, totalLateFees: 0, totalPending: 0 };
     data.totalPending = data.totalInvoiced - data.totalCollected;
-    
+
     res.json(data);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -2156,16 +2184,16 @@ exports.sendFeeReminders = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
     const { studentId } = req.body || {}; // optional filter
-    
+
     const school = await School.findById(schoolId);
-    const query = { 
-        schoolId, 
-        status: { $in: ['pending', 'overdue', 'partially_paid'] } 
+    const query = {
+      schoolId,
+      status: { $in: ['pending', 'overdue', 'partially_paid'] }
     };
     if (studentId) query.studentId = studentId;
 
     const overdueFees = await FeePayment.find(query).populate('studentId');
-    
+
     let sentCount = 0;
     for (const fee of overdueFees) {
       if (!fee.studentId) continue;
@@ -2197,7 +2225,7 @@ exports.sendFeeReminders = async (req, res) => {
           link: '/parent/fees'
         });
       }
-      
+
       sentCount++;
     }
 

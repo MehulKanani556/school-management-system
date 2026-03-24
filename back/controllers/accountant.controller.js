@@ -17,7 +17,8 @@ const getSchoolId = (req) => req.user.schoolId;
 exports.getFees = async (req, res) => {
     try {
         const schoolId = getSchoolId(req);
-        const { search, status, startDate, endDate, page = 1, limit = 10 } = req.query;
+        const { search, status, startDate, endDate, page = 1, limit = 10, classSection, standard } = req.query;
+
         let query = { schoolId };
         
         if (status) query.status = status;
@@ -27,11 +28,22 @@ exports.getFees = async (req, res) => {
             if (endDate) query.dueDate.$lte = new Date(endDate);
         }
 
+        // If filtering by class/standard, find relevant students first
+        if (classSection || standard) {
+            let studentQuery = { schoolId };
+            if (classSection) studentQuery.classSection = classSection;
+            if (standard) studentQuery.standard = standard;
+            const students = await Student.find(studentQuery).select('_id');
+            query.studentId = { $in: students.map(s => s._id) };
+        }
+
         const skip = (page - 1) * limit;
 
+
         const fees = await FeePayment.find(query)
-            .populate('studentId', 'firstName lastName admissionNumber classId')
+            .populate('studentId', 'firstName lastName admissionNumber classSection')
             .sort({ createdAt: -1 });
+
             
         let filteredFees = fees;
         if (search) {
@@ -93,7 +105,8 @@ exports.collectFee = async (req, res) => {
 
         await logAudit(req, 'FEE_COLLECTION', 'Finance', `Collected $${paidAmount} for student ${fee.studentId}`);
 
-        res.json({ message: 'Fee Synchronized successfully', fee });
+        res.json({ message: 'Fee Synchronized successfully', data: fee });
+
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -264,7 +277,8 @@ exports.generatePayroll = async (req, res) => {
             }
         }
 
-        if (!payload.length) return res.status(400).json({ message: 'Payroll already generated for this cycle' });
+        if (!payload.length) return res.status(400).json({ message: 'Payroll cluster already synchronized for this cycle. All staff members are up to date.' });
+
 
         await Payroll.insertMany(payload);
 
@@ -668,3 +682,38 @@ exports.getAuditLogs = async (req, res) => {
         res.json(logs);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const { firstName, lastName, email } = req.body;
+        const updateData = { firstName, lastName, email };
+        
+        if (req.file) {
+            updateData.photo = req.file.location;
+        }
+
+        const user = await User.findByIdAndUpdate(userId, updateData, { new: true });
+        if (!user) return res.status(404).json({ message: 'Accountant node not found' });
+
+        res.json({ message: 'Profile updated successfully', user });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        await logAudit(req, 'PASSWORD_CHANGE', 'Identity', `Accountant changed their password`);
+
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+

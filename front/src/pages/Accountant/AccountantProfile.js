@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Mail, Shield, Lock, Edit3, X, Save, Camera, CheckCircle } from 'lucide-react';
+import { User, Mail, Shield, Lock, Edit3, X, Save, Camera, CheckCircle, Loader2 } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { updateUser } from '../../redux/slice/auth.slice';
+import axiosInstance from '../../utils/axiosInstance';
+
 
 const AccountantProfile = () => {
     const dispatch = useDispatch();
@@ -15,29 +17,68 @@ const AccountantProfile = () => {
         lastName: user?.lastName || '',
         email: user?.email || '',
     });
+    const [photo, setPhoto] = useState(null);
     const [passwordModal, setPasswordModal] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [passData, setPassData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleUpdate = (e) => {
-        e.preventDefault();
-        // In a real app, we'd call an API. Here we just update local state for demo.
-        dispatch(updateUser(formData));
-        toast.success("Profile Synchronized: Matrix credentials updated.");
-        setEditMode(false);
+    const handlePhotoChange = (e) => {
+        if (e.target.files && e.target.files[0]) {
+            setPhoto(e.target.files[0]);
+        }
     };
 
-    const handlePasswordChange = (e) => {
+    const handleUpdate = async (e) => {
+        e.preventDefault();
+        setLoading(true);
+        try {
+            const data = new FormData();
+            data.append('firstName', formData.firstName);
+            data.append('lastName', formData.lastName);
+            data.append('email', formData.email);
+            if (photo) {
+                data.append('photo', photo);
+            }
+
+            const response = await axiosInstance.put('/accountant/profile', data, {
+                headers: { 'Content-Type': 'multipart/form-data' }
+            });
+            dispatch(updateUser(response.data.user));
+            toast.success("Profile Synchronized: Matrix credentials updated.");
+            setEditMode(false);
+            setPhoto(null);
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Synchronization failed");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handlePasswordChange = async (e) => {
         e.preventDefault();
         if (passData.newPassword !== passData.confirmPassword) {
             return toast.error("Credentials Mismatch: Cipher verification failed.");
         }
-        toast.success("Security Uplink: Encryption sequence updated.");
-        setPasswordModal(false);
+        setLoading(true);
+        try {
+            await axiosInstance.post('/accountant/change-password', {
+                oldPassword: passData.oldPassword,
+                newPassword: passData.newPassword
+            });
+            toast.success("Security Uplink: Encryption sequence updated.");
+            setPasswordModal(false);
+            setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        } catch (err) {
+            toast.error(err.response?.data?.message || "Security update failed");
+        } finally {
+            setLoading(false);
+        }
     };
+
 
     return (
         <motion.div 
@@ -73,12 +114,15 @@ const AccountantProfile = () => {
                             >
                                 <X size={16} />
                             </button>
-                            <button 
-                                onClick={handleUpdate}
-                                className="px-8 py-4 bg-accountant-primary text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center gap-3"
-                            >
-                                Synchronize <Save size={14} />
-                            </button>
+                    <button 
+                        onClick={handleUpdate}
+                        disabled={loading}
+                        className="px-8 py-4 bg-accountant-primary text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center gap-3 disabled:opacity-50"
+                    >
+                        {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
+                        Synchronize
+                    </button>
+
                         </div>
                     )}
                 </div>
@@ -91,18 +135,25 @@ const AccountantProfile = () => {
                         <div className="absolute top-0 right-0 w-32 h-32 bg-accountant-primary/5 rounded-md blur-3xl -mr-10 -mt-10"></div>
                         
                         <div className="relative z-10 text-center">
-                            <div className="w-32 h-32 mx-auto rounded-md bg-slate-800 p-1 relative mb-8">
-                                <div className="w-full h-full overflow-hidden rounded-md border border-slate-700/50 flex items-center justify-center bg-slate-900">
-                                    {user?.photo ? (
+                            <div className="w-32 h-32 mx-auto rounded-md bg-slate-800 p-1 relative mb-8 group/photo">
+                                <div className="w-full h-full overflow-hidden rounded-md border border-slate-700/50 flex items-center justify-center bg-slate-900 group-hover/photo:opacity-40 transition-opacity">
+                                    {photo ? (
+                                        <img src={URL.createObjectURL(photo)} alt="Avatar" className="w-full h-full object-cover" />
+                                    ) : user?.photo ? (
                                         <img src={user.photo} alt="Avatar" className="w-full h-full object-cover" />
                                     ) : (
                                         <User size={48} className="text-slate-700" />
                                     )}
                                 </div>
+                                <label className="absolute inset-0 flex items-center justify-center cursor-pointer opacity-0 group-hover/photo:opacity-100 transition-opacity">
+                                    <Camera size={24} className="text-white" />
+                                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                                </label>
                                 <div className="absolute -bottom-2 -right-2 bg-accountant-primary p-2 rounded-md shadow-lg border-2 border-slate-900">
                                     <Shield size={16} className="text-white" />
                                 </div>
                             </div>
+
                             
                             <h2 className="text-2xl font-black text-white uppercase tracking-tight font-outfit mb-1">{user?.firstName} {user?.lastName}</h2>
                             <p className="text-accountant-primary text-[10px] font-black uppercase tracking-[0.4em] font-outfit italic mb-6">Institutional Auditor</p>
@@ -233,10 +284,13 @@ const AccountantProfile = () => {
 
                                     <button 
                                         type="submit"
-                                        className="w-full py-5 bg-rose-600 text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:bg-rose-500 active:scale-95 flex items-center justify-center gap-3"
+                                        disabled={loading}
+                                        className="w-full py-5 bg-rose-600 text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:bg-rose-500 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                                     >
-                                        Apply Encryption Update <CheckCircle size={14} />
+                                        {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
+                                        Apply Encryption Update
                                     </button>
+
                                 </form>
                             </div>
                         </motion.div>

@@ -79,13 +79,15 @@ router.get('/school-admin/export-teachers', ...schoolAdmin, sa.exportTeachers);
 router.post('/school-admin/import-teachers', ...schoolAdmin, localUpload.single('file'), sa.importTeachers);
 
 // Standards
-router.get('/school-admin/standards', ...schoolAdmin, sa.getStandards);
+router.get('/school-admin/standards', auth, requireRole('School_Admin', 'Accountant'), sa.getStandards);
+
 router.post('/school-admin/standards', ...schoolAdmin, sa.createStandard);
 router.put('/school-admin/standards/:id', ...schoolAdmin, sa.updateStandard);
 router.delete('/school-admin/standards/:id', ...schoolAdmin, sa.deleteStandard);
 
 // Classes
-router.get('/school-admin/classes', ...schoolAdmin, sa.getClasses);
+router.get('/school-admin/classes', auth, requireRole('School_Admin', 'Accountant'), sa.getClasses);
+
 router.post('/school-admin/classes', ...schoolAdmin, sa.createClass);
 router.put('/school-admin/classes/:id', ...schoolAdmin, sa.updateClass);
 router.delete('/school-admin/classes/:id', ...schoolAdmin, sa.deleteClass);
@@ -421,6 +423,15 @@ router.delete('/accountant/fee-structures/:id', ...accountant, ac.deleteFeeStruc
 router.post('/accountant/apply-fee-structure', ...accountant, ac.applyFeeStructure);
 router.post('/accountant/send-fee-reminders', ...accountant, sa.sendFeeReminders);
 router.get('/accountant/audit-logs', ...accountant, ac.getAuditLogs);
+router.put('/accountant/profile', ...accountant, upload.single('photo'), ac.updateProfile);
+router.post('/accountant/change-password', ...accountant, ac.changePassword);
+router.get('/accountant/fees-export', ...accountant, sa.exportFeeReport);
+router.get('/accountant/students', ...accountant, sa.getStudents);
+router.get('/accountant/students/:id', ...accountant, sa.getStudentDetail);
+router.get('/accountant/classes', ...accountant, sa.getClasses);
+router.get('/accountant/holidays', ...accountant, hc.getHolidays);
+
+
 
 // ─── Librarian Routes ─────────────────────────────────────────────────────────
 const librarian = [auth, requireRole('Librarian', 'School_Admin')];

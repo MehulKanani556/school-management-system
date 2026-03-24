@@ -21,31 +21,34 @@ const ToastManager = () => {
     const student = useSelector((s) => s.student);
 
     useEffect(() => {
+        const extractErr = (err) => err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
+        
         // Teacher Sector
         if (teacher?.message) { toast.success(String(teacher.message)); dispatch(clearTeacherMessage()); }
-        if (teacher?.error) { toast.error(String(teacher.error)); dispatch(clearTeacherError()); }
+        if (teacher?.error) { toast.error(extractErr(teacher.error)); dispatch(clearTeacherError()); }
 
         // Auth Entry Point
         if (auth?.message) { toast.success(String(auth.message)); dispatch(clearAuthMessage()); }
-        if (auth?.error) { toast.error(String(auth.error)); dispatch(clearAuthError()); }
+        if (auth?.error) { toast.error(extractErr(auth.error)); dispatch(clearAuthError()); }
 
         // School Admin Registry
         if (schoolAdmin?.message) { toast.success(String(schoolAdmin.message)); dispatch(clearSchoolAdminMessage()); }
-        if (schoolAdmin?.error) { toast.error(String(schoolAdmin.error)); dispatch(clearSchoolAdminError()); }
+        if (schoolAdmin?.error) { toast.error(extractErr(schoolAdmin.error)); dispatch(clearSchoolAdminError()); }
 
         // Student Portal
         if (student?.message) { toast.success(String(student.message)); dispatch(clearStudentMessage()); }
-        if (student?.error) { toast.error(String(student.error)); dispatch(clearStudentError()); }
+        if (student?.error) { toast.error(extractErr(student.error)); dispatch(clearStudentError()); }
 
         // Super Admin Infrastructure
         if (school?.message) { toast.success(String(school.message)); dispatch(clearSchoolMessage()); }
-        if (school?.error) { toast.error(String(school.error)); dispatch(clearSchoolError()); }
+        if (school?.error) { toast.error(extractErr(school.error)); dispatch(clearSchoolError()); }
 
         // Global Security Registry
         if (user?.message) { toast.success(String(user.message)); dispatch(clearUserMessage()); } 
-        if (user?.error) { toast.error(String(user.error)); dispatch(clearUserError()); }
+        if (user?.error) { toast.error(extractErr(user.error)); dispatch(clearUserError()); }
 
     }, [teacher, auth, schoolAdmin, student, school, user, dispatch]);
+
 
     return null;
 };

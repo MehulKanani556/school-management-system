@@ -412,7 +412,8 @@ const PayrollManagement = () => {
             <AnimatePresence>
                 {(success || error) && (
                 <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className={`fixed bottom-10 right-10 z-[110] px-7 py-5 rounded-lg border shadow-3xl flex items-center gap-5 backdrop-blur-xl ${success ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-500' : 'bg-red-500/10 border-red-500/30 text-red-500'}`}>
-                  <div className="flex flex-col text-left font-outfit uppercase"><span className="text-[10px] font-black tracking-widest italic leading-none mb-1.5">{success ? 'Registry Confirmed' : 'Protocol Failure'}</span><span className="text-xs font-bold text-slate-100 italic leading-none">{success || error}</span></div>
+                  <div className="flex flex-col text-left font-outfit uppercase"><span className="text-[10px] font-black tracking-widest italic leading-none mb-1.5">{success ? 'Registry Confirmed' : 'Protocol Failure'}</span><span className="text-xs font-bold text-slate-100 italic leading-none">{String(success || error?.message || error || '')}</span></div>
+
                   <button onClick={() => dispatch(clearStatus())} className="p-1.5 hover:opacity-60 transition-all bg-white/5 rounded-md"><X size={16} /></button>
                 </motion.div>
               )}

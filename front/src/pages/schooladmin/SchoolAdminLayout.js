@@ -67,8 +67,8 @@ const navItems = [
     label: 'Staff Core',
     icon: Rocket,
     children: [
-      { to: '/school-admin/staff', icon: Users, label: 'Staff Registry' },
-      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
+        { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
+      // { to: '/school-admin/teachers', icon: GraduationCap, label: 'Personnel List' },
       { to: '/school-admin/staff-attendance', icon: CalendarCheck, label: 'Attendance Registry' },
       { to: '/school-admin/staff-attendance-report', icon: BarChart3, label: 'Workforce Reports' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },

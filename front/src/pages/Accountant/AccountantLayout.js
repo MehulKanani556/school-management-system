@@ -24,6 +24,7 @@ const navItems = [
     icon: DollarSign,
     children: [
       { path: '/accountant/fees', icon: Receipt, label: 'Fee Collection' },
+      { path: '/accountant/students', icon: Users, label: 'Student Census' },
       { path: '/accountant/fee-structures', icon: BookOpen, label: 'Fee Structures' },
       { path: '/accountant/payroll', icon: Wallet, label: 'Payroll Center' },
     ]
@@ -34,13 +35,15 @@ const navItems = [
     children: [
       { path: '/accountant/reports', icon: PieChart, label: 'Financial Reports' },
       { path: '/accountant/audit-logs', icon: Shield, label: 'Security Audit' },
+      // { path: '/accountant/notifications', icon: Bell, label: 'Neural Alerts' },
+      { path: '/accountant/holidays', icon: Calendar, label: 'Temporal protocol' },
     ]
   },
   {
     label: 'Communication',
     icon: MessageSquare,
     children: [
-      { path: '/accountant/messages', icon: MessageSquare, label: 'Direct Probe' },
+      // { path: '/accountant/messages', icon: MessageSquare, label: 'Direct Probe' },
       { path: '/accountant/announcements', icon: Bell, label: 'Announcements' },
     ]
   },
@@ -52,6 +55,7 @@ const navItems = [
     ]
   }
 ];
+
 
 const AccountantLayout = () => {
   const dispatch = useDispatch();

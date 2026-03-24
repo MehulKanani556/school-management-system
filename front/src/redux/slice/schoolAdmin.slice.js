@@ -323,10 +323,21 @@ const schoolAdminSlice = createSlice({
   extraReducers: (builder) => {
     const pending = (state) => { state.loading = true; state.error = null; };
     const rejected = (state, action) => { 
-      state.loading = false; 
-      const errorMsg = action.payload?.message || (typeof action.payload === 'string' ? action.payload : 'Error');
+      state.loading = false;
+      const payload = action.payload;
+      let errorMsg = 'Error';
+      
+      if (typeof payload === 'string') {
+        errorMsg = payload;
+      } else if (payload && typeof payload.message === 'string') {
+        errorMsg = payload.message;
+      } else if (action.error && typeof action.error.message === 'string') {
+        errorMsg = action.error.message;
+      }
+      
       state.error = errorMsg; 
     };
+
 
     builder
       .addCase(fetchDashboard.fulfilled, (state, a) => { state.dashboard = a.payload; state.loading = false; })

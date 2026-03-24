@@ -5,8 +5,10 @@ import axiosInstance from '../../utils/axiosInstance';
 import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Bell, Calculator, Filter, X, CheckCircle2, ChevronLeft, AlertCircle, Printer, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
+import toast from 'react-hot-toast';
 
 const FeeCollection = () => {
+
     const dispatch = useDispatch();
     const { fees, pagination, loading, success, error } = useSelector((state) => state.accountant);
     const [searchTerm, setSearchTerm] = useState('');
@@ -75,27 +77,25 @@ const FeeCollection = () => {
         setSelectedFee(null);
     };
 
-    const exportCSV = () => {
-        const headers = ["Identity", "Admission", "Status", "Due Date", "Total", "Paid", "Pending"];
-        const rows = (fees || []).map(f => [
-            `${f.studentId?.firstName} ${f.studentId?.lastName}`,
-            f.studentId?.admissionNumber,
-            f.status,
-            moment(f.dueDate).format('YYYY-MM-DD'),
-            f.totalAmount,
-            f.paidAmount || 0,
-            (f.totalAmount || 0) - (f.paidAmount || 0)
-        ]);
-
-        const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `Fiscal_Registry_${moment().format('YYYYMMDD')}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+    const handleExport = async () => {
+        try {
+            const response = await axiosInstance.get('/accountant/fees-export', {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `Fiscal_Report_${moment().format('YYYY-MM-DD')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            toast.success('Fiscal report exported');
+        } catch (error) {
+            console.error('Export failed', error);
+            toast.error('Export failed');
+        }
     };
+
 
     const downloadReceipt = async (fee) => {
         try {
@@ -158,9 +158,10 @@ const FeeCollection = () => {
                         </button>
                     )}
                     <button 
-                        onClick={exportCSV}
+                        onClick={handleExport}
                         className="flex items-center gap-2 px-4 py-2 bg-brand-background border border-brand-border rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-brand-primary hover:border-brand-primary/30 transition-all shadow-xl"
                     >
+
                         <Download size={14} />
                         Export Fiscal Data
                     </button>
@@ -522,7 +523,8 @@ const FeeCollection = () => {
                     >
                         <div className="flex flex-col text-left">
                             <span className="text-[9px] font-black uppercase tracking-widest italic leading-none mb-1.5">{success ? 'Node Stabilized' : 'Sync Error'}</span>
-                            <span className="text-xs font-bold text-slate-100 italic leading-none">{success || error}</span>
+                            <span className="text-xs font-bold text-slate-100 italic leading-none">{String(success || error?.message || error || '')}</span>
+
                         </div>
                         <button onClick={() => dispatch(clearStatus())} className="p-1 hover:opacity-60"><X size={14} /></button>
                     </motion.div>
