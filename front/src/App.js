@@ -9,10 +9,13 @@ import { Loader2 } from 'lucide-react';
 import Auth from './pages/auth/Auth';
 import Home from './pages/Home';
 import VerificationPage from './pages/public/VerificationPage';
+import ForgotPassword from './pages/auth/ForgotPassword';
+import VerifyOTP from './pages/auth/VerifyOTP';
+import ResetPassword from './pages/auth/ResetPassword';
 
 // Layouts
 import SchoolAdminLayout from './pages/schooladmin/SchoolAdminLayout';
-import TeacherLayout from './pages/Teacher/TeacherLayout';
+import TeacherLayout from './pages/teacher/TeacherLayout';
 import StudentLayout from './pages/Student/StudentLayout';
 import ParentLayout from './pages/Parent/ParentLayout';
 import AccountantLayout from './pages/Accountant/AccountantLayout';
@@ -25,6 +28,7 @@ import Dashboard from './pages/schooladmin/Dashboard';
 import Students from './pages/schooladmin/Students';
 import StudentDetail from './pages/schooladmin/StudentDetail';
 import StaffAttendance from './pages/schooladmin/StaffAttendance';
+import StaffAttendanceReport from './pages/schooladmin/StaffAttendanceReport';
 import AssignmentOverview from './pages/schooladmin/AssignmentOverview';
 import CertificateHub from './pages/schooladmin/CertificateHub';
 import Teachers from './pages/schooladmin/Teachers';
@@ -41,7 +45,7 @@ import Leaves from './pages/schooladmin/Leaves';
 import Reviews from './pages/schooladmin/Reviews';
 import Reports from './pages/schooladmin/Reports';
 import SchoolProfile from './pages/schooladmin/SchoolProfiles';
-import StaffRegistry from './pages/schooladmin/StaffRegistry';
+import PersonnelRegistry from './pages/schooladmin/PersonnelRegistry';
 import AcademicYears from './pages/schooladmin/AcademicYear';
 import Admissions from './pages/schooladmin/Admissions';
 import Notifications from './pages/schooladmin/Notifications';
@@ -64,12 +68,12 @@ import Messages from './pages/superadmin/Messages';
 
 
 // Teacher Pages
-import TeacherDashboard from './pages/Teacher/TeacherDashboard';
-import AssignedClasses from './pages/Teacher/AssignedClasses';
-import MarkAttendance from './pages/Teacher/MarkAttendance';
-import AddMarks from './pages/Teacher/AddMarks';
-import Assignments from './pages/Teacher/Assignments';
-import TeacherLeaves from './pages/Teacher/TeacherLeaves';
+import TeacherDashboard from './pages/teacher/TeacherDashboard';
+import AssignedClasses from './pages/teacher/AssignedClasses';
+import MarkAttendance from './pages/teacher/MarkAttendance';
+import AddMarks from './pages/teacher/AddMarks';
+import Assignments from './pages/teacher/Assignments';
+import TeacherLeaves from './pages/teacher/TeacherLeaves';
 
 // Student Pages
 import StudentDashboard from './pages/Student/StudentDashboard';
@@ -111,30 +115,33 @@ import Maintenance from './pages/common/Maintenance';
 // Utilities & Context
 import ToastManager from './ToastManager';
 import { SocketProvider } from './context/SocketContext';
+import { ThemeProvider } from './context/ThemeContext';
 
 // Lazy Loaded Nodes
-const TeacherTimetable = React.lazy(() => import('./pages/Teacher/Timetable'));
-const TeacherMessages = React.lazy(() => import('./pages/Teacher/Communication'));
-const TeacherProfile = React.lazy(() => import('./pages/Teacher/TeacherProfile'));
-const TeacherAnalytics = React.lazy(() => import('./pages/Teacher/AttendanceAnalytics'));
-const TeacherPayroll = React.lazy(() => import('./pages/Teacher/Payroll'));
-const ClassStudents = React.lazy(() => import('./pages/Teacher/ClassStudents'));
-const TeacherFeeStatus = React.lazy(() => import('./pages/Teacher/ClassFeeStatus'));
-const StudentDetailedAttendance = React.lazy(() => import('./pages/Teacher/StudentDetailedAttendance'));
-const PerformanceAnalytics = React.lazy(() => import('./pages/Teacher/PerformanceAnalytics'));
-const TeacherReviews = React.lazy(() => import('./pages/Teacher/TeacherReviews'));
-const TeacherExams = React.lazy(() => import('./pages/Teacher/Exams'));
-const TeacherUnifiedCalendar = React.lazy(() => import('./pages/Teacher/UnifiedCalendar'));
-const LessonPlans = React.lazy(() => import('./pages/Teacher/LessonPlans'));
-const BehaviorLog = React.lazy(() => import('./pages/Teacher/BehaviorLog'));
-const PTMMeetings = React.lazy(() => import('./pages/Teacher/PTMMeetings'));
-const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
-const TeacherAnnouncements = React.lazy(() => import('./pages/Teacher/TeacherAnnouncements'));
-const TeacherNotifications = React.lazy(() => import('./pages/Teacher/TeacherNotifications'));
-const BulkAttendance = React.lazy(() => import('./pages/Teacher/BulkAttendance'));
-const ResourceLocker = React.lazy(() => import('./pages/Teacher/ResourceLocker'));
-const QuestionBank = React.lazy(() => import('./pages/Teacher/QuestionBank'));
-const TeacherQuizManagement = React.lazy(() => import('./pages/Teacher/QuizManagement'));
+const TeacherTimetable = React.lazy(() => import('./pages/teacher/Timetable'));
+const TeacherMessages = React.lazy(() => import('./pages/teacher/Communication'));
+const TeacherProfile = React.lazy(() => import('./pages/teacher/TeacherProfile'));
+const TeacherAnalytics = React.lazy(() => import('./pages/teacher/AttendanceAnalytics'));
+const TeacherPayroll = React.lazy(() => import('./pages/teacher/Payroll'));
+const ClassStudents = React.lazy(() => import('./pages/teacher/ClassStudents'));
+const TeacherFeeStatus = React.lazy(() => import('./pages/teacher/ClassFeeStatus'));
+const StudentDetailedAttendance = React.lazy(() => import('./pages/teacher/StudentDetailedAttendance'));
+const PerformanceAnalytics = React.lazy(() => import('./pages/teacher/PerformanceAnalytics'));
+const TeacherReviews = React.lazy(() => import('./pages/teacher/TeacherReviews'));
+const TeacherExams = React.lazy(() => import('./pages/teacher/Exams'));
+const TeacherUnifiedCalendar = React.lazy(() => import('./pages/teacher/UnifiedCalendar'));
+const LessonPlans = React.lazy(() => import('./pages/teacher/LessonPlans'));
+const BehaviorLog = React.lazy(() => import('./pages/teacher/BehaviorLog'));
+const PTMMeetings = React.lazy(() => import('./pages/teacher/PTMMeetings'));
+const ClassNoticeboard = React.lazy(() => import('./pages/teacher/ClassNoticeboard'));
+const TeacherAnnouncements = React.lazy(() => import('./pages/teacher/TeacherAnnouncements'));
+const TeacherNotifications = React.lazy(() => import('./pages/teacher/TeacherNotifications'));
+const BulkAttendance = React.lazy(() => import('./pages/teacher/BulkAttendance'));
+const ResourceLocker = React.lazy(() => import('./pages/teacher/ResourceLocker'));
+const QuestionBank = React.lazy(() => import('./pages/teacher/QuestionBank'));
+const TeacherQuizManagement = React.lazy(() => import('./pages/teacher/QuizManagement'));
+
+
 // const AcademicYears = React.lazy(() => import('./pages/schooladmin/AcademicYears'));
 // const Admissions = React.lazy(() => import('./pages/schooladmin/Admissions'));
 
@@ -220,6 +227,9 @@ function AppRoutes() {
           <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
           <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
           <Route path="/verify/:type/:id" element={<VerificationPage />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/verify-otp" element={<VerifyOTP />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/" element={<HomeRedirect />} />
 
@@ -309,6 +319,7 @@ function AppRoutes() {
             <Route path="students" element={<Students />} />
             <Route path="students/:id" element={<StudentDetail />} />
             <Route path="staff-attendance" element={<StaffAttendance />} />
+            <Route path="staff-attendance-report" element={<StaffAttendanceReport />} />
             <Route path="teachers" element={<Teachers />} />
             <Route path="classes" element={<Classes />} />
             <Route path="fees" element={<Fees />} />
@@ -325,11 +336,24 @@ function AppRoutes() {
             <Route path="reviews" element={<Reviews />} />
             <Route path="reports" element={<Reports />} />
             <Route path="profile" element={<SchoolProfile />} />
-            <Route path="staff" element={<StaffRegistry />} />
+            <Route path="staff" element={<PersonnelRegistry />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="academic-years" element={<AcademicYears />} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="notifications" element={<Notifications />} />
+            
+            {/* Logistics & Fleet Nodes */}
+            <Route path="vehicles" element={<Suspense fallback={<Loader2 className="animate-spin" />}><Vehicles /></Suspense>} />
+            <Route path="transport-routes" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TransporterRoutes /></Suspense>} />
+            <Route path="trip-logs" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TripLogs /></Suspense>} />
+            <Route path="drivers" element={<Suspense fallback={<Loader2 className="animate-spin" />}><Drivers /></Suspense>} />
+            <Route path="student-transport-assignment" element={<Suspense fallback={<Loader2 className="animate-spin" />}><StudentAssignment /></Suspense>} />
+
+            {/* Library & Knowledge Hub */}
+            <Route path="library-inventory" element={<Suspense fallback={<Loader2 className="animate-spin" />}><BookInventory /></Suspense>} />
+            <Route path="library-records" element={<Suspense fallback={<Loader2 className="animate-spin" />}><IssueRecords /></Suspense>} />
+            <Route path="library-history" element={<Suspense fallback={<Loader2 className="animate-spin" />}><CirculationHistory /></Suspense>} />
+            <Route path="library-categories" element={<Suspense fallback={<Loader2 className="animate-spin" />}><BookCategories /></Suspense>} />
           </Route>
 
           {/* Super Admin Panel */}
@@ -416,13 +440,15 @@ function App() {
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
-        <SocketProvider>
-          <div className="App overflow-hidden">
-            <AppRoutes />
-            <Toaster position="top-right" reverseOrder={false} />
-            <ToastManager />
-          </div>
-        </SocketProvider>
+        <ThemeProvider>
+          <SocketProvider>
+            <div className="App overflow-hidden">
+              <AppRoutes />
+              <Toaster position="top-right" reverseOrder={false} />
+              <ToastManager />
+            </div>
+          </SocketProvider>
+        </ThemeProvider>
       </PersistGate>
     </Provider>
   );

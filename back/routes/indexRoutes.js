@@ -25,6 +25,7 @@ const ac = require('../controllers/accountant.controller');
 const lc = require('../controllers/librarian.controller');
 const trc = require('../controllers/transport.controller');
 const mc = require('../controllers/message.controller');
+const staffAttendanceRoutes = require('./staffAttendance.routes');
 
 
 // Auth Routes
@@ -55,7 +56,7 @@ const schoolAdmin = [auth, requireRole('School_Admin')];
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
 // Students
-router.get('/school-admin/students', auth, requireRole('School_Admin', 'Transport_Manager', 'Teacher', 'Accountant'), sa.getStudents);
+router.get('/school-admin/students', auth, requireRole('School_Admin', 'Transport_Manager', 'Teacher', 'Accountant', 'Librarian'), sa.getStudents);
 router.post('/school-admin/students', ...schoolAdmin, upload.single('photo'), sa.createStudent);
 router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'), sa.updateStudent);
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
@@ -422,7 +423,7 @@ router.post('/accountant/send-fee-reminders', ...accountant, sa.sendFeeReminders
 router.get('/accountant/audit-logs', ...accountant, ac.getAuditLogs);
 
 // ─── Librarian Routes ─────────────────────────────────────────────────────────
-const librarian = [auth, requireRole('Librarian')];
+const librarian = [auth, requireRole('Librarian', 'School_Admin')];
 
 router.get('/librarian/books', ...librarian, lc.getBooks);
 router.post('/librarian/books', ...librarian, upload.single('bookFile'), lc.addBook);
@@ -443,7 +444,7 @@ router.get('/librarian/reservations', ...librarian, lc.getReservations);
 router.put('/librarian/reservations/:id/status', ...librarian, lc.updateReservationStatus);
 
 // ─── Transport Routes ──────────────────────────────────────────────────────────
-const transportManager = [auth, requireRole('Transport_Manager')];
+const transportManager = [auth, requireRole('Transport_Manager', 'School_Admin')];
 
 router.get('/transport/vehicles', ...transportManager, trc.getVehicles);
 router.post('/transport/vehicles', ...transportManager, trc.addVehicle);
@@ -478,6 +479,8 @@ router.put('/transport/trip-logs/:id/toggle-boarding', ...transportManager, trc.
 router.put('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
 router.delete('/superadmin/users/:id', ...superAdmin, sac.deletePlatformUser);
 router.get('/superadmin/messages/:recipientId', ...superAdmin, sac.getPlatformMessages);
+
+router.use('/staff-attendance', staffAttendanceRoutes);
 
 module.exports = router;
 

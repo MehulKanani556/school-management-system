@@ -1,0 +1,148 @@
+const mongoose = require('mongoose');
+const StaffAttendance = require('../models/staffAttendance.model');
+const Teacher = require('../models/teacher.model');
+const User = require('../models/user.model');
+
+const getSchoolId = (req) => req.user.schoolId;
+
+// 1. Mark Bulk Attendance (Admin)
+exports.markBulkAttendance = async (req, res) => {
+    try {
+        const { date, records } = req.body; // records: [{ teacherId/userId, status, remarks }]
+        const schoolId = getSchoolId(req);
+
+        if (!date || !records || !Array.isArray(records)) {
+            return res.status(400).json({ message: 'Invalid data provided' });
+        }
+
+        const attendanceDate = new Date(date);
+        attendanceDate.setHours(0, 0, 0, 0);
+
+        const bulkOps = records.map(rec => {
+            const filter = { schoolId, date: attendanceDate };
+            if (rec.teacherId) filter.teacherId = rec.teacherId;
+            else if (rec.userId) filter.userId = rec.userId;
+            
+            return {
+                updateOne: {
+                    filter,
+                    update: { $set: { status: rec.status, remarks: rec.remarks } },
+                    upsert: true
+                }
+            };
+        });
+
+        await StaffAttendance.bulkWrite(bulkOps);
+        res.json({ message: 'Staff attendance recorded successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 2. Self Attendance (Teacher)
+exports.teacherSelfAttendance = async (req, res) => {
+    try {
+        const { status, arrivalTime } = req.body;
+        const schoolId = getSchoolId(req);
+        
+        // Find teacher record for this user
+        const teacher = await Teacher.findOne({ userId: req.user._id, schoolId });
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
+
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+
+        const attendance = await StaffAttendance.findOneAndUpdate(
+            { schoolId, teacherId: teacher._id, date },
+            { status, arrivalTime, isLate: false }, // Simple logic for now
+            { upsert: true, new: true }
+        );
+
+        res.json({ message: 'Attendance marked', data: attendance });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 3. Get Staff List for Attendance Marking
+exports.getStaffForAttendance = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const { role } = req.query;
+
+        // Fetch teachers
+        let teachers = await Teacher.find({ schoolId, isActive: true, deletedAt: null }).select('firstName lastName employeeId');
+        
+        // Fetch other staff from User model
+        let staffFilter = { schoolId, isActive: true, role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] } };
+        if (role && role !== 'Teacher') {
+            staffFilter.role = role;
+        }
+        
+        const otherStaff = await User.find(staffFilter).select('firstName lastName role');
+
+        res.json({ teachers, otherStaff });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// (getMonthlySummary) 
+exports.getMonthlySummary = async (req, res) => {
+    try {
+        const { month, year } = req.query;
+        const schoolId = getSchoolId(req);
+
+        const startDate = new Date(year, month - 1, 1);
+        const endDate = new Date(year, month, 0);
+
+        const summary = await StaffAttendance.aggregate([
+            { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), date: { $gte: startDate, $lte: endDate } } },
+            {
+                $group: {
+                    _id: { teacher: '$teacherId', user: '$userId' },
+                    present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } },
+                    absent: { $sum: { $cond: [{ $eq: ['$status', 'Absent'] }, 1, 0] } },
+                    leave: { $sum: { $cond: [{ $eq: ['$status', 'Leave'] }, 1, 0] } },
+                    halfDay: { $sum: { $cond: [{ $eq: ['$status', 'Half-Day'] }, 1, 0] } },
+                }
+            },
+            {
+                $lookup: {
+                    from: 'teachers',
+                    localField: '_id.teacher',
+                    foreignField: '_id',
+                    as: 'teacher'
+                }
+            },
+            {
+                $lookup: {
+                    from: 'users',
+                    localField: '_id.user',
+                    foreignField: '_id',
+                    as: 'user'
+                }
+            },
+            { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
+        ]);
+
+        res.json(summary);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 5. Get Attendance Report (Filtered)
+exports.getAttendanceReport = async (req, res) => {
+    try {
+        const { startDate, endDate, teacherId, userId } = req.query;
+        const schoolId = getSchoolId(req);
+
+        const filter = { schoolId };
+        if (startDate && endDate) {
+            filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+        if (teacherId) filter.teacherId = teacherId;
+        if (userId) filter.userId = userId;
+
+        const records = await StaffAttendance.find(filter)
+            .populate('teacherId', 'firstName lastName employeeId')
+            .populate('userId', 'firstName lastName role')
+            .sort({ date: -1 });
+
+        res.json(records);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};

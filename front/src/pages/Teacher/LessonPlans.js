@@ -4,11 +4,14 @@ import { fetchLessonPlans, createLessonPlan, fetchAssignedClasses, fetchDashboar
 import { motion, AnimatePresence } from 'framer-motion';
 import { ClipboardList, Plus, Search, Calendar, BookOpen, Clock, CheckCircle2, MoreVertical, X, FileText, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import moment from 'moment';
 
 const LessonPlans = () => {
     const dispatch = useDispatch();
     const { lessonPlans, classes, loading } = useSelector((state) => state.teacher);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDetailOpen, setIsDetailOpen] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({
         classSection: '',
@@ -125,7 +128,10 @@ const LessonPlans = () => {
                                 </div>
                             </div>
 
-                            <button className="w-full mt-8 py-3 rounded-md border border-slate-800 hover:border-brand-primary text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-primary/10 transition-all text-slate-400 hover:text-brand-primary">
+                            <button 
+                                onClick={() => { setSelectedPlan(plan); setIsDetailOpen(true); }}
+                                className="w-full mt-8 py-3 rounded-md border border-slate-800 hover:border-brand-primary text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-primary/10 transition-all text-slate-400 hover:text-brand-primary"
+                            >
                                 Expand Logic Flow
                             </button>
                         </motion.div>
@@ -255,6 +261,84 @@ const LessonPlans = () => {
                                     ARCHIVE DIRECTIVE
                                 </button>
                             </form>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
+            {/* Detail Modal */}
+            <AnimatePresence>
+                {isDetailOpen && selectedPlan && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl"
+                            onClick={() => setIsDetailOpen(false)}
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.9, y: 20, opacity: 0 }}
+                            animate={{ scale: 1, y: 0, opacity: 1 }}
+                            exit={{ scale: 0.9, y: 20, opacity: 0 }}
+                            className="bg-slate-900 border border-brand-primary/20 w-full max-w-3xl rounded-xl overflow-hidden relative shadow-2xl z-10 font-inter"
+                        >
+                            <div className="p-10 border-b border-slate-800 flex justify-between items-start bg-gradient-to-b from-slate-800/50 to-transparent">
+                                <div>
+                                    <div className="flex items-center gap-3 mb-3">
+                                        <div className="px-3 py-1 bg-brand-primary/10 rounded-md border border-brand-primary/30 text-[9px] font-black text-brand-primary uppercase tracking-widest">
+                                            {selectedPlan.subject?.name}
+                                        </div>
+                                        <div className="text-slate-500 text-[9px] font-black uppercase tracking-widest">
+                                            {selectedPlan.classSection?.sectionLabel}
+                                        </div>
+                                    </div>
+                                    <h2 className="text-3xl font-black uppercase font-outfit tracking-tighter text-white">{selectedPlan.topic}</h2>
+                                    <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-2 flex items-center gap-2">
+                                        <Calendar size={12} className="text-brand-primary" />
+                                        ARCHIVED ON {moment(selectedPlan.date).format('MMMM DD, YYYY').toUpperCase()}
+                                    </p>
+                                </div>
+                                <button onClick={() => setIsDetailOpen(false)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all"><X size={20}/></button>
+                            </div>
+
+                            <div className="p-10 space-y-12 max-h-[70vh] overflow-y-auto custom-scrollbar">
+                                <section className="space-y-6">
+                                    <h4 className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-brand-primary italic">
+                                        <CheckCircle2 size={16} /> 1. Operational Objectives
+                                    </h4>
+                                    <div className="bg-slate-950/50 p-8 rounded-2xl border border-white/5 shadow-inner">
+                                        <p className="text-sm text-slate-400 leading-relaxed font-medium whitespace-pre-wrap italic">
+                                            {selectedPlan.objectives || 'No structural objectives specified for this pedagogical directive.'}
+                                        </p>
+                                    </div>
+                                </section>
+
+                                <section className="space-y-6">
+                                    <h4 className="flex items-center gap-3 text-xs font-black uppercase tracking-[0.3em] text-brand-primary italic">
+                                        <Clock size={16} /> 2. Tactical Decomposition
+                                    </h4>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {selectedPlan.subTopics?.length > 0 ? selectedPlan.subTopics.map((sub, idx) => (
+                                            <div key={idx} className="flex items-center gap-4 p-5 bg-slate-800/40 rounded-xl border border-white/5 group hover:border-brand-primary/30 transition-all">
+                                                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center font-black text-[10px] text-brand-primary group-hover:scale-110 transition-transform">
+                                                    {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
+                                                </div>
+                                                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300 group-hover:text-white transition-colors">{sub}</span>
+                                            </div>
+                                        )) : (
+                                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic col-span-2 text-center py-6">No sub-modules detected in this signal.</p>
+                                        )}
+                                    </div>
+                                </section>
+
+                                <div className="pt-8 border-t border-slate-800 flex justify-between items-center text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-2 h-2 rounded-full ${selectedPlan.status === 'Completed' ? 'bg-emerald-500' : 'bg-brand-primary'} animate-pulse`}></div>
+                                        STATUS: {selectedPlan.status}
+                                    </div>
+                                    <div className="font-mono opacity-50">NODE_ID: {selectedPlan._id.slice(-8).toUpperCase()}</div>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 )}

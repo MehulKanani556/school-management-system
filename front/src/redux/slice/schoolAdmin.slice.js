@@ -89,11 +89,35 @@ export const fetchTimetable = createAsyncThunk('sa/timetable', async (classId, {
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
 export const generateBulkPayroll = post('sa/generateBulkPayroll', '/payroll/bulk');
-export const fetchStaffAttendance = createAsyncThunk('sa/fetchStaffAttendance', async (date, { rejectWithValue }) => {
-  try { const res = await axiosInstance.get(`${BASE}/staff-attendance`, { params: { date } }); return res.data; }
+export const fetchStaffAttendance = createAsyncThunk('sa/fetchStaffAttendance', async (params, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get('/staff-attendance/report', { params }); return res.data; }
   catch (e) { return rejectWithValue(e.response?.data); }
 });
-export const saveStaffAttendance = post('sa/saveStaffAttendance', '/staff-attendance');
+export const saveStaffAttendance = createAsyncThunk('sa/saveStaffAttendance', async (data, { rejectWithValue }) => {
+    try { const res = await axiosInstance.post('/staff-attendance/bulk-mark', data); return res.data; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const fetchStaffForAttendance = createAsyncThunk('sa/fetchStaffForAttendance', async (params, { rejectWithValue }) => {
+    try { const res = await axiosInstance.get('/staff-attendance/list', { params }); return res.data; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const fetchStaffMonthlySummary = createAsyncThunk('sa/fetchStaffMonthlySummary', async (params, { rejectWithValue }) => {
+    try { const res = await axiosInstance.get('/staff-attendance/monthly-summary', { params }); return res.data; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const exportStaffAttendance = createAsyncThunk('sa/exportStaffAttendance', async (params, { rejectWithValue }) => {
+    try {
+        const res = await axiosInstance.get('/staff-attendance/report', { params: { ...params, export: true }, responseType: 'blob' });
+        const url = window.URL.createObjectURL(new Blob([res.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `StaffAttendance_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        return { success: true };
+    } catch (e) { return rejectWithValue(e.response?.data); }
+});
 export const fetchAssignmentsOverview = asyncGet('sa/fetchAssignmentsOverview', '/assignments');
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
 export const fetchReviews = asyncGet('sa/reviews', '/reviews');
@@ -280,6 +304,8 @@ const initialState = {
   feeSummary: null,
   studentDetail: null,
   schoolProfile: null,
+  staffList: { teachers: [], otherStaff: [] },
+  staffMonthlySummary: [],
   academicYears: [], announcements: [], admissions: [], notices: [],
   loading: false, error: null, message: null
 };
@@ -636,6 +662,14 @@ const schoolAdminSlice = createSlice({
         const i = state.notices.findIndex(n => n._id === upd._id);
         if (i !== -1) state.notices[i] = upd;
         state.loading = false;
+      })
+      .addCase(fetchStaffForAttendance.fulfilled, (state, a) => {
+        state.staffList = a.payload;
+        state.loading = false;
+      })
+      .addCase(fetchStaffMonthlySummary.fulfilled, (state, a) => {
+        state.staffMonthlySummary = a.payload;
+        state.loading = false;
       });
 
 
@@ -656,7 +690,8 @@ const schoolAdminSlice = createSlice({
       fetchAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear,
       fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,
       fetchAdmissions, createEnquiry, enrollCandidate,
-      fetchNotices, createNotice, updateNotice, deleteNotice, toggleNoticePin
+      fetchNotices, createNotice, updateNotice, deleteNotice, toggleNoticePin,
+      fetchStaffForAttendance, fetchStaffMonthlySummary, exportStaffAttendance
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });

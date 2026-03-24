@@ -9,7 +9,12 @@ import {
   Layout, PhoneIncoming, UserPlus, CalendarCheck, Brain, Banknote, Rocket, CalendarDays, BarChart3,
   FileText,
   ShieldCheck,
-  Award
+  Award,
+  Bus,
+  History,
+  Truck,
+  Map,
+  Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -47,6 +52,7 @@ const navItems = [
       { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Ledger' },
       { to: '/school-admin/assignments', icon: FileText, label: 'Assignment Intel' },
       { to: '/school-admin/holidays', icon: Calendar, label: 'Sector Breaks' },
+      
     ]
   },
   {
@@ -61,10 +67,33 @@ const navItems = [
     label: 'Staff Core',
     icon: Rocket,
     children: [
-      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Personnel List' },
+      { to: '/school-admin/staff', icon: Users, label: 'Staff Registry' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
       { to: '/school-admin/staff-attendance', icon: CalendarCheck, label: 'Attendance Registry' },
+      { to: '/school-admin/staff-attendance-report', icon: BarChart3, label: 'Workforce Reports' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
       { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
+    ]
+  },
+  {
+    label: 'Logistics Hub',
+    icon: Truck,
+    children: [
+      { to: '/school-admin/vehicles', icon: Bus, label: 'Fleet Inventory' },
+      { to: '/school-admin/transport-routes', icon: Map, label: 'Vector Networks' },
+      { to: '/school-admin/trip-logs', icon: Activity, label: 'Transit Sequences' },
+      { to: '/school-admin/drivers', icon: Users, label: 'Operator Registry' },
+      { to: '/school-admin/student-transport-assignment', icon: UserPlus, label: 'Entity Allocation' },
+    ]
+  },
+  {
+    label: 'Library Archive',
+    icon: Library,
+    children: [
+      { to: '/school-admin/library-inventory', icon: BookMarked, label: 'Asset Repository' },
+      { to: '/school-admin/library-records', icon: ClipboardList, label: 'Circulation Logs' },
+      { to: '/school-admin/library-history', icon: History, label: 'Historical Data' },
+      { to: '/school-admin/library-categories', icon: BookOpen, label: 'Taxonomy Matrix' },
     ]
   },
   {
@@ -85,7 +114,7 @@ const navItems = [
     ]
   },
   { to: '/school-admin/holidays', icon: Calendar, label: 'Global Breaks' },
-    { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
+  { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
 ];
 
 const SchoolAdminLayout = () => {

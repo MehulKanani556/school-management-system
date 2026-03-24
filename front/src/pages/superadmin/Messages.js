@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
-import { SocketContext } from '../../context/SocketContext';
+import { useSocket } from '../../context/SocketContext';
 import { useSelector } from 'react-redux';
 import { MessageSquare, Send, Search, User, CheckCheck, Shield, Globe, MoreVertical, Paperclip } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -8,7 +8,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import toast from 'react-hot-toast';
 
 const Messages = () => {
-    const { socket } = useContext(SocketContext);
+    const { socket } = useSocket();
     const { user: currentUser } = useSelector(s => s.auth);
     const [contacts, setContacts] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
