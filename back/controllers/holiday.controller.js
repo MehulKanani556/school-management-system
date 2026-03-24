@@ -18,7 +18,7 @@ exports.getHolidays = async (req, res) => {
   try {
     const query = req.user.role === 'Super_Admin' ? {} : { schoolId: req.user.schoolId };
     const holidays = await Holiday.find(query).sort({ startDate: 1 });
-    res.json(holidays);
+    res.json({ holidays });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

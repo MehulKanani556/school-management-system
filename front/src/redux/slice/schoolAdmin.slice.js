@@ -318,7 +318,7 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchAttendanceAlerts.fulfilled, handleList('attendanceAlerts'))
       .addCase(fetchSchoolPerformance.fulfilled, (state, a) => { state.schoolPerformance = a.payload; state.loading = false; })
       .addCase(fetchFeeReport.fulfilled, (state, a) => { state.feeReport = a.payload; state.loading = false; })
-      .addCase(fetchHolidays.fulfilled, handleList('holidays'))
+      .addCase(fetchHolidays.fulfilled, (state, a) => { state.holidays = a.payload.holidays || a.payload; state.loading = false; })
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
       .addCase(fetchTimetableTemplates.fulfilled, handleList('timetableTemplates'))

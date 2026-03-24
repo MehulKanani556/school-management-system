@@ -284,7 +284,10 @@ const superAdminSlice = createSlice({
                 state.backups.unshift(action.payload.backup);
                 state.success = action.payload.message;
             })
-            .addCase(fetchGlobalHolidays.fulfilled, setFulfilled('holidays'))
+            .addCase(fetchGlobalHolidays.fulfilled, (state, action) => {
+                state.loading = false;
+                state.holidays = action.payload.holidays || action.payload.data || [];
+            })
             .addCase(createGlobalHoliday.fulfilled, (state, action) => {
                 state.holidays.push(action.payload.data || action.payload);
                 state.success = 'Holiday created successfully';
@@ -299,7 +302,10 @@ const superAdminSlice = createSlice({
                 state.holidays = state.holidays.filter(h => h._id !== action.payload);
                 state.success = 'Holiday removed';
             })
-            .addCase(fetchAllSchools.fulfilled, setFulfilled('schools'))
+            .addCase(fetchAllSchools.fulfilled, (state, action) => {
+                state.loading = false;
+                state.schools = action.payload.schools || action.payload.data || [];
+            })
             .addCase(updateUserStatus.fulfilled, (state, action) => {
                 state.loading = false;
                 state.success = action.payload.message;

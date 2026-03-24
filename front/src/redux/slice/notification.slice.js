@@ -4,7 +4,7 @@ import axiosInstance from '../../utils/axiosInstance';
 export const fetchNotifications = createAsyncThunk('notifications/fetchAll', async (_, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get('/notifications');
-        return response.data;
+        return response.data.notifications;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
     }

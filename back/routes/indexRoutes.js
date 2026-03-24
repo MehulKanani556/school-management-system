@@ -357,6 +357,10 @@ router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
 router.post('/my-messages', auth, mc.sendMessage);
 router.get('/contacts', auth, mc.getContacts);
+router.get('/notifications', auth, nc.getNotifications);
+router.put('/notifications/:id/read', auth, nc.markAsRead);
+router.put('/notifications/read-all', auth, nc.markAllAsRead);
+router.delete('/notifications/:id', auth, nc.deleteNotification);
 
 router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
 router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);

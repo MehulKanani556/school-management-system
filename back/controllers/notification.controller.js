@@ -9,7 +9,7 @@ exports.getNotifications = async (req, res) => {
             .populate('sender', 'firstName lastName photo role')
             .sort({ createdAt: -1 })
             .limit(50);
-        res.json(notifications);
+        res.json({ notifications });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
