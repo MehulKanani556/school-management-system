@@ -22,6 +22,8 @@ const VerificationPage = () => {
     const dispatch = useDispatch();
     const { record: data, loading, error } = useSelector((state) => state.verification);
 
+    const parentName = data?.guardianName || (data?.parentId ? `${data.parentId.firstName} ${data.parentId.lastName}` : 'Institutional Guardian');
+
     useEffect(() => {
         if (id && type) {
             dispatch(verifyIdentity({ type, id }));
@@ -79,7 +81,7 @@ const VerificationPage = () => {
 
                             <div className="py-16 text-sm md:text-lg leading-[3] text-slate-800 font-serif">
                                 1. Name of the Subject: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px]">{data.firstName} {data.lastName}</span> <br />
-                                2. Parental Identifier: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px]">{data.guardianName || 'Node Registry 9921'}</span> <br />
+                                2. Parental Identifier: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px] uppercase">{parentName}</span> <br />
                                 3. Nationality / Sector: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px]">Institutional Global</span> <br />
                                 4. Date of Initial Interface: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px]">{moment(data.createdAt).format('DD MMMM YYYY')}</span> <br />
                                 5. Highest Attained Grade: <span className="font-bold border-b border-slate-300 px-4 inline-block min-w-[200px]">{data.classSection?.sectionLabel || (type === 'teacher' ? 'Faculty' : 'Staff')}</span> <br />

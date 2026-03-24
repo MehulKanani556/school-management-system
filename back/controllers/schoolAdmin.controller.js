@@ -339,7 +339,8 @@ exports.getStudents = async (req, res) => {
   try {
     const students = await Student.find({ schoolId: getSchoolId(req), deletedAt: null }).sort({ createdAt: -1 })
       .populate('standard', 'level name')
-      .populate('classSection', 'sectionLabel');
+      .populate('classSection', 'sectionLabel')
+      .populate('parentId', 'firstName lastName');
     res.json(students);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -2273,7 +2274,8 @@ exports.verifyEntity = async (req, res) => {
         .populate('standard', 'level name')
         .populate('classSection', 'sectionLabel')
         .populate('schoolId', 'name logo address')
-        .select('firstName lastName admissionNumber photo status gender dateOfBirth guardianName createdAt');
+        .populate('parentId', 'firstName lastName')
+        .select('firstName lastName admissionNumber photo status gender dateOfBirth guardianName parentId createdAt');
     } else if (type === 'teacher') {
       data = await Teacher.findOne({ _id: id, deletedAt: null, isActive: true })
         .populate('schoolId', 'name logo address')
