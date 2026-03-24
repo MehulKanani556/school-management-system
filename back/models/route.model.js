@@ -5,6 +5,8 @@ const stopSchema = new mongoose.Schema(
     name: { type: String, required: true },
     order: { type: Number, required: true },
     estimatedTime: { type: String },
+    lat: { type: Number },
+    lng: { type: Number },
   },
   { _id: false }
 );

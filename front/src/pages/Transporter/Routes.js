@@ -1,9 +1,43 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage } from '../../redux/slice/transport.slice';
-import { Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity } from 'lucide-react';
+import { Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import L from 'leaflet';
+
+// Map component for picking coordinates
+const StopPickerMap = ({ onPick, stops = [] }) => {
+    useMapEvents({
+        click(e) {
+            onPick(e.latlng);
+        },
+    });
+
+    return (
+        <>
+            <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; CARTO'
+            />
+            {stops.map((stop, idx) => (
+                stop.lat && stop.lng && (
+                    <Marker 
+                        key={idx} 
+                        position={[stop.lat, stop.lng]} 
+                        icon={L.divIcon({
+                            html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>`,
+                            className: 'custom-marker',
+                            iconSize: [16, 16],
+                            iconAnchor: [8, 8]
+                        })}
+                    />
+                )
+            ))}
+        </>
+    );
+};
 
 const Routes = () => {
     const dispatch = useDispatch();
@@ -12,7 +46,7 @@ const Routes = () => {
     const [isEditOpen, setIsEditOpen] = React.useState(false);
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active' });
-    const [newStop, setNewStop] = React.useState({ name: '', order: 1, estimatedTime: '08:00 AM' });
+    const [newStop, setNewStop] = React.useState({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
@@ -35,7 +69,7 @@ const Routes = () => {
 
     const resetForm = () => {
         setFormData({ name: '', vehicleId: '', stops: [], status: 'active' });
-        setNewStop({ name: '', order: 1, estimatedTime: '08:00 AM' });
+        setNewStop({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
         setSelectedRoute(null);
     }
 
@@ -67,9 +101,11 @@ const Routes = () => {
 
     const addStop = () => {
         if (!newStop.name) return toast.error('Node identifier required');
+        if (!newStop.lat || !newStop.lng) return toast.error('Select location on map');
+        
         const order = formData.stops.length + 1;
         setFormData({ ...formData, stops: [...formData.stops, { ...newStop, order }] });
-        setNewStop({ name: '', order: order + 1, estimatedTime: '08:00 AM' });
+        setNewStop({ name: '', order: order + 1, estimatedTime: '08:00 AM', lat: null, lng: null });
     }
 
     const removeStop = (index) => {
@@ -139,7 +175,7 @@ const Routes = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mb-8 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
+                        <div className="flex items-center gap-6 mb-4 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
                             <div className="flex items-center gap-2 text-blue-400">
                                 <Users size={14} />
                                 <span className="text-xs font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Entities</span>
@@ -151,6 +187,29 @@ const Routes = () => {
                                 Load: {Math.round(((route.assignedStudents?.length || 0) / (route.vehicleId?.capacity || 1)) * 100)}%
                             </div>
                         </div>
+
+                        {/* Mini Map Preview */}
+                        {route.stops?.some(s => s.lat) && (
+                            <div className="h-32 mb-6 rounded border border-slate-800 overflow-hidden grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100">
+                                <MapContainer 
+                                    center={[route.stops.find(s => s.lat).lat, route.stops.find(s => s.lat).lng]} 
+                                    zoom={11} 
+                                    className="h-full w-full"
+                                    zoomControl={false}
+                                    dragging={false}
+                                    scrollWheelZoom={false}
+                                >
+                                    <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+                                    {route.stops.map((s, idx) => s.lat && (
+                                        <Marker 
+                                            key={idx} 
+                                            position={[s.lat, s.lng]} 
+                                            icon={L.divIcon({ html: '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>', className: 'm-0', iconSize: [8, 8] })}
+                                        />
+                                    ))}
+                                </MapContainer>
+                            </div>
+                        )}
 
                         <div className="space-y-6">
                             <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Logic Nodes (Stops)</h4>
@@ -164,7 +223,10 @@ const Routes = () => {
                                         <div className="flex-1 bg-neutral-950/40 p-3 rounded-md border border-slate-800/60 group-hover/stop:border-blue-600/20 transition-all flex justify-between items-center">
                                             <div>
                                                 <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none mb-1">{stop.name}</p>
-                                                <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">ORDER_POINT-0{stop.order}</p>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">ORDER_POINT-0{stop.order}</p>
+                                                    {stop.lat && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1"><MapPin size={8} /> GEO-SYNCED</span>}
+                                                </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[10px] font-black italic text-blue-400 opacity-80 leading-none">{stop.estimatedTime}</p>
@@ -188,8 +250,10 @@ const Routes = () => {
                 {(isAddOpen || isEditOpen) && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0 font-outfit">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
-                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden custom-scrollbar max-h-[90vh] overflow-y-auto">
-                            <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="space-y-6 p-10">
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden custom-scrollbar max-h-[95vh] flex flex-col xl:flex-row">
+                            
+                            {/* Left: Form */}
+                            <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-auto">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
                                     {isEditOpen ? 'Edit Route Matrix' : 'Generate Route Matrix'}
                                 </h3>
@@ -233,50 +297,61 @@ const Routes = () => {
 
                                     <div className="pt-6 border-t border-slate-800/40">
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic mb-6">Logic Node Mapping</h4>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-                                            <input 
-                                                type="text" 
-                                                placeholder="Node Name"
-                                                value={newStop.name}
-                                                onChange={(e) => setNewStop({...newStop, name: e.target.value})}
-                                                className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
-                                            />
-                                            <input 
-                                                type="text" 
-                                                placeholder="HH:MM AM/PM"
-                                                value={newStop.estimatedTime}
-                                                onChange={(e) => setNewStop({...newStop, estimatedTime: e.target.value})}
-                                                className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
-                                            />
-                                            <button 
-                                                type="button"
-                                                onClick={addStop}
-                                                className="bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-[9px] font-black uppercase tracking-widest py-2 hover:bg-blue-600 hover:text-white transition-all italic leading-none h-[38px]"
-                                            >
-                                                add node
-                                            </button>
+                                        <div className="space-y-4 mb-6">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="Node Name"
+                                                    value={newStop.name}
+                                                    onChange={(e) => setNewStop({...newStop, name: e.target.value})}
+                                                    className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
+                                                />
+                                                <input 
+                                                    type="text" 
+                                                    placeholder="HH:MM AM/PM"
+                                                    value={newStop.estimatedTime}
+                                                    onChange={(e) => setNewStop({...newStop, estimatedTime: e.target.value})}
+                                                    className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-4 bg-black/40 p-3 rounded-md border border-slate-800/40 flex-wrap">
+                                                <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic">
+                                                    <Crosshair size={12} className={newStop.lat ? 'text-emerald-500' : ''} /> 
+                                                    {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'PICK LOCATION ON RADAR'}
+                                                </div>
+                                                <button 
+                                                    type="button"
+                                                    onClick={addStop}
+                                                    disabled={!newStop.lat}
+                                                    className="ml-auto bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-[9px] font-black uppercase tracking-widest px-6 py-2 hover:bg-blue-600 hover:text-white transition-all italic leading-none h-[38px] disabled:opacity-30"
+                                                >
+                                                    register node
+                                                </button>
+                                            </div>
                                         </div>
+                                        
                                         <div className="space-y-2">
                                             {formData.stops.map((s, idx) => (
                                                 <div key={idx} className="flex justify-between items-center p-3 bg-neutral-950/60 rounded-md border border-slate-800/40 group/item transition-all">
-                                                    <div className="flex flex-col">
-                                                        <span className="text-[10px] font-black text-slate-400 uppercase italic">{s.order}. {s.name}</span>
-                                                        <span className="text-[9px] font-bold text-blue-500 italic">{s.estimatedTime}</span>
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-[10px] font-black text-slate-400 uppercase italic w-4">{idx + 1}.</span>
+                                                        <div className="flex flex-col">
+                                                            <span className="text-[10px] font-black text-slate-200 uppercase italic">{s.name}</span>
+                                                            <span className="text-[9px] font-bold text-blue-500 italic">{s.estimatedTime}</span>
+                                                        </div>
                                                     </div>
-                                                    <button 
-                                                        type="button"
-                                                        onClick={() => removeStop(idx)}
-                                                        className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
-                                                    >
-                                                        <X size={14} />
-                                                    </button>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[8px] font-black text-slate-600 italic uppercase">[{s.lat?.toFixed(2)}, {s.lng?.toFixed(2)}]</span>
+                                                        <button 
+                                                            type="button"
+                                                            onClick={() => removeStop(idx)}
+                                                            className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
+                                                        >
+                                                            <X size={14} />
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             ))}
-                                            {formData.stops.length === 0 && (
-                                                <div className="text-[10px] text-slate-700 italic border border-slate-800/40 border-dashed p-10 rounded-md text-center">
-                                                    No logical nodes assigned to this matrix path yet.
-                                                </div>
-                                            )}
                                         </div>
                                     </div>
                                 </div>
@@ -287,13 +362,45 @@ const Routes = () => {
                                         onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} 
                                         className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]"
                                     >
-                                        abort matrix
+                                        abort
                                     </button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-blue-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 leading-none h-[42px] disabled:opacity-50">
-                                        {loading ? 'Synthesizing...' : (isEditOpen ? 'update matrix' : 'commit matrix')}
+                                        {loading ? 'Synthesizing...' : (isEditOpen ? 'update' : 'commit')}
                                     </button>
                                 </div>
                             </form>
+
+                            {/* Right: Radar for Picking */}
+                            <div className="w-full xl:w-[450px] bg-neutral-950 border-l border-slate-800 flex flex-col">
+                                <div className="p-6 border-b border-slate-800/60">
+                                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Targeting Radar</h4>
+                                     <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to assign coordinate nodes</p>
+                                </div>
+                                <div className="flex-1 min-h-[400px]">
+                                    <MapContainer 
+                                        center={[23.0225, 72.5714]} 
+                                        zoom={13} 
+                                        className="h-full w-full"
+                                        zoomControl={false}
+                                    >
+                                        <StopPickerMap 
+                                            stops={formData.stops} 
+                                            onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })} 
+                                        />
+                                        {newStop.lat && (
+                                            <Marker 
+                                                position={[newStop.lat, newStop.lng]} 
+                                                icon={L.divIcon({
+                                                    html: `<div class="w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-xl animate-pulse"></div>`,
+                                                    className: 'target-marker',
+                                                    iconSize: [24, 24],
+                                                    iconAnchor: [12, 12]
+                                                })}
+                                            />
+                                        )}
+                                    </MapContainer>
+                                </div>
+                            </div>
                         </motion.div>
                     </div>
                 )}

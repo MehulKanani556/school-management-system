@@ -35,7 +35,9 @@ app.use(cors({
   credentials: true,
 }));
 app.use(bodyParser.json());
+const gpsRoutes = require('./routes/gps.routes');
 app.use('/api/', authRoutes);
+app.use('/api/gps', gpsRoutes);
 server.listen(port, () => {
     console.log(`Server + Socket.IO is running on port ${port}`);
 });

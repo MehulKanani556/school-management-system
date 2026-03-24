@@ -1,18 +1,49 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchChildTransport } from '../../redux/slice/parent.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Truck, MapPin, Clock, User, Shield, Navigation, AlertCircle, Phone, Info } from 'lucide-react';
+import { Truck, MapPin, Clock, User, Shield, Navigation, AlertCircle, Phone, Info, Wifi } from 'lucide-react';
+import { useSocket } from '../../context/SocketContext';
+import LiveMap from '../../components/Transport/LiveMap';
 
 const ChildTransport = () => {
     const dispatch = useDispatch();
+    const { socket, isConnected } = useSocket();
     const { selectedChild, transport, transportLoading: loading } = useSelector((state) => state.parent);
+    const [liveLocation, setLiveLocation] = useState(null);
 
     useEffect(() => {
         if (selectedChild?._id) {
             dispatch(fetchChildTransport(selectedChild._id));
         }
     }, [selectedChild?._id, dispatch]);
+
+    useEffect(() => {
+        if (socket && transport?.route?.vehicleId?._id) {
+            const vehicleId = transport.route.vehicleId._id;
+            socket.emit('subscribe_to_vehicle', vehicleId);
+
+            const handleLocationUpdate = (data) => {
+                if (data.vehicleId === vehicleId) {
+                    setLiveLocation(data);
+                }
+            };
+
+            socket.on('vehicle_location_updated', handleLocationUpdate);
+
+            // Initial location from vehicle model
+            if (transport.route.vehicleId.currentLocation) {
+                setLiveLocation({
+                    ...transport.route.vehicleId.currentLocation,
+                    vehicleId
+                });
+            }
+
+            return () => {
+                socket.off('vehicle_location_updated', handleLocationUpdate);
+            };
+        }
+    }, [socket, transport?.route?.vehicleId?._id]);
 
     if (loading && !transport) {
         return (
@@ -56,14 +87,16 @@ const ChildTransport = () => {
                     <p className="text-slate-500 font-medium text-sm tracking-wide italic">Route synchronization for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s daily transit.</p>
                 </div>
 
-                <div className="flex items-center gap-6 bg-emerald-500/5 border border-emerald-500/10 p-4 px-8 rounded-md shadow-inner">
+                <div className={`flex items-center gap-6 ${isConnected ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10'} border p-4 px-8 rounded-md shadow-inner transition-colors`}>
                     <div className="relative">
-                        <Navigation className="text-emerald-400 w-8 h-8 animate-pulse" />
-                        <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-black" />
+                        <Navigation className={`${isConnected ? 'text-emerald-400' : 'text-red-400'} w-8 h-8 animate-pulse`} />
+                        {isConnected && <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-black" />}
                     </div>
                     <div>
-                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Current Status</p>
-                        <p className="text-xl font-black text-white uppercase tracking-tighter italic">Live Tracking Active</p>
+                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Uplink Status</p>
+                        <p className={`text-xl font-black ${isConnected ? 'text-white' : 'text-red-500'} uppercase tracking-tighter italic`}>
+                            {isConnected ? 'Live Matrix Active' : 'Uplink Offline'}
+                        </p>
                     </div>
                 </div>
             </header>
@@ -124,72 +157,113 @@ const ChildTransport = () => {
                     </div>
                 </div>
 
-                {/* Right: Route Visualization / Stops */}
-                <div className="lg:col-span-2 bg-[#0a0a0c] border border-brand-border/40 rounded-md overflow-hidden flex flex-col shadow-2xl">
-                    <div className="p-8 border-b border-slate-800/60 flex items-center justify-between bg-black/40">
-                        <div>
-                            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-1">Grid Sequence</h4>
-                            <p className="text-lg font-black uppercase tracking-tight italic">{route.name} Channel</p>
+                {/* Right: Map & Progress */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Live Map implementation */}
+                    <div className="bg-[#0a0a0c] border border-brand-border/40 rounded-md aspect-video overflow-hidden relative shadow-2xl group">
+                        <div className="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/80 to-transparent z-[1000] flex items-center justify-between">
+                             <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-md bg-orange-600/10 border border-orange-600/30 flex items-center justify-center text-orange-500 animate-pulse">
+                                    <Wifi size={20} />
+                                </div>
+                                <h4 className="text-[10px] font-black text-white uppercase tracking-[0.4em] italic shadow-orange-500">Satellite Telemetry Uplink active</h4>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-4">
-                           <span className="flex items-center gap-2 text-[9px] font-black text-emerald-400 uppercase tracking-widest italic">
-                               <Clock size={12} /> Sync: +0.0s
-                           </span>
-                        </div>
+                        <LiveMap 
+                            vehicleLocation={liveLocation} 
+                            stops={route.stops?.map(s => ({
+                                ...s,
+                                isTarget: s.name === assignment.pickupStop || s.name === assignment.dropoffStop
+                            }))} 
+                        />
                     </div>
 
-                    <div className="flex-1 p-10 relative">
-                        {/* Timeline Connector */}
-                        <div className="absolute left-[59px] top-10 bottom-10 w-[2px] bg-gradient-to-b from-emerald-500 via-luxury-rose to-blue-500 opacity-20" />
-                        
-                        <div className="space-y-12 relative">
-                            {route.stops?.map((stop, idx) => {
-                                const isPickup = stop.name === assignment.pickupStop;
-                                const isDropoff = stop.name === assignment.dropoffStop;
-                                const isSpecial = isPickup || isDropoff;
+                    <div className="bg-[#0a0a0c] border border-brand-border/40 rounded-md overflow-hidden flex flex-col shadow-2xl">
+                        <div className="p-8 border-b border-slate-800/60 flex items-center justify-between bg-black/40">
+                            <div>
+                                <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] mb-1">Grid Sequence</h4>
+                                <p className="text-lg font-black uppercase tracking-tight italic">{route.name} Channel</p>
+                            </div>
+                            <div className="flex items-center gap-4">
+                               <span className={`flex items-center gap-2 text-[9px] font-black ${liveLocation ? 'text-emerald-400' : 'text-slate-600'} uppercase tracking-widest italic`}>
+                                   <Clock size={12} /> Sync: {liveLocation ? '+0.0s' : 'Searching...'}
+                               </span>
+                            </div>
+                        </div>
 
-                                return (
-                                    <div key={idx} className={`flex items-start gap-8 group transition-all ${isSpecial ? 'scale-105' : 'opacity-40 hover:opacity-100'}`}>
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 z-10 transition-all ${isSpecial ? 'bg-black border-luxury-rose shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'bg-slate-900 border-slate-800'}`}>
-                                                <MapPin size={16} className={isSpecial ? 'text-luxury-rose' : 'text-slate-700'} />
-                                            </div>
-                                            <span className="text-[9px] font-black text-slate-800 uppercase italic">STP-{idx + 1}</span>
-                                        </div>
-                                        
-                                        <div className="flex-1 pt-1">
-                                            <div className="flex items-center justify-between mb-2">
-                                                <h5 className={`text-sm font-black uppercase tracking-widest italic transition-colors ${isSpecial ? 'text-white' : 'text-slate-500'}`}>
-                                                    {stop.name}
-                                                </h5>
-                                                <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">{stop.estimatedTime || '---'}</span>
+                        <div className="flex-1 p-10 relative">
+                            {/* Timeline Connector */}
+                            <div className="absolute left-[59px] top-10 bottom-10 w-[2px] bg-gradient-to-b from-emerald-500 via-luxury-rose to-blue-500 opacity-20" />
+                            
+                            <div className="space-y-12 relative">
+                                {route.stops?.map((stop, idx) => {
+                                    const isPickup = stop.name === assignment.pickupStop;
+                                    const isDropoff = stop.name === assignment.dropoffStop;
+                                    const isSpecial = isPickup || isDropoff;
+                                    
+                                    // Real-time status calculation
+                                    let status = 'pending'; // pending, reached, current
+                                    if (liveLocation && stop.lat && stop.lng) {
+                                        const dist = Math.sqrt(
+                                            Math.pow(liveLocation.lat - stop.lat, 2) + 
+                                            Math.pow(liveLocation.lng - stop.lng, 2)
+                                        );
+                                        // Simple distance check (approx degrees to meters: 0.001 is ~111m)
+                                        if (dist < 0.0005) {
+                                            status = 'reached';
+                                        }
+                                    }
+
+                                    return (
+                                        <div key={idx} className={`flex items-start gap-8 group transition-all ${isSpecial ? 'scale-105' : 'opacity-80 hover:opacity-100'} ${status === 'reached' ? 'opacity-50' : ''}`}>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 z-10 transition-all ${status === 'reached' ? 'bg-emerald-600/20 border-emerald-500' : isSpecial ? 'bg-black border-luxury-rose shadow-[0_0_15px_rgba(244,63,94,0.4)]' : 'bg-slate-900 border-slate-800'}`}>
+                                                    {status === 'reached' ? (
+                                                        <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                                                    ) : (
+                                                        <MapPin size={16} className={isSpecial ? 'text-luxury-rose' : 'text-slate-700'} />
+                                                    )}
+                                                </div>
+                                                <span className="text-[9px] font-black text-slate-800 uppercase italic">STP-{idx + 1}</span>
                                             </div>
                                             
-                                            {isPickup && (
-                                                <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
-                                                    <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-                                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">Designated Extraction Point</span>
+                                            <div className="flex-1 pt-1">
+                                                <div className="flex items-center justify-between mb-2">
+                                                    <h5 className={`text-sm font-black uppercase tracking-widest italic transition-colors ${status === 'reached' ? 'text-emerald-500' : isSpecial ? 'text-white' : 'text-slate-500'}`}>
+                                                        {stop.name}
+                                                    </h5>
+                                                    <div className="flex items-center gap-3">
+                                                         {status === 'reached' && <span className="text-[8px] font-black text-emerald-500 uppercase italic tracking-widest">Crossed</span>}
+                                                         <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">{stop.estimatedTime || '---'}</span>
+                                                    </div>
                                                 </div>
-                                            )}
+                                                
+                                                {isPickup && (
+                                                    <div className={`inline-flex items-center gap-3 px-4 py-1.5 ${status === 'reached' ? 'bg-emerald-500/5' : 'bg-emerald-500/10'} border border-emerald-500/20 rounded-full transition-all`}>
+                                                        <div className={`w-1.5 h-1.5 bg-emerald-500 rounded-full ${status === 'reached' ? '' : 'animate-ping'}`} />
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest ${status === 'reached' ? 'text-emerald-800/60' : 'text-emerald-400'}`}>Designated Extraction Point</span>
+                                                    </div>
+                                                )}
 
-                                            {isDropoff && (
-                                                <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full">
-                                                    <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
-                                                    <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Target Ingress Point</span>
-                                                </div>
-                                            )}
+                                                {isDropoff && (
+                                                    <div className="inline-flex items-center gap-3 px-4 py-1.5 bg-blue-500/10 border border-blue-500/20 rounded-full ml-2">
+                                                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full" />
+                                                        <span className="text-[9px] font-black text-blue-400 uppercase tracking-widest">Target Ingress Point</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                    </div>
-                                );
-                            })}
+                                    );
+                                })}
+                            </div>
                         </div>
-                    </div>
 
-                    <div className="p-8 border-t border-slate-800/60 bg-black/40 flex items-center gap-6">
-                        <Info size={18} className="text-slate-600 shrink-0" />
-                        <p className="text-[10px] font-bold text-slate-600 uppercase border-l border-slate-800/60 pl-6 leading-relaxed">
-                            Sequence reflects real-time operational flow. Timings are variable based on grid congestion levels.
-                        </p>
+                        <div className="p-8 border-t border-slate-800/60 bg-black/40 flex items-center gap-6">
+                            <Info size={18} className="text-slate-600 shrink-0" />
+                            <p className="text-[10px] font-bold text-slate-600 uppercase border-l border-slate-800/60 pl-6 leading-relaxed">
+                                Sequence reflects real-time operational flow. Timings are variable based on grid congestion levels.
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>

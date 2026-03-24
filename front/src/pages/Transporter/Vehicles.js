@@ -21,7 +21,9 @@ const Vehicles = () => {
         status: 'active',
         fuelType: 'Diesel',
         insuranceExpiry: '',
-        lastServiceDate: ''
+        lastServiceDate: '',
+        gpsDeviceId: '',
+        gpsApiKey: ''
     });
 
     const [maintenanceFormData, setMaintenanceFormData] = React.useState({
@@ -59,7 +61,9 @@ const Vehicles = () => {
             status: 'active',
             fuelType: 'Diesel',
             insuranceExpiry: '',
-            lastServiceDate: ''
+            lastServiceDate: '',
+            gpsDeviceId: '',
+            gpsApiKey: ''
         });
         setSelectedVehicle(null);
     }
@@ -88,7 +92,9 @@ const Vehicles = () => {
             status: vehicle.status || 'active',
             fuelType: vehicle.fuelType || 'Diesel',
             insuranceExpiry: vehicle.insuranceExpiry ? new Date(vehicle.insuranceExpiry).toISOString().split('T')[0] : '',
-            lastServiceDate: vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toISOString().split('T')[0] : ''
+            lastServiceDate: vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toISOString().split('T')[0] : '',
+            gpsDeviceId: vehicle.gpsDeviceId || '',
+            gpsApiKey: vehicle.gpsApiKey || ''
         });
         setIsEditOpen(true);
     }
@@ -292,15 +298,29 @@ const Vehicles = () => {
                                         <input type="date" value={formData.insuranceExpiry} onChange={(e) => setFormData({...formData, insuranceExpiry: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Node Custodian (Driver)</label>
-                                        <select value={formData.driverId} onChange={(e) => setFormData({...formData, driverId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
-                                            <option value="">SELECT CUSTODIAN</option>
-                                            {drivers.map(driver => (
-                                                <option key={driver._id} value={driver._id}>{driver.name.toUpperCase()}</option>
-                                            ))}
-                                        </select>
-                                    </div>
-                                </div>
+                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Node Custodian (Driver)</label>
+                                         <select value={formData.driverId} onChange={(e) => setFormData({...formData, driverId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
+                                             <option value="">SELECT CUSTODIAN</option>
+                                             {drivers.map(driver => (
+                                                 <option key={driver._id} value={driver._id}>{driver.name.toUpperCase()}</option>
+                                             ))}
+                                         </select>
+                                     </div>
+                                 </div>
+
+                                 <div className="mt-8 pt-6 border-t border-slate-800/60">
+                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic mb-6">Hardware Integration (GPS Protocol)</h4>
+                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                                         <div className="space-y-2">
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">GPS Device Identifier (ID)</label>
+                                             <input type="text" placeholder="e.g. BUS-UNIT-01" value={formData.gpsDeviceId} onChange={(e) => setFormData({...formData, gpsDeviceId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none" />
+                                         </div>
+                                         <div className="space-y-2">
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Hardware API Key (Optional)</label>
+                                             <input type="password" placeholder="••••••••" value={formData.gpsApiKey} onChange={(e) => setFormData({...formData, gpsApiKey: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
+                                         </div>
+                                     </div>
+                                 </div>
 
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Abort Logic</button>

@@ -1,6 +1,7 @@
 let ioInstance;
 const userSocketMap = new Map(); // userId -> socketId
 const socketUserMap = new Map(); // socketId -> userId
+const vehicleLocationMap = new Map(); // vehicleId -> { lat, lng, updatedAt }
 const Message = require('../models/message.model');
 
 function initializeSocket(io) {
@@ -19,6 +20,42 @@ function initializeSocket(io) {
         // Join a private room for this user
         socket.join(idStr);
       }
+    });
+
+    // Vehicle Location Tracking
+    socket.on("subscribe_to_vehicle", (vehicleId) => {
+        if (vehicleId) {
+            socket.join(`vehicle_${vehicleId}`);
+            console.log(`Socket ${socket.id} subscribed to vehicle ${vehicleId}`);
+            
+            // Send last known location if exists
+            if (vehicleLocationMap.has(vehicleId.toString())) {
+                socket.emit("vehicle_location_updated", vehicleLocationMap.get(vehicleId.toString()));
+            }
+        }
+    });
+
+    socket.on("update_vehicle_location", (data) => {
+        const { vehicleId, lat, lng } = data;
+        if (vehicleId && lat && lng) {
+            const updatePayload = { vehicleId, lat, lng, updatedAt: new Date() };
+            vehicleLocationMap.set(vehicleId.toString(), updatePayload);
+            
+            // Broadcast to all subscribers for this vehicle
+            io.to(`vehicle_${vehicleId}`).emit("vehicle_location_updated", updatePayload);
+            
+            // Also broadcast to a general fleet management room if anyone is watching everything
+            io.to("fleet_management").emit("fleet_location_updated", updatePayload);
+        }
+    });
+
+    socket.on("subscribe_to_fleet", () => {
+        socket.join("fleet_management");
+        console.log(`Socket ${socket.id} subscribed to entire fleet`);
+        
+        // Send all known locations
+        const allLocations = Array.from(vehicleLocationMap.values());
+        socket.emit("fleet_init", allLocations);
     });
 
     socket.on("send_direct_message", async (data) => {
@@ -77,8 +114,6 @@ const sendToUser = (userId, event, data) => {
 
 const broadcastToRole = (role, event, data) => {
   if (ioInstance) {
-    // If role is 'All', broadcast to everyone in the school (maybe use rooms per schoolId?)
-    // For now, simpler broadcast
     ioInstance.emit(event, data);
   }
 };
@@ -94,5 +129,8 @@ module.exports = {
     getIo, 
     sendToUser, 
     broadcastToRole,
-    broadcastNotice
+    broadcastNotice,
+    // Export mapping for persistence or other use cases
+    vehicleLocationMap
 };
+

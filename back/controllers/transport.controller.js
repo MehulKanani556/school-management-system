@@ -228,6 +228,16 @@ exports.updateVehicleLocation = async (req, res) => {
             },
             { new: true }
         );
+
+        // Notify socket subscribers
+        const { vehicleLocationMap, getIo } = require('../socketManager/socketManager');
+        const io = getIo();
+        if (io) {
+            const updatePayload = { vehicleId: id, lat, lng, updatedAt: new Date() };
+            vehicleLocationMap.set(id.toString(), updatePayload);
+            io.to(`vehicle_${id}`).emit("vehicle_location_updated", updatePayload);
+            io.to("fleet_management").emit("fleet_location_updated", updatePayload);
+        }
         
         res.json({ message: 'Coordinate uplink successful', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }

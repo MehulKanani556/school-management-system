@@ -39,10 +39,13 @@ const vehicleSchema = new mongoose.Schema(
       default: 'active' 
     },
     driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
+    gpsDeviceId: { type: String, trim: true, sparse: true },
+    gpsApiKey: { type: String, trim: true, sparse: true },
   },
   { timestamps: true }
 );
 
 vehicleSchema.index({ schoolId: 1, registrationNumber: 1 }, { unique: true });
+vehicleSchema.index({ gpsDeviceId: 1 }, { sparse: true });
 
 module.exports = mongoose.model('Vehicle', vehicleSchema);
