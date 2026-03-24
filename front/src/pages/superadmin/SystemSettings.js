@@ -57,7 +57,8 @@ const SystemSettings = () => {
         }
     ];
 
-    const getSetting = (key) => settings.find(s => s.key === key);
+
+    const getSetting = (key) => (Array.isArray(settings) ? settings.find(s => s.key === key) : null);
 
     return (
         <motion.div 
