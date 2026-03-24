@@ -6,7 +6,10 @@ const School = require('../models/school.model');
 const Standard = require('../models/standard.model');
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
+const User = require('../models/user.model');
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+
 const logAudit = require('../utils/auditLogger');
 const PDFDocument = require('pdfkit');
 const nc = require('./notification.controller');
@@ -697,8 +700,12 @@ exports.updateProfile = async (req, res) => {
         if (!user) return res.status(404).json({ message: 'Accountant node not found' });
 
         res.json({ message: 'Profile updated successfully', user });
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    } catch (err) { 
+        console.error('Profile update error:', err);
+        res.status(500).json({ message: err.message }); 
+    }
 };
+
 
 exports.changePassword = async (req, res) => {
     try {
