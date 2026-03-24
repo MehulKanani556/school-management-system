@@ -211,6 +211,37 @@ router.get('/superadmin/profile', ...superAdmin, sac.getProfile);
 router.put('/superadmin/profile', ...superAdmin, upload.single('photo'), sac.updateProfile);
 router.post('/superadmin/change-password', ...superAdmin, sac.changePassword);
 
+// Revenue Routes
+router.get('/superadmin/revenue', ...superAdmin, sac.getRevenueAnalytics);
+
+// Security Overview
+router.get('/superadmin/security-overview', ...superAdmin, sac.getSecurityOverview);
+
+// User Management (Global)
+router.get('/superadmin/users', ...superAdmin, sac.getPlatformUsers);
+router.patch('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
+router.put('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
+router.delete('/superadmin/users/:id', ...superAdmin, sac.deletePlatformUser);
+
+// Superadmin Messaging
+router.get('/superadmin/messages/:recipientId', ...superAdmin, sac.getPlatformMessages);
+
+// Support Tickets
+router.get('/superadmin/tickets', ...superAdmin, sac.getSupportTickets);
+router.put('/superadmin/tickets/:id/status', ...superAdmin, sac.updateTicketStatus);
+router.post('/superadmin/tickets/:id/reply', ...superAdmin, sac.replyToTicket);
+
+// Backups
+router.get('/superadmin/backups', ...superAdmin, sac.getBackupHistory);
+router.post('/superadmin/backups/trigger', ...superAdmin, sac.triggerSystemBackup);
+
+// Holiday Management (Elevated to Super Admin as well)
+router.get('/superadmin/holidays', ...superAdmin, sac.getGlobalHolidays);
+router.post('/superadmin/holidays', ...superAdmin, sac.createGlobalHoliday);
+router.put('/superadmin/holidays/:id', ...superAdmin, sac.updateGlobalHoliday);
+router.delete('/superadmin/holidays/:id', ...superAdmin, sac.deleteGlobalHoliday);
+
+
 // ─── Teacher Routes ───────────────────────────────────────────────────────────
 const teacher = [auth, requireRole('Teacher')];
  
@@ -401,4 +432,10 @@ router.post('/transport/trip-logs', ...transportManager, trc.recordTrip);
 router.put('/transport/trip-logs/:id/status', ...transportManager, trc.updateTripStatus);
 router.put('/transport/trip-logs/:id/toggle-boarding', ...transportManager, trc.toggleBoarding);
 
+// ─── Super Admin Extended Routes ──────────────────────────────────────────────
+router.put('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
+router.delete('/superadmin/users/:id', ...superAdmin, sac.deletePlatformUser);
+router.get('/superadmin/messages/:recipientId', ...superAdmin, sac.getPlatformMessages);
+
 module.exports = router;
+

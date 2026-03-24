@@ -1,4 +1,5 @@
 const nodemailer = require('nodemailer');
+const SystemSetting = require('../models/systemSetting.model');
 
 const transporter = nodemailer.createTransport({
   service: 'Gmail',
@@ -9,22 +10,26 @@ const transporter = nodemailer.createTransport({
 });
 
 /**
+ * Helper to check if email notifications are enabled
+ */
+const isEmailEnabled = async () => {
+    try {
+        const setting = await SystemSetting.findOne({ key: 'EMAIL_NOTIFICATIONS' });
+        return setting ? setting.value === true || setting.value === 'true' : true;
+    } catch (e) {
+        return true; // Fail open
+    }
+};
+
+/**
  * Send a welcome email to a new user.
- * @param {Object} options - Email options.
- * @param {string} options.to - Recipient email.
- * @param {string} options.subject - Email subject.
- * @param {string} options.title - Header title.
- * @param {string} options.subtitle - Header subtitle.
- * @param {string} options.firstName - User's first name.
- * @param {string} options.lastName - User's last name.
- * @param {string} options.idLabel - Label for the ID field (e.g., "Employee ID", "Admin ID").
- * @param {string} options.idValue - Value for the ID field.
- * @param {string} options.email - User's email (for the body).
- * @param {string} options.password - Plain text password.
- * @param {Date|string} options.joiningDate - Date of joining.
- * @param {string} options.footerNote - Note at the bottom.
  */
 exports.sendWelcomeMail = async (options) => {
+  if (!(await isEmailEnabled())) {
+      console.log('Email notifications are disabled in system settings. Skipping welcome mail.');
+      return;
+  }
+
   const { 
     to, subject, title, subtitle, firstName, lastName, 
     idLabel, idValue, email, password, joiningDate, footerNote 
@@ -66,6 +71,11 @@ exports.sendWelcomeMail = async (options) => {
 };
 
 exports.sendFeeReminderMail = async (options) => {
+  if (!(await isEmailEnabled())) {
+      console.log('Email notifications are disabled in system settings. Skipping fee reminder.');
+      return;
+  }
+
   const { to, studentName, amount, dueDate, category, schoolName } = options;
 
   const formattedDate = new Date(dueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });

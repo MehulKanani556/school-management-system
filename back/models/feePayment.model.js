@@ -38,4 +38,21 @@ feePaymentSchema.pre('findOneAndUpdate', function(next) {
 
 feePaymentSchema.index({ schoolId: 1, studentId: 1, category: 1, academicYear: 1 }, { unique: true });
 
+// Institutional Revenue Synchronization Protocol
+feePaymentSchema.post('save', async function(doc) {
+    if (doc.status === 'paid' && doc.paidAmount > 0) {
+        try {
+            const School = mongoose.model('School');
+            const totalRevenueResult = await mongoose.model('FeePayment').aggregate([
+                { $match: { schoolId: doc.schoolId, status: 'paid' } },
+                { $group: { _id: null, total: { $sum: "$paidAmount" } } }
+            ]);
+            const totalRevenue = totalRevenueResult[0] ? totalRevenueResult[0].total : 0;
+            await School.findByIdAndUpdate(doc.schoolId, { revenue: totalRevenue });
+        } catch (error) {
+            console.error('SECURE REVENUE SYNC FAILED:', error);
+        }
+    }
+});
+
 module.exports = mongoose.model('FeePayment', feePaymentSchema);

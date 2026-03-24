@@ -1,21 +1,40 @@
 const SystemSetting = require('../models/systemSetting.model');
+const jwt = require('jsonwebtoken');
 
 let maintenanceMode = false;
 let lastCheck = 0;
-const CACHE_TTL = 10000; // 10 seconds for more responsiveness during testing
+const CACHE_TTL = 10000; // 10 seconds
 
 const checkMaintenance = async (req, res, next) => {
     try {
-        // 1. ALWAYS allow Super Admin
-        if (req.user && req.user.role === 'Super_Admin') {
-            return next();
-        }
-
-        // 2. ALWAYS allow login/auth related routes so Super Admin can fix the state
-        const skipRoutes = ['/login', '/student-login', '/generatenewtoken', '/superadmin/settings', '/superadmin/profile'];
+        // 1. Skip check for these routes
+        const skipRoutes = ['/login', '/student-login', '/forgot-password', '/verify', '/change-password', '/superadmin/settings', '/superadmin/profile'];
         if (skipRoutes.some(path => req.path.includes(path))) {
             return next();
         }
+
+        // 2. Identify Super Admin by token if req.user is not yet populated
+        let isSuperAdmin = false;
+        if (req.user && req.user.role === 'Super_Admin') {
+            isSuperAdmin = true;
+        } else {
+            const authHeader = req.header("Authorization");
+            if (authHeader) {
+                const token = authHeader.split(' ')[1];
+                if (token) {
+                    try {
+                        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                        if (decoded && decoded.role === 'Super_Admin') {
+                            isSuperAdmin = true;
+                        }
+                    } catch (e) {
+                        // Ignore token errors here, they'll be handled by the main auth middleware later
+                    }
+                }
+            }
+        }
+
+        if (isSuperAdmin) return next();
 
         // 3. Cache Logic for DB performance
         const now = Date.now();
@@ -29,7 +48,7 @@ const checkMaintenance = async (req, res, next) => {
         if (maintenanceMode) {
             return res.status(503).json({ 
                 success: false, 
-                message: "CORE INFRASTRUCTURE MAINTENANCE: The platform is currently undergoing scheduled updates. Access is temporarily restricted to Master Level administrators.",
+                message: "CORE INFRASTRUCTURE MAINTENANCE: Platform access is temporarily restricted to Master Level administrators.",
                 code: 'MAINTENANCE_ACTIVE'
             });
         }

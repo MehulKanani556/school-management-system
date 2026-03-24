@@ -55,6 +55,13 @@ import Security from './pages/superadmin/Security';
 import Analytics from './pages/superadmin/Analytics';
 import SystemSettings from './pages/superadmin/SystemSettings';
 import SuperAdminProfile from './pages/superadmin/SuperAdminProfile';
+import UserManagement from './pages/superadmin/UserManagement';
+import Support from './pages/superadmin/Support';
+import Backups from './pages/superadmin/Backups';
+import SuperAdminHolidays from './pages/superadmin/Holidays';
+import Notifications from './pages/superadmin/Notifications';
+import Messages from './pages/superadmin/Messages';
+
 
 // Teacher Pages
 import TeacherDashboard from './pages/Teacher/TeacherDashboard';
@@ -310,6 +317,13 @@ function AppRoutes() {
             <Route path="security" element={<Security />} />
             <Route path="settings" element={<SystemSettings />} />
             <Route path="profile" element={<SuperAdminProfile />} />
+            <Route path="users" element={<UserManagement />} />
+            <Route path="support" element={<Support />} />
+            <Route path="backups" element={<Backups />} />
+            <Route path="holidays" element={<SuperAdminHolidays />} />
+            <Route path="notifications" element={<Notifications />} />
+            <Route path="messages" element={<Messages />} />
+
           </Route>
 
           {/* Accountant Panel */}

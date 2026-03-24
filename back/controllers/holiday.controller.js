@@ -16,10 +16,12 @@ exports.createHoliday = async (req, res) => {
 
 exports.getHolidays = async (req, res) => {
   try {
-    const holidays = await Holiday.find({ schoolId: req.user.schoolId }).sort({ startDate: 1 });
+    const query = req.user.role === 'Super_Admin' ? {} : { schoolId: req.user.schoolId };
+    const holidays = await Holiday.find(query).sort({ startDate: 1 });
     res.json(holidays);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
+
 
 exports.updateHoliday = async (req, res) => {
   try {

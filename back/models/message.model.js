@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const messageSchema = new mongoose.Schema({
-  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Specific student/parent/user
   type: { type: String, enum: ['Announcement', 'DirectMessage', 'Notice'], default: 'Announcement' },
