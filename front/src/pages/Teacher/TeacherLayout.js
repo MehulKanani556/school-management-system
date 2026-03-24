@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Users, BookOpen, ClipboardList,
     Upload, MessageSquare, LogOut, ChevronRight, ChevronDown,
     Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout,
-    Megaphone, Shield, Trophy, Menu, HardDrive, Database
+    Megaphone, Shield, Trophy, Menu, HardDrive, Database, Brain
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -42,6 +42,7 @@ const TeacherLayout = () => {
                 { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
                 { path: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
                 { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
+                { path: '/teacher/quizzes', icon: Brain, label: 'Quiz Matrix' },
                 { path: '/teacher/timetable', icon: Clock, label: 'Timetable Matrix' },
                 { path: '/teacher/question-bank', icon: Database, label: 'Evaluation Vault' },
             ]

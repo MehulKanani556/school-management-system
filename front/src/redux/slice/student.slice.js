@@ -99,6 +99,33 @@ export const changeStudentPassword = createAsyncThunk('student/changePassword', 
     }
 });
 
+export const fetchStudentQuizzes = createAsyncThunk('student/fetchQuizzes', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/quizzes');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const submitQuizAttempt = createAsyncThunk('student/submitQuiz', async (data, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/student/quiz/submit', data);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const fetchQuizHistory = createAsyncThunk('student/fetchQuizHistory', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/quiz-history');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const studentSlice = createSlice({
     name: 'student',
     initialState: {
@@ -110,6 +137,8 @@ const studentSlice = createSlice({
         fees: [],
         exams: [],
         timetable: null,
+        quizzes: [],
+        quizHistory: [],
         loading: false,
         error: null,
         message: null
@@ -157,6 +186,16 @@ const studentSlice = createSlice({
             })
             .addCase(changeStudentPassword.fulfilled, (state, action) => {
                 state.message = action.payload.message;
+            })
+            .addCase(fetchStudentQuizzes.fulfilled, (state, action) => {
+                state.quizzes = action.payload;
+            })
+            .addCase(submitQuizAttempt.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+                state.quizHistory.unshift(action.payload.attempt);
+            })
+            .addCase(fetchQuizHistory.fulfilled, (state, action) => {
+                state.quizHistory = action.payload;
             })
             .addMatcher(
                 (action) => action.type.endsWith('/rejected'),

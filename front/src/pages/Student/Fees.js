@@ -4,6 +4,7 @@ import { fetchStudentFees } from '../../redux/slice/student.slice';
 import axiosInstance from '../../utils/axiosInstance';
 import { motion } from 'framer-motion';
 import { CreditCard, Download, Clock, CheckCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
 const Fees = () => {
     const dispatch = useDispatch();
@@ -26,8 +27,28 @@ const Fees = () => {
     const totalDue = fees.reduce((acc, f) => acc + (f.status !== 'Paid' ? (f.amount || 0) : 0), 0);
     const paidAmount = fees.reduce((acc, f) => acc + (f.status === 'Paid' ? (f.amount || 0) : 0), 0);
 
+    const handleDownloadReceipt = async (fee) => {
+        try {
+            const response = await axiosInstance.get(`/student/fees/${fee._id}/receipt`, {
+                responseType: 'blob'
+            });
+            const url = window.URL.createObjectURL(new Blob([response.data]));
+            const link = document.createElement('a');
+            link.href = url;
+            const studentName = fee.studentId?.firstName ? `${fee.studentId.firstName}_${fee.studentId.lastName}` : 'Student';
+            link.setAttribute('download', `Receipt_${studentName}_${fee.academicYear}.pdf`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            console.error('Download Protocol Failed:', err);
+            toast.error('Could not download financial record');
+        }
+    };
+
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8 max-w-7xl mx-auto"
@@ -37,7 +58,7 @@ const Fees = () => {
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Financial Ledger</h1>
                     <p className="text-slate-500 font-medium text-lg italic">Sector-level fee registry & payment telemetry.</p>
                 </div>
-                
+
                 <div className="flex gap-4">
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-6 rounded-md shadow-2xl flex items-center gap-6 min-w-[240px]">
                         <div className="p-4 bg-luxury-rose/10 rounded-md text-luxury-rose border border-luxury-rose/20">
@@ -61,7 +82,7 @@ const Fees = () => {
                         <h3 className="text-sm font-black text-white uppercase tracking-widest mb-8 flex items-center gap-3">
                             <span className="w-8 h-px bg-luxury-emerald"></span> Collection Status
                         </h3>
-                        
+
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <div className="flex justify-between text-[11px] font-black uppercase tracking-widest text-slate-400">
@@ -69,14 +90,14 @@ const Fees = () => {
                                     <span className="text-luxury-emerald">₹{paidAmount.toLocaleString()}</span>
                                 </div>
                                 <div className="h-2 w-full bg-slate-800/60 rounded-md overflow-hidden">
-                                    <motion.div 
+                                    <motion.div
                                         initial={{ width: 0 }}
                                         animate={{ width: `${(paidAmount / (paidAmount + totalDue || 1)) * 100}%` }}
                                         className="h-full bg-luxury-emerald shadow-[0_0_10px_rgba(16,185,129,0.3)]"
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="py-6 border-t border-slate-800/50 mt-8">
                                 <button className="w-full py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)]">
                                     Initiate Payment Transfer <CreditCard size={14} />
@@ -135,27 +156,11 @@ const Fees = () => {
                                                 </td>
                                                 <td className="px-8 py-6 text-right">
                                                     {fee.status?.toLowerCase() === 'paid' ? (
-                                                        <button 
-                                                            onClick={async () => {
-                                                                try {
-                                                                    const response = await axiosInstance.get(`/student/fees/${fee._id}/receipt`, {
-                                                                        responseType: 'blob'
-                                                                    });
-                                                                    const url = window.URL.createObjectURL(new Blob([response.data]));
-                                                                    const link = document.createElement('a');
-                                                                    link.href = url;
-                                                                    link.setAttribute('download', `Receipt_${fee.month}.pdf`);
-                                                                    document.body.appendChild(link);
-                                                                    link.click();
-                                                                    link.remove();
-                                                                    window.URL.revokeObjectURL(url);
-                                                                } catch (err) {
-                                                                    console.error('Download Protocol Failed:', err);
-                                                                }
-                                                            }}
-                                                            className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-all"
+                                                        <button
+                                                            onClick={() => handleDownloadReceipt(fee)}
+                                                            className="flex items-center gap-2 px-4 py-2 bg-slate-800/80 text-slate-400 hover:text-white hover:bg-slate-800 transition-all rounded-md text-[9px] font-black uppercase tracking-widest border border-slate-700/40"
                                                         >
-                                                            <Download size={14} />
+                                                            <Download size={14} /> RECEIPT
                                                         </button>
                                                     ) : (
                                                         <button className="px-4 py-2 bg-luxury-rose/20 text-luxury-rose border border-luxury-rose/30 rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-luxury-rose hover:text-white transition-all">

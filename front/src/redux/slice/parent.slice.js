@@ -10,6 +10,15 @@ export const fetchMyChildren = createAsyncThunk('parent/fetchChildren', async (_
     }
 });
 
+export const fetchAnnouncements = createAsyncThunk('parent/fetchAnnouncements', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/announcements');
+        return response.data;
+    } catch (err) {
+        return rejectWithValue(err.response.data);
+    }
+});
+
 export const fetchChildOverview = createAsyncThunk('parent/fetchChildOverview', async (studentId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/parent/child/${studentId}/overview`);
@@ -145,6 +154,7 @@ const parentSlice = createSlice({
         behaviorLogs: [],
         meetings: [],
         transport: null,
+        announcements: [],
         
         // Granular Loading Nodes
         childrenLoading: false,
@@ -158,6 +168,7 @@ const parentSlice = createSlice({
         behaviorLoading: false,
         meetingsLoading: false,
         transportLoading: false,
+        announcementsLoading: false,
         loading: false, // Legacy fallback
         error: null,
     },
@@ -173,10 +184,24 @@ const parentSlice = createSlice({
             state.results = [];
             state.fees = [];
             state.timetable = null;
+            state.announcements = [];
+        },
+        addAnnouncement: (state, action) => {
+            state.announcements.unshift(action.payload);
         }
     },
     extraReducers: (builder) => {
         builder
+            // Announcements
+            .addCase(fetchAnnouncements.pending, (state) => { state.announcementsLoading = true; })
+            .addCase(fetchAnnouncements.fulfilled, (state, action) => {
+                state.announcementsLoading = false;
+                state.announcements = action.payload;
+            })
+            .addCase(fetchAnnouncements.rejected, (state, action) => {
+                state.announcementsLoading = false;
+                state.error = action.payload || 'Signal sync failed';
+            })
             // Children Registry
             .addCase(fetchMyChildren.pending, (state) => { state.childrenLoading = true; })
             .addCase(fetchMyChildren.fulfilled, (state, action) => {
@@ -289,5 +314,5 @@ const parentSlice = createSlice({
     }
 });
 
-export const { setSelectedChild, clearParentState } = parentSlice.actions;
+export const { setSelectedChild, clearParentState, addAnnouncement } = parentSlice.actions;
 export default parentSlice.reducer;

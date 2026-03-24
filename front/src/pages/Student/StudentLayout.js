@@ -25,6 +25,7 @@ const navItems = [
       { to: '/student/timetable', icon: Calendar, label: 'Timetable' },
       { to: '/student/exams', icon: BookOpen, label: 'Evaluation Matrix' },
       { to: '/student/assignments', icon: Download, label: 'Assignments' },
+      { to: '/student/e-learning', icon: Brain, label: 'E-Learning Matrix' },
     ]
   },
   {

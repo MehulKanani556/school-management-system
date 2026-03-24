@@ -84,6 +84,7 @@ import AnnouncementsStudent from './pages/Student/Announcements';
 import MessagesStudent from './pages/Student/Messages';
 import ExamsStudent from './pages/Student/Exams';
 import LibraryStudent from './pages/Student/Library';
+import ELearning from './pages/Student/ELearning';
 
 // Parent Pages
 import ParentDashboard from './pages/Parent/ParentDashboard';
@@ -133,6 +134,7 @@ const TeacherNotifications = React.lazy(() => import('./pages/Teacher/TeacherNot
 const BulkAttendance = React.lazy(() => import('./pages/Teacher/BulkAttendance'));
 const ResourceLocker = React.lazy(() => import('./pages/Teacher/ResourceLocker'));
 const QuestionBank = React.lazy(() => import('./pages/Teacher/QuestionBank'));
+const TeacherQuizManagement = React.lazy(() => import('./pages/Teacher/QuizManagement'));
 // const AcademicYears = React.lazy(() => import('./pages/schooladmin/AcademicYears'));
 // const Admissions = React.lazy(() => import('./pages/schooladmin/Admissions'));
 
@@ -238,6 +240,7 @@ function AppRoutes() {
             <Route path="messages" element={<MessagesStudent />} />
             <Route path="exams" element={<ExamsStudent />} />
             <Route path="library" element={<LibraryStudent />} />
+            <Route path="e-learning" element={<ELearning />} />
           </Route>
 
           {/* Teacher Panel */}
@@ -272,6 +275,7 @@ function AppRoutes() {
             <Route path="bulk-attendance" element={<BulkAttendance />} />
             <Route path="resources" element={<ResourceLocker />} />
             <Route path="question-bank" element={<QuestionBank />} />
+            <Route path="quizzes" element={<TeacherQuizManagement />} />
           </Route>
 
           {/* Parent Panel */}

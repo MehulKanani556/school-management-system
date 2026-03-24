@@ -248,6 +248,7 @@ const teacher = [auth, requireRole('Teacher')];
 // teacher section
 router.get('/teacher/dashboard', ...teacher, tc.getTeacherDashboard);
 router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
+router.get('/teacher/context', ...teacher, tc.getTeacherContext);
 router.get('/teacher/assigned-students/:classId', ...teacher, tc.getAssignedClassStudents);
 router.get('/teacher/student-detail/:id', ...teacher, tc.getStudentDetail);
 router.get('/teacher/exams/:classId', ...teacher, tc.getExamsByClass);
@@ -308,6 +309,14 @@ router.get('/teacher/reviews', ...teacher, tc.getMyReviews);
 router.get('/teacher/unified-calendar', ...teacher, tc.getUnifiedCalendar);
 router.get('/teacher/timetable/:classId', ...teacher, tbc.getTimetableByClass);
 
+// Quiz Management
+router.get('/teacher/quizzes', ...teacher, tc.getMyQuizzes);
+router.post('/teacher/quizzes', ...teacher, tc.createQuiz);
+router.put('/teacher/quizzes/:id', ...teacher, tc.updateQuiz);
+router.delete('/teacher/quizzes/:id', ...teacher, tc.deleteQuiz);
+router.patch('/teacher/quizzes/:id/toggle-publish', ...teacher, tc.toggleQuizPublish);
+router.get('/teacher/quizzes/:id/attempts', ...teacher, tc.getQuizAttempts);
+
 // ─── Student Routes ──────────────────────────────────────────────────────────
 const student = [auth, requireRole('Student')];
 
@@ -327,6 +336,9 @@ router.get('/student/timetable', ...student, tbc.getStudentTimetable);
 router.get('/student/library/books', ...student, stc.getLibraryBooks);
 router.post('/student/library/reserve', ...student, stc.reserveBook);
 router.get('/student/library/reservations', ...student, stc.getMyReservations);
+router.get('/student/quizzes', ...student, stc.getQuizzes);
+router.post('/student/quiz/submit', ...student, stc.submitQuiz);
+router.get('/student/quiz-history', ...student, stc.getQuizHistory);
 
 // ─── Parent Routes ─────────────────────────────────────────────────────────
 const parent = [auth, requireRole('Parent')];

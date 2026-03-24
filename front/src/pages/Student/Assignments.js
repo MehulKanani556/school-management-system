@@ -8,6 +8,7 @@ import { toast } from 'react-hot-toast';
 const Assignments = () => {
     const dispatch = useDispatch();
     const { assignments, submissions, loading } = useSelector((state) => state.student);
+    const [activeTab, setActiveTab] = useState('directives');
     const [selectedAssignment, setSelectedAssignment] = useState(null);
     const [submissionData, setSubmissionData] = useState({ file: null, comment: '' });
 
@@ -53,103 +54,171 @@ const Assignments = () => {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
         >
-            <header className="flex justify-between items-end">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Digital Repository</h1>
                     <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Instructional assets & classroom tasks.</p>
                 </div>
+                
+                <div className="flex bg-slate-900/40 p-1.5 rounded-md border border-slate-800/60">
+                    <button 
+                        onClick={() => setActiveTab('directives')}
+                        className={`px-6 py-2.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'directives' ? 'bg-luxury-emerald text-black shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Active Directives
+                    </button>
+                    <button 
+                        onClick={() => setActiveTab('history')}
+                        className={`px-6 py-2.5 rounded text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'history' ? 'bg-luxury-emerald text-black shadow-lg shadow-luxury-emerald/20' : 'text-slate-500 hover:text-white'}`}
+                    >
+                        Mission History
+                    </button>
+                </div>
             </header>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {assignments.length > 0 ? (
-                    assignments.map((assignment, idx) => {
-                        const sub = getSubmissionStatus(assignment._id);
-                        return (
+                {activeTab === 'directives' ? (
+                    assignments.length > 0 ? (
+                        assignments.map((assignment, idx) => {
+                            const sub = getSubmissionStatus(assignment._id);
+                            return (
+                                <motion.div 
+                                    key={assignment._id || idx}
+                                    initial={{ opacity: 0, x: -20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    transition={{ delay: idx * 0.1 }}
+                                    className={`bg-[#0f0f12] border p-10 rounded-md shadow-2xl group hover:border-luxury-emerald/30 transition-all relative overflow-hidden ${sub ? 'border-luxury-emerald/20' : 'border-slate-800/60'}`}
+                                >
+                                    <div className="absolute top-0 right-0 p-8 text-slate-800 group-hover:text-luxury-emerald/10 transition-colors">
+                                        <Bookmark size={40} />
+                                    </div>
+
+                                    <div className="relative z-10 flex flex-col h-full">
+                                        <div className="flex items-center gap-3 mb-6">
+                                            {sub ? (
+                                                <span className="px-3 py-1 bg-luxury-emerald/10 rounded-md text-[9px] font-black uppercase tracking-widest text-luxury-emerald border border-luxury-emerald/20 flex items-center gap-2">
+                                                    <CheckCircle size={10} /> Deployed {sub.status}
+                                                </span>
+                                            ) : (
+                                                <span className="px-3 py-1 bg-slate-800 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50">Core Directive</span>
+                                            )}
+                                            <div className={`w-2 h-2 rounded-md ${new Date(assignment.dueDate) < new Date() && !sub ? 'bg-luxury-rose' : 'bg-luxury-emerald'}`}></div>
+                                        </div>
+
+                                        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-4 group-hover:text-luxury-emerald transition-colors">{assignment.title}</h3>
+                                        <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 italic line-clamp-3">{assignment.description || 'No detailed instructions provided for this directive.'}</p>
+                                        
+                                        <div className="mt-auto grid grid-cols-2 gap-6 pt-8 border-t border-slate-800/50">
+                                            <div className="space-y-1">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Instructor Node</p>
+                                                <div className="flex items-center gap-2 text-slate-300">
+                                                    <User size={14} className="text-luxury-emerald" />
+                                                    <span className="text-[11px] font-bold">Faculty Admin</span>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1 text-right">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Deadline Sync</p>
+                                                <div className="flex items-center justify-end gap-2 text-slate-300">
+                                                    <Clock size={14} className="text-luxury-rose" />
+                                                    <span className="text-[11px] font-bold">{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'TBD'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-10 flex gap-4">
+                                            {assignment.fileUrl && (
+                                                <a 
+                                                    href={assignment.fileUrl} 
+                                                    target="_blank" 
+                                                    rel="noopener noreferrer"
+                                                    className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/30"
+                                                >
+                                                    Source Asset <Download size={14} />
+                                                </a>
+                                            )}
+                                            
+                                            {!sub ? (
+                                                <button 
+                                                    onClick={() => setSelectedAssignment(assignment)}
+                                                    className="flex-[2] py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
+                                                >
+                                                    Deploy Submission <Send size={14} />
+                                                </button>
+                                            ) : (
+                                                <div className="flex-[2] py-4 bg-slate-900 border border-luxury-emerald/30 text-luxury-emerald rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
+                                                    Synched Already <CheckCircle size={14} />
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            );
+                        })
+                    ) : (
+                        <div className="lg:col-span-2 py-32 text-center bg-[#0f0f12]/40 rounded-md border border-slate-800/50 border-dashed">
+                            <FileText size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
+                            <h3 className="text-xl font-black text-slate-600 uppercase tracking-[0.3em] font-outfit mb-2">Node Empty</h3>
+                            <p className="text-slate-700 text-xs font-bold uppercase tracking-widest">No Instructional directives deployed for this sector.</p>
+                        </div>
+                    )
+                ) : (
+                    submissions.length > 0 ? (
+                        submissions.map((sub, idx) => (
                             <motion.div 
-                                key={assignment._id || idx}
-                                initial={{ opacity: 0, x: -20 }}
+                                key={sub._id || idx}
+                                initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: idx * 0.1 }}
-                                className={`bg-[#0f0f12] border p-10 rounded-md shadow-2xl group hover:border-luxury-emerald/30 transition-all relative overflow-hidden ${sub ? 'border-luxury-emerald/20' : 'border-slate-800/60'}`}
+                                className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl relative overflow-hidden group"
                             >
-                                <div className="absolute top-0 right-0 p-8 text-slate-800 group-hover:text-luxury-emerald/10 transition-colors">
-                                    <Bookmark size={40} />
+                                <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-all">
+                                    <Clock size={64} />
                                 </div>
-
-                                <div className="relative z-10 flex flex-col h-full">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        {sub ? (
-                                            <span className="px-3 py-1 bg-luxury-emerald/10 rounded-md text-[9px] font-black uppercase tracking-widest text-luxury-emerald border border-luxury-emerald/20 flex items-center gap-2">
-                                                <CheckCircle size={10} /> Deployed {sub.marksObtained ? `[Graded: ${sub.marksObtained}]` : ''}
-                                            </span>
-                                        ) : (
-                                            <span className="px-3 py-1 bg-slate-800 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50">Core Directive</span>
-                                        )}
-                                        <div className={`w-2 h-2 rounded-md ${new Date(assignment.dueDate) < new Date() && !sub ? 'bg-luxury-rose' : 'bg-luxury-emerald'}`}></div>
+                                
+                                <div className="relative z-10">
+                                    <div className="flex items-center justify-between mb-6">
+                                        <span className="px-3 py-1 bg-indigo-500/10 rounded-md text-[9px] font-black uppercase tracking-widest text-indigo-400 border border-indigo-500/20">Archived Submission</span>
+                                        <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">{new Date(sub.submittedAt).toLocaleDateString()}</span>
                                     </div>
 
-                                    <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-4 group-hover:text-luxury-emerald transition-colors">{assignment.title}</h3>
-                                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 italic line-clamp-3">{assignment.description || 'No detailed instructions provided for this directive.'}</p>
-                                    
-                                    <div className="mt-auto grid grid-cols-2 gap-6 pt-8 border-t border-slate-800/50">
-                                        <div className="space-y-1">
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Instructor Node</p>
-                                            <div className="flex items-center gap-2 text-slate-300">
-                                                <User size={14} className="text-luxury-emerald" />
-                                                <span className="text-[11px] font-bold">Faculty Admin</span>
-                                            </div>
-                                        </div>
-                                        <div className="space-y-1 text-right">
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Deadline Sync</p>
-                                            <div className="flex items-center justify-end gap-2 text-slate-300">
-                                                <Clock size={14} className="text-luxury-rose" />
-                                                <span className="text-[11px] font-bold">{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'TBD'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <h3 className="text-xl font-black text-white italic tracking-tighter uppercase font-outfit mb-2">{sub.assignmentId?.title || 'Unknown Directive'}</h3>
+                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mb-6">{sub.assignmentId?.subject || 'General Sector'}</p>
 
-                                    <div className="mt-10 flex gap-4">
-                                        {assignment.fileUrl && (
-                                            <a 
-                                                href={assignment.fileUrl} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer"
-                                                className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/30"
-                                            >
-                                                Source Asset <Download size={14} />
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-4 bg-slate-950/40 p-4 rounded-md border border-slate-800/40">
+                                            <div className="p-2 bg-slate-800 rounded-md"><FileText size={16} className="text-slate-400" /></div>
+                                            <div className="min-w-0 flex-1">
+                                                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Uploaded Asset</p>
+                                                <p className="text-[11px] font-bold text-slate-300 truncate">{sub.fileUrl?.split('/').pop()}</p>
+                                            </div>
+                                            <a href={sub.fileUrl} target="_blank" rel="noreferrer" className="p-2 hover:bg-slate-800 rounded-md text-slate-500 hover:text-white transition-all">
+                                                <ExternalLink size={14} />
                                             </a>
-                                        )}
-                                        
-                                        {!sub ? (
-                                            <button 
-                                                onClick={() => setSelectedAssignment(assignment)}
-                                                className="flex-[2] py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)]"
-                                            >
-                                                Deploy Submission <Send size={14} />
-                                            </button>
-                                        ) : (
-                                            <div className="flex-[2] py-4 bg-slate-900 border border-luxury-emerald/30 text-luxury-emerald rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em]">
-                                                Synched Successfully <CheckCircle size={14} />
+                                        </div>
+
+                                        {sub.feedback && (
+                                            <div className="p-5 bg-luxury-emerald/5 border border-luxury-emerald/20 rounded-md">
+                                                <p className="text-[9px] font-black text-luxury-emerald uppercase tracking-widest mb-2">Teacher Intelligence</p>
+                                                <p className="text-slate-400 text-xs italic font-medium leading-relaxed">"{sub.feedback}"</p>
+                                                {sub.marksObtained && (
+                                                    <div className="mt-4 pt-4 border-t border-luxury-emerald/10 flex justify-between items-center">
+                                                        <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Efficiency Rating</span>
+                                                        <span className="text-lg font-black text-white italic font-outfit">{sub.marksObtained} Marks</span>
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                     </div>
-
-                                    {sub && sub.feedback && (
-                                        <div className="mt-6 p-4 bg-indigo-500/5 border border-indigo-500/20 rounded-md">
-                                            <p className="text-[9px] font-black uppercase tracking-widest text-indigo-400 mb-2">Teacher Feedback</p>
-                                            <p className="text-slate-400 text-[11px] italic font-medium">"{sub.feedback}"</p>
-                                        </div>
-                                    )}
                                 </div>
                             </motion.div>
-                        );
-                    })
-                ) : (
-                    <div className="lg:col-span-2 py-32 text-center bg-[#0f0f12]/40 rounded-md border border-slate-800/50 border-dashed">
-                        <FileText size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
-                        <h3 className="text-xl font-black text-slate-600 uppercase tracking-[0.3em] font-outfit mb-2">Node Empty</h3>
-                        <p className="text-slate-700 text-xs font-bold uppercase tracking-widest">No Instructional directives deployed for this sector.</p>
-                    </div>
+                        ))
+                    ) : (
+                        <div className="lg:col-span-2 py-32 text-center bg-[#0f0f12]/40 rounded-md border border-slate-800/50 border-dashed">
+                            <Clock size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
+                            <h3 className="text-xl font-black text-slate-600 uppercase tracking-[0.3em] font-outfit mb-2">History Void</h3>
+                            <p className="text-slate-700 text-xs font-bold uppercase tracking-widest">No previous mission deployments identified in the matrix.</p>
+                        </div>
+                    )
                 )}
             </div>
 

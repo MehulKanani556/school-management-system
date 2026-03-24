@@ -19,6 +19,9 @@ const BehaviorLog = require('../models/behaviorLog.model');
 const Meeting = require('../models/meeting.model');
 const ResourceLocker = require('../models/resourceLocker.model');
 const QuestionBank = require('../models/questionBank.model');
+const Quiz = require('../models/quiz.model');
+const Question = require('../models/question.model');
+const QuizAttempt = require('../models/quizAttempt.model');
 const bcrypt = require('bcrypt');
 
 // Helper to get teacher record by user ID
@@ -124,6 +127,45 @@ exports.getAssignedClasses = async (req, res) => {
             ]
         }).populate('standardId', 'level').populate('subjects', 'name');
         res.json(classes);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 1b. Get teacher's subjects and standards (for quiz creation dropdowns)
+exports.getTeacherContext = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
+
+        const classes = await ClassSection.find({
+            $or: [
+                { classTeacher: teacher._id },
+                { 'subjectAssignments.teachers': teacher._id }
+            ]
+        })
+        .populate('standardId', 'level name _id')
+        .populate('subjects', 'name _id')
+        .populate('subjectAssignments.subject', 'name _id')
+        .lean();
+
+        // Deduplicate standards
+        const standardMap = new Map();
+        classes.forEach(c => {
+            if (c.standardId) standardMap.set(c.standardId._id.toString(), c.standardId);
+        });
+
+        // Deduplicate subjects — from both class.subjects and subjectAssignments
+        const subjectMap = new Map();
+        classes.forEach(c => {
+            (c.subjects || []).forEach(s => { if (s) subjectMap.set(s._id.toString(), s); });
+            (c.subjectAssignments || []).forEach(sa => {
+                if (sa.subject) subjectMap.set(sa.subject._id.toString(), sa.subject);
+            });
+        });
+
+        res.json({
+            standards: Array.from(standardMap.values()),
+            subjects: Array.from(subjectMap.values())
+        });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1071,10 +1113,107 @@ exports.generateExam = async (req, res) => {
         });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
+// 24. Quiz Management ──────────────────────────────────────────────────────────
+exports.getMyQuizzes = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const quizzes = await Quiz.find({ createdBy: req.user._id, schoolId: teacher.schoolId._id })
+            .populate('subjectId', 'name')
+            .populate('standardId', 'level')
+            .populate('questions')
+            .sort({ createdAt: -1 });
+        res.json(quizzes);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.createQuiz = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const { title, description, subjectId, standardId, duration, passingScore, questions } = req.body;
+
+        // Create questions first
+        const createdQuestions = await Promise.all(
+            (questions || []).map(q => Question.create({
+                quizId: null, // will update after quiz creation
+                text: q.text,
+                options: q.options,
+                correctAnswer: q.correctAnswer,
+                points: q.points || 10
+            }))
+        );
+
+        const quiz = await Quiz.create({
+            title, description, subjectId, standardId,
+            schoolId: teacher.schoolId._id,
+            createdBy: req.user._id,
+            duration: duration || 30,
+            passingScore: passingScore || 40,
+            questions: createdQuestions.map(q => q._id),
+            isPublished: false
+        });
+
+        // Back-fill quizId on questions
+        await Question.updateMany(
+            { _id: { $in: createdQuestions.map(q => q._id) } },
+            { quizId: quiz._id }
+        );
+
+        res.status(201).json({ message: 'Quiz node created', quiz });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateQuiz = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { title, description, subjectId, standardId, duration, passingScore } = req.body;
+        const quiz = await Quiz.findOneAndUpdate(
+            { _id: id, createdBy: req.user._id },
+            { title, description, subjectId, standardId, duration, passingScore },
+            { new: true }
+        ).populate('subjectId', 'name').populate('standardId', 'level').populate('questions');
+        if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+        res.json({ message: 'Quiz updated', quiz });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteQuiz = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const quiz = await Quiz.findOneAndDelete({ _id: id, createdBy: req.user._id });
+        if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+        await Question.deleteMany({ quizId: id });
+        await QuizAttempt.deleteMany({ quizId: id });
+        res.json({ message: 'Quiz decommissioned' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.toggleQuizPublish = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const quiz = await Quiz.findOne({ _id: id, createdBy: req.user._id });
+        if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+        quiz.isPublished = !quiz.isPublished;
+        await quiz.save();
+        res.json({ message: `Quiz ${quiz.isPublished ? 'published' : 'unpublished'}`, isPublished: quiz.isPublished });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getQuizAttempts = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const quiz = await Quiz.findOne({ _id: id, createdBy: req.user._id });
+        if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
+        const attempts = await QuizAttempt.find({ quizId: id })
+            .populate('studentId', 'firstName lastName admissionNumber')
+            .sort({ createdAt: -1 });
+        res.json(attempts);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};  
 
 module.exports = {
     getTeacherDashboard: exports.getTeacherDashboard,
     getAssignedClasses: exports.getAssignedClasses,
+    getTeacherContext: exports.getTeacherContext,
     getAssignedClassStudents: exports.getAssignedClassStudents,
     getStudentDetail: exports.getStudentDetail,
     getExamsByClass: exports.getExamsByClass,
@@ -1119,6 +1258,12 @@ module.exports = {
     deleteResource: exports.deleteResource,
     addQuestion: exports.addQuestion,
     getQuestions: exports.getQuestions,
-    generateExam: exports.generateExam
+    generateExam: exports.generateExam,
+    getMyQuizzes: exports.getMyQuizzes,
+    createQuiz: exports.createQuiz,
+    updateQuiz: exports.updateQuiz,
+    deleteQuiz: exports.deleteQuiz,
+    toggleQuizPublish: exports.toggleQuizPublish,
+    getQuizAttempts: exports.getQuizAttempts
 };
 

@@ -90,12 +90,6 @@ const StudentProfile = () => {
                 </div>
                 
                 <div className="flex gap-4">
-                    <button 
-                        onClick={() => setPasswordModal(true)}
-                        className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/50 flex items-center gap-3"
-                    >
-                        Security Protocol <Lock size={14} />
-                    </button>
                     {!editMode ? (
                         <button 
                             onClick={() => setEditMode(true)}
@@ -204,6 +198,62 @@ const StudentProfile = () => {
 
                 {/* Details Grid */}
                 <div className="xl:col-span-2 space-y-8">
+                    {/* Security Hub - Persistent Form */}
+                    <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all">
+                            <ShieldCheck size={120} />
+                        </div>
+                        
+                        <div className="relative z-10">
+                            <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-rose mb-12 italic border-b border-slate-800/60 pb-6">Security Cipher Uplink</h3>
+                            
+                            <form onSubmit={handlePasswordChange} className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Current Protocol Hash</label>
+                                    <input 
+                                        type="password"
+                                        required
+                                        placeholder="••••••••"
+                                        value={passData.oldPassword}
+                                        onChange={(e) => setPassData({...passData, oldPassword: e.target.value})}
+                                        className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-rose shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">New Cipher Sequence</label>
+                                    <input 
+                                        type="password"
+                                        required
+                                        placeholder="••••••••"
+                                        value={passData.newPassword}
+                                        onChange={(e) => setPassData({...passData, newPassword: e.target.value})}
+                                        className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
+                                    />
+                                </div>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Verification Code</label>
+                                    <input 
+                                        type="password"
+                                        required
+                                        placeholder="••••••••"
+                                        value={passData.confirmPassword}
+                                        onChange={(e) => setPassData({...passData, confirmPassword: e.target.value})}
+                                        className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
+                                    />
+                                </div>
+
+                                <div className="md:col-span-3 flex justify-end pt-6">
+                                    <button 
+                                        type="submit"
+                                        className="px-10 py-5 bg-luxury-rose text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:bg-rose-600 active:scale-95 flex items-center justify-center gap-4 italic"
+                                    >
+                                        Execute Encryption Update <CheckCircle size={14} />
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md shadow-2xl relative">
                         <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-emerald mb-12 italic border-b border-slate-800/60 pb-6">Telemetry & Spatial Data</h3>
                         
@@ -309,75 +359,6 @@ const StudentProfile = () => {
                 </div>
             </div>
 
-            {/* Password Modal */}
-            <AnimatePresence>
-                {passwordModal && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 bg-[#0a0a0c]/80 backdrop-blur-md">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#0f0f12] border border-slate-800 w-full max-w-lg p-10 rounded-md shadow-3xl relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 p-6">
-                                <button onClick={() => setPasswordModal(false)} className="text-slate-600 hover:text-white transition-colors">
-                                    <X size={24} />
-                                </button>
-                            </div>
-
-                            <div className="relative z-10 space-y-8 text-center">
-                                <div className="w-20 h-20 bg-luxury-rose/10 border border-luxury-rose/20 rounded-md flex items-center justify-center mx-auto mb-6">
-                                    <Lock size={32} className="text-luxury-rose" />
-                                </div>
-                                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Security Uplink</h2>
-                                
-                                <form onSubmit={handlePasswordChange} className="space-y-6 text-left">
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Old Credentials</label>
-                                        <input 
-                                            type="password"
-                                            required
-                                            placeholder="••••••••"
-                                            value={passData.oldPassword}
-                                            onChange={(e) => setPassData({...passData, oldPassword: e.target.value})}
-                                            className="w-full bg-slate-950/60 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-rose shadow-inner"
-                                        />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">New Cipher Sequence</label>
-                                        <input 
-                                            type="password"
-                                            required
-                                            placeholder="••••••••"
-                                            value={passData.newPassword}
-                                            onChange={(e) => setPassData({...passData, newPassword: e.target.value})}
-                                            className="w-full bg-slate-950/60 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner"
-                                        />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Verify Cipher</label>
-                                        <input 
-                                            type="password"
-                                            required
-                                            placeholder="••••••••"
-                                            value={passData.confirmPassword}
-                                            onChange={(e) => setPassData({...passData, confirmPassword: e.target.value})}
-                                            className="w-full bg-slate-950/60 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner"
-                                        />
-                                    </div>
-
-                                    <button 
-                                        type="submit"
-                                        className="w-full py-5 bg-luxury-rose text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:bg-rose-600 active:scale-95 flex items-center justify-center gap-3"
-                                    >
-                                        Apply Encryption Update <CheckCircle size={14} />
-                                    </button>
-                                </form>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
         </motion.div>
     );
 };

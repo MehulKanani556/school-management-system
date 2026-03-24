@@ -14,7 +14,13 @@ import {
     CheckCircle2,
     Megaphone
 } from 'lucide-react';
-import { fetchChildOverview } from '../../redux/slice/parent.slice';
+import { 
+    fetchChildOverview, 
+    fetchAnnouncements, 
+    fetchChildTimetable,
+    addAnnouncement 
+} from '../../redux/slice/parent.slice';
+import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSocket } from '../../context/SocketContext';
 import axiosInstance from '../../utils/axiosInstance';
@@ -24,26 +30,23 @@ import { toast } from 'react-hot-toast';
 const ParentDashboard = () => {
     const dispatch = useDispatch();
     const { socket } = useSocket();
-    const { selectedChild, overview, overviewLoading: loading } = useSelector(state => state.parent);
-    
-    const [notifications, setNotifications] = React.useState([]);
-    const [announcements, setAnnouncements] = React.useState([]);
-    const [timetable, setTimetable] = React.useState(null);
+    const { 
+        selectedChild, 
+        overview, 
+        overviewLoading: loading,
+        announcements,
+        timetable 
+    } = useSelector(state => state.parent);
+    const { items: notifications } = useSelector(state => state.notifications);
 
     const fetchData = React.useCallback(async () => {
-        try {
-            const [nRes, aRes, tRes] = await Promise.all([
-                axiosInstance.get('/notifications'),
-                axiosInstance.get('/announcements'),
-                selectedChild?._id ? axiosInstance.get(`/parent/child/${selectedChild._id}/timetable`) : Promise.resolve({ data: null })
-            ]);
-            setNotifications(nRes.data?.notifications || []);
-            setAnnouncements(Array.isArray(aRes.data) ? aRes.data : []);
-            setTimetable(tRes.data);
-        } catch (err) {
-            console.error('Snapshot sync failed');
-        }
-    }, [selectedChild?._id]);
+        if (!selectedChild?._id) return;
+        
+        // Dispatch all tactical data fetches
+        dispatch(fetchNotifications());
+        dispatch(fetchAnnouncements());
+        dispatch(fetchChildTimetable(selectedChild._id));
+    }, [selectedChild?._id, dispatch]);
 
     useEffect(() => {
         if (selectedChild?._id) {
@@ -56,18 +59,18 @@ const ParentDashboard = () => {
         if (!socket) return;
         
         socket.on('new_announcement', (data) => {
-            setAnnouncements(prev => [data, ...prev]);
+            dispatch(addAnnouncement(data));
         });
 
         socket.on('new_notification', (data) => {
-            setNotifications(prev => [data, ...prev]);
+            dispatch(receiveNotification(data));
         });
 
         return () => {
             socket.off('new_announcement');
             socket.off('new_notification');
         };
-    }, [socket]);
+    }, [socket, dispatch]);
 
     const StatCard = ({ icon: Icon, label, value, subtext, color, trend }) => (
         <motion.div
