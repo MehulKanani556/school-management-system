@@ -305,7 +305,7 @@ const Vehicles = () => {
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Abort Logic</button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-orange-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20 leading-none disabled:opacity-50">
-                                        {loading ? 'Synthesizing...' : isEditOpen ? 'Update Protocol' : 'Finalize Provision'}
+                                        {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Provision'}
                                     </button>
                                 </div>
                             </form>

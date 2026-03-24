@@ -434,6 +434,12 @@ const transportSlice = createSlice({
                 }
             )
             .addMatcher(
+                (action) => action.type.endsWith('/fulfilled'),
+                (state) => {
+                    state.loading = false;
+                }
+            )
+            .addMatcher(
                 (action) => action.type.endsWith('/rejected'),
                 (state, action) => {
                     state.loading = false;

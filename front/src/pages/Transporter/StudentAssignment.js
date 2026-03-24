@@ -423,7 +423,7 @@ const StudentAssignment = () => {
                                     disabled={loading || !bulkData.routeId || !bulkData.pickupStop || selectedStudents.length === 0}
                                     className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 leading-none disabled:opacity-50"
                                 >
-                                    {loading ? 'Synthesizing...' : 'Finalize Mass Re-allocation'}
+                                    {loading ? 'Synthesizing' : 'Finalize Mass Re-allocation'}
                                 </button>
                             </div>
                         </motion.div>

@@ -815,7 +815,7 @@ const Fees = () => {
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-4 bg-white text-black hover:bg-brand-primary hover:text-white rounded-md font-black text-sm uppercase tracking-widest transition-all font-outfit shadow-xl mt-4">
-            {loading ? 'Synthesizing...' : editing ? 'Save Blueprint' : 'Establish Structure'}
+            {loading ? 'Synthesizing' : editing ? 'Save Blueprint' : 'Establish Structure'}
           </button>
         </form>
       </Modal>

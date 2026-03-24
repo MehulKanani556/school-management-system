@@ -268,7 +268,7 @@ const Drivers = () => {
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort logic</button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-violet-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-violet-700 transition-all shadow-xl shadow-violet-600/20 leading-none hover:translate-y-[-2px]">
-                                        {loading ? 'Synthesizing...' : isEditOpen ? 'Update Protocol' : 'Finalize Registration'}
+                                        {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Registration'}
                                     </button>
                                 </div>
                             </form>
