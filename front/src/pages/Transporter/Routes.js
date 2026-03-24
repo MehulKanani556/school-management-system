@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage } from '../../redux/slice/transport.slice';
-import { Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair } from 'lucide-react';
+import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage, fetchTransportApplicantsSlice, assignStudentSlice, unassignStudentSlice } from '../../redux/slice/transport.slice';
+import { Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair, UserPlus, UserMinus, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
@@ -41,16 +41,20 @@ const StopPickerMap = ({ onPick, stops = [] }) => {
 
 const Routes = () => {
     const dispatch = useDispatch();
-    const { routes, vehicles, loading, message, error } = useSelector((state) => state.transport);
+    const { routes, vehicles, applicants, loading, message, error } = useSelector((state) => state.transport);
     const [isAddOpen, setIsAddOpen] = React.useState(false);
     const [isEditOpen, setIsEditOpen] = React.useState(false);
+    const [isAssignOpen, setIsAssignOpen] = React.useState(false);
     const [selectedRoute, setSelectedRoute] = React.useState(null);
-    const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active' });
+    const [selectedRouteForAssign, setSelectedRouteForAssign] = React.useState(null);
+    const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0 });
     const [newStop, setNewStop] = React.useState({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
+    const [assignData, setAssignData] = React.useState({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
         dispatch(fetchVehicles());
+        dispatch(fetchTransportApplicantsSlice());
     }, [dispatch]);
 
     useEffect(() => {
@@ -59,6 +63,7 @@ const Routes = () => {
             dispatch(clearTransportMessage());
             setIsAddOpen(false);
             setIsEditOpen(false);
+            setIsAssignOpen(false);
             resetForm();
         }
         if (error) {
@@ -68,9 +73,10 @@ const Routes = () => {
     }, [message, error, dispatch]);
 
     const resetForm = () => {
-        setFormData({ name: '', vehicleId: '', stops: [], status: 'active' });
+        setFormData({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0 });
         setNewStop({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
         setSelectedRoute(null);
+        setAssignData({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     }
 
     const handleAdd = (e) => {
@@ -81,6 +87,27 @@ const Routes = () => {
     const handleEdit = (e) => {
         e.preventDefault();
         dispatch(updateRouteSlice({ id: selectedRoute._id, data: formData }));
+    }
+
+    const handleAssign = (e) => {
+        e.preventDefault();
+        if (!assignData.studentId || !selectedRouteForAssign) return toast.error('Selection metadata incomplete');
+        dispatch(assignStudentSlice({ routeId: selectedRouteForAssign._id, data: assignData }));
+    }
+
+    const handleUnassign = (studentId) => {
+        if (window.confirm('Strike student from manifest? Billing protocols remain active.')) {
+            dispatch(unassignStudentSlice({ routeId: selectedRouteForAssign._id, studentId }));
+        }
+    }
+
+    const openAssign = (route) => {
+        setSelectedRouteForAssign(route);
+        // Pre-fill stops if possible
+        const defaultPickup = route.stops[0]?.name || '';
+        const defaultDropoff = route.stops[route.stops.length - 1]?.name || '';
+        setAssignData({ studentId: '', pickupStop: defaultPickup, dropoffStop: defaultDropoff, seatNumber: '' });
+        setIsAssignOpen(true);
     }
 
     const toggleStatus = (route) => {
@@ -94,7 +121,8 @@ const Routes = () => {
             name: route.name,
             vehicleId: route.vehicleId?._id || '',
             stops: [...route.stops],
-            status: route.status || 'active'
+            status: route.status || 'active',
+            fee: route.fee || 0
         });
         setIsEditOpen(true);
     }
@@ -154,12 +182,19 @@ const Routes = () => {
                             </div>
                             <div className="flex items-center gap-2">
                                 <button 
-                                    onClick={() => toggleStatus(route)}
-                                    title={route.status === 'active' ? 'Deactivate Matrix' : 'Activate Matrix'}
-                                    className={`p-2.5 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
-                                >
-                                    <Activity size={16} />
-                                </button>
+                                     onClick={() => openAssign(route)}
+                                     title="Manage Student Manifest"
+                                     className="p-2.5 text-blue-400 hover:text-blue-300 bg-blue-600/10 border border-blue-600/20 rounded-md transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase italic leading-none px-4"
+                                 >
+                                     <Users size={16} /> manifest
+                                 </button>
+                                 <button 
+                                     onClick={() => toggleStatus(route)}
+                                     title={route.status === 'active' ? 'Deactivate Matrix' : 'Activate Matrix'}
+                                     className={`p-2.5 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
+                                 >
+                                     <Activity size={16} />
+                                 </button>
                                 <button 
                                     onClick={() => openEdit(route)}
                                     className="p-2.5 text-slate-600 hover:text-blue-400 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg"
@@ -259,29 +294,39 @@ const Routes = () => {
                                 </h3>
                                 
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Matrix Name</label>
-                                            <input 
-                                                type="text" 
-                                                required
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operational Status</label>
-                                            <select 
-                                                value={formData.status}
-                                                onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
-                                            >
-                                                <option value="active">Active Sequence</option>
-                                                <option value="inactive">Inactive Matrix</option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <div className="grid grid-cols-3 gap-4">
+                                         <div className="space-y-2 col-span-1">
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Matrix Name</label>
+                                             <input 
+                                                 type="text" 
+                                                 required
+                                                 value={formData.name}
+                                                 onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
+                                             />
+                                         </div>
+                                         <div className="space-y-2 col-span-1">
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Vector Fee (Rs)</label>
+                                             <input 
+                                                 type="number" 
+                                                 required
+                                                 value={formData.fee}
+                                                 onChange={(e) => setFormData({...formData, fee: parseFloat(e.target.value)})}
+                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none h-[42px]"
+                                             />
+                                         </div>
+                                         <div className="space-y-2 col-span-1">
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operational Status</label>
+                                             <select 
+                                                 value={formData.status}
+                                                 onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
+                                             >
+                                                 <option value="active">Active Sequence</option>
+                                                 <option value="inactive">Inactive Matrix</option>
+                                             </select>
+                                         </div>
+                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assigned Fleet Unit</label>
                                         <select 
@@ -400,6 +445,133 @@ const Routes = () => {
                                         )}
                                     </MapContainer>
                                 </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {isAssignOpen && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 font-outfit">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAssignOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-neutral-900 w-full max-w-5xl h-[85vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row">
+                            
+                            {/* Left: Enrollment Form */}
+                            <div className="w-full md:w-1/3 p-10 border-r border-slate-800/60 overflow-y-auto">
+                                <div className="flex items-center gap-3 mb-8">
+                                    <UserPlus className="text-blue-500" size={24} />
+                                    <h3 className="text-xl font-black italic uppercase text-white leading-none">Enroll Entity</h3>
+                                </div>
+
+                                <form onSubmit={handleAssign} className="space-y-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Select Applicant</label>
+                                        <select 
+                                            required
+                                            value={assignData.studentId}
+                                            onChange={(e) => setAssignData({...assignData, studentId: e.target.value})}
+                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[11px] font-black uppercase text-slate-300 italic focus:border-blue-500 transition-all appearance-none"
+                                        >
+                                            <option value="">Awaiting Ingress...</option>
+                                            {applicants.map(a => (
+                                                <option key={a._id} value={a._id}>{a.firstName} {a.lastName} ({a.standard?.name || 'N/A'})</option>
+                                            ))}
+                                        </select>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic px-1">Note: Only students with active transport applications are indexed here.</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Extraction Pt</label>
+                                            <select 
+                                                value={assignData.pickupStop}
+                                                onChange={(e) => setAssignData({...assignData, pickupStop: e.target.value})}
+                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
+                                            >
+                                                {selectedRouteForAssign?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Ingress Pt</label>
+                                            <select 
+                                                value={assignData.dropoffStop}
+                                                onChange={(e) => setAssignData({...assignData, dropoffStop: e.target.value})}
+                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
+                                            >
+                                                {selectedRouteForAssign?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Seat Assignment</label>
+                                        <input 
+                                            type="number"
+                                            placeholder="Unit Number"
+                                            value={assignData.seatNumber}
+                                            onChange={(e) => setAssignData({...assignData, seatNumber: e.target.value})}
+                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-xs font-bold text-slate-200"
+                                        />
+                                    </div>
+
+                                    <button 
+                                        type="submit"
+                                        className="w-full py-4 bg-blue-600 text-[11px] font-black uppercase italic tracking-[.2em] text-white rounded-md shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all mt-4"
+                                    >
+                                        Commit to Matrix
+                                    </button>
+                                </form>
+                            </div>
+
+                            {/* Right: Current Manifest */}
+                            <div className="flex-1 bg-black/20 overflow-y-auto custom-scrollbar">
+                                 <div className="p-10">
+                                    <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800/60">
+                                        <div>
+                                            <h3 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none">{selectedRouteForAssign?.name} Manifest</h3>
+                                            <p className="text-[10px] font-black italic uppercase text-slate-500 tracking-widest mt-2">{selectedRouteForAssign?.assignedStudents?.length || 0} Entities Currently Locked</p>
+                                        </div>
+                                        <button onClick={() => setIsAssignOpen(false)} className="p-2 text-slate-500 hover:text-white transition-all"><X size={20}/></button>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {selectedRouteForAssign?.assignedStudents?.length > 0 ? selectedRouteForAssign.assignedStudents.map((entry, idx) => (
+                                            <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-6 flex flex-col md:flex-row md:items-center justify-between group hover:border-blue-600/30 transition-all">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="w-12 h-12 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500">
+                                                        <Bus size={24} />
+                                                    </div>
+                                                    <div>
+                                                        <div className="flex items-center gap-3">
+                                                            <h4 className="text-sm font-black text-slate-200 uppercase italic tracking-wide">{entry.studentId?.firstName} {entry.studentId?.lastName}</h4>
+                                                            <ShieldCheck size={14} className="text-emerald-500" />
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-slate-500 uppercase italic tracking-widest mt-1">Seat: {entry.seatNumber || 'N/A'} // {entry.studentId?.admissionNumber}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-10 mt-4 md:mt-0 px-6 py-3 bg-neutral-900/40 rounded border border-slate-800/40">
+                                                    <div>
+                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Vector Ingress</p>
+                                                        <p className="text-[10px] font-black text-blue-500 uppercase italic">{entry.pickupStop}</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Vector Egress</p>
+                                                        <p className="text-[10px] font-black text-rose-500 uppercase italic">{entry.dropoffStop}</p>
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => handleUnassign(entry.studentId?._id)}
+                                                    className="p-3 text-slate-600 hover:text-rose-500 hover:bg-rose-500/5 transition-all mt-4 md:mt-0 md:ml-6"
+                                                >
+                                                    <UserMinus size={18} />
+                                                </button>
+                                            </div>
+                                        )) : (
+                                            <div className="p-20 border border-slate-800 border-dashed rounded-md text-center opacity-40">
+                                                <p className="text-[11px] font-black italic uppercase tracking-widest">No entities mapped to this logistical vector.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                 </div>
                             </div>
                         </motion.div>
                     </div>

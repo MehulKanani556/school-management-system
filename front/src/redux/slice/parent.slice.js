@@ -139,6 +139,13 @@ export const verifyFeePayment = createAsyncThunk('parent/verifyFee', async (orde
     } catch (err) { return rejectWithValue(err.response.data); }
 });
 
+export const applyTransport = createAsyncThunk('parent/applyTransport', async (studentId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post(`/parent/apply-transport/${studentId}`);
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
 const parentSlice = createSlice({
     name: 'parent',
     initialState: {
@@ -310,7 +317,20 @@ const parentSlice = createSlice({
                     state.fees = state.fees.map(f => f._id === action.payload.fee._id ? action.payload.fee : f);
                 }
             })
-            .addCase(verifyFeePayment.rejected, (state) => { state.feesLoading = false; });
+            .addCase(verifyFeePayment.rejected, (state) => { state.feesLoading = false; })
+            
+            // Apply Transport
+            .addCase(applyTransport.pending, (state) => { state.transportLoading = true; })
+            .addCase(applyTransport.fulfilled, (state, action) => {
+                state.transportLoading = false;
+                if (action.payload.student) {
+                    state.selectedChild = { ...state.selectedChild, ...action.payload.student };
+                }
+            })
+            .addCase(applyTransport.rejected, (state, action) => {
+                state.transportLoading = false;
+                state.error = action.payload?.message || 'Transport application failed';
+            });
     }
 });
 

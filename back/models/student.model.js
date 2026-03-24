@@ -21,6 +21,12 @@ const studentSchema = new mongoose.Schema({
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
   scholarshipPercentage: { type: Number, default: 0 },
   password: { type: String },
+  transportStatus: { 
+    type: String, 
+    enum: ['None', 'Applied', 'Approved', 'Active'], 
+    default: 'None' 
+  },
+  transportRouteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Route' },
   isActive: { type: Boolean, default: true },
   deletedAt: { type: Date, default: null },
 }, { 

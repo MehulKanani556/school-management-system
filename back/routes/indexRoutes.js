@@ -368,6 +368,7 @@ router.post('/parent/change-password', ...parent, pc.changeParentPassword);
 router.get('/parent/child/:studentId/transport', ...parent, pc.getChildTransport);
 router.post('/parent/pay-fee/:feeId', ...parent, pc.payFee);
 router.post('/parent/verify-fee/:orderId', ...parent, pc.verifyFeePayment);
+router.post('/parent/apply-transport/:studentId', ...parent, pc.applyForTransport);
 
 
 // ─── Communication Routes ───────────────────────────────────────────────────
@@ -470,6 +471,8 @@ router.get('/transport/routes', ...transportManager, trc.getRoutes);
 router.post('/transport/routes', ...transportManager, trc.addRoute);
 router.put('/transport/routes/:id', ...transportManager, trc.updateRoute);
 router.delete('/transport/routes/:id', ...transportManager, trc.deleteRoute);
+router.get('/transport/applicants', ...transportManager, trc.getTransportApplicants);
+router.put('/transport/reject-applicant/:studentId', ...transportManager, trc.rejectTransportApplication);
 router.post('/transport/routes/:id/assign-student', ...transportManager, trc.assignStudent);
 router.post('/transport/routes/:id/unassign-student', ...transportManager, trc.unassignStudent);
 router.post('/transport/routes/:id/bulk-assign', ...transportManager, trc.bulkAssignStudents);

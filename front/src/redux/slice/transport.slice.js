@@ -145,6 +145,18 @@ export const addFuelLogSlice = createAsyncThunk(
     }
 );
 
+export const rejectApplicantSlice = createAsyncThunk(
+    'transport/rejectApplicant',
+    async (studentId, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.put(`/transport/reject-applicant/${studentId}`);
+            return response.data.student;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 export const addInsuranceRenewalSlice = createAsyncThunk(
     'transport/addInsuranceRenewal',
     async ({ id, data }, { rejectWithValue }) => {
@@ -175,6 +187,18 @@ export const fetchDriversSlice = createAsyncThunk(
     async (_, { rejectWithValue }) => {
         try {
             const response = await axiosInstance.get('/transport/drivers');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchTransportApplicantsSlice = createAsyncThunk(
+    'transport/fetchApplicants',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/transport/applicants');
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data.message);
@@ -299,6 +323,7 @@ const transportSlice = createSlice({
         drivers: [],
         tripLogs: [],
         analytics: null,
+        applicants: [],
         loading: false,
         error: null,
         message: null
@@ -403,6 +428,13 @@ const transportSlice = createSlice({
             .addCase(deleteDriverSlice.fulfilled, (state, action) => {
                 state.drivers = state.drivers.filter(d => d._id !== action.payload);
                 state.message = 'Operator profile terminated';
+            })
+            .addCase(fetchTransportApplicantsSlice.fulfilled, (state, action) => {
+                state.applicants = action.payload;
+            })
+            .addCase(rejectApplicantSlice.fulfilled, (state, action) => {
+                state.applicants = state.applicants.filter(a => a._id !== action.payload._id);
+                state.message = "Transport Inquiry Rejected";
             })
             // Trip Logs
             .addCase(fetchTripLogsSlice.fulfilled, (state, action) => {

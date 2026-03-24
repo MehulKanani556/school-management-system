@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchChildTransport } from '../../redux/slice/parent.slice';
+import { fetchChildTransport, applyTransport } from '../../redux/slice/parent.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Truck, MapPin, Clock, User, Shield, Navigation, AlertCircle, Phone, Info, Wifi } from 'lucide-react';
 import { useSocket } from '../../context/SocketContext';
@@ -56,14 +56,49 @@ const ChildTransport = () => {
 
     if (!transport) {
         return (
-            <div className="max-w-4xl mx-auto flex flex-col items-center justify-center h-[60vh] text-center space-y-6">
+            <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 p-10 bg-brand-surface/20 rounded-xl border border-brand-border/20 backdrop-blur-sm">
                 <div className="relative">
-                    <div className="w-24 h-24 rounded-md border-2 border-dashed border-slate-800 animate-spin-slow"></div>
-                    <Truck size={32} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-800" />
+                    <div className="w-32 h-32 rounded-full border-4 border-dashed border-slate-800/40 flex items-center justify-center animate-spin-slow">
+                         <div className="w-24 h-24 rounded-full border-4 border-slate-800/20" />
+                    </div>
+                    <Truck size={40} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-700" />
                 </div>
-                <div>
-                   <h3 className="text-xl font-black text-white uppercase italic tracking-widest leading-none mb-4 font-outfit">No Active Fleet Link</h3>
-                   <p className="text-[9px] font-black text-slate-600 uppercase tracking-[.2em] max-w-xs mx-auto leading-relaxed">This student is not currently indexed in the institutional transport grid.</p>
+                
+                <div className="max-w-md mx-auto space-y-4">
+                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none font-outfit">Logistical Connectivity Required</h3>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-relaxed">
+                        {selectedChild?.transportStatus === 'Applied' 
+                            ? "Institutional inquiry successful. Awaiting route vector allocation from administration."
+                            : "This student is not currently indexed in the transport grid. Initiate enrollment protocol below."}
+                    </p>
+                    
+                    {selectedChild?.transportStatus === 'Applied' ? (
+                        <div className="inline-flex items-center gap-3 px-6 py-3 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse shadow-lg shadow-amber-500/5">
+                            <div className="w-2 h-2 bg-amber-500 rounded-full" />
+                            <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Application Pending Approval</span>
+                        </div>
+                    ) : (
+                        <motion.button 
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => dispatch(applyTransport(selectedChild._id))}
+                            disabled={loading}
+                            className="px-10 py-5 bg-luxury-rose text-white text-[11px] font-black uppercase tracking-[.3em] italic rounded-md shadow-2xl shadow-luxury-rose/20 hover:shadow-luxury-rose/40 transition-all flex items-center gap-3 mx-auto leading-none disabled:opacity-50"
+                        >
+                            {loading ? "Synthesizing Request..." : "Apply for Transportation"}
+                        </motion.button>
+                    )}
+                </div>
+
+                <div className="grid grid-cols-2 gap-4 w-full max-w-sm pt-4 border-t border-slate-800/40">
+                    <div className="text-left">
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[.2em] mb-1">Status</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase italic">{selectedChild?.transportStatus || 'INACTIVE'}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-[.2em] mb-1">Protocol</p>
+                        <p className="text-[10px] font-black text-slate-400 uppercase italic">V5.0 Transport</p>
+                    </div>
                 </div>
             </div>
         );

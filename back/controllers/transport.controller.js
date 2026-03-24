@@ -75,58 +75,6 @@ exports.deleteRoute = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-exports.assignStudent = async (req, res) => {
-    try {
-        const { studentId, pickupStop, dropoffStop, seatNumber } = req.body;
-        const schoolId = getSchoolId(req);
-        
-        const route = await Route.findOne({ _id: req.params.id, schoolId }).populate('vehicleId');
-        if (!route) return res.status(404).json({ message: 'Route not found' });
-
-        // Capacity Validation
-        if (route.vehicleId && route.assignedStudents.length >= route.vehicleId.capacity) {
-            const isAlreadyAssigned = route.assignedStudents.some(s => s.studentId.toString() === studentId);
-            if (!isAlreadyAssigned) {
-                return res.status(400).json({ message: `Vehicle capacity reached (${route.vehicleId.capacity}). Cannot assign more students.` });
-            }
-        }
-
-        // Seat Uniqueness Validation
-        if (seatNumber) {
-            const seatTaken = route.assignedStudents.find(s => s.seatNumber === seatNumber && s.studentId.toString() !== studentId);
-            if (seatTaken) return res.status(400).json({ message: `Seat #${seatNumber} is already reserved by another student on this route.` });
-        }
-
-        const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
-        const assignmentData = { studentId, pickupStop, dropoffStop, seatNumber };
-        
-        if (index !== -1) {
-            route.assignedStudents[index] = assignmentData;
-        } else {
-            route.assignedStudents.push(assignmentData);
-        }
-
-        await route.save();
-
-        // Notify Parent
-        const student = await Student.findById(studentId);
-        if (student && student.parentId) {
-            const nc = require('./notification.controller');
-            await nc.sendNotification({
-                schoolId,
-                recipient: student.parentId,
-                sender: req.user._id,
-                type: 'Transport',
-                title: 'Transport Logistics Synchronized',
-                message: `Transport route assignments for ${student.firstName} have been dynamically updated in the central registry.`,
-                link: '/parent/transport'
-            });
-        }
-
-        res.json({ message: 'Student assigned to route successfully', data: route });
-    } catch (err) { res.status(500).json({ message: err.message }); }
-};
-
 exports.unassignStudent = async (req, res) => {
     try {
         const { studentId } = req.body;
@@ -138,7 +86,134 @@ exports.unassignStudent = async (req, res) => {
         route.assignedStudents = route.assignedStudents.filter(s => s.studentId.toString() !== studentId);
         await route.save();
 
+        // Update student logistical status
+        await Student.findByIdAndUpdate(studentId, { transportStatus: 'None', transportRouteId: null });
+
+        // Optional: Remove pending transport fee? 
+        // (Usually keep for audit but we will let user decide or leave it)
+
         res.json({ message: 'Student removed from route', data: route });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getTransportApplicants = async (req, res) => {
+    try {
+        const students = await Student.find({ 
+            schoolId: getSchoolId(req),
+            transportStatus: { $in: ['Applied', 'Approved', 'Active'] }
+        }).populate('standard classSection');
+        res.json(students);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.rejectTransportApplication = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const schoolId = getSchoolId(req);
+
+        const student = await Student.findOneAndUpdate(
+            { _id: studentId, schoolId },
+            { transportStatus: 'None', transportRouteId: null },
+            { new: true }
+        );
+
+        if (!student) return res.status(404).json({ message: 'Student node not found' });
+
+        // Notify Parent
+        if (student.parentId) {
+            const nc = require('./notification.controller');
+            await nc.sendNotification({
+                schoolId,
+                recipient: student.parentId,
+                sender: req.user._id,
+                type: 'Transport',
+                title: 'Transport Inquiry Update',
+                message: `The institutional transport inquiry for ${student.firstName} has been declined at this time.`,
+                link: '/parent/transport'
+            });
+        }
+
+        res.json({ message: 'Transport application rejected', student });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.assignStudent = async (req, res) => {
+    try {
+        const { studentId, pickupStop, dropoffStop, seatNumber } = req.body;
+        const schoolId = getSchoolId(req);
+        
+        const student = await Student.findById(studentId);
+        if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        const route = await Route.findOne({ _id: req.params.id, schoolId }).populate('vehicleId');
+        if (!route) return res.status(404).json({ message: 'Route not found' });
+
+        // 1. Capacity Validation
+        if (route.vehicleId && route.assignedStudents.length >= route.vehicleId.capacity) {
+            const isAlreadyAssigned = route.assignedStudents.some(s => s.studentId.toString() === studentId);
+            if (!isAlreadyAssigned) {
+                return res.status(400).json({ message: `Vehicle capacity reached (${route.vehicleId.capacity}).` });
+            }
+        }
+
+        // 2. State Transformation
+        const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
+        const assignmentData = { studentId, pickupStop, dropoffStop, seatNumber };
+        
+        if (index !== -1) {
+            route.assignedStudents[index] = assignmentData;
+        } else {
+            route.assignedStudents.push(assignmentData);
+        }
+
+        await route.save();
+
+        // 3. Logistical Status Finalization
+        student.transportStatus = 'Active';
+        student.transportRouteId = route._id;
+        await student.save();
+
+        // 4. Financial Reconciliation (Auto-Add Fee)
+        if (route.fee > 0) {
+            const FeePayment = require('../models/feePayment.model');
+            const currentYear = new Date().getFullYear().toString();
+            
+            // Upsert Transport Fee for current cycle
+            await FeePayment.findOneAndUpdate(
+                { 
+                    studentId, 
+                    category: 'Transport', 
+                    academicYear: currentYear,
+                    status: { $ne: 'paid' } // Only if not already paid
+                },
+                {
+                    schoolId,
+                    studentId,
+                    amount: route.fee,
+                    totalAmount: route.fee,
+                    category: 'Transport',
+                    academicYear: currentYear,
+                    dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1)) // 1 month from now
+                },
+                { upsert: true, new: true }
+            );
+        }
+
+        // 5. Parent Uplink
+        if (student.parentId) {
+            const nc = require('./notification.controller');
+            await nc.sendNotification({
+                schoolId,
+                recipient: student.parentId,
+                sender: req.user._id,
+                type: 'Transport',
+                title: 'Logistics Approved & Assigned',
+                message: `Transport for ${student.firstName} is now ACTIVE on route: ${route.name}. Base fee: ₹${route.fee} added to ledger.`,
+                link: '/parent/transport'
+            });
+        }
+
+        res.json({ message: 'Student assigned and fee synchronized', data: route });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

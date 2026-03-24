@@ -355,6 +355,37 @@ exports.getChildTransport = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.applyForTransport = async (req, res) => {
+    try {
+        const { studentId } = req.params;
+        const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
+        if (!student) return res.status(404).json({ message: "Student record link unauthorized" });
+
+        if (student.transportStatus !== 'None') {
+            return res.status(400).json({ message: `Current logistical status: ${student.transportStatus}. Application cannot be duplicated.` });
+        }
+
+        student.transportStatus = 'Applied';
+        await student.save();
+
+        // Notify Transporter/Admin
+        const transporters = await User.find({ schoolId: student.schoolId, role: 'Transporter' });
+        for (const t of transporters) {
+            await nc.sendNotification({
+                schoolId: student.schoolId,
+                recipient: t._id,
+                sender: req.user._id,
+                type: 'Transport',
+                title: 'New Transport Application',
+                message: `Logistics request for ${student.firstName} ${student.lastName} has been filed and is awaiting route assignment.`,
+                link: '/transporter/routes'
+            });
+        }
+
+        res.json({ message: 'Transport application synthesized. Awaiting administrative clearance.', student });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Financial Transactions ──────────────────────────────────────────────────
 exports.payFee = async (req, res) => {
   try {

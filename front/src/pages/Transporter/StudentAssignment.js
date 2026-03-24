@@ -1,15 +1,16 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchRoutesSlice, assignStudentSlice, unassignStudentSlice, bulkAssignStudentSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
+import { fetchRoutesSlice, assignStudentSlice, unassignStudentSlice, bulkAssignStudentSlice, clearTransportMessage, fetchTransportApplicantsSlice, rejectApplicantSlice } from '../../redux/slice/transport.slice';
 import { fetchStudents } from '../../redux/slice/schoolAdmin.slice';
-import { Users, Navigation, MapPin, Search, Plus, User, Loader2, X, AlertCircle } from 'lucide-react';
+import { Users, Navigation, MapPin, Search, Plus, User, Loader2, X, AlertCircle, Inbox, CheckCircle, XCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const StudentAssignment = () => {
     const dispatch = useDispatch();
-    const { routes, loading, message, error } = useSelector((state) => state.transport);
+    const { routes, applicants, loading, message, error } = useSelector((state) => state.transport);
     const { students } = useSelector((state) => state.schoolAdmin);
+    const [activeTab, setActiveTab] = React.useState('manifest'); // manifest, inquiries
     const [isAddOpen, setIsAddOpen] = React.useState(false);
     const [isBulkOpen, setIsBulkOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
@@ -21,6 +22,7 @@ const StudentAssignment = () => {
     useEffect(() => {
         dispatch(fetchRoutesSlice());
         dispatch(fetchStudents());
+        dispatch(fetchTransportApplicantsSlice());
     }, [dispatch]);
 
     useEffect(() => {
@@ -132,6 +134,23 @@ const StudentAssignment = () => {
                 </div>
                 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
+                    {/* Tab Navigation */}
+                    <div className="flex p-1 bg-neutral-900 border border-slate-800 rounded-md h-[42px] mr-4">
+                        <button 
+                            onClick={() => setActiveTab('manifest')}
+                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 ${activeTab === 'manifest' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                        >
+                            <Users size={12} /> Manifest
+                        </button>
+                        <button 
+                            onClick={() => setActiveTab('inquiries')}
+                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                        >
+                            <Inbox size={12} /> Inquiries
+                            {applicants.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] flex items-center justify-center rounded-full border border-black animate-bounce">{applicants.length}</span>}
+                        </button>
+                    </div>
+
                     <div className="relative flex-1 sm:w-64">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input 
@@ -191,51 +210,117 @@ const StudentAssignment = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6">
-                {filteredRoutes.map((route) => (
-                    <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-emerald-600/20 transition-all font-outfit">
-                        <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between">
-                            <div className="flex items-center gap-4">
-                                <Navigation size={18} className="text-emerald-500" />
-                                <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Matrix</h3>
-                                <div className="flex items-center gap-3">
-                                    <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
-                                    <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Unit: {route.vehicleId?.registrationNumber || 'NA'}</span>
+            {activeTab === 'manifest' ? (
+                <div className="grid grid-cols-1 gap-6">
+                    {filteredRoutes.map((route) => (
+                        <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-emerald-600/20 transition-all font-outfit">
+                            <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <Navigation size={18} className="text-emerald-500" />
+                                    <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Matrix</h3>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Unit: {route.vehicleId?.registrationNumber || 'NA'}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-8">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    {route.assignedStudents?.map((as, idx) => (
+                                        <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-5 flex items-center gap-4 group/card hover:bg-neutral-900 transition-all relative">
+                                            <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover/card:border-emerald-600/40 transition-all">
+                                                <User size={18} />
+                                            </div>
+                                            <div className="flex-1 overflow-hidden">
+                                                <p className="text-xs font-black text-slate-100 uppercase italic tracking-tighter truncate">{as.studentId?.firstName} {as.studentId?.lastName}</p>
+                                                <div className="flex items-center gap-2 mt-2">
+                                                    <MapPin size={10} className="text-emerald-500 opacity-60 flex-shrink-0" />
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
+                                                    {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-emerald-600/20 px-2 py-0.5 rounded text-emerald-500">SEAT {as.seatNumber}</span>}
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => handleUnassign(route._id, as.studentId._id)}
+                                                className="absolute top-2 right-2 p-1.5 text-slate-700 hover:text-red-500 opacity-0 group-hover/card:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
+                                            >
+                                                <X size={12} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                    {(!route.assignedStudents || route.assignedStudents.length === 0) && (
+                                        <div className="lg:col-span-3 py-10 text-center opacity-40 italic font-black uppercase text-[10px] tracking-widest text-slate-600">No citizens linked to this matrix sector.</div>
+                                    )}
                                 </div>
                             </div>
                         </div>
-
-                        <div className="p-8">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {route.assignedStudents?.map((as, idx) => (
-                                    <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-5 flex items-center gap-4 group/card hover:bg-neutral-900 transition-all relative">
-                                        <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover/card:border-emerald-600/40 transition-all">
-                                            <User size={18} />
+                    ))}
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                    <AnimatePresence mode="popLayout">
+                        {applicants.map((a) => (
+                            <motion.div 
+                                layout
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                                key={a._id} 
+                                className="bg-neutral-900 border border-slate-800/60 rounded-md p-6 font-outfit relative group shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-1 h-full bg-orange-600"></div>
+                                <div className="flex items-start justify-between mb-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded bg-neutral-950 border border-slate-800 flex items-center justify-center text-orange-500">
+                                            <User size={24} />
                                         </div>
-                                        <div className="flex-1 overflow-hidden">
-                                            <p className="text-xs font-black text-slate-100 uppercase italic tracking-tighter truncate">{as.studentId?.firstName} {as.studentId?.lastName}</p>
-                                            <div className="flex items-center gap-2 mt-2">
-                                                <MapPin size={10} className="text-emerald-500 opacity-60 flex-shrink-0" />
-                                                <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
-                                                {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-emerald-600/20 px-2 py-0.5 rounded text-emerald-500">SEAT {as.seatNumber}</span>}
-                                            </div>
+                                        <div>
+                                            <h4 className="text-sm font-black text-slate-100 uppercase italic tracking-tighter leading-none">{a.firstName} {a.lastName}</h4>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase italic tracking-widest mt-2 bg-slate-950 px-2 py-0.5 rounded border border-slate-800/60 inline-block">{a.standard?.name || 'GEN-X'} // {a.classSection?.name || 'ALPHA'}</p>
                                         </div>
-                                        <button 
-                                            onClick={() => handleUnassign(route._id, as.studentId._id)}
-                                            className="absolute top-2 right-2 p-1.5 text-slate-700 hover:text-red-500 opacity-0 group-hover/card:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
-                                        >
-                                            <X size={12} />
-                                        </button>
                                     </div>
-                                ))}
-                                {(!route.assignedStudents || route.assignedStudents.length === 0) && (
-                                    <div className="lg:col-span-3 py-10 text-center opacity-40 italic font-black uppercase text-[10px] tracking-widest text-slate-600">No citizens linked to this matrix sector.</div>
-                                )}
-                            </div>
+                                    <div className="text-right">
+                                        <p className="text-[9px] font-black text-orange-500 uppercase italic tracking-tighter bg-orange-500/10 px-3 py-1 rounded border border-orange-500/20">Awaiting Lockdown</p>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">{new Date(a.updatedAt).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 bg-neutral-950/40 border border-slate-800/40 rounded italic mb-6">
+                                     <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-tight">Citizen requests institutional mobilization. Priority ingress Required.</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-3">
+                                    <button 
+                                        onClick={() => {
+                                            setFormData({...formData, studentId: a._id});
+                                            setIsAddOpen(true);
+                                        }}
+                                        className="py-3 bg-emerald-600/10 border border-emerald-600/30 text-emerald-500 text-[10px] font-black uppercase italic tracking-widest rounded hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <CheckCircle size={14} /> Commit to Matrix
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            if(window.confirm('Strike inquiry from registry? This will decline the request.')) {
+                                                dispatch(rejectApplicantSlice(a._id));
+                                            }
+                                        }}
+                                        className="py-3 bg-rose-600/10 border border-rose-600/30 text-rose-500 text-[10px] font-black uppercase italic tracking-widest rounded hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <XCircle size={14} /> Expel Inquiry
+                                    </button>
+                                </div>
+                            </motion.div>
+                        ))}
+                    </AnimatePresence>
+                    {applicants.length === 0 && (
+                        <div className="col-span-full py-20 bg-neutral-900 border border-slate-800 border-dashed rounded-md text-center opacity-40">
+                             <Inbox size={48} className="mx-auto mb-4 text-slate-500 opacity-20" />
+                             <p className="text-[11px] font-black italic uppercase tracking-[0.3em] text-slate-400">Registry Cleared. No pending inquiries detected.</p>
                         </div>
-                    </div>
-                ))}
-            </div>
+                    )}
+                </div>
+            )}
 
             <AnimatePresence>
                 {isAddOpen && (
