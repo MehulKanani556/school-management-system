@@ -278,6 +278,17 @@ router.get('/teacher/performance-analytics', ...teacher, tc.getPerformanceAnalyt
 router.get('/teacher/lesson-plans', ...teacher, tc.getLessonPlans);
 router.post('/teacher/lesson-plans', ...teacher, tc.createLessonPlan);
 router.put('/teacher/lesson-plans/:id', ...teacher, tc.updateLessonPlan);
+router.delete('/teacher/lesson-plans/:id', ...teacher, tc.deleteLessonPlan);
+
+// Resource Locker
+router.post('/teacher/resources', ...teacher, upload.single('file'), tc.uploadResource);
+router.get('/teacher/resources', ...teacher, tc.getResources);
+router.delete('/teacher/resources/:id', ...teacher, tc.deleteResource);
+
+// Question Bank
+router.post('/teacher/questions', ...teacher, tc.addQuestion);
+router.get('/teacher/questions', ...teacher, tc.getQuestions);
+router.post('/teacher/generate-exam', ...teacher, tc.generateExam);
 
 // Behavior Log
 router.post('/teacher/behavior-log', ...teacher, tc.logBehavior);
@@ -286,8 +297,12 @@ router.get('/teacher/behavior-logs', ...teacher, tc.getBehaviorLogs);
 // PTM Scheduling
 router.post('/teacher/meetings', ...teacher, tc.scheduleMeeting);
 router.get('/teacher/meetings', ...teacher, tc.getMeetings);
+router.put('/teacher/meetings/:id', ...teacher, tc.updateMeeting);
+router.delete('/teacher/meetings/:id', ...teacher, tc.deleteMeeting);
 router.get('/teacher/student-attendance/:studentId', ...teacher, tc.getStudentFullAttendance);
-router.delete('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
+router.post('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
+router.post('/teacher/send-message', ...teacher, tc.sendMessage);
+router.get('/my-messages', ...teacher, tc.fetchMyMessages);
 router.post('/teacher/bulk-attendance', ...teacher, tc.bulkAttendanceImport);
 router.get('/teacher/reviews', ...teacher, tc.getMyReviews);
 router.get('/teacher/unified-calendar', ...teacher, tc.getUnifiedCalendar);

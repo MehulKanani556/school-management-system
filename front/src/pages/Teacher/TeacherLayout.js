@@ -5,7 +5,7 @@ import {
     LayoutDashboard, Users, BookOpen, ClipboardList,
     Upload, MessageSquare, LogOut, ChevronRight, ChevronDown,
     Bell, User, Activity, Calendar as CalendarIcon, Calendar, Clock, CalendarDays, TrendingUp, DollarSign, Layout,
-    Megaphone, Shield, Trophy, Menu
+    Megaphone, Shield, Trophy, Menu, HardDrive, Database
 } from 'lucide-react';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,20 +38,23 @@ const TeacherLayout = () => {
                 { path: '/teacher/classes', icon: BookOpen, label: 'Assigned Sectors' },
                 { path: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Matrix' },
                 { path: '/teacher/attendance', icon: ClipboardList, label: 'Mark Attendance' },
+                { path: '/teacher/bulk-attendance', icon: Upload, label: 'Mass Import' },
                 { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
                 { path: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
                 { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
                 { path: '/teacher/timetable', icon: Clock, label: 'Timetable Matrix' },
+                { path: '/teacher/question-bank', icon: Database, label: 'Evaluation Vault' },
             ]
         },
         {
             label: 'Communicate',
             icon: MessageSquare,
             children: [
-                { path: '/teacher/messages?tab=feed', icon: Megaphone, label: 'Announcements' },
+                { path: '/teacher/announcements', icon: Megaphone, label: 'Announcements' },
                 { path: '/teacher/messages?tab=chat', icon: Shield, label: 'Direct Probe' },
                 { path: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
                 { path: '/teacher/meetings', icon: Calendar, label: 'PTM Protocols' },
+                { path: '/teacher/resources', icon: HardDrive, label: 'Asset Vault' },
             ]
         },
         {

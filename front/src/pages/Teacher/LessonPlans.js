@@ -182,10 +182,9 @@ const LessonPlans = () => {
                                         >
                                             <option value="">SELECT DOMAIN</option>
                                             {/* Get unique subjects from assigned classes */}
-                                            {Array.from(new Set(classes?.map(c => c.subject?._id))).map(sid => {
-                                                const s = classes?.find(c => c.subject?._id === sid)?.subject;
-                                                return s ? <option key={sid} value={sid}>{s.name}</option> : null;
-                                            })}
+                                            {Array.from(new Map(classes?.flatMap(c => c.subjects || []).filter(Boolean).map(s => [s._id, s])).values()).map(s => (
+                                                <option key={s._id} value={s._id}>{s.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                 </div>

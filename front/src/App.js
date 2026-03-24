@@ -127,6 +127,11 @@ const LessonPlans = React.lazy(() => import('./pages/Teacher/LessonPlans'));
 const BehaviorLog = React.lazy(() => import('./pages/Teacher/BehaviorLog'));
 const PTMMeetings = React.lazy(() => import('./pages/Teacher/PTMMeetings'));
 const ClassNoticeboard = React.lazy(() => import('./pages/Teacher/ClassNoticeboard'));
+const TeacherAnnouncements = React.lazy(() => import('./pages/Teacher/TeacherAnnouncements'));
+const TeacherNotifications = React.lazy(() => import('./pages/Teacher/TeacherNotifications'));
+const BulkAttendance = React.lazy(() => import('./pages/Teacher/BulkAttendance'));
+const ResourceLocker = React.lazy(() => import('./pages/Teacher/ResourceLocker'));
+const QuestionBank = React.lazy(() => import('./pages/Teacher/QuestionBank'));
 // const AcademicYears = React.lazy(() => import('./pages/schooladmin/AcademicYears'));
 // const Admissions = React.lazy(() => import('./pages/schooladmin/Admissions'));
 
@@ -255,6 +260,11 @@ function AppRoutes() {
             <Route path="behavior-log" element={<BehaviorLog />} />
             <Route path="meetings" element={<PTMMeetings />} />
             <Route path="noticeboard" element={<ClassNoticeboard />} />
+            <Route path="announcements" element={<TeacherAnnouncements />} />
+            <Route path="notifications" element={<TeacherNotifications />} />
+            <Route path="bulk-attendance" element={<BulkAttendance />} />
+            <Route path="resources" element={<ResourceLocker />} />
+            <Route path="question-bank" element={<QuestionBank />} />
           </Route>
 
           {/* Parent Panel */}

@@ -17,6 +17,8 @@ const Payroll = require('../models/payroll.model');
 const LessonPlan = require('../models/lessonPlan.model');
 const BehaviorLog = require('../models/behaviorLog.model');
 const Meeting = require('../models/meeting.model');
+const ResourceLocker = require('../models/resourceLocker.model');
+const QuestionBank = require('../models/questionBank.model');
 const bcrypt = require('bcrypt');
 
 // Helper to get teacher record by user ID
@@ -411,6 +413,36 @@ exports.getAssignmentSubmissions = async (req, res) => {
         res.json(submissions);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
+
+// Messaging / Noticeboard ──────────────────────────────────────────────────────────
+exports.sendMessage = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const newMessage = new Message({
+            ...req.body,
+            sender: req.user._id,
+            schoolId: teacher.schoolId._id
+        });
+        await newMessage.save();
+        res.status(201).json({ message: 'Communication broadcasted successfully', data: newMessage });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.fetchMyMessages = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const messages = await Message.find({
+            $or: [
+                { sender: req.user._id },
+                { receiver: req.user._id },
+                { targetRole: 'Teacher', schoolId: teacher.schoolId._id },
+                { type: 'Announcement', schoolId: teacher.schoolId._id }
+            ]
+        }).sort({ createdAt: -1 });
+        res.json(messages);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 
 exports.gradeSubmission = async (req, res) => {
     try {
@@ -877,6 +909,13 @@ exports.updateLessonPlan = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.deleteLessonPlan = async (req, res) => {
+    try {
+        await LessonPlan.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Pedagogical directive DELETED successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // 22. Behavior / Discipline Log ────────────────────────────────────────────────
 exports.logBehavior = async (req, res) => {
     try {
@@ -907,7 +946,8 @@ exports.scheduleMeeting = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         const meeting = new Meeting({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
         await meeting.save();
-        res.status(201).json({ message: 'Temporal assessment protocol SYNCHRONIZED' });
+        const populated = await meeting.populate('studentId', 'firstName lastName');
+        res.status(201).json({ message: 'Temporal assessment protocol SYNCHRONIZED', meeting: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -919,7 +959,118 @@ exports.getMeetings = async (req, res) => {
             .sort({ date: 1, startTime: 1 });
         res.json(meetings);
     } catch (err) { res.status(500).json({ message: err.message }); }
-};  
+};
+
+exports.updateMeeting = async (req, res) => {
+    try {
+        await Meeting.findByIdAndUpdate(req.params.id, req.body);
+        res.json({ message: 'Synchronized meeting temporal data' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteMeeting = async (req, res) => {
+    try {
+        await Meeting.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Temporal assessment protocol DELETED' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+
+// Digital Resource Locker ────────────────────────────────────────────────────────
+exports.uploadResource = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const resource = new ResourceLocker({
+            ...req.body,
+            teacherId: teacher._id,
+            schoolId: teacher.schoolId._id,
+        });
+        if (req.file) {
+            resource.fileUrl = req.file.location || req.file.path;
+        }
+        await resource.save();
+        res.status(201).json({ message: 'Resource archived successfully', resource });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getResources = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const resources = await ResourceLocker.find({ teacherId: teacher._id })
+            .populate('classSection', 'sectionLabel gradeLevel')
+            .populate('subject', 'name')
+            .sort({ uploadDate: -1 });
+        res.json(resources);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteResource = async (req, res) => {
+    try {
+        await ResourceLocker.findByIdAndDelete(req.params.id);
+        res.json({ message: 'Resource expunged successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// Question Bank ────────────────────────────────────────────────────────────────
+exports.addQuestion = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const question = new QuestionBank({
+            ...req.body,
+            teacherId: teacher._id,
+            schoolId: teacher.schoolId._id
+        });
+        await question.save();
+        res.status(201).json({ message: 'Evaluation node recorded successfully', question });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getQuestions = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const { subjectId, classLevel } = req.query;
+        let query = { teacherId: teacher._id };
+        if (subjectId) query.subject = subjectId;
+        if (classLevel) query.classLevel = classLevel;
+
+        const questions = await QuestionBank.find(query)
+            .populate('subject', 'name')
+            .sort({ createdAt: -1 });
+        res.json(questions);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.generateExam = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const { subject, classLevel, totalMarks } = req.body;
+        
+        const questions = await QuestionBank.find({
+            teacherId: teacher._id,
+            subject,
+            classLevel
+        });
+
+        // Simple random generation logic
+        let examPaper = [];
+        let currentMarks = 0;
+        const shuffled = questions.sort(() => 0.5 - Math.random());
+        
+        for (let q of shuffled) {
+            if (currentMarks + q.marks <= totalMarks) {
+                examPaper.push(q);
+                currentMarks += q.marks;
+            }
+            if (currentMarks >= totalMarks) break;
+        }
+
+        res.json({ 
+            message: 'Academic assessment generation complete', 
+            examPaper,
+            totalMarks: currentMarks 
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
 
 module.exports = {
     getTeacherDashboard: exports.getTeacherDashboard,
@@ -944,6 +1095,7 @@ module.exports = {
     updateProfile: exports.updateProfile,
     changePassword: exports.changePassword,
     sendMessage: exports.sendMessage,
+    fetchMyMessages: exports.fetchMyMessages,
     getMyPayroll: exports.getMyPayroll,
     getStudentFeeStatus: exports.getStudentFeeStatus,
     getPerformanceAnalytics: exports.getPerformanceAnalytics,
@@ -955,9 +1107,18 @@ module.exports = {
     getLessonPlans: exports.getLessonPlans,
     createLessonPlan: exports.createLessonPlan,
     updateLessonPlan: exports.updateLessonPlan,
+    deleteLessonPlan: exports.deleteLessonPlan,
     logBehavior: exports.logBehavior,
     getBehaviorLogs: exports.getBehaviorLogs,
     scheduleMeeting: exports.scheduleMeeting,
-    getMeetings: exports.getMeetings
+    getMeetings: exports.getMeetings,
+    updateMeeting: exports.updateMeeting,
+    deleteMeeting: exports.deleteMeeting,
+    uploadResource: exports.uploadResource,
+    getResources: exports.getResources,
+    deleteResource: exports.deleteResource,
+    addQuestion: exports.addQuestion,
+    getQuestions: exports.getQuestions,
+    generateExam: exports.generateExam
 };
 
