@@ -35,7 +35,7 @@ const CertificateHub = () => {
         window.print();
     };
 
-    const verifyUrl = selectedEntity ? `${window.location.protocol}//${window.location.host}/verify/${tab === 'students' ? 'student' : 'teacher'}/${selectedEntity._id}` : '';
+    const verifyUrl = selectedEntity ? `${window.location.protocol}//${window.location.host}/verify/${tab === 'students' ? 'student' : 'teacher'}/${selectedEntity._id}?doc=${docType}` : '';
 
     return (
         <div className="space-y-6">
