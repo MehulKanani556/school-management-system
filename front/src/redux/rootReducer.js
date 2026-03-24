@@ -13,6 +13,7 @@ import superAdminReducer from './slice/superAdmin.slice';
 import accountantReducer from './slice/accountant.slice';
 import librarianReducer from './slice/librarian.slice';
 import transportReducer from './slice/transport.slice';
+import verificationReducer from "./slice/verification.slice";
 
 const rootReducer = combineReducers({
     auth: authReducer,
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
     accountant: accountantReducer,
     librarian: librarianReducer,
     transport: transportReducer,
+    verification: verificationReducer,
 });
 
 export default rootReducer;

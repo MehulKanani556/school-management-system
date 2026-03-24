@@ -5,9 +5,16 @@ import { Bell, X, Check, Trash2, ExternalLink, Info, Award, Calendar, AlertCircl
 import { markRead, markAllRead } from '../redux/slice/notification.slice';
 import { Link } from 'react-router-dom';
 
-const NotificationPanel = ({ isOpen, onClose }) => {
+const NotificationPanel = ({ isOpen, onClose, role }) => {
     const dispatch = useDispatch();
     const { items, unreadCount, loading } = useSelector((state) => state.notifications);
+
+    const getFullViewLink = () => {
+        if (role === 'SchoolAdmin') return '/school-admin/notifications';
+        if (role === 'Parent') return '/parent/notifications';
+        if (role === 'Student') return '/student/notifications';
+        return '#';
+    };
 
     const getTypeIcon = (type) => {
         switch (type) {
@@ -104,9 +111,13 @@ const NotificationPanel = ({ isOpen, onClose }) => {
                         </div>
 
                         <footer className="p-4 border-t border-brand-border/60 bg-brand-background/40">
-                            <button className="w-full py-3 rounded-md bg-brand-surface text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:bg-brand-background hover:text-white transition-all border border-brand-border shadow-xl active:scale-95">
+                            <Link 
+                                to={getFullViewLink()}
+                                onClick={onClose}
+                                className="w-full flex items-center justify-center py-3 rounded-md bg-brand-surface text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:bg-brand-background hover:text-white transition-all border border-brand-border shadow-xl active:scale-95"
+                            >
                                 View Full Intelligence Registry
-                            </button>
+                            </Link>
                         </footer>
                     </motion.div>
                 </>

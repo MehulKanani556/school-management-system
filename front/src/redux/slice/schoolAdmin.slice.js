@@ -13,6 +13,24 @@ const asyncGet = (name, path) =>
     }
   });
 
+const post = (name, path) =>
+  createAsyncThunk(name, async (data, { rejectWithValue }) => {
+    try { const res = await axiosInstance.post(`${BASE}${path}`, data); return res.data; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+  });
+
+const put = (name, path) =>
+  createAsyncThunk(name, async ({ id, data }, { rejectWithValue }) => {
+    try { const res = await axiosInstance.put(`${BASE}${path}/${id}`, data); return res.data; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+  });
+
+const del = (name, path) =>
+  createAsyncThunk(name, async (id, { rejectWithValue }) => {
+    try { const res = await axiosInstance.delete(`${BASE}${path}/${id}`); return { id, ...res.data }; }
+    catch (e) { return rejectWithValue(e.response?.data); }
+  });
+
 export const fetchDashboard = asyncGet('sa/dashboard', '/dashboard');
 export const fetchStudents = asyncGet('sa/students', '/students');
 export const fetchTeachers = asyncGet('sa/teachers', '/teachers');
@@ -28,6 +46,12 @@ export const fetchAttendanceAnalytics = asyncGet('sa/attendanceAnalytics', '/att
 export const fetchAttendanceAlerts = asyncGet('sa/attendanceAlerts', '/attendance-alerts');
 export const fetchSchoolPerformance = asyncGet('sa/performance', '/reports/performance');
 export const fetchFeeReport = asyncGet('sa/feeReportStatus', '/reports/fees');
+export const fetchStudentDetail = createAsyncThunk('sa/studentDetail', async (id, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.get(`${BASE}/students/${id}`);
+    return res.data;
+  } catch (e) { return rejectWithValue(e.response?.data); }
+});
 
 export const exportFeeReport = createAsyncThunk('sa/exportFeeReport', async (_, { rejectWithValue }) => {
   try {
@@ -64,6 +88,13 @@ export const fetchTimetable = createAsyncThunk('sa/timetable', async (classId, {
 });
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
+export const generateBulkPayroll = post('sa/generateBulkPayroll', '/payroll/bulk');
+export const fetchStaffAttendance = createAsyncThunk('sa/fetchStaffAttendance', async (date, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get(`${BASE}/staff-attendance`, { params: { date } }); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const saveStaffAttendance = post('sa/saveStaffAttendance', '/staff-attendance');
+export const fetchAssignmentsOverview = asyncGet('sa/fetchAssignmentsOverview', '/assignments');
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
 export const fetchReviews = asyncGet('sa/reviews', '/reviews');
 export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', async (id, { rejectWithValue }) => {
@@ -91,23 +122,7 @@ export const changeAdminPassword = createAsyncThunk('sa/changePassword', async (
 
 
 
-const post = (name, path) =>
-  createAsyncThunk(name, async (data, { rejectWithValue }) => {
-    try { const res = await axiosInstance.post(`${BASE}${path}`, data); return res.data; }
-    catch (e) { return rejectWithValue(e.response?.data); }
-  });
 
-const put = (name, path) =>
-  createAsyncThunk(name, async ({ id, data }, { rejectWithValue }) => {
-    try { const res = await axiosInstance.put(`${BASE}${path}/${id}`, data); return res.data; }
-    catch (e) { return rejectWithValue(e.response?.data); }
-  });
-
-const del = (name, path) =>
-  createAsyncThunk(name, async (id, { rejectWithValue }) => {
-    try { const res = await axiosInstance.delete(`${BASE}${path}/${id}`); return { id, ...res.data }; }
-    catch (e) { return rejectWithValue(e.response?.data); }
-  });
 
 export const createStudent = post('sa/createStudent', '/students');
 export const updateStudent = put('sa/updateStudent', '/students');
@@ -149,6 +164,7 @@ export const deleteExam = del('sa/deleteExam', '/exams');
 
 export const saveAttendance = post('sa/saveAttendance', '/attendance');
 export const saveTimetable = post('sa/saveTimetable', '/timetable');
+export const deleteTimetable = del('sa/deleteTimetable', '/timetable');
 
 export const fetchHolidays = createAsyncThunk('sa/fetchHolidays', async (_, { rejectWithValue }) => {
   try { const res = await axiosInstance.get('/holidays'); return res.data; }
@@ -259,9 +275,10 @@ const initialState = {
   attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
   schoolPerformance: null, feeReport: null,
   holidays: [], timetable: null, timetables: [],
-  payroll: [], leaves: [], reviews: [],timetableTemplates: [],
+  payroll: [], staffAttendance: [], assignments: [], leaves: [], reviews: [],timetableTemplates: [],
   examAnalytics: null,
   feeSummary: null,
+  studentDetail: null,
   schoolProfile: null,
   academicYears: [], announcements: [], admissions: [], notices: [],
   loading: false, error: null, message: null
@@ -305,6 +322,7 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchTimetable.fulfilled, (state, a) => { state.timetable = a.payload; state.loading = false; })
       .addCase(fetchAllTimetables.fulfilled, handleList('timetables'))
       .addCase(fetchTimetableTemplates.fulfilled, handleList('timetableTemplates'))
+      .addCase(fetchStudentDetail.fulfilled, (state, a) => { state.studentDetail = a.payload; state.loading = false; })
       // create
       .addCase(createStudent.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
@@ -462,6 +480,12 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchFeeSummary.fulfilled, (state, a) => { state.feeSummary = a.payload; state.loading = false; })
       .addCase(sendFeeReminders.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Reminders dispatched"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
+      .addCase(deleteTimetable.fulfilled, (state, a) => { 
+        state.timetables = state.timetables.filter(t => t._id !== a.payload.id);
+        if (state.timetable?._id === a.payload.id) state.timetable = null;
+        state.loading = false; 
+        state.message = a.payload.message || "Timetable purged"; 
+      })
       .addCase(toggleExamPublishStatus.fulfilled, (state, a) => { 
         const exam = state.exams.find(e => e._id === a.payload.id);
         if (exam) exam.isPublished = a.payload.isPublished;
@@ -471,6 +495,10 @@ const schoolAdminSlice = createSlice({
 
       // Payroll
       .addCase(fetchPayroll.fulfilled, handleList('payroll'))
+      .addCase(generateBulkPayroll.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(fetchStaffAttendance.fulfilled, handleList('staffAttendance'))
+      .addCase(saveStaffAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(fetchAssignmentsOverview.fulfilled, handleList('assignments'))
       .addCase(createPayroll.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
         state.payroll.push(item);
@@ -614,16 +642,16 @@ const schoolAdminSlice = createSlice({
     // pending/rejected for all
     [
       fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, 
-      fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts,
+      fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts, fetchStaffAttendance,
       fetchSchoolPerformance, fetchFeeReport, exportFeeReport, exportAttendanceReport,
       fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
-      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,fetchTimetableTemplates,createTimetableTemplate,updateTimetableTemplate, deleteTimetableTemplate,
-      saveAttendance, toggleTeacherStatus, applyFeeStructure,
+      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,fetchTimetableTemplates,createTimetableTemplate,updateTimetableTemplate, deleteTimetableTemplate, deleteTimetable,
+      saveAttendance, saveStaffAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
-      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard,        
-      fetchFeeSummary, sendFeeReminders,
+      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,       
+      fetchFeeSummary, sendFeeReminders, generateBulkPayroll,
       fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,
       fetchAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear,
       fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,

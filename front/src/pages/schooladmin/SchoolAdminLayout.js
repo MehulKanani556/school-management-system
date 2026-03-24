@@ -6,7 +6,10 @@ import {
   LayoutDashboard, Users, BookOpen, GraduationCap,
   Calendar, MessageSquare, Menu, Bell, LogOut, ChevronDown, ChevronRight, User, Settings,
   ClipboardList, BookMarked, Globe, CreditCard, Shield, Clock, Trash2, Megaphone, Activity, DollarSign,
-  Layout, PhoneIncoming, UserPlus, CalendarCheck, Brain, Banknote, Rocket, CalendarDays, BarChart3
+  Layout, PhoneIncoming, UserPlus, CalendarCheck, Brain, Banknote, Rocket, CalendarDays, BarChart3,
+  FileText,
+  ShieldCheck,
+  Award
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -40,9 +43,10 @@ const navItems = [
     icon: ClipboardList,
     children: [
         { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance Log' },
-      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Attendance' },
-      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Matrix' },
-      { to: '/school-admin/holidays', icon: Calendar, label: 'Institutional Breaks' },
+      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Analytics' },
+      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Ledger' },
+      { to: '/school-admin/assignments', icon: FileText, label: 'Assignment Intel' },
+      { to: '/school-admin/holidays', icon: Calendar, label: 'Sector Breaks' },
     ]
   },
   {
@@ -57,15 +61,24 @@ const navItems = [
     label: 'Staff Core',
     icon: Rocket,
     children: [
-      { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Personnel List' },
+      { to: '/school-admin/staff-attendance', icon: CalendarCheck, label: 'Attendance Registry' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
       { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
+    ]
+  },
+  {
+    label: 'Credential Hub',
+    icon: ShieldCheck,
+    children: [
+      { to: '/school-admin/certificate-hub', icon: Award, label: 'Identity & Credits' },
     ]
   },
   {
     label: 'Communications',
     icon: MessageSquare,
     children: [
+      { to: '/school-admin/notifications', icon: Bell, label: 'Signal Inbox' },
       { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Pulse Broadcast' },
       { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
       { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },

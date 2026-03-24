@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll } from '../../redux/slice/schoolAdmin.slice';
+import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Zap, AlertCircle, TrendingUp } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { format } from 'date-fns';
+import moment from 'moment';
 
 const validationSchema = Yup.object({
   teacherId: Yup.string().required('Teacher is required'),
@@ -42,8 +43,11 @@ const Payroll = () => {
   const dispatch = useDispatch();
   const { payroll, teachers, loading, error } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
+  const [bulkModal, setBulkModal] = useState(false);
   const [editing, setEditing] = useState(null);
+  const [bulkValues, setBulkValues] = useState({ month: moment().month() + 1, year: moment().year(), bonusPercent: 0 });
   const [search, setSearch] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
@@ -51,6 +55,14 @@ const Payroll = () => {
     dispatch(fetchPayroll());
     dispatch(fetchTeachers());
   }, [dispatch]);
+
+  const handleBulkGenerate = async () => {
+    const res = await dispatch(generateBulkPayroll(bulkValues));
+    if (generateBulkPayroll.fulfilled.match(res)) {
+      setBulkModal(false);
+      dispatch(fetchPayroll());
+    }
+  };
 
   const formik = useFormik({
     initialValues: emptyValues,
@@ -114,13 +126,62 @@ const Payroll = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Payroll Tracking</h1>
-          <p className="text-slate-400 text-sm mt-1">{payroll.length} salary records managed</p>
+          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Payroll Node</h1>
+          <p className="text-slate-400 text-sm mt-1">Institutional workforce financial registry</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-blue-600/20">
-          <Plus size={18} /> Add Record
-        </button>
+        <div className="flex gap-4">
+            <button onClick={() => setBulkModal(true)} className="flex items-center gap-2 px-6 py-3.5 bg-indigo-500/10 hover:bg-indigo-500 rounded-md font-black text-xs uppercase tracking-widest transition-all border border-indigo-500/20 text-indigo-400 hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+                <Zap size={18} /> Bulk Generation
+            </button>
+            <button onClick={openAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] text-white">
+                <Plus size={18} /> Push Entry
+            </button>
+        </div>
       </div>
+
+      {/* Bulk Generation Modal */}
+      <Modal open={bulkModal} onClose={() => setBulkModal(false)} title="Bulk Payroll Generation Pulse">
+          <div className="space-y-6 p-2">
+              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-md p-6 flex items-start gap-4">
+                  <AlertCircle className="text-indigo-400 shrink-0 mt-1" size={20} />
+                  <div className="space-y-2">
+                      <p className="text-xs font-black text-white uppercase tracking-widest">Protocol Intelligence</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed font-bold">This operation will calculate net yields for all active personnel based on attendance deltas and base salary parameters. Existing records for this month will be bypassed.</p>
+                  </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-5">
+                  <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Month</label>
+                      <select value={bulkValues.month} onChange={(e) => setBulkValues({...bulkValues, month: parseInt(e.target.value)})}
+                          className="w-full bg-slate-900 border border-brand-border/40 py-4 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none cursor-pointer">
+                          {moment.months().map((m, i) => <option key={i} value={i+1} className="bg-slate-900">{m}</option>)}
+                      </select>
+                  </div>
+                  <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Year</label>
+                      <select value={bulkValues.year} onChange={(e) => setBulkValues({...bulkValues, year: parseInt(e.target.value)})}
+                          className="w-full bg-slate-900 border border-brand-border/40 py-4 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none cursor-pointer">
+                          {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y} className="bg-slate-900">{y}</option>)}
+                      </select>
+                  </div>
+              </div>
+
+              <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Global Bonus Increment (%)</label>
+                  <div className="relative">
+                      <TrendingUp className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+                      <input type="number" value={bulkValues.bonusPercent} onChange={(e) => setBulkValues({...bulkValues, bonusPercent: parseFloat(e.target.value)})}
+                          className="w-full bg-slate-900 border border-brand-border/40 py-4 pl-14 pr-6 rounded-md text-white font-bold outline-none focus:border-brand-primary" />
+                  </div>
+              </div>
+
+              <button onClick={handleBulkGenerate} disabled={loading}
+                  className="w-full py-5 bg-indigo-500 hover:bg-indigo-600 rounded-md font-black text-[13px] uppercase tracking-[0.3em] transition-all font-outfit mt-4 shadow-[0_0_30px_rgba(99,102,241,0.3)] text-white">
+                  {loading ? 'CALCULATING DELTA...' : 'INITIALIZE GENERATION'}
+              </button>
+          </div>
+      </Modal>
 
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
@@ -171,7 +232,7 @@ const Payroll = () => {
                 <td className="px-6 py-5">
                   <div className="flex gap-2">
                     <button onClick={() => openEdit(p)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
-                    <button onClick={() => dispatch(deletePayroll(p._id))} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
+                    <button onClick={() => setDeleteTarget(p)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
                 </td>
               </motion.tr>
@@ -302,6 +363,22 @@ const Payroll = () => {
             <Banknote size={16} /> {loading ? 'Processing...' : editing ? 'Update Record' : 'Generate Payroll'}
           </button>
         </form>
+      </Modal>
+      {/* Delete Confirmation Modal */}
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Decommission Payroll Record" maxWidth="max-w-sm">
+        <div className="space-y-6 text-center">
+          <div className="w-20 h-20 rounded-md bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
+            <Trash2 size={32} className="text-rose-500" />
+          </div>
+          <div className="space-y-2">
+            <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">Confirm Deletion</h4>
+            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-widest">Are you sure you want to purge the payroll record for <span className="text-white">{deleteTarget?.teacherId?.firstName} {deleteTarget?.teacherId?.lastName}</span> ({months[(deleteTarget?.month || 1) - 1]} {deleteTarget?.year})?</p>
+          </div>
+          <div className="flex gap-4 pt-4">
+            <button onClick={() => setDeleteTarget(null)} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Abort</button>
+            <button onClick={() => { dispatch(deletePayroll(deleteTarget._id)); setDeleteTarget(null); }} className="flex-1 py-4 bg-rose-500 hover:bg-rose-600 rounded-md text-[10px] font-black uppercase tracking-widest text-white transition-all shadow-lg shadow-rose-500/20">Purge Node</button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

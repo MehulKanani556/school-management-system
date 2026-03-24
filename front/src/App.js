@@ -8,6 +8,7 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { Loader2 } from 'lucide-react';
 import Auth from './pages/auth/Auth';
 import Home from './pages/Home';
+import VerificationPage from './pages/public/VerificationPage';
 
 // Layouts
 import SchoolAdminLayout from './pages/schooladmin/SchoolAdminLayout';
@@ -22,6 +23,10 @@ import TransporterLayout from './pages/Transporter/TransporterLayout';
 // School Admin Pages
 import Dashboard from './pages/schooladmin/Dashboard';
 import Students from './pages/schooladmin/Students';
+import StudentDetail from './pages/schooladmin/StudentDetail';
+import StaffAttendance from './pages/schooladmin/StaffAttendance';
+import AssignmentOverview from './pages/schooladmin/AssignmentOverview';
+import CertificateHub from './pages/schooladmin/CertificateHub';
 import Teachers from './pages/schooladmin/Teachers';
 import Classes from './pages/schooladmin/Classes';
 import Fees from './pages/schooladmin/Fees';
@@ -39,6 +44,7 @@ import SchoolProfile from './pages/schooladmin/SchoolProfiles';
 import StaffRegistry from './pages/schooladmin/StaffRegistry';
 import AcademicYears from './pages/schooladmin/AcademicYear';
 import Admissions from './pages/schooladmin/Admissions';
+import Notifications from './pages/schooladmin/Notifications';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -187,6 +193,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/login" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
           <Route path="/signup" element={!isAuthenticated ? <Auth /> : <Navigate to="/" />} />
+          <Route path="/verify/:type/:id" element={<VerificationPage />} />
           <Route path="/maintenance" element={<Maintenance />} />
           <Route path="/" element={<HomeRedirect />} />
 
@@ -266,10 +273,14 @@ function AppRoutes() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
+            <Route path="students/:id" element={<StudentDetail />} />
+            <Route path="staff-attendance" element={<StaffAttendance />} />
             <Route path="teachers" element={<Teachers />} />
             <Route path="classes" element={<Classes />} />
             <Route path="fees" element={<Fees />} />
             <Route path="exams" element={<Exams />} />
+            <Route path="certificate-hub" element={<CertificateHub />} />
+            <Route path="assignments" element={<AssignmentOverview />} />
             <Route path="attendance" element={<Attendance />} />
             <Route path="attendance-intelligence" element={<AttendanceAnalytics />} />
             <Route path="subjects" element={<Subjects />} />
@@ -284,6 +295,7 @@ function AppRoutes() {
             <Route path="holidays" element={<Holidays />} />
             <Route path="academic-years" element={<AcademicYears />} />
             <Route path="admissions" element={<Admissions />} />
+            <Route path="notifications" element={<Notifications />} />
           </Route>
 
           {/* Super Admin Panel */}

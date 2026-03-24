@@ -36,6 +36,9 @@ router.post('/verify', verifyOtp);
 router.post('/change-password', changePassword);
 router.post('/generatenewtoken', auth, generateNewToken);
 
+// Public Verification
+router.get('/public/verify/:type/:id', sa.verifyEntity);
+
 // user
 router.get('/notifications', auth, nc.getNotifications);
 router.put('/notifications/:id/read', auth, nc.markAsRead);
@@ -59,6 +62,7 @@ router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
 router.get('/school-admin/export-students', ...schoolAdmin, sa.exportStudents);
 router.post('/school-admin/import-students', ...schoolAdmin, localUpload.single('file'), sa.importStudents);
 router.post('/school-admin/promote-students', ...schoolAdmin, sa.promoteStudents);
+router.get('/school-admin/students/:id', ...schoolAdmin, sa.getStudentDetail);
 router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generateReportCard);
 
 // Teachers
@@ -147,6 +151,7 @@ router.get('/school-admin/reports/fees-export', ...schoolAdmin, sa.exportFeeRepo
 router.get('/school-admin/timetables', ...schoolAdmin, tbc.getAllTimetables);
 router.get('/school-admin/timetable/:classId', ...schoolAdmin, tbc.getTimetableByClass);
 router.post('/school-admin/timetable', ...schoolAdmin, tbc.upsertTimetable);
+router.delete('/school-admin/timetable/:timetableId', ...schoolAdmin, tbc.deleteTimetable);
 router.get('/school-admin/school-profile', ...schoolAdmin, sa.getSchoolProfile);
 router.put('/school-admin/school-profile', ...schoolAdmin, upload.single('logo'), sa.updateSchoolProfile);
 router.post('/school-admin/change-password', ...schoolAdmin, sa.changeAdminPassword);
@@ -162,10 +167,16 @@ router.delete('/school-admin/timetable-templates/:id', ...schoolAdmin, ttc.delet
 // Payroll
 router.get('/school-admin/payroll', ...schoolAdmin, sa.getAllPayroll);
 router.post('/school-admin/payroll', ...schoolAdmin, sa.createPayroll);
+router.post('/school-admin/payroll/bulk', ...schoolAdmin, sa.generateBulkPayroll);
 router.put('/school-admin/payroll/:id', ...schoolAdmin, sa.updatePayroll);
 router.delete('/school-admin/payroll/:id', ...schoolAdmin, sa.deletePayroll);
 
+// Staff Attendance
+router.get('/school-admin/staff-attendance', ...schoolAdmin, sa.getStaffAttendance);
+router.post('/school-admin/staff-attendance', ...schoolAdmin, sa.saveStaffAttendance);
+
 // Leaves
+router.get('/school-admin/assignments', ...schoolAdmin, sa.getAllAssignments);
 router.get('/school-admin/leaves', ...schoolAdmin, sa.getAllLeaves);
 router.put('/school-admin/leaves/:id', ...schoolAdmin, sa.updateLeaveStatus);
 

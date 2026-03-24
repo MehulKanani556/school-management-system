@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, fetchAllTimetables, clearError, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate } from '../../redux/slice/schoolAdmin.slice';
+import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, deleteTimetable, fetchAllTimetables, clearError, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -235,6 +235,15 @@ const AdminTimetable = () => {
             .catch((err) => toast.error(err.message || 'Synchronization failed'));
     };
 
+    const handleDeleteTimetable = (id) => {
+        if (window.confirm('Delete this entire class timetable? This cannot be undone.')) {
+            dispatch(deleteTimetable(id))
+                .unwrap()
+                .then(() => toast.success('Timetable record purged from registry'))
+                .catch((err) => toast.error(err.message || 'Purge failed'));
+        }
+    };
+
     const getExistingTimetable = (classId) => {
         return timetables.find(t => t.classSection?._id === classId || t.classSection === classId);
     };
@@ -377,10 +386,19 @@ const AdminTimetable = () => {
                                                 <td className="px-10 py-8">
                                                     <div className="text-[12px] font-black text-slate-300 font-outfit italic">{periodCount} <span className="text-slate-600 text-[10px] ml-1 uppercase">Sequences</span></div>
                                                 </td>
-                                                <td className="px-10 py-8 text-right">
+                                                <td className="px-10 py-8 text-right flex items-center justify-end gap-3">
+                                                    {tt && (
+                                                        <button 
+                                                            onClick={() => handleDeleteTimetable(tt._id)}
+                                                            className="p-3 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
+                                                            title="Purge Record"
+                                                        >
+                                                            <Trash2 size={16} />
+                                                        </button>
+                                                    )}
                                                     <button 
                                                         onClick={() => { setSelectedClass(cls._id); setViewMode('editor'); }}
-                                                        className="h-12 px-8 rounded-md border border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all flex items-center justify-center gap-3 float-right group/btn"
+                                                        className="h-12 px-8 rounded-md border border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all flex items-center justify-center gap-3 group/btn"
                                                     >
                                                         {tt ? 'Modify' : 'Initialize'}
                                                         <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />

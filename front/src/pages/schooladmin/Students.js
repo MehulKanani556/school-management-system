@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft, Eye } from 'lucide-react';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
 
@@ -38,6 +39,7 @@ const Err = ({ touched, error }) =>
 
 const Students = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -359,6 +361,8 @@ const Students = () => {
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex gap-2">
+                          <button onClick={() => navigate(`/school-admin/students/${s._id}`)}
+                            className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="View Profile"><Eye size={15} /></button>
                           <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
                             className="p-2 rounded-md hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
                           <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>

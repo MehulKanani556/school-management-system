@@ -129,3 +129,18 @@ exports.getAllTimetables = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// 5. Admin: Delete a specific class timetable
+exports.deleteTimetable = async (req, res) => {
+    try {
+        const { timetableId } = req.params;
+        const schoolId = req.user.schoolId._id || req.user.schoolId;
+
+        const timetable = await Timetable.findOneAndDelete({ _id: timetableId, schoolId });
+        if (!timetable) return res.status(404).json({ message: 'Timetable node not found or unauthorized' });
+
+        res.json({ message: 'Timetable purged successfully' });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

@@ -15,6 +15,9 @@ const Payroll = require('../models/payroll.model');
 const Leave = require('../models/leave.model');
 const Review = require('../models/review.model');
 const School = require('../models/school.model');
+const Assignment = require('../models/assignment.model');
+const Submission = require('../models/submission.model');
+const StaffAttendance = require('../models/staffAttendance.model');
 const { sendFeeReminderMail } = require('../utils/mail');
 const nc = require('./notification.controller');
 const bcrypt = require('bcrypt');
@@ -449,6 +452,65 @@ exports.deleteStudent = async (req, res) => {
       { deletedAt: new Date(), isActive: false }
     );
     res.json({ message: 'Student record deleted' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getStudentDetail = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const student = await Student.findOne({ _id: id, schoolId }).populate('classSection standard');
+    if (!student) return res.status(404).json({ message: 'Student node not found' });
+
+    // 1. Attendance (Last 90 days)
+    const ninetyDaysAgo = new Date();
+    ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
+    const attendance = await Attendance.find({
+      schoolId,
+      ...(student.classSection?._id && { classSection: student.classSection._id }),
+      date: { $gte: ninetyDaysAgo },
+      'records.studentId': id
+    }).select('date records');
+
+    const attendanceSummary = attendance.map(a => ({
+      date: a.date,
+      status: a.records.find(r => r.studentId.toString() === id)?.status || 'N/A'
+    }));
+
+    // 2. Exam Marks
+    const marks = await Mark.find({ schoolId, studentId: id })
+      .populate({
+        path: 'examId',
+        populate: { path: 'subject', select: 'name' }
+      });
+
+    const examSummary = marks.map(m => ({
+      title: m.examId?.title || 'Assessment',
+      subject: m.examId?.subject?.name || 'Subject',
+      maxMarks: m.examId?.maxMarks || 100,
+      score: m.marksObtained,
+      remarks: m.remarks
+    }));
+
+    // 3. Fee Payments
+    const fees = await FeePayment.find({ schoolId, studentId: id }).sort({ dueDate: -1 });
+
+    // 4. Assignments Submissions
+    const submissions = await Submission.find({ studentId: id })
+      .populate({
+        path: 'assignmentId',
+        select: 'title subject dueDate',
+        populate: { path: 'createdBy', select: 'firstName lastName' }
+      });
+
+    res.json({
+      student,
+      attendance: attendanceSummary,
+      exams: examSummary,
+      fees,
+      submissions
+    });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1602,6 +1664,149 @@ exports.deletePayroll = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+// --- Staff Attendance ---
+
+exports.getStaffAttendance = async (req, res) => {
+  try {
+    const { date } = req.query;
+    const schoolId = getSchoolId(req);
+    const targetDate = date ? new Date(new Date(date).setHours(0,0,0,0)) : new Date(new Date().setHours(0,0,0,0));
+
+    // Get all active teachers
+    const teachers = await Teacher.find({ schoolId, isActive: true }).select('firstName lastName employeeId photo');
+    
+    // Get attendance for this date
+    const attendance = await StaffAttendance.find({ schoolId, date: targetDate });
+
+    const combined = teachers.map(t => {
+      const att = attendance.find(a => a.teacherId.toString() === t._id.toString());
+      return {
+        _id: t._id,
+        firstName: t.firstName,
+        lastName: t.lastName,
+        employeeId: t.employeeId,
+        photo: t.photo,
+        status: att?.status || 'N/A',
+        arrivalTime: att?.arrivalTime || '',
+        departureTime: att?.departureTime || '',
+        isLate: att?.isLate || false,
+        remarks: att?.remarks || ''
+      };
+    });
+
+    res.json(combined);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.saveStaffAttendance = async (req, res) => {
+  try {
+    const { records, date } = req.body; // records: [{ teacherId, status, arrivalTime, ... }]
+    const schoolId = getSchoolId(req);
+    const targetDate = date ? new Date(new Date(date).setHours(0,0,0,0)) : new Date(new Date().setHours(0,0,0,0));
+
+    const ops = records.map(r => ({
+      updateOne: {
+        filter: { schoolId, teacherId: r.teacherId, date: targetDate },
+        update: { ...r, schoolId, date: targetDate },
+        upsert: true
+      }
+    }));
+
+    await StaffAttendance.bulkWrite(ops);
+    res.json({ message: 'Staff attendance registry updated' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// --- Bulk Payroll Generation ---
+
+exports.generateBulkPayroll = async (req, res) => {
+  try {
+    const { month, year, bonusPercent = 0 } = req.body;
+    const schoolId = getSchoolId(req);
+
+    const teachers = await Teacher.find({ schoolId, isActive: true });
+    
+    // 1. Get attendance summary for the month
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0);
+
+    const attendance = await StaffAttendance.find({
+      schoolId,
+      date: { $gte: start, $lte: end }
+    });
+
+    const payrolls = [];
+    for (const t of teachers) {
+      // Basic check: Skip if already exists
+      const exists = await Payroll.findOne({ schoolId, teacherId: t._id, month, year });
+      if (exists) continue;
+
+      const tAttendance = attendance.filter(a => a.teacherId.toString() === t._id.toString());
+      const absentCount = tAttendance.filter(a => a.status === 'Absent').length;
+      
+      const basicSalary = t.baseSalary || 0;
+      const dailyRate = basicSalary / 30;
+      const deductions = dailyRate * absentCount;
+      const bonus = (basicSalary * bonusPercent) / 100;
+      const netSalary = basicSalary + bonus - deductions;
+
+      payrolls.push({
+        schoolId,
+        teacherId: t._id,
+        month,
+        year,
+        basicSalary,
+        bonus,
+        deductions,
+        netSalary,
+        status: 'unpaid',
+        submittedBy: req.user._id
+      });
+    }
+
+    if (payrolls.length > 0) {
+      await Payroll.insertMany(payrolls);
+    }
+
+    res.json({ 
+      message: `${payrolls.length} Payroll entries pushed to global node pipeline`, 
+      count: payrolls.length 
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// --- Assignments Overview ---
+
+exports.getAllAssignments = async (req, res) => {
+  try {
+    const schoolId = getSchoolId(req);
+    const assignments = await Assignment.find({ schoolId })
+      .populate('classSection', 'sectionLabel')
+      .populate('createdBy', 'firstName lastName')
+      .lean();
+
+    // Aggregate submissions per assignment
+    const enriched = await Promise.all(assignments.map(async (a) => {
+      const submissions = await Submission.find({ assignmentId: a._id });
+      const totalStudents = await Student.countDocuments({ 
+        schoolId, 
+        classSection: a.classSection?._id, 
+        isActive: true 
+      });
+
+      return {
+        ...a,
+        submissionCount: submissions.length,
+        totalPotential: totalStudents,
+        gradedCount: submissions.filter(s => s.status === 'Graded').length,
+        lateCount: submissions.filter(s => s.status === 'Late').length
+      };
+    }));
+
+    res.json(enriched);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Leave Management ─────────────────────────────────────────────────────────
 exports.getAllLeaves = async (req, res) => {
   try {
@@ -2056,3 +2261,27 @@ exports.changeAdminPassword = async (req, res) => {
 
 
 
+
+// --- Public Verification ---
+exports.verifyEntity = async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    let data = null;
+
+    if (type === 'student') {
+      data = await Student.findOne({ _id: id, deletedAt: null, isActive: true })
+        .populate('standard', 'level name')
+        .populate('classSection', 'sectionLabel')
+        .populate('schoolId', 'name logo address')
+        .select('firstName lastName admissionNumber photo status gender dateOfBirth guardianName createdAt');
+    } else if (type === 'teacher') {
+      data = await Teacher.findOne({ _id: id, deletedAt: null, isActive: true })
+        .populate('schoolId', 'name logo address')
+        .select('firstName lastName employeeId photo qualifications joiningDate email phone');
+    }
+
+    if (!data) return res.status(444).json({ success: false, message: 'Identity node not found or deactivated' });
+
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, message: err.message }); }
+};

@@ -28,6 +28,15 @@ export const markAllRead = createAsyncThunk('notifications/markAllRead', async (
     }
 });
 
+export const deleteNotification = createAsyncThunk('notifications/delete', async (id, { rejectWithValue }) => {
+    try {
+        await axiosInstance.delete(`/notifications/${id}`);
+        return id;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const notificationSlice = createSlice({
     name: 'notifications',
     initialState: {
@@ -64,6 +73,14 @@ const notificationSlice = createSlice({
             .addCase(markAllRead.fulfilled, (state) => {
                 state.items.forEach(n => n.isRead = true);
                 state.unreadCount = 0;
+            })
+            .addCase(deleteNotification.fulfilled, (state, action) => {
+                const deletedId = action.payload;
+                const notif = state.items.find(n => n._id === deletedId);
+                if (notif && !notif.isRead) {
+                    state.unreadCount = Math.max(0, state.unreadCount - 1);
+                }
+                state.items = state.items.filter(n => n._id !== deletedId);
             });
     }
 });

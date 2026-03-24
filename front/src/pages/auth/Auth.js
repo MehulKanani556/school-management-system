@@ -113,10 +113,10 @@ const Auth = () => {
                         </div>
 
                         <div className="space-y-4 text-left">
-                            <div className="flex justify-between items-center ml-2">
+                            {/* <div className="flex justify-between items-center ml-2">
                                 <label className="text-xs text-slate-400 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Security Hash</label>
                                 <Link to="/forgot-password" size="sm" className={`text-[11px] text-${getThemeColor()} hover:opacity-80 font-black uppercase tracking-widest italic outline-none hover:underline decoration-2 underline-offset-4 transition-all`}>Lost Key?</Link>
-                            </div>
+                            </div> */}
                             <div className="relative group">
                                 <div className={`absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none text-slate-500 group-focus-within:text-${getThemeColor()} transition-colors`}>
                                     <Lock size={22} />
