@@ -14,11 +14,20 @@ const LibrarianDashboard = () => {
 
     const { books, records, history, loading } = useSelector((state) => state.librarian);
 
+    const estimatedFines = records.reduce((sum, r) => {
+        if (r.status === 'issued' && new Date() > new Date(r.dueDate)) {
+            const daysOverdue = Math.floor((new Date() - new Date(r.dueDate)) / (1000 * 60 * 60 * 24));
+            return sum + (daysOverdue * 5);
+        }
+        return sum + (r.fine || 0);
+    }, 0);
+
     const stats = [
         { label: 'Archived Knowledge', value: books.length, icon: Library, color: 'text-indigo-400' },
         { label: 'Active Circulation', value: records.filter(r => r.status === 'issued').length, icon: BookOpen, color: 'text-emerald-400' },
-        { label: 'Overdue Threads', value: records.filter(r => r.status === 'overdue').length, icon: AlertCircle, color: 'text-red-400' },
-        { label: 'Total Matrix Syncs', value: history.length, icon: Clock, color: 'text-amber-400' },
+        { label: 'Overdue Threads', value: records.filter(r => r.status === 'overdue' || (r.status==='issued' && new Date() > new Date(r.dueDate))).length, icon: AlertCircle, color: 'text-amber-400' },
+        { label: 'Pending Fines', value: estimatedFines > 0 ? `₹${estimatedFines}` : '₹0', icon: AlertCircle, color: 'text-red-400' },
+        { label: 'Total Syncs', value: history.length, icon: Clock, color: 'text-slate-400' },
     ];
 
     return (
@@ -28,7 +37,7 @@ const LibrarianDashboard = () => {
                 <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Knowledge lifecycle visualization control.</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {stats.map((stat, idx) => (
                     <div key={idx} className="bg-neutral-900 p-8 rounded-md border border-slate-800/60 relative overflow-hidden group hover:border-indigo-600/30 transition-all duration-300 shadow-xl">
                         <div className="flex justify-between items-start mb-8">

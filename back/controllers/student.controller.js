@@ -8,6 +8,8 @@ const Submission = require('../models/submission.model');
 const FeePayment = require('../models/feePayment.model');
 const Exam = require('../models/exam.model');
 const School = require('../models/school.model');
+const Book = require('../models/book.model');
+const BookReservation = require('../models/bookReservation.model');
 const nc = require('./notification.controller');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
@@ -384,5 +386,45 @@ exports.downloadFeeReceipt = async (req, res) => {
         doc.fontSize(8).fillColor('#94a3b8').text('© School Operations Network 2026 // Synchronized Ledger Entry', 0, 800, { align: 'center', width: 595 });
 
         doc.end();
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 14. Library Access
+exports.getLibraryBooks = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const books = await Book.find({ schoolId: student.schoolId._id }).sort({ title: 1 });
+        res.json(books);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.reserveBook = async (req, res) => {
+    try {
+        const { bookId } = req.body;
+        const student = await getStudent(req.user._id);
+        
+        const book = await Book.findById(bookId);
+        if (!book) return res.status(404).json({ message: 'Book not found' });
+        
+        const existing = await BookReservation.findOne({ schoolId: student.schoolId._id, bookId, studentId: student._id, status: 'pending' });
+        if (existing) return res.status(400).json({ message: 'You already have a pending reservation for this book' });
+
+        const reservation = await BookReservation.create({
+            schoolId: student.schoolId._id,
+            bookId,
+            studentId: student._id
+        });
+
+        res.status(201).json({ message: 'Reservation placed successfully', data: reservation });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getMyReservations = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const reservations = await BookReservation.find({ studentId: student._id })
+            .populate('bookId', 'title category author')
+            .sort({ requestDate: -1 });
+        res.json(reservations);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

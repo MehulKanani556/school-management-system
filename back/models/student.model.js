@@ -23,7 +23,15 @@ const studentSchema = new mongoose.Schema({
   password: { type: String },
   isActive: { type: Boolean, default: true },
   deletedAt: { type: Date, default: null },
-}, { timestamps: true });
+}, { 
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
+});
+
+studentSchema.virtual('role').get(function() {
+  return 'Student';
+});
 
 // Auto-generate admissionNumber in format: ADM-2024-001
 studentSchema.pre('save', async function (next) {

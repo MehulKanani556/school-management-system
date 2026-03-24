@@ -83,6 +83,7 @@ import NotificationsStudent from './pages/Student/Notifications';
 import AnnouncementsStudent from './pages/Student/Announcements';
 import MessagesStudent from './pages/Student/Messages';
 import ExamsStudent from './pages/Student/Exams';
+import LibraryStudent from './pages/Student/Library';
 
 // Parent Pages
 import ParentDashboard from './pages/Parent/ParentDashboard';
@@ -158,6 +159,11 @@ const BookCategories = React.lazy(() => import('./pages/Librarian/BookCategories
 const CirculationHistory = React.lazy(() => import('./pages/Librarian/CirculationHistory'));
 const MemberRegistry = React.lazy(() => import('./pages/Librarian/MemberRegistry'));
 const LibrarianMessages = React.lazy(() => import('./pages/Librarian/LibrarianMessages'));
+const LibrarianProfile = React.lazy(() => import('./pages/Librarian/Profile'));
+const LibrarianNotifications = React.lazy(() => import('./pages/Librarian/LibrarianNotifications'));
+const LibrarianHolidays = React.lazy(() => import('./pages/Librarian/LibrarianHolidays'));
+const LibrarianAnnouncements = React.lazy(() => import('./pages/Librarian/LibrarianAnnouncements'));
+const LibrarianReservations = React.lazy(() => import('./pages/Librarian/Reservations'));
 
 // Transporter Pages
 const TransporterDashboard = React.lazy(() => import('./pages/Transporter/TransporterDashboard'));
@@ -231,6 +237,7 @@ function AppRoutes() {
             <Route path="announcements" element={<AnnouncementsStudent />} />
             <Route path="messages" element={<MessagesStudent />} />
             <Route path="exams" element={<ExamsStudent />} />
+            <Route path="library" element={<LibraryStudent />} />
           </Route>
 
           {/* Teacher Panel */}
@@ -370,6 +377,11 @@ function AppRoutes() {
             <Route path="history" element={<CirculationHistory />} />
             <Route path="students" element={<MemberRegistry />} />
             <Route path="messages" element={<LibrarianMessages />} />
+            <Route path="profile" element={<LibrarianProfile />} />
+            <Route path="notifications" element={<LibrarianNotifications />} />
+            <Route path="holidays" element={<LibrarianHolidays />} />
+            <Route path="announcements" element={<LibrarianAnnouncements />} />
+            <Route path="reservations" element={<LibrarianReservations />} />
           </Route>
 
           {/* Transporter Panel */}

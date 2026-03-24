@@ -324,6 +324,9 @@ router.get('/student/report-card', ...student, stc.downloadReportCard);
 router.get('/student/fees/:feeId/receipt', ...student, stc.downloadFeeReceipt);
 router.post('/student/change-password', ...student, stc.changePassword);
 router.get('/student/timetable', ...student, tbc.getStudentTimetable);
+router.get('/student/library/books', ...student, stc.getLibraryBooks);
+router.post('/student/library/reserve', ...student, stc.reserveBook);
+router.get('/student/library/reservations', ...student, stc.getMyReservations);
 
 // ─── Parent Routes ─────────────────────────────────────────────────────────
 const parent = [auth, requireRole('Parent')];
@@ -410,8 +413,8 @@ router.get('/accountant/audit-logs', ...accountant, ac.getAuditLogs);
 const librarian = [auth, requireRole('Librarian')];
 
 router.get('/librarian/books', ...librarian, lc.getBooks);
-router.post('/librarian/books', ...librarian, lc.addBook);
-router.put('/librarian/books/:id', ...librarian, lc.updateBook);
+router.post('/librarian/books', ...librarian, upload.single('bookFile'), lc.addBook);
+router.put('/librarian/books/:id', ...librarian, upload.single('bookFile'), lc.updateBook);
 router.delete('/librarian/books/:id', ...librarian, lc.deleteBook);
 router.post('/librarian/issue', ...librarian, lc.issueBook);
 router.put('/librarian/return/:id', ...librarian, lc.returnBook);
@@ -421,6 +424,11 @@ router.get('/librarian/borrowers', ...librarian, lc.getBorrowers);
 router.get('/librarian/categories', ...librarian, lc.getCategories);
 router.put('/librarian/renew/:id', ...librarian, lc.renewBook);
 router.put('/librarian/fine/:id', ...librarian, lc.collectFine);
+router.get('/librarian/profile', ...librarian, lc.getProfile);
+router.put('/librarian/profile', ...librarian, upload.single('photo'), lc.updateProfile);
+router.post('/librarian/change-password', ...librarian, lc.changePassword);
+router.get('/librarian/reservations', ...librarian, lc.getReservations);
+router.put('/librarian/reservations/:id/status', ...librarian, lc.updateReservationStatus);
 
 // ─── Transport Routes ──────────────────────────────────────────────────────────
 const transportManager = [auth, requireRole('Transport_Manager')];

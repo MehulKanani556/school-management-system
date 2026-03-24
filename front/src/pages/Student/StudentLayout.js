@@ -3,7 +3,7 @@ import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-do
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
-  LayoutDashboard, BookOpen, CalendarCheck, ClipboardList,
+  LayoutDashboard, BookOpen, CalendarCheck, ClipboardList, Book,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked,
   Clock, Calendar, Bell, LogOut, ChevronDown, CalendarDays, Brain, Globe, CreditCard,
   Award, Download, Megaphone,GraduationCap
@@ -42,6 +42,13 @@ const navItems = [
     icon: CreditCard,
     children: [
       { to: '/student/fees', icon: CreditCard, label: 'Financial Ledger' },
+    ]
+  },
+  {
+    label: 'Library Access',
+    icon: Book,
+    children: [
+      { to: '/student/library', icon: Book, label: 'Digital Library' },
     ]
   },
   {

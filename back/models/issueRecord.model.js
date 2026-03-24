@@ -4,7 +4,8 @@ const issueRecordSchema = new mongoose.Schema(
   {
     schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
     bookId: { type: mongoose.Schema.Types.ObjectId, ref: 'Book', required: true },
-    borrowerId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    borrowerId: { type: mongoose.Schema.Types.ObjectId, refPath: 'borrowerModel', required: true },
+    borrowerModel: { type: String, required: true, enum: ['User', 'Student'], default: 'User' },
     issueDate: { type: Date, required: true },
     dueDate: { type: Date, required: true },
     returnDate: { type: Date },

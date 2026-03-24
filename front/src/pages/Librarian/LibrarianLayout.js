@@ -18,9 +18,12 @@ const navItems = [
   { to: '/librarian/inventory', icon: Book, label: 'Asset Ledger' },
   { to: '/librarian/records', icon: Clock, label: 'Active Threads' },
   { to: '/librarian/categories', icon: Library, label: 'Categorical Matrix' },
+  { to: '/librarian/reservations', icon: BookOpen, label: 'Volume Waitlist' },
   { to: '/librarian/history', icon: BookMarked, label: 'Circulation Archive' },
   { to: '/librarian/students', icon: Users, label: 'Member Registry' },
   { to: '/librarian/messages', icon: MessageSquare, label: 'Archive Comm' },
+  { to: '/librarian/announcements', icon: Bell, label: 'Directives' },
+  { to: '/librarian/holidays', icon: Calendar, label: 'Term Pauses' },
 ];
 
 const LibrarianLayout = () => {

@@ -3,6 +3,9 @@ const IssueRecord = require('../models/issueRecord.model');
 const User = require('../models/user.model');
 const Student = require('../models/student.model');
 const mongoose = require('mongoose');
+const FeePayment = require('../models/feePayment.model');
+const BookReservation = require('../models/bookReservation.model');
+const bcrypt = require('bcrypt');
 
 const getSchoolId = (req) => req.user.schoolId;
 
@@ -16,16 +19,21 @@ exports.getBooks = async (req, res) => {
 
 exports.addBook = async (req, res) => {
     try {
-        const book = await Book.create({ ...req.body, schoolId: getSchoolId(req) });
+        const bookData = { ...req.body, schoolId: getSchoolId(req) };
+        if (req.file) bookData.fileUrl = req.file.location;
+        const book = await Book.create(bookData);
         res.status(201).json({ message: 'Book added successfully', data: book });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateBook = async (req, res) => {
     try {
+        const updateData = { ...req.body };
+        if (req.file) updateData.fileUrl = req.file.location;
+        
         const book = await Book.findOneAndUpdate(
             { _id: req.params.id, schoolId: getSchoolId(req) },
-            req.body, { new: true }
+            updateData, { new: true }
         );
         if (!book) return res.status(404).json({ message: 'Book not found' });
         res.json({ message: 'Book updated successfully', data: book });
@@ -44,7 +52,7 @@ exports.issueBook = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { bookId, borrowerId, dueDate } = req.body;
+        const { bookId, borrowerId, borrowerModel, dueDate } = req.body;
         const schoolId = getSchoolId(req);
 
         const book = await Book.findOne({ _id: bookId, schoolId }).session(session);
@@ -52,7 +60,7 @@ exports.issueBook = async (req, res) => {
         if (book.availableCopies <= 0) throw new Error('No copies available');
 
         const record = await IssueRecord.create([{
-            schoolId, bookId, borrowerId, issueDate: new Date(), dueDate, status: 'issued'
+            schoolId, bookId, borrowerId, borrowerModel: borrowerModel || 'User', issueDate: new Date(), dueDate, status: 'issued'
         }], { session });
 
         book.availableCopies -= 1;
@@ -87,10 +95,31 @@ exports.returnBook = async (req, res) => {
         record.returnDate = new Date();
         record.status = 'returned';
         
-        // Calculate fine (example: 1 per day overdue)
+        // Calculate fine (example: 5 per day overdue)
         if (record.returnDate > record.dueDate) {
             const daysOverdue = Math.floor((record.returnDate - record.dueDate) / (1000 * 60 * 60 * 24));
             record.fine = daysOverdue * 5; 
+            
+            // Inject fine into student Fees module ONLY if borrower is a student
+            if (record.fine > 0 && record.borrowerModel === 'Student') {
+                // Determine Academic Year roughly based on current date
+                const currentYear = new Date().getFullYear();
+                const nextYear = currentYear + 1;
+                const academicYear = `${currentYear}-${nextYear}`;
+
+                await FeePayment.create([{
+                    schoolId: getSchoolId(req),
+                    studentId: record.borrowerId,
+                    amount: record.fine,
+                    totalAmount: record.fine,
+                    paidAmount: 0,
+                    category: 'Library Fine',
+                    status: 'pending',
+                    dueDate: record.returnDate,
+                    academicYear: academicYear,
+                    submittedBy: req.user._id
+                }], { session });
+            }
         }
 
         await record.save({ session });
@@ -156,11 +185,31 @@ exports.getHistory = async (req, res) => {
 exports.getBorrowers = async (req, res) => {
     try {
         const schoolId = getSchoolId(req);
-        const users = await User.find({ 
+        
+        // Fetch teachers/staff from User model
+        const teachers = await User.find({ 
             schoolId, 
-            role: { $in: ['Student', 'Teacher'] } 
+            role: 'Teacher'
         }).select('firstName lastName email role photo');
-        res.json(users);
+
+        // Fetch students from Student model
+        const students = await Student.find({ 
+            schoolId, 
+            deletedAt: null 
+        }).select('firstName lastName email photo admissionNumber').lean();
+
+        // Merge and format
+        const borrowers = [
+            ...teachers.map(t => ({ ...t.toObject(), model: 'User' })),
+            ...students.map(s => ({
+                ...s,
+                role: 'Student',
+                model: 'Student',
+                lastName: s.lastName + ` (${s.admissionNumber})`
+            }))
+        ];
+
+        res.json(borrowers);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -202,5 +251,70 @@ exports.collectFine = async (req, res) => {
             { new: true }
         );
         res.json({ message: `Fine status updated to ${status} protocol`, data: record });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Profile Management ───────────────────────────────────────────────────────
+exports.getProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        if (!user) return res.status(404).json({ message: 'Librarian profile not found' });
+        res.json(user);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateProfile = async (req, res) => {
+    try {
+        const { firstName, lastName, phone } = req.body;
+        const updateData = { firstName, lastName, phone };
+        
+        if (req.file) updateData.photo = req.file.location;
+
+        const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).select('-password');
+        res.json({ message: 'Profile updated successfully', data: user });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.changePassword = async (req, res) => {
+    try {
+        const { oldPassword, newPassword } = req.body;
+        const user = await User.findById(req.user._id);
+
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Incorrect old password' });
+
+        user.password = await bcrypt.hash(newPassword, 10);
+        await user.save();
+
+        res.json({ message: 'Security credentials updated successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// ─── Reservation/Waitlist Management ──────────────────────────────────────────
+exports.getReservations = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const reservations = await BookReservation.find({ schoolId })
+            .populate('bookId', 'title isbn category availableCopies')
+            .populate('studentId', 'firstName lastName email photo role')
+            .sort({ requestDate: -1 });
+        res.json(reservations);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateReservationStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const reservation = await BookReservation.findOneAndUpdate(
+            { _id: id, schoolId },
+            { status },
+            { new: true }
+        ).populate('bookId', 'title').populate('studentId', 'firstName lastName');
+
+        if (!reservation) return res.status(404).json({ message: 'Reservation not found' });
+        res.json({ message: `Reservation marked as ${status}`, data: reservation });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

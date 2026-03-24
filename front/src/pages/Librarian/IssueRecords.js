@@ -11,7 +11,12 @@ const IssueRecords = () => {
     const [isIssueOpen, setIsIssueOpen] = React.useState(false);
     const [searchTerm, setSearchTerm] = React.useState('');
     const [borrowerSearch, setBorrowerSearch] = React.useState('');
-    const [formData, setFormData] = React.useState({ bookId: '', borrowerId: '', dueDate: moment().add(14, 'days').format('YYYY-MM-DD') });
+    const [formData, setFormData] = React.useState({ 
+        bookId: '', 
+        borrowerId: '', 
+        borrowerModel: 'User', 
+        dueDate: moment().add(14, 'days').format('YYYY-MM-DD') 
+    });
 
     useEffect(() => {
         dispatch(fetchRecordsSlice());
@@ -182,7 +187,11 @@ const IssueRecords = () => {
                                                         key={b._id}
                                                         type="button"
                                                         onClick={() => {
-                                                            setFormData({...formData, borrowerId: b._id});
+                                                            setFormData({
+                                                                ...formData, 
+                                                                borrowerId: b._id, 
+                                                                borrowerModel: b.model || 'User'
+                                                            });
                                                             setBorrowerSearch(`${b.firstName} ${b.lastName}`);
                                                         }}
                                                         className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase italic transition-all flex items-center justify-between ${formData.borrowerId === b._id ? 'bg-amber-600/20 text-amber-500' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'}`}
