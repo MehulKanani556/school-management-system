@@ -15,7 +15,7 @@ const Sidebar = () => {
     const { user } = useSelector(s => s.auth);
 
     const menuItems = [
-        { icon: LayoutDashboard, label: 'Control Center', path: '/superadmin/dashboard' },
+        { icon: LayoutDashboard, label: 'Control Center', path: '/superadmin' },
         { icon: Globe, label: 'Institution Nodes', path: '/superadmin/schools' },
         { icon: Activity, label: 'Global Analytics', path: '/superadmin/analytics' },
         { icon: DollarSign, label: 'Gross Revenue', path: '/superadmin/revenue' },

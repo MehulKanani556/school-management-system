@@ -365,7 +365,6 @@ function AppRoutes() {
             <RoleRoute role="Super_Admin"><SuperAdminDashboard /></RoleRoute>
           }>
             <Route index element={<SuperAdminHome />} />
-            <Route path="dashboard" element={<SuperAdminHome />} />
             <Route path="schools" element={<AllSchools />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="revenue" element={<Revenue />} />
