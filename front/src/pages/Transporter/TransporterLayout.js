@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Truck, Users, MapPin,
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
   LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
-  ClipboardList,
+  ClipboardList, Wrench, Megaphone,
   Settings
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -17,11 +17,16 @@ import toast from 'react-hot-toast';
 
 const navItems = [
   { to: '/transporter', icon: LayoutDashboard, label: 'Transit Deck', end: true },
+  { to: '/transporter/tracking', icon: Navigation, label: 'Fleet Radar' },
   { to: '/transporter/vehicles', icon: Truck, label: 'Fleet Matrix' },
+  { to: '/transporter/Maintenancetransport', icon: Wrench, label: 'Resource Logs' },
   { to: '/transporter/drivers', icon: User, label: 'Personnel Hub' },
   { to: '/transporter/routes', icon: MapPin, label: 'Logistics Map' },
   { to: '/transporter/students', icon: Users, label: 'Transit Registry' },
   { to: '/transporter/logs', icon: ClipboardList, label: 'Transit Logs' },
+  { to: '/transporter/notifications', icon: Bell, label: 'Transit Alerts' },
+  { to: '/transporter/holidays', icon: Calendar, label: 'Temporal Break' },
+  { to: '/transporter/announcements', icon: Megaphone, label: 'Bulletins' },
   { to: '/transporter/messages', icon: MessageSquare, label: 'Transit Comm' },
   { to: '/transporter/profile', icon: Settings, label: 'Core Identity' },
 ];

@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { NavLink } from 'react-router-dom';
 import { fetchVehicles, fetchRoutesSlice, fetchTransportAnalyticsSlice } from '../../redux/slice/transport.slice';
-import { Bus, Navigation, Users, MapPin, Loader2, Activity, Wrench, Wallet, Star } from 'lucide-react';
+import { Bus, Navigation, Users, MapPin, Loader2, Activity, Wrench, Wallet, Star, Fuel, Megaphone } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const TransporterDashboard = () => {
@@ -46,12 +47,12 @@ const TransporterDashboard = () => {
                 ))}
             </div>
             
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-                <div className="xl:col-span-2 bg-neutral-900 border border-slate-800/60 rounded-md p-10 relative group overflow-hidden shadow-2xl">
-                    <div className="absolute inset-0 bg-gradient-to-br from-violet-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+                <div className="xl:col-span-3 bg-neutral-900 border border-slate-800/60 rounded-md p-10 relative group overflow-hidden shadow-2xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-orange-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
                     <div className="relative flex flex-col sm:flex-row items-center gap-10">
                          <div className="w-40 h-40 shrink-0 relative flex items-center justify-center">
-                            <Bus size={64} className="text-violet-600/20 group-hover:scale-110 transition-transform duration-500" />
+                            <Bus size={64} className="text-orange-600/20 group-hover:scale-110 transition-transform duration-500" />
                             <div className="absolute inset-0 border-2 border-slate-800/40 border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
                          </div>
                          <div className="text-center sm:text-left">
@@ -81,11 +82,11 @@ const TransporterDashboard = () => {
 
                 <div className="bg-neutral-900 border border-slate-800/60 rounded-md p-10 shadow-2xl font-outfit">
                     <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest mb-8 flex items-center gap-2">
-                        <Star size={14} className="text-violet-500" /> Operator Index
+                        <Star size={14} className="text-orange-500" /> Operator Index
                     </h3>
                     <div className="space-y-6">
                         <div className="text-center py-6 bg-neutral-950 border border-slate-800 rounded-md">
-                            <p className="text-5xl font-black text-violet-500 italic mb-2 tracking-tighter">{analytics?.operators.avgRating || 0}</p>
+                            <p className="text-5xl font-black text-orange-500 italic mb-2 tracking-tighter">{analytics?.operators.avgRating || 0}</p>
                             <p className="text-[10px] font-black text-slate-600 uppercase italic tracking-widest opacity-60">Composite Fleet Rating</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
@@ -101,6 +102,28 @@ const TransporterDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {[
+                    { to: '/transporter/tracking', label: 'Live Radar', icon: Navigation, desc: 'Real-time GPS nodes', color: 'bg-blue-600' },
+                    { to: '/transporter/Maintenancetransport', label: 'Fuel Ledger', icon: Fuel, desc: 'Resource allocation logs', color: 'bg-orange-600' },
+                    { to: '/transporter/announcements', label: 'Broadcaster', icon: Megaphone, desc: 'Sector-wide directives', color: 'bg-violet-600' },
+                    { to: '/transporter/students', label: 'Bulk Link', icon: Users, desc: 'Mass entity assignment', color: 'bg-emerald-600' }
+                ].map((action, idx) => (
+                    <NavLink key={idx} to={action.to} className="group relative bg-neutral-900 border border-slate-800/60 p-1 rounded-md overflow-hidden hover:border-white/20 transition-all font-outfit h-32 flex">
+                        <div className="bg-neutral-950/40 rounded-md p-6 flex items-center justify-between w-full h-full">
+                            <div className="space-y-2">
+                                <h4 className="text-lg font-black text-white italic uppercase tracking-tighter leading-none group-hover:text-orange-500 transition-colors">{action.label}</h4>
+                                <p className="text-[9px] font-bold text-slate-600 uppercase tracking-widest italic">{action.desc}</p>
+                            </div>
+                            <div className={`p-4 rounded-md ${action.color} text-white shadow-xl group-hover:scale-110 transition-transform`}>
+                                <action.icon size={24} />
+                            </div>
+                        </div>
+                    </NavLink>
+                ))}
+            </div>
+
         </motion.div>
     );
 };

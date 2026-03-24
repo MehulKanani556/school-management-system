@@ -162,6 +162,11 @@ const Drivers = React.lazy(() => import('./pages/Transporter/Drivers'));
 const TripLogs = React.lazy(() => import('./pages/Transporter/TripLogs'));
 const TransporterMessages = React.lazy(() => import('./pages/Transporter/Messages'));
 const TransporterProfile = React.lazy(() => import('./pages/Transporter/Profile'));
+const TransporterNotifications = React.lazy(() => import('./pages/Transporter/Notifications'));
+const TransporterHolidays = React.lazy(() => import('./pages/Transporter/Holidays'));
+const TransporterAnnouncements = React.lazy(() => import('./pages/Transporter/Announcements'));
+const Maintenancetransport = React.lazy(() => import('./pages/Transporter/Maintenance'));
+const Tracking = React.lazy(() => import('./pages/Transporter/Tracking'));
 
 const { store, persistor } = configureStore();
 
@@ -366,6 +371,11 @@ function AppRoutes() {
             <Route path="students" element={<StudentAssignment />} />
             <Route path="drivers" element={<Drivers />} />
             <Route path="logs" element={<TripLogs />} />
+            <Route path="Maintenancetransport" element={<Maintenancetransport />} />
+            <Route path="tracking" element={<Tracking />} />
+            <Route path="notifications" element={<TransporterNotifications />} />
+            <Route path="holidays" element={<TransporterHolidays />} />
+            <Route path="announcements" element={<TransporterAnnouncements />} />
             <Route path="messages" element={<TransporterMessages />} />
             <Route path="profile" element={<TransporterProfile />} />
           </Route>

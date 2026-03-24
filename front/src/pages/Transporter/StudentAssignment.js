@@ -110,6 +110,32 @@ const StudentAssignment = () => {
                         >
                             <Users size={14} /> bulk link
                         </button>
+                        <label className="px-6 py-4 bg-blue-600/10 border border-blue-600/30 text-blue-500 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
+                            <Plus size={14} /> Import CSV
+                            <input 
+                                type="file" 
+                                accept=".csv" 
+                                className="hidden" 
+                                onChange={(e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const reader = new FileReader();
+                                        reader.onload = (evt) => {
+                                            const text = evt.target.result;
+                                            const lines = text.split('\n');
+                                            const studentIds = lines.slice(1).map(l => l.split(',')[0].trim()).filter(id => id);
+                                            if (studentIds.length > 0) {
+                                                setBulkData({...bulkData}); // ensure we have some data
+                                                setSelectedStudents(studentIds);
+                                                setIsBulkOpen(true);
+                                                toast.success(`${studentIds.length} nodes extracted from temporal file.`);
+                                            }
+                                        };
+                                        reader.readAsText(file);
+                                    }
+                                }} 
+                            />
+                        </label>
                     </div>
                 </div>
             </div>

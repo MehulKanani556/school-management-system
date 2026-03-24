@@ -160,6 +160,73 @@ exports.addMaintenanceRecord = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.addFuelLog = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { date, fuelQuantity, cost, odometerReading, notes } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOne({ _id: id, schoolId });
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle unit not found' });
+
+        vehicle.fuelLogs.push({
+            date: date || new Date(),
+            fuelQuantity,
+            cost,
+            odometerReading,
+            notes
+        });
+        
+        await vehicle.save();
+        res.json({ message: 'Fuel allocation logged', data: vehicle });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.addInsuranceRenewal = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { renewalDate, expiryDate, amount, policyNumber, provider } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOne({ _id: id, schoolId });
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle unit not found' });
+
+        vehicle.insuranceRenewals.push({
+            renewalDate: renewalDate || new Date(),
+            expiryDate,
+            amount,
+            policyNumber,
+            provider
+        });
+        vehicle.insuranceExpiry = expiryDate;
+        
+        await vehicle.save();
+        res.json({ message: 'Insurance matrix updated', data: vehicle });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateVehicleLocation = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { lat, lng } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOneAndUpdate(
+            { _id: id, schoolId },
+            { 
+                $set: { 
+                    'currentLocation.lat': lat, 
+                    'currentLocation.lng': lng, 
+                    'currentLocation.updatedAt': new Date() 
+                } 
+            },
+            { new: true }
+        );
+        
+        res.json({ message: 'Coordinate uplink successful', data: vehicle });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // Driver CRUD
 exports.getDrivers = async (req, res) => {
     try {

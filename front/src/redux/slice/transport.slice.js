@@ -133,6 +133,42 @@ export const unassignStudentSlice = createAsyncThunk(
     }
 );
 
+export const addFuelLogSlice = createAsyncThunk(
+    'transport/addFuelLog',
+    async ({ id, data }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post(`/transport/vehicles/${id}/fuel-logs`, data);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const addInsuranceRenewalSlice = createAsyncThunk(
+    'transport/addInsuranceRenewal',
+    async ({ id, data }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post(`/transport/vehicles/${id}/insurance-renewals`, data);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const updateVehicleLocationSlice = createAsyncThunk(
+    'transport/updateVehicleLocation',
+    async ({ id, lat, lng }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.patch(`/transport/vehicles/${id}/location`, { lat, lng });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 // Drivers
 export const fetchDriversSlice = createAsyncThunk(
     'transport/fetchDrivers',
@@ -290,8 +326,31 @@ const transportSlice = createSlice({
             })
             .addCase(addMaintenanceSlice.fulfilled, (state, action) => {
                 const index = state.vehicles.findIndex(v => v._id === action.payload._id);
-                if (index !== -1) state.vehicles[index] = action.payload;
+                if (index !== -1) {
+                    state.vehicles[index] = action.payload;
+                }
                 state.message = 'Maintenance record synthesized';
+            })
+            .addCase(addFuelLogSlice.fulfilled, (state, action) => {
+                const index = state.vehicles.findIndex(v => v._id === action.payload._id);
+                if (index !== -1) {
+                    state.vehicles[index] = { ...state.vehicles[index], ...action.payload };
+                }
+                state.message = 'Fuel allocation logged';
+            })
+            .addCase(addInsuranceRenewalSlice.fulfilled, (state, action) => {
+                const index = state.vehicles.findIndex(v => v._id === action.payload._id);
+                if (index !== -1) {
+                    state.vehicles[index] = { ...state.vehicles[index], ...action.payload };
+                }
+                state.message = 'Insurance matrix updated';
+            })
+            .addCase(updateVehicleLocationSlice.fulfilled, (state, action) => {
+                const index = state.vehicles.findIndex(v => v._id === action.payload._id);
+                if (index !== -1) {
+                    state.vehicles[index] = { ...state.vehicles[index], ...action.payload };
+                }
+                // No toast for location updates to avoid spam
             })
             .addCase(deleteVehicleSlice.fulfilled, (state, action) => {
                 state.vehicles = state.vehicles.filter(v => v._id !== action.payload);

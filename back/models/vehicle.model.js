@@ -14,6 +14,25 @@ const vehicleSchema = new mongoose.Schema(
       cost: { type: Number },
       notes: { type: String }
     }],
+    fuelLogs: [{
+      date: { type: Date, default: Date.now },
+      fuelQuantity: { type: Number }, // in liters/gallons
+      cost: { type: Number },
+      odometerReading: { type: Number },
+      notes: { type: String }
+    }],
+    insuranceRenewals: [{
+      renewalDate: { type: Date },
+      expiryDate: { type: Date },
+      amount: { type: Number },
+      policyNumber: { type: String },
+      provider: { type: String }
+    }],
+    currentLocation: {
+      lat: { type: Number },
+      lng: { type: Number },
+      updatedAt: { type: Date }
+    },
     status: { 
       type: String, 
       enum: ['active', 'maintenance', 'inactive'], 
