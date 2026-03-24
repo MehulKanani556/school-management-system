@@ -12,7 +12,7 @@ const ParentNotifications = () => {
         setLoading(true);
         try {
             const res = await axiosInstance.get('/notifications');
-            setNotifications(res.data);
+            setNotifications(res.data.notifications || []);
             setLoading(false);
         } catch (err) {
             console.error(err);

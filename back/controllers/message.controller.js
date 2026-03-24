@@ -106,20 +106,29 @@ exports.sendMessage = async (req, res) => {
     }
 };
 
-// Get all announcements for the school
+// Get all announcements for the school (with role-based filtering)
 exports.getAnnouncements = async (req, res) => {
     try {
-        const announcements = await Message.find({ 
+        const query = { 
             schoolId: req.user.schoolId, 
             type: 'Announcement' 
-        }).populate('sender', 'firstName lastName photo role').sort({ createdAt: -1 });
+        };
+
+        // If not school admin, filter by target role
+        if (!['School_Admin', 'Super_Admin'].includes(req.user.role)) {
+            query.targetRole = { $in: ['All', req.user.role] };
+        }
+
+        const announcements = await Message.find(query)
+            .populate('sender', 'firstName lastName photo role')
+            .sort({ createdAt: -1 });
         res.json(announcements);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
 
-// Get all notices for the school (with class filtering for students)
+// Get all notices for the school (with class filtering for students/parents)
 exports.getNotices = async (req, res) => {
     try {
         const query = { 
@@ -129,14 +138,22 @@ exports.getNotices = async (req, res) => {
 
         // If student, only show school-wide notices or their own class notices
         if (req.user.role === 'Student') {
-            const Student = require('../models/student.model');
             const student = await Student.findOne({ userId: req.user._id });
             if (student) {
                 query.$or = [
-                    { classSection: null }, // School-wide
-                    { classSection: student.classSection } // Specific class
+                    { classSection: null }, 
+                    { classSection: student.classSection }
                 ];
             }
+        } 
+        // If parent, show notices for all children's classes
+        else if (req.user.role === 'Parent') {
+            const children = await Student.find({ parentId: req.user._id });
+            const classIds = children.map(c => c.classSection).filter(id => id);
+            query.$or = [
+                { classSection: null },
+                { classSection: { $in: classIds } }
+            ];
         }
 
         const notices = await Message.find(query)

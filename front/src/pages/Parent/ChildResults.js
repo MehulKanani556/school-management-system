@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchChildResults } from '../../redux/slice/parent.slice';
+import { fetchChildResults, downloadReportCard } from '../../redux/slice/parent.slice';
 import { motion } from 'framer-motion';
 import { Trophy, ChevronRight, Target, Activity, FileText } from 'lucide-react';
+import { BASE_URL } from '../../utils/BASE_URL';
 
 const ChildResults = () => {
     const dispatch = useDispatch();
@@ -31,13 +32,20 @@ const ChildResults = () => {
             className="space-y-8"
         >
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-brand-surface/40 p-10 rounded-md border border-brand-border/40 shadow-2xl backdrop-blur-xl">
-                <div className="space-y-2">
+                <div className="space-y-4">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-luxury-rose rounded-md"></span>
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Outcome Node</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Academic Outcomes</h1>
                     <p className="text-slate-500 font-medium text-sm tracking-wide">Standardized assessment logs for <span className="text-white font-bold">{selectedChild?.firstName}</span></p>
+                    
+                    <button 
+                        onClick={() => dispatch(downloadReportCard({ studentId: selectedChild?._id, name: selectedChild?.firstName }))}
+                        className="flex items-center gap-2 px-6 py-3 bg-slate-900 border border-slate-800 hover:border-luxury-rose/50 text-luxury-rose font-black text-[10px] uppercase tracking-[0.2em] rounded-md transition-all shadow-xl hover:shadow-luxury-rose/10"
+                    >
+                        <FileText size={14} /> Download Analytical Transcript
+                    </button>
                 </div>
 
                 <div className="flex items-center gap-4 bg-black/40 border border-slate-800 p-4 px-8 rounded-md shadow-inner">

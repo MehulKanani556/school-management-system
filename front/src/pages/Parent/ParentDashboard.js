@@ -37,8 +37,8 @@ const ParentDashboard = () => {
                 axiosInstance.get('/announcements'),
                 selectedChild?._id ? axiosInstance.get(`/parent/child/${selectedChild._id}/timetable`) : Promise.resolve({ data: null })
             ]);
-            setNotifications(nRes.data);
-            setAnnouncements(aRes.data);
+            setNotifications(nRes.data?.notifications || []);
+            setAnnouncements(Array.isArray(aRes.data) ? aRes.data : []);
             setTimetable(tRes.data);
         } catch (err) {
             console.error('Snapshot sync failed');
@@ -147,7 +147,7 @@ const ParentDashboard = () => {
                 <StatCard 
                     icon={Bell} 
                     label="Notifications" 
-                    value={notifications.filter(n => !n.isRead).length.toString().padStart(2, '0')}
+                    value={notifications?.filter(n => !n.isRead).length.toString().padStart(2, '0')}
                     subtext="Unread institutional alerts"
                     color="text-amber-400"
                 />

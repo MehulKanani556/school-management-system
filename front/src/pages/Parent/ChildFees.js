@@ -171,9 +171,9 @@ const ChildFees = () => {
                                                      {s === 'paid' ? (
                                                          <button 
                                                              onClick={() => handleDownload(fee._id, fee.category)}
-                                                             className="p-3 bg-slate-900 hover:bg-luxury-rose hover:text-white border border-slate-800 rounded-md transition-all text-slate-500 shadow-xl"
+                                                             className="flex items-center gap-2 px-4 py-3 bg-slate-900 hover:bg-luxury-rose hover:text-white border border-slate-800 rounded-md transition-all text-slate-500 shadow-xl"
                                                          >
-                                                             <Download size={18} />
+                                                             <Download size={16} /> <span className="text-[9px] font-black uppercase tracking-widest hidden sm:block">Receipt</span>
                                                          </button>
                                                      ) : (
                                                          <button 
