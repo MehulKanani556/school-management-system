@@ -55,7 +55,7 @@ const schoolAdmin = [auth, requireRole('School_Admin')];
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
 // Students
-router.get('/school-admin/students', ...schoolAdmin, sa.getStudents);
+router.get('/school-admin/students', auth, requireRole('School_Admin', 'Transport_Manager', 'Teacher', 'Accountant'), sa.getStudents);
 router.post('/school-admin/students', ...schoolAdmin, upload.single('photo'), sa.createStudent);
 router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'), sa.updateStudent);
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);

@@ -14,6 +14,7 @@ const assignedStudentSchema = new mongoose.Schema(
     studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
     pickupStop: { type: String },
     dropoffStop: { type: String },
+    seatNumber: { type: Number },
   },
   { _id: false }
 );

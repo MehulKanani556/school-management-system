@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoutesSlice, assignStudentSlice, unassignStudentSlice, bulkAssignStudentSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
-import { fetchUsers } from '../../redux/slice/user.slice';
+import { fetchStudents } from '../../redux/slice/schoolAdmin.slice';
 import { Users, Navigation, MapPin, Search, Plus, User, Loader2, X, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -9,17 +9,18 @@ import toast from 'react-hot-toast';
 const StudentAssignment = () => {
     const dispatch = useDispatch();
     const { routes, loading, message, error } = useSelector((state) => state.transport);
-    const { users: students } = useSelector((state) => state.user);
+    const { students } = useSelector((state) => state.schoolAdmin);
     const [isAddOpen, setIsAddOpen] = React.useState(false);
     const [isBulkOpen, setIsBulkOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState('');
     const [selectedStudents, setSelectedStudents] = React.useState([]);
-    const [formData, setFormData] = React.useState({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '' });
-    const [bulkData, setBulkData] = React.useState({ routeId: '', pickupStop: '', dropoffStop: '' });
+    const [formData, setFormData] = React.useState({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
+    const [bulkData, setBulkData] = React.useState({ routeId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
+    const [studentSearch, setStudentSearch] = React.useState('');
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
-        dispatch(fetchUsers());
+        dispatch(fetchStudents());
     }, [dispatch]);
 
     useEffect(() => {
@@ -60,9 +61,53 @@ const StudentAssignment = () => {
         );
     }
 
+    const filteredStudents = students.filter(s => 
+        (
+            `${s.firstName} ${s.lastName}`.toLowerCase().includes(studentSearch.toLowerCase()) ||
+            s.admissionNumber?.toLowerCase().includes(studentSearch.toLowerCase())
+        )
+    );
+
     const handleUnassign = (routeId, studentId) => {
         if (window.confirm('Sever citizen-matrix link? This will remove the student from the route.')) {
             dispatch(unassignStudentSlice({ routeId, studentId }));
+        }
+    }
+
+    const runLogicEngine = () => {
+        const unassignedStudents = studentList.filter(s => 
+            !routes.some(r => r.assignedStudents?.some(as => as.studentId?._id === s._id))
+        );
+
+        if (unassignedStudents.length === 0) {
+            return toast.success('All nodes already synchronized with matrix sectors.');
+        }
+
+        let suggestionsCount = 0;
+        unassignedStudents.forEach(student => {
+            const match = routes.find(r => 
+                r.stops.some(stop => student.address?.toLowerCase().includes(stop.name.toLowerCase()))
+            );
+
+            if (match) {
+                const stop = match.stops.find(s => student.address?.toLowerCase().includes(s.name.toLowerCase()));
+                // For now, we'll just open the modal with this student and route pre-filled
+                setFormData({
+                    studentId: student._id,
+                    routeId: match._id,
+                    pickupStop: stop.name,
+                    dropoffStop: stop.name,
+                    seatNumber: ''
+                });
+                setIsAddOpen(true);
+                suggestionsCount++;
+                toast.success(`Logic match found: ${student.firstName} -> ${match.name}`);
+                return; // just find one for now to keep it simple or we could bulk suggest
+            }
+        });
+
+        if (suggestionsCount === 0) {
+            toast.error('No address matches detected in the grid matrix.');
         }
     }
 
@@ -109,6 +154,12 @@ const StudentAssignment = () => {
                             className="px-6 py-4 bg-neutral-900 border border-slate-800 text-slate-300 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-slate-800 transition-all flex items-center gap-2 leading-none font-outfit h-[42px]"
                         >
                             <Users size={14} /> bulk link
+                        </button>
+                        <button 
+                            onClick={runLogicEngine}
+                            className="px-6 py-4 bg-orange-600/10 border border-orange-600/30 text-orange-500 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-orange-600 hover:text-white transition-all flex items-center gap-2 leading-none font-outfit h-[42px] group"
+                        >
+                            <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> logic engine
                         </button>
                         <label className="px-6 py-4 bg-blue-600/10 border border-blue-600/30 text-blue-500 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-blue-600 hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
                             <Plus size={14} /> Import CSV
@@ -166,6 +217,7 @@ const StudentAssignment = () => {
                                             <div className="flex items-center gap-2 mt-2">
                                                 <MapPin size={10} className="text-emerald-500 opacity-60 flex-shrink-0" />
                                                 <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
+                                                {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-emerald-600/20 px-2 py-0.5 rounded text-emerald-500">SEAT {as.seatNumber}</span>}
                                             </div>
                                         </div>
                                         <button 
@@ -195,15 +247,25 @@ const StudentAssignment = () => {
                                 
                                 <div className="space-y-5">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Identity Node (Citizen)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Identity Node (Citizen)</label>
+                                        <div className="relative group/search">
+                                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within/search:text-emerald-500 transition-colors" size={14} />
+                                            <input 
+                                                type="text"
+                                                placeholder="SCAN CITIZEN HASH (NAME OR ADMISSION)..."
+                                                value={studentSearch}
+                                                onChange={(e) => setStudentSearch(e.target.value)}
+                                                className="w-full bg-neutral-950/50 border border-slate-800 h-10 pl-11 pr-6 rounded-md text-[9px] font-black uppercase tracking-widest text-white outline-none focus:border-emerald-500/50 placeholder:text-slate-800 italic transition-all mb-2"
+                                            />
+                                        </div>
                                         <select 
                                             required
                                             value={formData.studentId}
                                             onChange={(e) => setFormData({...formData, studentId: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 appearance-none"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50 appearance-none h-12"
                                         >
                                             <option value="">Select Citizen Hash...</option>
-                                            {studentList.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
+                                            {filteredStudents.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.admissionNumber || 'UNREGISTERED'})</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -247,14 +309,24 @@ const StudentAssignment = () => {
                                                     {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                 </select>
                                             </div>
+                                            <div className="space-y-2 col-span-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1">Assigned Transit Seat #</label>
+                                                <input 
+                                                    type="number"
+                                                    value={formData.seatNumber}
+                                                    onChange={(e) => setFormData({...formData, seatNumber: e.target.value})}
+                                                    placeholder="Enter Seat ID (Optional)"
+                                                    className="w-full bg-neutral-950 border border-emerald-600/20 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-emerald-600/50"
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>
 
                                 <div className="flex gap-4 pt-4">
                                     <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
-                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all leading-none disabled:opacity-50">
-                                        {loading ? 'Synthesizing...' : 'confirm link'}
+                                    <button type="submit" className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all leading-none disabled:opacity-50">
+                                        {loading ? 'Synthesizing' : 'confirm link'}
                                     </button>
                                 </div>
                             </form>

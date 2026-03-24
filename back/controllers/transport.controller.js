@@ -77,7 +77,7 @@ exports.deleteRoute = async (req, res) => {
 
 exports.assignStudent = async (req, res) => {
     try {
-        const { studentId, pickupStop, dropoffStop } = req.body;
+        const { studentId, pickupStop, dropoffStop, seatNumber } = req.body;
         const schoolId = getSchoolId(req);
         
         const route = await Route.findOne({ _id: req.params.id, schoolId }).populate('vehicleId');
@@ -85,19 +85,25 @@ exports.assignStudent = async (req, res) => {
 
         // Capacity Validation
         if (route.vehicleId && route.assignedStudents.length >= route.vehicleId.capacity) {
-            // Check if student is already assigned (updating)
             const isAlreadyAssigned = route.assignedStudents.some(s => s.studentId.toString() === studentId);
             if (!isAlreadyAssigned) {
                 return res.status(400).json({ message: `Vehicle capacity reached (${route.vehicleId.capacity}). Cannot assign more students.` });
             }
         }
 
-        // Check if student already assigned to this route
+        // Seat Uniqueness Validation
+        if (seatNumber) {
+            const seatTaken = route.assignedStudents.find(s => s.seatNumber === seatNumber && s.studentId.toString() !== studentId);
+            if (seatTaken) return res.status(400).json({ message: `Seat #${seatNumber} is already reserved by another student on this route.` });
+        }
+
         const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
+        const assignmentData = { studentId, pickupStop, dropoffStop, seatNumber };
+        
         if (index !== -1) {
-            route.assignedStudents[index] = { studentId, pickupStop, dropoffStop };
+            route.assignedStudents[index] = assignmentData;
         } else {
-            route.assignedStudents.push({ studentId, pickupStop, dropoffStop });
+            route.assignedStudents.push(assignmentData);
         }
 
         await route.save();
