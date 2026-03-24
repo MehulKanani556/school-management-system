@@ -147,7 +147,7 @@ const ParentDashboard = () => {
                 <StatCard 
                     icon={Bell} 
                     label="Notifications" 
-                    value={notifications?.filter(n => !n.isRead).length.toString().padStart(2, '0')}
+                    value={Array.isArray(notifications) ? notifications.filter(n => !n.isRead).length.toString().padStart(2, '0') : '00'}
                     subtext="Unread institutional alerts"
                     color="text-amber-400"
                 />

@@ -14,7 +14,7 @@ const Notifications = () => {
         setLoading(true);
         try {
             const res = await axiosInstance.get('/notifications');
-            setNotifications(res.data.notifications);
+            setNotifications(res.data.notifications || []);
         } catch (err) {
             toast.error('FAILED TO FETCH SYSTEM ALERTS');
         } finally {

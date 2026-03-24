@@ -343,7 +343,7 @@ exports.getChildTransport = async (req, res) => {
         }).populate('vehicleId').lean();
 
         if (!route) {
-            return res.status(404).json({ message: 'No transport route assigned' });
+            return res.status(200).json(null);
         }
 
         const assignment = route.assignedStudents.find(as => as.studentId.toString() === studentId);
