@@ -135,14 +135,14 @@ const TripLogs = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-amber-500">Transit Logs</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Transit Logs</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Recording spatial displacements and entity attendance.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-neutral-900 p-1 rounded-md border border-slate-800/60 h-[42px]">
-                        <button onClick={() => setFilterType('single')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'single' ? 'bg-amber-600/10 text-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>Snapshot</button>
-                        <button onClick={() => setFilterType('range')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'range' ? 'bg-amber-600/10 text-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>Archive</button>
+                        <button onClick={() => setFilterType('single')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'single' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Snapshot</button>
+                        <button onClick={() => setFilterType('range')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'range' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Archive</button>
                     </div>
 
                     {filterType === 'single' ? (
@@ -150,7 +150,7 @@ const TripLogs = () => {
                             type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic h-[42px]"
+                            className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic h-[42px]"
                         />
                     ) : (
                         <div className="flex items-center gap-2">
@@ -162,7 +162,7 @@ const TripLogs = () => {
 
                     <button
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
-                        className="px-6 py-4 bg-amber-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-amber-600/20 hover:shadow-amber-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px] sm:h-auto"
+                        className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px] sm:h-auto"
                     >
                         <Plus size={14} /> record transit
                     </button>
@@ -171,10 +171,10 @@ const TripLogs = () => {
 
             <div className="grid grid-cols-1 gap-6">
                 {tripLogs.length > 0 ? tripLogs.map((log) => (
-                    <div key={log._id} className="bg-neutral-900 border border-slate-800/60 rounded-md overflow-hidden shadow-2xl group hover:border-amber-600/20 transition-all">
+                    <div key={log._id} className="bg-neutral-900 border border-slate-800/60 rounded-md overflow-hidden shadow-2xl group hover:border-transporter-primary/20 transition-all">
                         <div className="px-8 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                             <div className="flex items-center gap-6">
-                                <div className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase italic tracking-widest border ${log.type === 'Pickup' ? 'bg-amber-600/10 text-amber-500 border-amber-600/20' : 'bg-blue-600/10 text-blue-500 border-blue-600/20'}`}>
+                                <div className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase italic tracking-widest border ${log.type === 'Pickup' ? 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20' : 'bg-blue-600/10 text-blue-500 border-blue-600/20'}`}>
                                     {log.type} SEQUENCE
                                 </div>
                                 <div className="flex flex-col">
@@ -277,7 +277,7 @@ const TripLogs = () => {
                                         <button
                                             type="button"
                                             onClick={() => setFormData({ ...formData, type: 'Pickup' })}
-                                            className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${formData.type === 'Pickup' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
+                                            className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${formData.type === 'Pickup' ? 'bg-transporter-primary text-white' : 'text-slate-500 hover:text-slate-300'}`}
                                         >
                                             Pickup
                                         </button>
@@ -299,7 +299,7 @@ const TripLogs = () => {
                                                 required
                                                 value={formData.routeId}
                                                 onChange={(e) => handleRouteChange(e.target.value)}
-                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-amber-600/50 transition-all leading-none appearance-none"
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary/50 transition-all leading-none appearance-none"
                                             >
                                                 <option value="">Select Vector Matrix...</option>
                                                 {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
@@ -315,7 +315,7 @@ const TripLogs = () => {
 
                                     {formData.attendance.length > 0 && (
                                         <div className="pt-6 border-t border-slate-800/40">
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500 italic mb-6">Entity Attendance Matrix</h4>
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-6">Entity Attendance Matrix</h4>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                                                 {formData.attendance.map((as) => {
                                                     const route = routes.find(r => r._id === formData.routeId);
@@ -348,7 +348,7 @@ const TripLogs = () => {
                                     <button
                                         type="submit"
                                         disabled={!formData.routeId}
-                                        className="flex-1 px-6 py-4 bg-amber-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-amber-700 transition-all shadow-xl shadow-amber-600/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0"
+                                        className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0"
                                     >
                                         commit sequence log
                                     </button>
@@ -372,7 +372,7 @@ const TripLogs = () => {
                                             value={delayReason}
                                             onChange={(e) => setDelayReason(e.target.value)}
                                             placeholder="Specify reason for spatial delay if any..."
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic min-h-[100px]"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic min-h-[100px]"
                                         />
                                     </div>
                                 </div>

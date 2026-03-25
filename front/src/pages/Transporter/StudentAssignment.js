@@ -139,13 +139,13 @@ const StudentAssignment = () => {
                     <div className="flex p-1 bg-neutral-900 border border-slate-800 rounded-md h-[42px] mr-4">
                         <button 
                             onClick={() => setActiveTab('manifest')}
-                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 ${activeTab === 'manifest' ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 ${activeTab === 'manifest' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             <Users size={12} /> Manifest
                         </button>
                         <button 
                             onClick={() => setActiveTab('inquiries')}
-                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-orange-600 text-white shadow-lg shadow-orange-600/20' : 'text-slate-500 hover:text-slate-300'}`}
+                            className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             <Inbox size={12} /> Inquiries
                             {applicants.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] flex items-center justify-center rounded-full border border-black animate-bounce">{applicants.length}</span>}
@@ -177,11 +177,11 @@ const StudentAssignment = () => {
                         </button>
                         <button
                             onClick={runLogicEngine}
-                            className="px-6 py-4 bg-orange-600/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-orange-600 hover:text-white transition-all flex items-center gap-2 leading-none font-outfit h-[42px] group"
+                            className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 leading-none font-outfit h-[42px] group"
                         >
                             <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> logic engine
                         </button>
-                        <label className="px-6 py-4 bg-blue-600/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
+                        <label className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
                             <Plus size={14} /> Import CSV
                             <input
                                 type="file"
@@ -214,10 +214,10 @@ const StudentAssignment = () => {
             {activeTab === 'manifest' ? (
                 <div className="grid grid-cols-1 gap-6">
                     {filteredRoutes.map((route) => (
-                        <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-emerald-600/20 transition-all font-outfit">
+                        <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-transporter-primary/20 transition-all font-outfit">
                             <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
-                                    <Navigation size={18} className="text-emerald-500" />
+                                    <Navigation size={18} className="text-transporter-primary" />
                                     <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Matrix</h3>
                                     <div className="flex items-center gap-3">
                                         <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
@@ -230,7 +230,7 @@ const StudentAssignment = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                     {route.assignedStudents?.map((as, idx) => (
                                         <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-5 flex items-center gap-4 group/card hover:bg-neutral-900 transition-all relative">
-                                            <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover/card:border-emerald-600/40 transition-all">
+                                            <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 group-hover/card:border-transporter-primary/40 transition-all">
                                                 <User size={18} />
                                             </div>
                                             <div className="flex-1 overflow-hidden">
@@ -240,9 +240,9 @@ const StudentAssignment = () => {
                                                     </p>
                                                 </Link>
                                                 <div className="flex items-center gap-2 mt-2">
-                                                    <MapPin size={10} className="text-emerald-500 opacity-60 flex-shrink-0" />
+                                                    <MapPin size={10} className="text-transporter-primary opacity-60 flex-shrink-0" />
                                                     <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
-                                                    {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-emerald-600/20 px-2 py-0.5 rounded text-emerald-500">SEAT {as.seatNumber}</span>}
+                                                    {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-transporter-primary/20 px-2 py-0.5 rounded text-transporter-primary">SEAT {as.seatNumber}</span>}
                                                 </div>
                                             </div>
                                             <button 
@@ -273,10 +273,10 @@ const StudentAssignment = () => {
                                 key={a._id} 
                                 className="bg-neutral-900 border border-slate-800/60 rounded-md p-6 font-outfit relative group shadow-2xl overflow-hidden"
                             >
-                                <div className="absolute top-0 left-0 w-1 h-full bg-orange-600"></div>
+                                <div className="absolute top-0 left-0 w-1 h-full bg-transporter-primary"></div>
                                 <div className="flex items-start justify-between mb-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded bg-neutral-950 border border-slate-800 flex items-center justify-center text-orange-500">
+                                        <div className="w-12 h-12 rounded bg-neutral-950 border border-slate-800 flex items-center justify-center text-transporter-primary">
                                             <User size={24} />
                                         </div>
                                         <div>
@@ -287,7 +287,7 @@ const StudentAssignment = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] font-black text-orange-500 uppercase italic tracking-tighter bg-orange-500/10 px-3 py-1 rounded border border-orange-500/20">Awaiting Lockdown</p>
+                                        <p className="text-[9px] font-black text-transporter-primary uppercase italic tracking-tighter bg-transporter-primary/10 px-3 py-1 rounded border border-transporter-primary/20">Awaiting Lockdown</p>
                                         <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">{new Date(a.updatedAt).toLocaleDateString()}</p>
                                     </div>
                                 </div>
