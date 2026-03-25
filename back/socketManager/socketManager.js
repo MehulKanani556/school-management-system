@@ -10,15 +10,39 @@ function initializeSocket(io) {
   io.on("connection", (socket) => {
     console.log("New socket connection:", socket.id);
 
-    // Register user when they connect (expecting userId from client)
-    socket.on("register_user", (userId) => {
+    // Register user when they connect
+    socket.on("register_user", (data) => {
+      // data can be just userId (string) or an object { userId, role, classId, classIds }
+      const userId = typeof data === 'object' ? data.userId : data;
+      const role = typeof data === 'object' ? data.role : null;
+      const classId = typeof data === 'object' ? data.classId : null;
+      const classIds = typeof data === 'object' ? data.classIds : [];
+
       if (userId) {
         const idStr = userId.toString();
         userSocketMap.set(idStr, socket.id);
         socketUserMap.set(socket.id, idStr);
         console.log(`User ${idStr} registered to socket ${socket.id}`);
+        
         // Join a private room for this user
         socket.join(idStr);
+
+        // Join role room if provided
+        if (role) {
+            socket.join(`role_${role}`);
+            console.log(`User ${idStr} joined role room: role_${role}`);
+        }
+
+        // Join class rooms if provided
+        const allClassIds = [...(classIds || [])];
+        if (classId && !allClassIds.includes(classId)) allClassIds.push(classId);
+
+        allClassIds.forEach(cid => {
+            if (cid) {
+                socket.join(`class_${cid}`);
+                console.log(`User ${idStr} joined class room: class_${cid}`);
+            }
+        });
       }
     });
 
@@ -81,10 +105,16 @@ function initializeSocket(io) {
                 { path: 'recipient', select: 'firstName lastName photo role' }
             ]);
 
-            // Real-time send to recipient (via room or individual socket)
-            io.to(recipient.toString()).emit('new_direct_message', populated);
+            // Transform data for frontend expectation if needed
+            const frontendData = {
+                ...populated.toJSON(),
+                senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+            };
+
+            // Real-time send to recipient
+            io.to(recipient.toString()).emit('NEW_MESSAGE', frontendData);
             // Send back to sender to confirm and update UI
-            socket.emit('new_direct_message', populated);
+            socket.emit('NEW_MESSAGE', frontendData);
 
         } catch (err) {
             console.error("Socket direct message error:", err);
@@ -106,15 +136,24 @@ function initializeSocket(io) {
 const getIo = () => ioInstance;
 
 const sendToUser = (userId, event, data) => {
-  const socketId = userSocketMap.get(userId.toString());
-  if (socketId && ioInstance) {
-    ioInstance.to(socketId).emit(event, data);
+  if (ioInstance) {
+    ioInstance.to(userId.toString()).emit(event, data);
   }
+};
+
+const sendToClass = (classId, event, data) => {
+    if (ioInstance && classId) {
+        ioInstance.to(`class_${classId}`).emit(event, data);
+    }
 };
 
 const broadcastToRole = (role, event, data) => {
   if (ioInstance) {
-    ioInstance.emit(event, data);
+    if (role && role !== 'All') {
+        ioInstance.to(`role_${role}`).emit(event, data);
+    } else {
+        ioInstance.emit(event, data);
+    }
   }
 };
 
@@ -128,6 +167,7 @@ module.exports = {
     initializeSocket, 
     getIo, 
     sendToUser, 
+    sendToClass,
     broadcastToRole,
     broadcastNotice,
     // Export mapping for persistence or other use cases

@@ -119,15 +119,15 @@ const Communication = () => {
             }
         };
 
-        socket.on('new_announcement', handleNewMessage);
-        socket.on('new_direct_message', handleNewMessage);
-        socket.on('new_notice', handleNewMessage);
+        socket.on('NEW_ANNOUNCEMENT', handleNewMessage);
+        socket.on('NEW_MESSAGE', handleNewMessage);
+        socket.on('NEW_NOTICE', handleNewMessage);
 
         return () => {
             if (socket && typeof socket.off === 'function') {
-                socket.off('new_announcement', handleNewMessage);
-                socket.off('new_direct_message', handleNewMessage);
-                socket.off('new_notice', handleNewMessage);
+                socket.off('NEW_ANNOUNCEMENT', handleNewMessage);
+                socket.off('NEW_MESSAGE', handleNewMessage);
+                socket.off('NEW_NOTICE', handleNewMessage);
             }
         };
     }, [socket]);

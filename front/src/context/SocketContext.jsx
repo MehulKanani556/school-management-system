@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector, useDispatch } from 'react-redux';
-import { incrementUnreadCount } from '../redux/slice/communication.slice';
+import { incrementUnreadCount, addMessage } from '../redux/slice/communication.slice';
 import toast from 'react-hot-toast';
 
 export const SocketContext = createContext(null);
@@ -33,7 +33,11 @@ export const SocketProvider = ({ children }) => {
                 socketRef.current.on('connect', () => {
                     console.log('✅ Socket connected:', socketRef.current.id);
                     setIsConnected(true);
-                    socketRef.current.emit('register_user', user._id);
+                    socketRef.current.emit('register_user', {
+                        userId: user._id,
+                        role: user.role,
+                        classId: user.classSection || user.classSectionId // Adjust based on where classId is stored
+                    });
                 });
 
                 socketRef.current.on('connect_error', (error) => {
@@ -51,13 +55,21 @@ export const SocketProvider = ({ children }) => {
                 // 1. Announcements
                 socketRef.current.on('NEW_ANNOUNCEMENT', (data) => {
                     dispatch(incrementUnreadCount());
-                    toast.success(`📢 New Announcement: ${data.title}`);
+                    toast.success(`📢 New Announcement: ${data.subject || data.title}`);
                 });
 
                 // 2. Direct Messages
                 socketRef.current.on('NEW_MESSAGE', (data) => {
                     dispatch(incrementUnreadCount());
-                    toast.success(`💬 New Message from ${data.senderName}`);
+                    dispatch(addMessage(data));
+                    toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
+                });
+
+                // 2b. Notices
+                socketRef.current.on('NEW_NOTICE', (data) => {
+                    dispatch(incrementUnreadCount());
+                    // If shared slice used for notices too, dispatch here
+                    toast.success(`📌 New Notice: ${data.subject}`);
                 });
 
                 // 3. Grade Assignments

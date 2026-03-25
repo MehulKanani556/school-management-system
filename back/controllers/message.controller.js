@@ -1,5 +1,6 @@
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
+const Student = require('../models/student.model');
 const socketManager = require('../socketManager/socketManager');
 const nc = require('./notification.controller');
 
@@ -24,7 +25,7 @@ exports.createAnnouncement = async (req, res) => {
         
         // Institutional Alerts (Notifications)
         // We broadcast to all connected sockets for general announcements
-        socketManager.broadcastToRole(targetRole, 'new_notification', {
+        socketManager.broadcastToRole(targetRole, 'NEW_NOTIFICATION', {
             _id: announcement._id,
             title: `Broadcast: ${subject}`,
             message: content.substring(0, 50) + '...',
@@ -35,7 +36,7 @@ exports.createAnnouncement = async (req, res) => {
         });
 
         // Real-time broadcast for dedicated announcement feed
-        socketManager.broadcastToRole(targetRole, 'new_announcement', populated);
+        socketManager.broadcastToRole(targetRole, 'NEW_ANNOUNCEMENT', populated);
 
         res.status(201).json(populated);
     } catch (err) {
@@ -64,9 +65,9 @@ exports.createNotice = async (req, res) => {
         
         // Real-time broadcast
         if (classSection) {
-            socketManager.sendToClass(classSection, 'new_notice', populated);
+            socketManager.sendToClass(classSection, 'NEW_NOTICE', populated);
         } else {
-            socketManager.broadcastNotice('new_notice', populated);
+            socketManager.broadcastNotice('NEW_NOTICE', populated);
         }
 
         res.status(201).json(populated);
@@ -98,7 +99,10 @@ exports.sendMessage = async (req, res) => {
         ]);
         
         // Real-time send
-        socketManager.sendToUser(recipient, 'new_direct_message', populated);
+        socketManager.sendToUser(recipient, 'NEW_MESSAGE', {
+            ...populated.toJSON(),
+            senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+        });
 
         res.status(201).json(populated);
     } catch (err) {

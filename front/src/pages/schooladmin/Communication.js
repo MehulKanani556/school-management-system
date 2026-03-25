@@ -119,15 +119,15 @@ const Communication = () => {
             toast.success(`Public Bulletin Synced: ${data.subject}`);
         };
 
-        socket.on('new_announcement', handleAnnouncement);
-        socket.on('new_direct_message', handleDirectMessage);
-        socket.on('new_notice', handleNotice);
+        socket.on('NEW_ANNOUNCEMENT', handleAnnouncement);
+        socket.on('NEW_MESSAGE', handleDirectMessage);
+        socket.on('NEW_NOTICE', handleNotice);
 
         return () => {
             if (socket && typeof socket.off === 'function') {
-                socket.off('new_announcement', handleAnnouncement);
-                socket.off('new_direct_message', handleDirectMessage);
-                socket.off('new_notice', handleNotice);
+                socket.off('NEW_ANNOUNCEMENT', handleAnnouncement);
+                socket.off('NEW_MESSAGE', handleDirectMessage);
+                socket.off('NEW_NOTICE', handleNotice);
             }
         };
     }, [socket]);

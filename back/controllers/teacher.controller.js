@@ -297,9 +297,12 @@ exports.sendMessage = async (req, res) => {
 
         // Real-time notification
         if (recipient) {
-            socketManager.sendToUser(recipient, 'new_direct_message', populated);
+            socketManager.sendToUser(recipient, 'NEW_MESSAGE', {
+                ...populated.toJSON(),
+                senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+            });
         } else {
-            socketManager.broadcastToRole(targetRole || 'Student', 'new_announcement', populated);
+            socketManager.broadcastToRole(targetRole || 'Student', 'NEW_ANNOUNCEMENT', populated);
         }
 
         res.status(201).json({ message: 'Communication broadcasted successfully', data: populated });
@@ -455,19 +458,7 @@ exports.getAssignmentSubmissions = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// Messaging / Noticeboard ──────────────────────────────────────────────────────────
-exports.sendMessage = async (req, res) => {
-    try {
-        const teacher = await getTeacher(req.user._id);
-        const newMessage = new Message({
-            ...req.body,
-            sender: req.user._id,
-            schoolId: teacher.schoolId._id
-        });
-        await newMessage.save();
-        res.status(201).json({ message: 'Communication broadcasted successfully', data: newMessage });
-    } catch (err) { res.status(500).json({ message: err.message }); }
-};
+
 
 exports.fetchMyMessages = async (req, res) => {
     try {
@@ -475,7 +466,7 @@ exports.fetchMyMessages = async (req, res) => {
         const messages = await Message.find({
             $or: [
                 { sender: req.user._id },
-                { receiver: req.user._id },
+                { recipient: req.user._id },
                 { targetRole: 'Teacher', schoolId: teacher.schoolId._id },
                 { type: 'Announcement', schoolId: teacher.schoolId._id }
             ]

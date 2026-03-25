@@ -56,7 +56,7 @@ exports.sendNotification = async ({ schoolId, recipient, sender, type, title, me
         const populated = await notification.populate('sender', 'firstName lastName photo role');
         
         // Real-time broadcast
-        socketManager.sendToUser(recipient, 'new_notification', populated);
+        socketManager.sendToUser(recipient, 'NEW_NOTIFICATION', populated);
         
         return populated;
     } catch (err) {

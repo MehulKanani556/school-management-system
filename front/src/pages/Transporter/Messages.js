@@ -127,14 +127,21 @@ const Messages = () => {
                                 {messages.map((msg) => {
                                     const isMe = msg.sender?._id === localStorage.getItem('userId') || msg.sender === localStorage.getItem('userId');
                                     return (
-                                        <div key={msg._id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                            <div className={`max-w-[70%] p-4 rounded-md border ${isMe ? 'bg-sky-600/10 border-sky-600/30 rounded-tr-none' : 'bg-neutral-950 border-slate-800 rounded-tl-none'}`}>
-                                                <p className={`text-[11px] leading-relaxed ${isMe ? 'text-slate-200' : 'text-slate-300'}`}>{msg.content}</p>
-                                                <div className={`flex items-center gap-2 mt-2 opacity-40 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                                    <span className="text-[8px] font-bold text-slate-500 uppercase italic">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                        <>
+                                            <div className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                                                <div className={`max-w-[85%] lg:max-w-[75%] relative flex flex-col group ${isMe ? 'items-end' : 'items-start'}`}>
+                                                    <div className={`px-3 py-2 rounded-md text-[12px] font-bold shadow-xl transition-all relative ${isMe ? 'bg-transporter-primary border-sky-600/30 rounded-tr-none' : 'bg-slate-800 border-slate-800 rounded-tl-none'}`}>
+                                                        <p className="italic leading-relaxed whitespace-pre-wrap uppercase tracking-tight">{msg.content}</p>
+                                                        <div className={`absolute top-0 w-2.5 h-2.5 ${isMe ? '-right-1 bg-transporter-primary clip-path-right' : '-left-1 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
+                                                    </div>
+
+                                                    <div className={`flex items-center gap-1.5 mt-1 opacity-50 group-hover:opacity-100 transition-opacity mx-1`}>
+                                                        <span className="text-[7px] font-black uppercase tracking-widest italic text-slate-600">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                        {isMe && <div className="w-1 h-1 rounded-md bg-slate-800"></div>}
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
+                                        </>
                                     );
                                 })}
                             </div>

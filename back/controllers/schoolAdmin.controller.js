@@ -218,7 +218,7 @@ exports.getDashboardStats = async (req, res) => {
       if (diff > 0) growthInsight = `Overall student performance has improved by ${diff}% compared to previous assessments.`;
       else if (diff < 0) growthInsight = `Alert: Average marks have dipped by ${Math.abs(diff)}%. Reviewing curriculum recommended.`;
     }
-    console.log("aa", recentPayments);
+    // console.log("aa", recentPayments);
 
     res.json({
       students: studentsCount,

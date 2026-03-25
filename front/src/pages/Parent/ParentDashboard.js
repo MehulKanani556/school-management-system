@@ -58,17 +58,17 @@ const ParentDashboard = () => {
     useEffect(() => {
         if (!socket) return;
         
-        socket.on('new_announcement', (data) => {
+        socket.on('NEW_ANNOUNCEMENT', (data) => {
             dispatch(addAnnouncement(data));
         });
 
-        socket.on('new_notification', (data) => {
+        socket.on('NEW_NOTIFICATION', (data) => {
             dispatch(receiveNotification(data));
         });
 
         return () => {
-            socket.off('new_announcement');
-            socket.off('new_notification');
+            socket.off('NEW_ANNOUNCEMENT');
+            socket.off('NEW_NOTIFICATION');
         };
     }, [socket, dispatch]);
 

@@ -75,7 +75,7 @@ const AccountantLayout = () => {
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('new_notification', (notif) => {
+    socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
       toast.success(`Fiscal Alert: ${notif.title}`, {
         icon: '💰',
@@ -91,7 +91,7 @@ const AccountantLayout = () => {
         }
       });
     });
-    return () => socket.off('new_notification');
+    return () => socket.off('NEW_NOTIFICATION');
   }, [socket, dispatch]);
 
   useEffect(() => {

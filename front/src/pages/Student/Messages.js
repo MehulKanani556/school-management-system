@@ -16,6 +16,7 @@ import { useSelector } from 'react-redux';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '../../context/SocketContext';
 
 const Messages = () => {
     const [messages, setMessages] = useState([]);
@@ -28,11 +29,25 @@ const Messages = () => {
     const { user: currentUser } = useSelector(state => state.auth);
     const scrollRef = useRef();
 
+    const { socket } = useSocket();
+
     useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 10000); // Poll for new messages every 10s
-        return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewMessage = (data) => {
+            setMessages(prev => [data, ...prev]);
+            if (data.sender?._id !== selectedChat && data.sender !== selectedChat) {
+                toast.info(`Neural Link: Signal from ${data.sender?.firstName || 'Faculty'}`);
+            }
+        };
+
+        socket.on('NEW_MESSAGE', handleNewMessage);
+        return () => socket.off('NEW_MESSAGE', handleNewMessage);
+    }, [socket, selectedChat]);
 
     useEffect(() => {
         if (scrollRef.current) {

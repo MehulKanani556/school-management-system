@@ -37,14 +37,15 @@ const Messages = () => {
     useEffect(() => {
         if (!socket) return;
         
-        socket.on('new_direct_message', (data) => {
+        socket.on('NEW_MESSAGE', (data) => {
             setMessages(prev => [...prev, data]);
-            if (data.sender._id !== selectedChat?._id) {
-               toast.info(`New message from ${data.sender.firstName}`);
+            const senderId = (data.sender?._id || data.sender)?.toString();
+            if (senderId !== selectedChat?._id?.toString()) {
+               toast.info(`New message from ${data.sender?.firstName || 'Faculty'}`);
             }
         });
 
-        return () => socket.off('new_direct_message');
+        return () => socket.off('NEW_MESSAGE');
     }, [socket, selectedChat]);
 
     useEffect(() => {

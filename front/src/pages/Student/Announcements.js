@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '../../context/SocketContext';
 
 const Announcements = () => {
     const [activeTab, setActiveTab] = useState('announcements');
@@ -20,9 +21,30 @@ const Announcements = () => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const { socket } = useSocket();
+
     useEffect(() => {
         fetchData();
     }, [activeTab]);
+
+    useEffect(() => {
+        if (!socket) return;
+
+        const handleNewAnnouncement = (data) => {
+            setAnnouncements(prev => [data, ...prev]);
+        };
+        const handleNewNotice = (data) => {
+            setNotices(prev => [data, ...prev]);
+        };
+
+        socket.on('NEW_ANNOUNCEMENT', handleNewAnnouncement);
+        socket.on('NEW_NOTICE', handleNewNotice);
+
+        return () => {
+            socket.off('NEW_ANNOUNCEMENT', handleNewAnnouncement);
+            socket.off('NEW_NOTICE', handleNewNotice);
+        };
+    }, [socket]);
 
     const fetchData = async () => {
         setLoading(true);

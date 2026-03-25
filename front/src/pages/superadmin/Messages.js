@@ -68,8 +68,8 @@ const Messages = () => {
                 setMessages(prev => [...prev, msg]);
             }
         };
-        socket.on('new_direct_message', handler);
-        return () => socket.off('new_direct_message', handler);
+        socket.on('NEW_MESSAGE', handler);
+        return () => socket.off('NEW_MESSAGE', handler);
     }, [socket, selectedContact]);
 
     const handleSend = async (e) => {
