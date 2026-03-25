@@ -12,15 +12,39 @@
 
 body {
   margin: 0;
-  font-family: var(--font-inter);
+  font-family: var(--font-inter) !important; /* Switched to Inter as requested */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-color: #020617; /* brand-background */
   color: #f8fafc;
+  text-rendering: optimizeLegibility;
 }
 
-h1, h2, h3, h4, h5, h6, .font-outfit {
-  font-family: var(--font-outfit);
+/* ALL PANEL UI Typography Sync */
+
+/* 1. Global Font Force (Inter) - No Italic, Global Capitalize */
+* {
+  font-family: var(--font-inter) !important;
+  font-style: normal !important; /* No italic globally as requested */
+  text-transform: capitalize !important; /* Global Title Case per user request */
+}
+
+/* 2. Structural Headings & Premium Titles (Capitalize) */
+h1, h2, h3, h4, [class*="title"]:not([class*="subtitle"]):not([class*="description"]) {
+  letter-spacing: -0.01em;
+  font-weight: 800;
+}
+
+/* 3. Labels, Navigation & UI Chrome (Capitalize) */
+h5, h6, label, th, aside p, aside span, nav a, button, .sidebar-link, .nav-link, .tab-btn, .premium-label {
+  letter-spacing: 0.02em !important;
+  font-weight: 600;
+}
+
+/* 4. Content, Data & Descriptive Text (Normal) */
+p, td, input, textarea, .premium-description, .form-help, [class*="desc"], [class*="content"] {
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
 /* Custom Scrollbar for a premium feel */
