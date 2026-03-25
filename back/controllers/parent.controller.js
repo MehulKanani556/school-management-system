@@ -21,8 +21,8 @@ const { Cashfree, CFEnvironment } = require('cashfree-pg');
 
 // Institutional Global Gateway Registry (v5/v6 Instance Mode)
 const cashfree = new Cashfree();
-cashfree.XClientId = process.env.CASHFREE_APP_ID || "TEST10263665790d965e6df7fd632e8b56636201";
-cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY || "cfsk_ma_test_04746f3661be4e6fb57ca7857ed8ac36_593ca4bd";
+cashfree.XClientId = process.env.CASHFREE_APP_ID;
+cashfree.XClientSecret = process.env.CASHFREE_SECRET_KEY;
 cashfree.XEnvironment = process.env.CASHFREE_ENVIRONMENT === 'PRODUCTION' ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX;
 cashfree.XApiVersion = "2023-08-01";
 
@@ -241,7 +241,7 @@ exports.downloadChildReportCard = async (req, res) => {
 
         validMarks.forEach(m => {
             doc.fillColor(darkColor).font('Helvetica').fontSize(9).text(m.examId.subject?.name?.toUpperCase() || 'N/A', 50, y);
-            doc.text(m.examId.name, 250, y);
+            doc.text(m.examId.name || 'N/A', 250, y);
             doc.font('Helvetica-Bold').text(`${m.marksObtained} / ${m.examId.maxMarks || 100}`, 450, y, { align: 'right', width: 60 });
             y += 20;
         });
@@ -404,7 +404,7 @@ exports.payFee = async (req, res) => {
                 "customer_id": req.user._id.toString(),
                 "customer_name": `${req.user.firstName} ${req.user.lastName}`,
                 "customer_email": req.user.email,
-                "customer_phone": req.user.phone || "9999999999"
+                "customer_phone": req.user.phone || req.user.contact || "9999999999"
             },
             "order_meta": {
                 "return_url": `${process.env.CLIENT_URL || 'http://localhost:3000'}/parent/fees?order_id={order_id}`

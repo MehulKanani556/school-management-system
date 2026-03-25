@@ -103,8 +103,8 @@ exports.collectFee = async (req, res) => {
 
         await fee.save();
 
-        const diff = paidAmount - previousPaid;
-        await School.findByIdAndUpdate(schoolId, { $inc: { revenue: diff } });
+        // Revenue is auto-synced by the FeePayment post-save hook (aggregate recalculation)
+        // Removed manual inc to avoid double-counting under concurrent saves
 
         await logAudit(req, 'FEE_COLLECTION', 'Finance', `Collected $${paidAmount} for student ${fee.studentId}`);
 

@@ -819,11 +819,16 @@ exports.bulkAttendanceImport = async (req, res) => {
 
         // Find or create the attendance document for this class and date
         const cs = await ClassSection.findById(classSectionId);
+        if (!cs) return res.status(404).json({ message: 'Class section not found' });
+
         const attendance = await Attendance.findOneAndUpdate(
             { schoolId: teacher.schoolId._id, classSection: classSectionId, date: new Date(date) },
             { $setOnInsert: { standardId: cs.standardId, submittedBy: req.user._id } },
             { upsert: true, new: true }
         );
+
+        // Ensure standardId is set on the in-memory document (required field, may be missing on new docs)
+        if (!attendance.standardId) attendance.standardId = cs.standardId;
 
         // Update records array - replace or add student records
         const currentRecords = attendance.records || [];

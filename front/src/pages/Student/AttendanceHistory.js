@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentAttendance } from '../../redux/slice/student.slice';
 import { motion } from 'framer-motion';
@@ -7,6 +7,7 @@ import { CheckCircle, XCircle, Clock, Calendar, Search, ChevronRight } from 'luc
 const AttendanceHistory = () => {
     const dispatch = useDispatch();
     const { attendance, loading } = useSelector((state) => state.student);
+    const [search, setSearch] = useState('');
 
     useEffect(() => {
         dispatch(fetchStudentAttendance());
@@ -19,6 +20,14 @@ const AttendanceHistory = () => {
         late: attendance.filter(a => a.status === 'Late').length,
     };
     const percentage = stats.total > 0 ? (((stats.present) / stats.total) * 100).toFixed(1) : '0.0';
+
+    const filtered = attendance.filter(a => {
+        const q = search.toLowerCase();
+        return (
+            new Date(a.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toLowerCase().includes(q) ||
+            (a.status || '').toLowerCase().includes(q)
+        );
+    });
 
     const statusConfig = {
         'Present': { icon: CheckCircle, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10', border: 'border-luxury-emerald/20' },
@@ -66,7 +75,9 @@ const AttendanceHistory = () => {
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-luxury-emerald transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="Filter Cycles..." 
+                                placeholder="Filter by date or status..." 
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
                                 className="bg-slate-900/50 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48"
                             />
                         </div>
@@ -83,8 +94,8 @@ const AttendanceHistory = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/40">
-                                {attendance.length > 0 ? (
-                                    attendance.map((record, idx) => {
+                                {filtered.length > 0 ? (
+                                    filtered.map((record, idx) => {
                                         const config = statusConfig[record.status] || statusConfig['Absent'];
                                         const Icon = config.icon;
                                         return (
@@ -120,7 +131,9 @@ const AttendanceHistory = () => {
                                     <tr>
                                         <td colSpan="4" className="px-8 py-20 text-center">
                                             <div className="opacity-20 mb-4 inline-block"><Calendar size={48} /></div>
-                                            <p className="text-slate-500 font-bold italic uppercase tracking-widest text-[10px]">No Attendance Records Found in this Sector</p>
+                                            <p className="text-slate-500 font-bold italic uppercase tracking-widest text-[10px]">
+                                                {search ? 'No records match your filter' : 'No Attendance Records Found in this Sector'}
+                                            </p>
                                         </td>
                                     </tr>
                                 )}

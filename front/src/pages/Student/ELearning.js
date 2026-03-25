@@ -98,6 +98,7 @@ const ELearning = () => {
     const handleAnswer = (index) => {
         const currentQ = selectedQuiz.questions[currentQuestion];
         const isCorrect = index === currentQ.correctAnswer;
+        const pointsEarned = isCorrect ? (currentQ.points || 10) : 0;
         
         const newAnswers = [...userAnswers, { 
             questionId: currentQ._id, 
@@ -107,7 +108,7 @@ const ELearning = () => {
         setUserAnswers(newAnswers);
 
         if (isCorrect) {
-            setScore(prev => prev + 1);
+            setScore(prev => prev + pointsEarned);
         }
 
         if (currentQuestion + 1 < selectedQuiz.questions.length) {
@@ -418,16 +419,16 @@ const ELearning = () => {
                                     <div className="grid grid-cols-3 gap-4 max-w-xl mx-auto">
                                         <div className="p-4 bg-slate-900/60 rounded-md border border-slate-800">
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Accuracy</p>
-                                            <p className="text-2xl font-black text-student-primary">{Math.round((score / selectedQuiz.questions.length) * 100)}%</p>
+                                            <p className="text-2xl font-black text-student-primary">{(() => { const total = selectedQuiz.questions.reduce((t, q) => t + (q.points || 10), 0); return total > 0 ? Math.round((score / total) * 100) : 0; })()}%</p>
                                         </div>
                                         <div className="p-5 bg-slate-900 border border-slate-800 rounded-md shadow-xl">
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Raw Score</p>
-                                            <p className="text-3xl font-black text-white">{score} <span className="text-sm text-slate-600">/ {selectedQuiz.questions.length}</span></p>
+                                            <p className="text-3xl font-black text-white">{score} <span className="text-sm text-slate-600">/ {selectedQuiz.questions.reduce((t, q) => t + (q.points || 10), 0)}</span></p>
                                         </div>
                                         <div className="p-4 bg-slate-900/60 rounded-md border border-slate-800">
                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">Status</p>
                                             <p className="text-2xl font-black text-student-primary">
-                                                {((score / selectedQuiz.questions.length) * 100) >= selectedQuiz.passingScore ? 'Pass' : 'Fail'}
+                                                {(() => { const total = selectedQuiz.questions.reduce((t, q) => t + (q.points || 10), 0); return total > 0 && ((score / total) * 100) >= selectedQuiz.passingScore ? 'Pass' : 'Fail'; })()}
                                             </p>
                                         </div>
                                     </div>

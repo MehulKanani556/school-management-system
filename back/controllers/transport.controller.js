@@ -178,25 +178,21 @@ exports.assignStudent = async (req, res) => {
             const FeePayment = require('../models/feePayment.model');
             const currentYear = new Date().getFullYear().toString();
 
-            // Upsert Transport Fee for current cycle
-            await FeePayment.findOneAndUpdate(
-                {
-                    studentId,
-                    category: 'Transport',
-                    academicYear: currentYear,
-                    status: { $ne: 'paid' } // Only if not already paid
-                },
-                {
+            // Only create transport fee if one doesn't already exist for this student/year
+            // (avoids duplicates when re-assigning a student who already has a paid fee)
+            const existingFee = await FeePayment.findOne({ studentId, category: 'Transport', academicYear: currentYear });
+            if (!existingFee) {
+                await FeePayment.create({
                     schoolId,
                     studentId,
                     amount: route.fee,
                     totalAmount: route.fee,
                     category: 'Transport',
                     academicYear: currentYear,
-                    dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1)) // 1 month from now
-                },
-                { upsert: true, new: true }
-            );
+                    status: 'pending',
+                    dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
+                });
+            }
         }
 
         // 5. Parent Uplink
