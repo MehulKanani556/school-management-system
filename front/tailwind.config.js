@@ -20,38 +20,38 @@ module.exports = {
           rose: '#f43f5e',
           emerald: '#10b981',
         },
-        // Role-based Themes (Max Vibrancy Cyber-Accents)
+        // Role-based Themes (Dynamic Context Adapters)
         superadmin: {
-          primary: '#818cf8',    // Indigo Pulse
-          secondary: '#6366f1',
+          primary: 'rgb(var(--color-primary-rgb, 129 140 248) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 99 102 241) / <alpha-value>)',
         },
         schooladmin: {
-          primary: '#0ea5e9',    // Cyber Cyan
-          secondary: '#0284c7',
+          primary: 'rgb(var(--color-primary-rgb, 14 165 233) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 2 132 199) / <alpha-value>)',
         },
         teacher: {
-          primary: '#a855f7',    // Amethyst Core
-          secondary: '#9333ea',
+          primary: 'rgb(var(--color-primary-rgb, 168 85 247) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 147 51 234) / <alpha-value>)',
         },
         student: {
-          primary: '#10b981',    // Neon Emerald
-          secondary: '#059669',
+          primary: 'rgb(var(--color-primary-rgb, 16 185 129) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 5 150 105) / <alpha-value>)',
         },
         parent: {
-          primary: '#f43f5e',    // Rose Command
-          secondary: '#e11d48',
+          primary: 'rgb(var(--color-primary-rgb, 244 63 94) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 225 29 72) / <alpha-value>)',
         },
         accountant: {
-          primary: '#fbbf24',    // Amber Ledger
-          secondary: '#f59e0b',
+          primary: 'rgb(var(--color-primary-rgb, 251 191 36) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 245 158 11) / <alpha-value>)',
         },
         librarian: {
-          primary: '#06b6d4',    // Flux Sky
-          secondary: '#0891b2',
+          primary: 'rgb(var(--color-primary-rgb, 6 182 212) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 8 145 178) / <alpha-value>)',
         },
         transporter: {
-          primary: '#fb923c',    // Kinetic Orange
-          secondary: '#f97316',
+          primary: 'rgb(var(--color-primary-rgb, 251 146 60) / <alpha-value>)',
+          secondary: 'rgb(var(--color-secondary-rgb, 249 115 22) / <alpha-value>)',
         }
       },
       fontFamily: {

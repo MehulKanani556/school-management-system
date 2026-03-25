@@ -8,9 +8,9 @@ import { renderToStaticMarkup } from 'react-dom/server';
 // Fix for default marker icons in Leaflet with React
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+    iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+    iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
 });
 
 // Custom Bus Icon
@@ -35,7 +35,7 @@ const createBusIcon = (heading = 0) => {
 const createStopIcon = (color = '#64748b') => {
     const html = renderToStaticMarkup(
         <div className="flex flex-col items-center">
-             <div style={{ backgroundColor: color }} className="p-1 rounded-full border-2 border-white shadow-md text-white">
+            <div style={{ backgroundColor: color }} className="p-1 rounded-full border-2 border-white shadow-md text-white">
                 <MapPin size={12} />
             </div>
         </div>
@@ -64,22 +64,22 @@ const RecenterMap = ({ coords }) => {
 
 const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
     const defaultCenter = [23.0225, 72.5714]; // Default point
-    
+
     // Ensure center has valid numbers
     const center = (vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number')
-        ? [vehicleLocation.lat, vehicleLocation.lng] 
+        ? [vehicleLocation.lat, vehicleLocation.lng]
         : defaultCenter;
 
     // Filter valid stops
-    const validStops = stops.filter(stop => 
+    const validStops = stops.filter(stop =>
         stop && typeof stop.lat === 'number' && typeof stop.lng === 'number'
     );
 
     return (
         <div className="h-full w-full rounded-md overflow-hidden border border-slate-800 relative shadow-2xl">
-            <MapContainer 
-                center={center} 
-                zoom={14} 
+            <MapContainer
+                center={center}
+                zoom={14}
                 style={{ height: '100%', width: '100%', background: '#0f172a' }}
                 zoomControl={false}
             >
@@ -87,16 +87,16 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                     url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
                 />
-                
+
                 {autoCenter && vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number' && (
                     <RecenterMap coords={vehicleLocation} />
                 )}
 
                 {/* Stops */}
                 {validStops.map((stop, idx) => (
-                    <Marker 
-                        key={`${stop.name || 'stop'}-${idx}`} 
-                        position={[stop.lat, stop.lng]} 
+                    <Marker
+                        key={`${stop.name || 'stop'}-${idx}`}
+                        position={[stop.lat, stop.lng]}
                         icon={createStopIcon(stop.isTarget ? '#f43f5e' : '#64748b')}
                     >
                         <Popup className="custom-popup">
@@ -110,16 +110,16 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
 
                 {/* Path */}
                 {validStops.length > 1 && (
-                    <Polyline 
-                        positions={validStops.map(s => [s.lat, s.lng])} 
-                        pathOptions={{ color: '#f97316', weight: 3, dashArray: '10, 10', opacity: 0.4 }} 
+                    <Polyline
+                        positions={validStops.map(s => [s.lat, s.lng])}
+                        pathOptions={{ color: '#f97316', weight: 3, dashArray: '10, 10', opacity: 0.4 }}
                     />
                 )}
 
                 {/* Vehicle */}
                 {vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number' && (
-                    <Marker 
-                        position={[vehicleLocation.lat, vehicleLocation.lng]} 
+                    <Marker
+                        position={[vehicleLocation.lat, vehicleLocation.lng]}
                         icon={createBusIcon(vehicleLocation.heading || 0)}
                     >
                         <Popup className="custom-popup">
@@ -143,8 +143,9 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                     <span className="text-[9px] font-black text-white uppercase tracking-widest italic">Encrypted Satellite Feed</span>
                 </div>
             </div>
-            
-            <style dangerouslySetInnerHTML={{ __html: `
+
+            <style dangerouslySetInnerHTML={{
+                __html: `
                 .leaflet-container { font-family: 'Outfit', sans-serif; }
                 .custom-popup .leaflet-popup-content-wrapper { background: white; border-radius: 4px; padding: 0; overflow: hidden; }
                 .custom-popup .leaflet-popup-content { margin: 8px 12px; }

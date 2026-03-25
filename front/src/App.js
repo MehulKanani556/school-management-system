@@ -243,7 +243,7 @@ function AppRoutes() {
 
           {/* Student Panel */}
           <Route path="/student" element={
-            <RoleRoute role="Student"><StudentLayout /></RoleRoute>
+            <RoleRoute role="Student"><div className="theme-student min-h-screen w-full"><StudentLayout /></div></RoleRoute>
           }>
             <Route index element={<StudentDashboard />} />
             <Route path="profile" element={<StudentProfile />} />
@@ -265,7 +265,7 @@ function AppRoutes() {
 
           {/* Teacher Panel */}
           <Route path="/teacher" element={
-            <RoleRoute role="Teacher"><TeacherLayout /></RoleRoute>
+            <RoleRoute role="Teacher"><div className="theme-teacher min-h-screen w-full"><TeacherLayout /></div></RoleRoute>
           }>
             <Route index element={<TeacherDashboard />} />
             <Route path="classes" element={<AssignedClasses />} />
@@ -302,7 +302,7 @@ function AppRoutes() {
 
           {/* Parent Panel */}
           <Route path="/parent" element={
-            <RoleRoute role="Parent"><ParentLayout /></RoleRoute>
+            <RoleRoute role="Parent"><div className="theme-parent min-h-screen w-full"><ParentLayout /></div></RoleRoute>
           }>
             <Route index element={<ParentDashboard />} />
             <Route path="attendance" element={<ChildAttendance />} />
@@ -326,7 +326,7 @@ function AppRoutes() {
 
           {/* School Admin Panel */}
           <Route path="/school-admin" element={
-            <RoleRoute role="School_Admin"><SchoolAdminLayout /></RoleRoute>
+            <RoleRoute role="School_Admin"><div className="theme-schooladmin min-h-screen w-full"><SchoolAdminLayout /></div></RoleRoute>
           }>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
@@ -373,7 +373,7 @@ function AppRoutes() {
 
           {/* Super Admin Panel */}
           <Route path="/superadmin" element={
-            <RoleRoute role="Super_Admin"><SuperAdminDashboard /></RoleRoute>
+            <RoleRoute role="Super_Admin"><div className="theme-superadmin min-h-screen w-full"><SuperAdminDashboard /></div></RoleRoute>
           }>
             <Route index element={<SuperAdminHome />} />
             <Route path="schools" element={<AllSchools />} />
@@ -394,7 +394,7 @@ function AppRoutes() {
 
           {/* Accountant Panel */}
           <Route path="/accountant" element={
-            <RoleRoute role="Accountant"><AccountantLayout /></RoleRoute>
+            <RoleRoute role="Accountant"><div className="theme-accountant min-h-screen w-full"><AccountantLayout /></div></RoleRoute>
           }>
             <Route index element={<AccountantDashboard />} />
             <Route path="fees" element={<FeeCollection />} />
@@ -414,7 +414,7 @@ function AppRoutes() {
 
           {/* Librarian Panel */}
           <Route path="/librarian" element={
-            <RoleRoute role="Librarian"><LibrarianLayout /></RoleRoute>
+            <RoleRoute role="Librarian"><div className="theme-librarian min-h-screen w-full"><LibrarianLayout /></div></RoleRoute>
           }>
             <Route index element={<LibrarianDashboard />} />
             <Route path="inventory" element={<BookInventory />} />
@@ -436,7 +436,7 @@ function AppRoutes() {
 
           {/* Transporter Panel */}
           <Route path="/transporter" element={
-            <RoleRoute role="Transport_Manager"><TransporterLayout /></RoleRoute>
+            <RoleRoute role="Transport_Manager"><div className="theme-transporter min-h-screen w-full"><TransporterLayout /></div></RoleRoute>
           }>
             <Route index element={<TransporterDashboard />} />
             <Route path="vehicles" element={<Vehicles />} />

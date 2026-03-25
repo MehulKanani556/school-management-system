@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAssignedClasses, fetchMyMessages, sendMessage } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Layout, 
-    Plus, 
-    Users, 
-    Send, 
-    Activity, 
+import {
+    Layout,
+    Plus,
+    Users,
+    Send,
+    Activity,
     Calendar,
     Pin,
     Search,
@@ -26,8 +26,8 @@ const ClassNoticeboard = () => {
         dispatch(fetchMyMessages());
     }, [dispatch]);
 
-    const classNotices = messages.filter(m => 
-        m.type === 'Announcement' && 
+    const classNotices = messages.filter(m =>
+        m.type === 'Announcement' &&
         (!selectedClass || m.classSection === selectedClass)
     );
 
@@ -41,7 +41,7 @@ const ClassNoticeboard = () => {
             targetRole: 'Student', // Usually for students in that class
             ...noticeInput
         }));
-        
+
         setShowPostModal(false);
         setNoticeInput({ subject: '', content: '' });
     };
@@ -61,7 +61,7 @@ const ClassNoticeboard = () => {
                 <div className="flex flex-wrap gap-4">
                     <div className="relative group min-w-[200px]">
                         <Users size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <select 
+                        <select
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
                             className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-teacher-primary/40 transition-all text-white shadow-xl italic"
@@ -72,7 +72,7 @@ const ClassNoticeboard = () => {
                             ))}
                         </select>
                     </div>
-                    <button 
+                    <button
                         onClick={() => setShowPostModal(true)}
                         className="h-14 bg-teacher-primary hover:bg-teacher-primary text-white px-8 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3 italic"
                     >
@@ -102,7 +102,7 @@ const ClassNoticeboard = () => {
                             </div>
                             <h3 className="text-xl font-black text-white italic tracking-tighter leading-none mb-4 group-hover:text-teacher-primary transition-colors uppercase">{notice.subject}</h3>
                             <p className="text-slate-400 text-sm font-bold leading-relaxed mb-10 h-[60px] overflow-hidden uppercase tracking-tight">{notice.content}</p>
-                            
+
                             <div className="pt-6 border-t border-white/5 flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-700">
                                 <span>Target: Academic Cluster</span>
                                 <span className="text-teacher-primary/40 italic">Active Directive</span>
@@ -122,7 +122,7 @@ const ClassNoticeboard = () => {
             {showPostModal && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-950/80">
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-slate-800 p-12 rounded-md shadow-[0_50px_150px_rgba(0,0,0,0.8)] max-w-2xl w-full relative">
-                        <button onClick={() => setShowPostModal(false)} className="absolute top-8 right-8 text-slate-600 hover:text-white transition-all"><Plus className="rotate-45" size={24}/></button>
+                        <button onClick={() => setShowPostModal(false)} className="absolute top-8 right-8 text-slate-600 hover:text-white transition-all"><Plus className="rotate-45" size={24} /></button>
                         <header className="mb-10">
                             <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">Protocol Composition</h2>
                             <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Awaiting sectoral parameters...</p>
@@ -130,20 +130,20 @@ const ClassNoticeboard = () => {
                         <form onSubmit={handlePostNotice} className="space-y-8">
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Subject Header</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="Enter directive nomenclature..."
                                     value={noticeInput.subject}
-                                    onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
+                                    onChange={(e) => setNoticeInput({ ...noticeInput, subject: e.target.value })}
                                     className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic uppercase"
                                 />
                             </div>
                             <div className="space-y-2">
                                 <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Transmitted Content</label>
-                                <textarea 
+                                <textarea
                                     placeholder="Compose institutional archival data..."
                                     value={noticeInput.content}
-                                    onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
+                                    onChange={(e) => setNoticeInput({ ...noticeInput, content: e.target.value })}
                                     className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic resize-none h-[180px] uppercase"
                                 />
                             </div>
