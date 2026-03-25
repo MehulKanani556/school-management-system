@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>School Management System - Architecture Charts</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4ff; color: #222; }
+  .header { background: linear-gradient(135deg, #1a237e, #1565c0); color: #fff; padding: 40px 50px; }
+  .header h1 { font-size: 2em; font-weight: 800; }
+  .header p { opacity: 0.8; margin-top: 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; padding: 32px 40px; }
+  .card { background: #fff; border-radius: 12px; padding: 28px; box-shadow: 0 2px 16px #0001; }
+  .card h2 { color: #1a237e; font-size: 1.1em; margin-bottom: 20px; border-bottom: 2px solid #e3e8f0; padding-bottom: 10px; }
+  .card.full { grid-column: 1 / -1; }
+  canvas { max-height: 320px; }
+
+  /* Role-Permission Matrix */
+  .matrix { width: 100%; border-collapse: collapse; font-size: 0.82em; }
+  .matrix th { background: #1a237e; color: #fff; padding: 8px 10px; text-align: center; font-weight: 600; }
+  .matrix td { padding: 7px 10px; border: 1px solid #e3e8f0; text-align: center; }
+  .matrix tr:nth-child(even) td { background: #f8faff; }
+  .matrix td:first-child { text-align: left; font-weight: 600; color: #1a237e; }
+  .yes { color: #2e7d32; font-weight: 700; }
+  .no { color: #bbb; }
+
+  /* Flow Diagram */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 0; margin: 10px 0; }
+  .flow-box { background: #e8f0fe; border: 2px solid #1565c0; border-radius: 8px; padding: 10px 16px; font-size: 0.88em; font-weight: 600; color: #1a237e; text-align: center; min-width: 110px; }
+  .flow-arrow { color: #1565c0; font-size: 1.4em; margin: 0 6px; font-weight: 700; }
+  .flow-box.green { background: #e8f5e9; border-color: #2e7d32; color: #2e7d32; }
+  .flow-box.orange { background: #fff3e0; border-color: #e65100; color: #e65100; }
+  .flow-box.red { background: #fce4ec; border-color: #c62828; color: #c62828; }
+
+  /* Module list */
+  .module-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 10px; }
+  .module-item { background: #e8f0fe; border-radius: 8px; padding: 10px 12px; font-size: 0.82em; font-weight: 600; color: #1a237e; text-align: center; }
+
+  @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } .card.full { grid-column: 1; } .module-grid { grid-template-columns: repeat(2,1fr); } }
+  @media print { body { background: #fff; } .card { box-shadow: none; } }
+</style>
+</head>
+<body>
+<div class="header">
+  <h1>School Management System — Architecture Charts</h1>
+  <p>Visual overview of roles, modules, data flow, and system architecture</p>
+</div>
+
+<div class="grid">
+
+  <!-- Chart 1: Modules per Role (Bar) -->
+  <div class="card">
+    <h2>📊 Feature Modules per Role</h2>
+    <canvas id="rolesChart"></canvas>
+  </div>
+
+  <!-- Chart 2: Module Categories (Doughnut) -->
+  <div class="card">
+    <h2>🗂️ System Module Distribution</h2>
+    <canvas id="modulesChart"></canvas>
+  </div>
+
+  <!-- Chart 3: Auth Flow -->
+  <div class="card full">
+    <h2>🔐 Authentication Flow</h2>
+    <div class="flow">
+      <div class="flow-box">User visits /login</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Submit credentials</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Check maintenance mode</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Check account lock</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Verify bcrypt password</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Generate JWT tokens</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Role-based redirect</div>
+    </div>
+    <div style="margin-top:14px;" class="flow">
+      <div class="flow-box orange">5 failed attempts</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box red">Account locked 30 min</div>
+      &nbsp;&nbsp;&nbsp;
+      <div class="flow-box">Forgot password</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">OTP via email</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box">Verify OTP</div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box green">Reset password</div>
+    </div>
+  </div>
+
+  <!-- Chart 4: Admission Flow -->
+  <div class="card">
+    <h2>🎓 Admission Workflow</h2>
+    <div class="flow" style="flex-direction:column; align-items:flex-start; gap:8px;">
+      <div class="flow" style="gap:6px;">
+        <div class="flow-box" style="min-width:90px;">Enquiry</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="min-width:90px;">Follow-up</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green" style="min-width:90px;">Admitted</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green" style="min-width:90px;">Enrolled Student</div>
+      </div>
+      <div class="flow" style="gap:6px; margin-top:4px;">
+        <div style="min-width:90px;"></div>
+        <div style="min-width:90px;"></div>
+        <div class="flow-arrow" style="opacity:0">→</div>
+        <div class="flow-box red" style="min-width:90px;">Rejected</div>
+        <div class="flow-arrow" style="opacity:0">→</div>
+        <div class="flow-box orange" style="min-width:90px;">Withdrawn</div>
+      </div>
+    </div>
+    <div style="margin-top:16px; font-size:0.85em; color:#555;">
+      <strong>Sources:</strong> Direct · Online · Referral · Social Media · Advertisement<br/>
+      <strong>Auto-generated:</strong> Admission Number (ADM-YYYY-NNN)
+    </div>
+  </div>
+
+  <!-- Chart 5: Fee Flow -->
+  <div class="card">
+    <h2>💰 Fee Management Flow</h2>
+    <div class="flow" style="flex-direction:column; align-items:flex-start; gap:8px;">
+      <div class="flow" style="gap:6px;">
+        <div class="flow-box" style="min-width:100px;">Create Fee Structure</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box" style="min-width:100px;">Apply to Standard</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box orange" style="min-width:100px;">Pending Fees Generated</div>
+      </div>
+      <div class="flow" style="gap:6px; margin-top:4px;">
+        <div class="flow-box orange" style="min-width:100px;">Collect Payment</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green" style="min-width:100px;">Status: Paid</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green" style="min-width:100px;">Revenue Synced</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-box green" style="min-width:100px;">Receipt PDF</div>
+      </div>
+    </div>
+    <div style="margin-top:14px; font-size:0.85em; color:#555;">
+      <strong>Formula:</strong> totalAmount = amount − discount + lateFees<br/>
+      <strong>Methods:</strong> Cash · Bank Transfer · Online · Cheque
+    </div>
+  </div>
+
+  <!-- Chart 6: Role-Permission Matrix -->
+  <div class="card full">
+    <h2>🔑 Role-Permission Matrix</h2>
+    <table class="matrix">
+      <tr>
+        <th>Module</th>
+        <th>Super Admin</th>
+        <th>School Admin</th>
+        <th>Teacher</th>
+        <th>Student</th>
+        <th>Parent</th>
+        <th>Accountant</th>
+        <th>Librarian</th>
+        <th>Transport Mgr</th>
+      </tr>
+      <tr><td>School Management</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Platform Analytics</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>System Settings</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Student Management</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Teacher Management</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Admissions</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Timetable</td><td class="no">—</td><td class="yes">✔</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Attendance (Mark)</td><td class="no">—</td><td class="yes">✔</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Attendance (View)</td><td class="no">—</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">Own</td><td class="yes">Child</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Exams &amp; Marks</td><td class="no">—</td><td class="yes">✔</td><td class="yes">Add Marks</td><td class="yes">View</td><td class="yes">View</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Assignments</td><td class="no">—</td><td class="yes">View</td><td class="yes">Create</td><td class="yes">Submit</td><td class="yes">View</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Quizzes</td><td class="no">—</td><td class="no">—</td><td class="yes">Create</td><td class="yes">Take</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Fee Collection</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="yes">View/Pay</td><td class="yes">View/Pay</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Payroll</td><td class="no">—</td><td class="yes">✔</td><td class="yes">View Own</td><td class="no">—</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Leave Management</td><td class="no">—</td><td class="yes">Approve</td><td class="yes">Apply</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Library</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="yes">Browse/Reserve</td><td class="no">—</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td></tr>
+      <tr><td>Transport</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="yes">View/Apply</td><td class="no">—</td><td class="no">—</td><td class="yes">✔</td></tr>
+      <tr><td>GPS Tracking</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">View</td><td class="no">—</td><td class="no">—</td><td class="yes">✔</td></tr>
+      <tr><td>Behavior Logs</td><td class="no">—</td><td class="no">—</td><td class="yes">Create</td><td class="no">—</td><td class="yes">View</td><td class="no">—</td><td class="no">—</td><td class="no">—</td></tr>
+      <tr><td>Messaging</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td><td class="yes">✔</td></tr>
+      <tr><td>Announcements</td><td class="no">—</td><td class="yes">Create</td><td class="yes">Create/View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td></tr>
+      <tr><td>Holidays</td><td class="yes">Global</td><td class="yes">School</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td><td class="yes">View</td></tr>
+      <tr><td>Audit Logs</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="no">—</td><td class="yes">✔</td><td class="no">—</td><td class="no">—</td></tr>
+    </table>
+  </div>
+
+  <!-- Chart 7: All Modules -->
+  <div class="card full">
+    <h2>🧩 All System Modules (20+)</h2>
+    <div class="module-grid">
+      <div class="module-item">🏫 School Management</div>
+      <div class="module-item">👨‍🎓 Student Management</div>
+      <div class="module-item">👩‍🏫 Teacher Management</div>
+      <div class="module-item">📚 Class &amp; Subjects</div>
+      <div class="module-item">📅 Timetable</div>
+      <div class="module-item">📝 Attendance</div>
+      <div class="module-item">🎓 Exams &amp; Marks</div>
+      <div class="module-item">📋 Assignments</div>
+      <div class="module-item">🧠 Quizzes &amp; Q-Bank</div>
+      <div class="module-item">💰 Fee Management</div>
+      <div class="module-item">💼 Payroll</div>
+      <div class="module-item">🏖️ Leave Management</div>
+      <div class="module-item">📖 Library</div>
+      <div class="module-item">🚌 Transport &amp; GPS</div>
+      <div class="module-item">📢 Announcements</div>
+      <div class="module-item">💬 Messaging</div>
+      <div class="module-item">🔔 Notifications</div>
+      <div class="module-item">🗓️ Holidays</div>
+      <div class="module-item">📊 Analytics &amp; Reports</div>
+      <div class="module-item">🔐 Admissions</div>
+      <div class="module-item">📁 Lesson Plans</div>
+      <div class="module-item">🗂️ Resource Locker</div>
+      <div class="module-item">😊 Behavior Logs</div>
+      <div class="module-item">🤝 PTM Meetings</div>
+      <div class="module-item">📈 Staff Attendance</div>
+      <div class="module-item">🔍 Audit Logs</div>
+      <div class="module-item">💾 Backups</div>
+      <div class="module-item">⚙️ System Settings</div>
+    </div>
+  </div>
+
+  <!-- Chart 8: Tech Stack -->
+  <div class="card full">
+    <h2>🏗️ System Architecture Overview</h2>
+    <canvas id="archChart" style="max-height:260px;"></canvas>
+  </div>
+
+</div>
+
+<script>
+// Chart 1: Feature Modules per Role
+new Chart(document.getElementById('rolesChart'), {
+  type: 'bar',
+  data: {
+    labels: ['Super Admin', 'School Admin', 'Teacher', 'Student', 'Parent', 'Accountant', 'Librarian', 'Transport Mgr'],
+    datasets: [{
+      label: 'Number of Feature Modules',
+      data: [12, 22, 18, 12, 14, 8, 8, 9],
+      backgroundColor: ['#c62828','#1565c0','#2e7d32','#e65100','#6a1b9a','#00695c','#37474f','#0277bd'],
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true, ticks: { stepSize: 2 } } }
+  }
+});
+
+// Chart 2: Module Distribution
+new Chart(document.getElementById('modulesChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Academic', 'Finance', 'Communication', 'Transport', 'Library', 'HR & Admin', 'System'],
+    datasets: [{
+      data: [8, 4, 4, 4, 3, 4, 3],
+      backgroundColor: ['#1565c0','#2e7d32','#e65100','#0277bd','#6a1b9a','#c62828','#37474f'],
+      borderWidth: 2,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { position: 'right' } }
+  }
+});
+
+// Chart 3: Architecture (horizontal bar)
+new Chart(document.getElementById('archChart'), {
+  type: 'bar',
+  data: {
+    labels: ['React Frontend', 'Redux State', 'REST API (Express)', 'MongoDB', 'Socket.IO', 'JWT Auth', 'File Storage', 'Email (Nodemailer)'],
+    datasets: [{
+      label: 'Component Complexity (relative)',
+      data: [90, 70, 95, 85, 60, 75, 55, 40],
+      backgroundColor: '#1565c0',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: { x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } } }
+  }
+});
+</script>
+
+<div style="text-align:center; padding: 24px; color: #888; font-size: 0.88em;">
+  School Management System — Architecture Charts — March 2026
+  <br/><em>Open in browser → File → Print → Save as PDF to export</em>
+</div>
+</body>
+</html>
