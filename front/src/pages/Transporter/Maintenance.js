@@ -198,10 +198,11 @@ const Maintenancetransport = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-neutral-950 border border-slate-800/40 rounded-md">
-                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Fuel Efficiency</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Fuel cost</p>
                                         <div className="flex items-center gap-2 text-blue-500">
                                             <Fuel size={14} />
-                                            <span className="text-sm font-black italic uppercase">{calculateFuelEfficiency(vehicle)}</span>
+                                            {/* <span className="text-sm font-black italic uppercase">{calculateFuelEfficiency(vehicle)}</span> */}
+                                            <span className="text-sm font-black italic uppercase">${vehicle.maintenanceHistory?.reduce((acc, log) => acc + (log.cost || 0), 0).toFixed(2) || '0.00'}</span>
                                         </div>
                                     </div>
                                     <div className="p-4 bg-neutral-950 border border-slate-800/40 rounded-md">

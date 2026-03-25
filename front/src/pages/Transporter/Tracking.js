@@ -244,7 +244,7 @@ const Tracking = () => {
 
                 {/* Live Feed Terminal */}
                 <div className="absolute bottom-8 right-8 z-[1001] hidden xl:block">
-                    <div className="bg-neutral-950/80 backdrop-blur-xl border border-white/5 p-6 rounded shadow-2xl w-96 space-y-4 overflow-hidden">
+                    {/* <div className="bg-neutral-950/80 backdrop-blur-xl border border-white/5 p-6 rounded shadow-2xl w-96 space-y-4 overflow-hidden">
                         <div className="flex items-center justify-between border-b border-white/5 pb-3">
                             <span className="text-[9px] font-black text-transporter-primary uppercase tracking-widest italic">Terminal Logs</span>
                             <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
@@ -260,7 +260,7 @@ const Tracking = () => {
                             <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] BACKGROUND SCAN: NO ANOMALIES</p>
                             <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] ENCRYPTION KEY ROTATED</p>
                         </div>
-                    </div>
+                    </div> */}
                 </div>
             </div>
         </motion.div>

@@ -382,6 +382,8 @@ exports.getTripLogs = async (req, res) => {
 exports.recordTrip = async (req, res) => {
     try {
         const tripData = { ...req.body, schoolId: getSchoolId(req) };
+        if (tripData.driverId === '') delete tripData.driverId;
+        if (tripData.vehicleId === '') delete tripData.vehicleId;
         if (tripData.status === 'In-Progress') {
             tripData.actualDepartureTime = new Date();
         }

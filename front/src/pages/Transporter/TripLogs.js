@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { 
-    fetchTripLogsSlice, recordTripSlice, updateTripStatusSlice, 
-    toggleBoardingSlice, fetchRoutesSlice, fetchDriversSlice, 
-    fetchVehicles, clearTransportMessage 
+import {
+    fetchTripLogsSlice, recordTripSlice, updateTripStatusSlice,
+    toggleBoardingSlice, fetchRoutesSlice, fetchDriversSlice,
+    fetchVehicles, clearTransportMessage
 } from '../../redux/slice/transport.slice';
 import { ClipboardList, Bus, User, Calendar, Plus, Edit3, Check, X, Search, Navigation, Filter, MapPin, Clock, Play, CheckCircle2, AlertTriangle, Timer } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ const TripLogs = () => {
     const [isDelayOpen, setIsDelayOpen] = React.useState(false);
     const [selectedTrip, setSelectedTrip] = React.useState(null);
     const [delayReason, setDelayReason] = React.useState('');
-    
+
     // Filtering states
     const [filterType, setFilterType] = React.useState('single'); // 'single' or 'range'
     const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
@@ -72,7 +72,7 @@ const TripLogs = () => {
                 ...formData,
                 routeId,
                 vehicleId: route.vehicleId?._id || '',
-                driverId: route.vehicleId?.driverId?._id || '',
+                driverId: route.vehicleId?.driverId?._id || route.vehicleId?.driverId || '',
                 attendance: route.assignedStudents.map(as => ({
                     studentId: as.studentId._id,
                     boarded: false
@@ -84,10 +84,10 @@ const TripLogs = () => {
     const toggleNewLogAttendance = (studentId) => {
         setFormData({
             ...formData,
-            attendance: formData.attendance.map(a => 
-                a.studentId === studentId 
-                ? { ...a, boarded: !a.boarded }
-                : a
+            attendance: formData.attendance.map(a =>
+                a.studentId === studentId
+                    ? { ...a, boarded: !a.boarded }
+                    : a
             )
         });
     }
@@ -122,7 +122,7 @@ const TripLogs = () => {
     }
 
     const getStatusColor = (status) => {
-        switch(status) {
+        switch (status) {
             case 'Scheduled': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
             case 'In-Progress': return 'text-sky-500 bg-sky-500/10 border-sky-500/20';
             case 'Completed': return 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20';
@@ -138,7 +138,7 @@ const TripLogs = () => {
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-amber-500">Transit Logs</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Recording spatial displacements and entity attendance.</p>
                 </div>
-                
+
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-neutral-900 p-1 rounded-md border border-slate-800/60 h-[42px]">
                         <button onClick={() => setFilterType('single')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'single' ? 'bg-amber-600/10 text-amber-500' : 'text-slate-500 hover:text-slate-300'}`}>Snapshot</button>
@@ -146,21 +146,21 @@ const TripLogs = () => {
                     </div>
 
                     {filterType === 'single' ? (
-                        <input 
-                            type="date" 
+                        <input
+                            type="date"
                             value={selectedDate}
                             onChange={(e) => setSelectedDate(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic h-[42px]"
                         />
                     ) : (
                         <div className="flex items-center gap-2">
-                             <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-3 text-[11px] font-bold text-slate-200 focus:outline-none italic h-[42px]" />
-                             <span className="text-slate-600 text-xs italic">TO</span>
-                             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-3 text-[11px] font-bold text-slate-200 focus:outline-none italic h-[42px]" />
+                            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-3 text-[11px] font-bold text-slate-200 focus:outline-none italic h-[42px]" />
+                            <span className="text-slate-600 text-xs italic">TO</span>
+                            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 px-3 text-[11px] font-bold text-slate-200 focus:outline-none italic h-[42px]" />
                         </div>
                     )}
 
-                    <button 
+                    <button
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
                         className="px-6 py-4 bg-amber-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-amber-600/20 hover:shadow-amber-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px] sm:h-auto"
                     >
@@ -212,7 +212,7 @@ const TripLogs = () => {
                                 <div className="flex items-center gap-3 ml-auto xl:ml-0">
                                     {log.status === 'Scheduled' && (
                                         <>
-                                            <button 
+                                            <button
                                                 onClick={() => handleStatusTransition(log._id, log.status)}
                                                 className="px-4 py-2 bg-sky-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-sky-600/10 hover:bg-sky-700 transition-all flex items-center gap-2"
                                             >
@@ -222,7 +222,7 @@ const TripLogs = () => {
                                         </>
                                     )}
                                     {log.status === 'In-Progress' && (
-                                        <button 
+                                        <button
                                             onClick={() => handleStatusTransition(log._id, log.status)}
                                             className="px-4 py-2 bg-emerald-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 transition-all flex items-center gap-2"
                                         >
@@ -232,12 +232,12 @@ const TripLogs = () => {
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div className="p-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
                                 {log.attendance?.map((as, idx) => (
-                                    <button 
-                                        key={idx} 
+                                    <button
+                                        key={idx}
                                         disabled={log.status !== 'In-Progress'}
                                         onClick={() => handleLiveBoarding(log._id, as.studentId?._id, as.boarded)}
                                         className={`p-4 rounded-md border transition-all flex items-center justify-between gap-3 text-left ${as.boarded ? 'bg-emerald-600/5 border-emerald-600/20' : 'bg-neutral-950 border-slate-800/60 opacity-60'} ${log.status === 'In-Progress' ? 'hover:scale-[1.02] cursor-pointer active:scale-95' : 'cursor-default'}`}
@@ -274,28 +274,28 @@ const TripLogs = () => {
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/60">
                                     <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Initialize Transit Sequence</h3>
                                     <div className="flex bg-neutral-950 p-1 rounded-md border border-slate-800">
-                                        <button 
+                                        <button
                                             type="button"
-                                            onClick={() => setFormData({...formData, type: 'Pickup'})}
+                                            onClick={() => setFormData({ ...formData, type: 'Pickup' })}
                                             className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${formData.type === 'Pickup' ? 'bg-amber-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
                                         >
                                             Pickup
                                         </button>
-                                        <button 
+                                        <button
                                             type="button"
-                                            onClick={() => setFormData({...formData, type: 'Dropoff'})}
+                                            onClick={() => setFormData({ ...formData, type: 'Dropoff' })}
                                             className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${formData.type === 'Dropoff' ? 'bg-blue-600 text-white' : 'text-slate-500 hover:text-slate-300'}`}
                                         >
                                             Dropoff
                                         </button>
                                     </div>
                                 </div>
-                                
+
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Mobility Matrix (Route)</label>
-                                            <select 
+                                            <select
                                                 required
                                                 value={formData.routeId}
                                                 onChange={(e) => handleRouteChange(e.target.value)}
@@ -324,7 +324,7 @@ const TripLogs = () => {
                                                     const stop = formData.type === 'Pickup' ? studentInfo?.pickupStop : studentInfo?.dropoffStop;
 
                                                     return (
-                                                        <button 
+                                                        <button
                                                             key={as.studentId}
                                                             type="button"
                                                             onClick={() => toggleNewLogAttendance(as.studentId)}
@@ -345,8 +345,8 @@ const TripLogs = () => {
 
                                 <div className="flex gap-4 pt-6">
                                     <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort sequence</button>
-                                    <button 
-                                        type="submit" 
+                                    <button
+                                        type="submit"
                                         disabled={!formData.routeId}
                                         className="flex-1 px-6 py-4 bg-amber-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-amber-700 transition-all shadow-xl shadow-amber-600/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0"
                                     >
@@ -368,7 +368,7 @@ const TripLogs = () => {
                                 <div className="space-y-4">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Delay Rationale (Optional)</label>
-                                        <textarea 
+                                        <textarea
                                             value={delayReason}
                                             onChange={(e) => setDelayReason(e.target.value)}
                                             placeholder="Specify reason for spatial delay if any..."
