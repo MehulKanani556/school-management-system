@@ -9,7 +9,7 @@ const StatusBadge = ({ status }) => {
   const configs = {
     pending: { color: 'text-amber-400 bg-amber-400/10', icon: Clock },
     approved: { color: 'text-emerald-400 bg-emerald-400/10', icon: CheckCircle2 },
-    rejected: { color: 'text-rose-400 bg-rose-400/10', icon: XCircle }
+    rejected: { color: 'text-schooladmin-primary bg-schooladmin-primary/10', icon: XCircle }
   };
   const { color, icon: Icon } = configs[status] || configs.pending;
   return (
@@ -153,7 +153,7 @@ const Leaves = () => {
                       </button>
                       <button 
                         onClick={() => dispatch(updateLeaveStatus({ id: l._id, data: { status: 'rejected' } }))}
-                        className="flex-1 py-3.5 rounded-md bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white border border-rose-500/20 font-black text-[10px] uppercase tracking-widest transition-all active:scale-95"
+                        className="flex-1 py-3.5 rounded-md bg-schooladmin-primary/10 hover:bg-schooladmin-primary text-schooladmin-primary hover:text-white border border-schooladmin-primary/20 font-black text-[10px] uppercase tracking-widest transition-all active:scale-95"
                       >
                         Reject
                       </button>

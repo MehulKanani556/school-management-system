@@ -118,7 +118,7 @@ const AllSchools = () => {
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
                             <input type="text" placeholder="Locate Node..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="bg-brand-surface border border-brand-border focus:border-brand-primary/60 outline-none h-11 pl-11 pr-4 rounded-md text-xs font-semibold text-slate-100 w-full shadow-2xl transition-all" />
                         </div>
-                        <button onClick={openCreateModal} className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-700 text-white px-8 h-11 rounded-md font-bold tracking-widest uppercase text-[11px] transition-all shadow-lg active:scale-95 group"><Plus size={18} className="group-hover:rotate-90 transition-transform" /> Provision</button>
+                        <button onClick={openCreateModal} className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-superadmin-primary text-white px-8 h-11 rounded-md font-bold tracking-widest uppercase text-[11px] transition-all shadow-lg active:scale-95 group"><Plus size={18} className="group-hover:rotate-90 transition-transform" /> Provision</button>
                     </div>
                 </div>
 
@@ -204,7 +204,7 @@ const AllSchools = () => {
                                     {logoPreview ? <img src={logoPreview} alt="" className="w-14 h-14 xs:w-16 xs:h-16 rounded-md object-cover mb-3 shadow-md border border-brand-border" /> : <div className="p-3 xs:p-4 rounded-md bg-slate-800 mb-3 group-hover:bg-brand-primary/10 transition-colors"><Upload className="text-slate-400 group-hover:text-brand-primary transition-all" size={24} /></div>}
                                     <p className="text-[9px] xs:text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Institutional Branding Identifier</p>
                                 </div>
-                                <button type="submit" disabled={loading} className="w-full py-4 rounded-md bg-brand-primary hover:bg-blue-700 text-white font-bold uppercase tracking-[0.2em] xs:tracking-[0.3em] shadow-lg text-xs active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 transition-all">{loading ? <Activity className="animate-spin" size={18} /> : <>{modalMode === 'create' ? 'ACTIVATE PROVISIONING' : 'PUSH NODE UPDATES'} <Check size={18} /></>}</button>
+                                <button type="submit" disabled={loading} className="w-full py-4 rounded-md bg-brand-primary hover:bg-superadmin-primary text-white font-bold uppercase tracking-[0.2em] xs:tracking-[0.3em] shadow-lg text-xs active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-3 transition-all">{loading ? <Activity className="animate-spin" size={18} /> : <>{modalMode === 'create' ? 'ACTIVATE PROVISIONING' : 'PUSH NODE UPDATES'} <Check size={18} /></>}</button>
                             </form>
                         </motion.div>
                     </div>

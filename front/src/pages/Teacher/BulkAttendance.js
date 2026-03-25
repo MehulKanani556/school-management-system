@@ -106,7 +106,7 @@ const BulkAttendance = () => {
                     <button 
                         onClick={handleBulkUpload} 
                         disabled={loading || !csvFile || !selectedClass || !selectedDate} 
-                        className="w-full h-14 bg-brand-primary hover:bg-blue-600 disabled:opacity-50 text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-3 italic"
+                        className="w-full h-14 bg-brand-primary hover:bg-teacher-primary disabled:opacity-50 text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-3 italic"
                     >
                         {loading ? <Activity size={18} className="animate-spin" /> : <Upload size={18} />} Initiate Mass Sync
                     </button>

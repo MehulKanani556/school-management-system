@@ -130,7 +130,7 @@ const Payroll = () => {
           <p className="text-slate-400 text-sm mt-1">Institutional workforce financial registry</p>
         </div>
         <div className="flex gap-4">
-            <button onClick={() => setBulkModal(true)} className="flex items-center gap-2 px-6 py-3.5 bg-indigo-500/10 hover:bg-indigo-500 rounded-md font-black text-xs uppercase tracking-widest transition-all border border-indigo-500/20 text-indigo-400 hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+            <button onClick={() => setBulkModal(true)} className="flex items-center gap-2 px-6 py-3.5 bg-schooladmin-primary/10 hover:bg-schooladmin-primary rounded-md font-black text-xs uppercase tracking-widest transition-all border border-schooladmin-primary/20 text-schooladmin-primary hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
                 <Zap size={18} /> Bulk Generation
             </button>
             <button onClick={openAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] text-white">
@@ -142,8 +142,8 @@ const Payroll = () => {
       {/* Bulk Generation Modal */}
       <Modal open={bulkModal} onClose={() => setBulkModal(false)} title="Bulk Payroll Generation Pulse">
           <div className="space-y-6 p-2">
-              <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-md p-6 flex items-start gap-4">
-                  <AlertCircle className="text-indigo-400 shrink-0 mt-1" size={20} />
+              <div className="bg-schooladmin-primary/10 border border-schooladmin-primary/20 rounded-md p-6 flex items-start gap-4">
+                  <AlertCircle className="text-schooladmin-primary shrink-0 mt-1" size={20} />
                   <div className="space-y-2">
                       <p className="text-xs font-black text-white uppercase tracking-widest">Protocol Intelligence</p>
                       <p className="text-[11px] text-slate-400 leading-relaxed font-bold">This operation will calculate net yields for all active personnel based on attendance deltas and base salary parameters. Existing records for this month will be bypassed.</p>
@@ -177,7 +177,7 @@ const Payroll = () => {
               </div>
 
               <button onClick={handleBulkGenerate} disabled={loading}
-                  className="w-full py-5 bg-indigo-500 hover:bg-indigo-600 rounded-md font-black text-[13px] uppercase tracking-[0.3em] transition-all font-outfit mt-4 shadow-[0_0_30px_rgba(99,102,241,0.3)] text-white">
+                  className="w-full py-5 bg-schooladmin-primary hover:bg-schooladmin-primary rounded-md font-black text-[13px] uppercase tracking-[0.3em] transition-all font-outfit mt-4 shadow-[0_0_30px_rgba(99,102,241,0.3)] text-white">
                   {loading ? 'CALCULATING DELTA...' : 'INITIALIZE GENERATION'}
               </button>
           </div>

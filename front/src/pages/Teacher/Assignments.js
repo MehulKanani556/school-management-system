@@ -123,7 +123,7 @@ const Assignments = () => {
                         if (viewMode !== 'list') resetForm();
                         setViewMode(viewMode === 'list' ? 'form' : 'list');
                     }}
-                    className={`flex items-center gap-3 px-8 py-3.5 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${viewMode === 'list' ? 'bg-brand-primary text-white hover:bg-blue-600' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
+                    className={`flex items-center gap-3 px-8 py-3.5 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95 ${viewMode === 'list' ? 'bg-brand-primary text-white hover:bg-teacher-primary' : 'bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700'}`}
                 >
                     {viewMode === 'list' ? <Plus size={16} /> : <X size={16} />}
                     {viewMode === 'list' ? 'Provision New' : 'Return to Registry'}
@@ -188,7 +188,7 @@ const Assignments = () => {
                                     </label>
                                 </div>
                             </div>
-                            <button type="submit" disabled={loading} className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-md text-[11px] font-black uppercase tracking-[0.4em] text-white shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-50">
+                            <button type="submit" disabled={loading} className="w-full py-5 bg-brand-primary hover:bg-teacher-primary rounded-md text-[11px] font-black uppercase tracking-[0.4em] text-white shadow-2xl active:scale-[0.98] transition-all flex items-center justify-center gap-4 disabled:opacity-50">
                                 {loading ? <Activity size={20} className="animate-spin" /> : <Send size={20} />}
                                 {editMode ? 'UPDATE PROTOCOL' : 'PUBLISH ASSIGNMENT'}
                             </button>
@@ -257,7 +257,7 @@ const Assignments = () => {
                                     </div>
                                     <div className="flex gap-4">
                                         <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-4 bg-slate-800/80 hover:bg-slate-700 rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-2 active:scale-95 shadow-lg"><ExternalLink size={14} /> Open</a>
-                                        <button onClick={() => { setGradingSubmission(sub); setGradeForm({ score: sub.marks || '', feedback: sub.feedback || '' }); }} className="flex-1 py-4 bg-brand-primary hover:bg-blue-600 rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"><FileCheck size={14} /> {sub.status === 'Graded' ? 'Update' : 'Grade'}</button>
+                                        <button onClick={() => { setGradingSubmission(sub); setGradeForm({ score: sub.marks || '', feedback: sub.feedback || '' }); }} className="flex-1 py-4 bg-brand-primary hover:bg-teacher-primary rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-white transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2"><FileCheck size={14} /> {sub.status === 'Graded' ? 'Update' : 'Grade'}</button>
                                     </div>
                                 </motion.div>
                             ))}
@@ -276,7 +276,7 @@ const Assignments = () => {
                         <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-2">Qualitative Intelligence (Feedback)</label>
                         <textarea rows={4} value={gradeForm.feedback} onChange={(e) => setGradeForm({ ...gradeForm, feedback: e.target.value })} className="w-full bg-slate-800 border border-slate-700 rounded-md px-6 py-4 text-white focus:outline-none focus:border-brand-primary/50 transition-all font-medium resize-none" placeholder="Feedback payload..." />
                     </div>
-                    <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"><FileCheck size={18} /> Commit Grade to Registry</button>
+                    <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-teacher-primary rounded-md font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3"><FileCheck size={18} /> Commit Grade to Registry</button>
                 </form>
             </Modal>
         </motion.div>

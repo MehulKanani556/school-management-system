@@ -93,12 +93,12 @@ const StaffAttendance = () => {
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500" />
+                        <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-schooladmin-primary" />
                         <input 
                             type="date" 
                             value={selectedDate} 
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-6 text-white text-sm outline-none focus:border-blue-500 transition-all font-bold shadow-inner"
+                            className="bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-6 text-white text-sm outline-none focus:border-schooladmin-primary transition-all font-bold shadow-inner"
                         />
                     </div>
                     <button 
@@ -114,7 +114,7 @@ const StaffAttendance = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { label: 'Total Workforce', val: stats.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/5' },
+                    { label: 'Total Workforce', val: stats.total, icon: Users, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/5' },
                     { label: 'Active Signals', val: stats.present, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
                     { label: 'Signal Loss', val: stats.absent, icon: XCircle, color: 'text-rose-400', bg: 'bg-rose-400/5' },
                     { label: 'Delayed Sync', val: stats.late, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/5' },
@@ -144,13 +144,13 @@ const StaffAttendance = () => {
                                 placeholder="Search by name or serial..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-950/50 border border-white/5 py-3.5 pl-12 pr-6 rounded-2xl outline-none text-sm text-white focus:border-blue-500 placeholder:text-slate-700 font-bold transition-all"
+                                className="w-full bg-slate-950/50 border border-white/5 py-3.5 pl-12 pr-6 rounded-2xl outline-none text-sm text-white focus:border-schooladmin-primary placeholder:text-slate-700 font-bold transition-all"
                             />
                         </div>
                         <select 
                             value={selectedRole}
                             onChange={(e) => setSelectedRole(e.target.value)}
-                            className="bg-slate-950/50 border border-white/5 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-slate-400 outline-none focus:border-blue-500 h-[48px]"
+                            className="bg-slate-950/50 border border-white/5 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-slate-400 outline-none focus:border-schooladmin-primary h-[48px]"
                         >
                             <option value="All">All Sectors</option>
                             <option value="Teacher">Academic</option>
@@ -174,14 +174,14 @@ const StaffAttendance = () => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {filteredRecords.map((r, i) => (
-                                <tr key={r._id} className="hover:bg-blue-500/[0.02] transition-colors group">
+                                <tr key={r._id} className="hover:bg-schooladmin-primary/[0.02] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-blue-400 border border-white/10 group-hover:border-blue-500/30 transition-all shadow-inner">
+                                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-schooladmin-primary border border-white/10 group-hover:border-schooladmin-primary/30 transition-all shadow-inner">
                                                 {r.firstName[0]}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-blue-400 transition-colors">{r.firstName} {r.lastName}</p>
+                                                <p className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-schooladmin-primary transition-colors">{r.firstName} {r.lastName}</p>
                                                 <p className="text-[10px] font-black text-slate-600 font-mono">ID: {r.employeeId}</p>
                                             </div>
                                         </div>
@@ -195,7 +195,7 @@ const StaffAttendance = () => {
                                                 { id: 'Present', color: 'bg-emerald-500', label: 'P' },
                                                 { id: 'Absent', color: 'bg-rose-500', label: 'A' },
                                                 { id: 'Late', color: 'bg-amber-500', label: 'L' },
-                                                { id: 'Half-Day', color: 'bg-blue-500', label: 'H' }
+                                                { id: 'Half-Day', color: 'bg-schooladmin-primary', label: 'H' }
                                             ].map(s => (
                                                 <button 
                                                     key={s.id}
@@ -217,7 +217,7 @@ const StaffAttendance = () => {
                                                 type="time" 
                                                 value={r.arrivalTime}
                                                 onChange={(e) => handleTimeChange(r._id, 'arrivalTime', e.target.value)}
-                                                className="bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-blue-400 outline-none focus:border-blue-500 shadow-inner"
+                                                className="bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-schooladmin-primary outline-none focus:border-schooladmin-primary shadow-inner"
                                             />
                                         </div>
                                     </td>
@@ -227,7 +227,7 @@ const StaffAttendance = () => {
                                             placeholder="..." 
                                             value={r.remarks}
                                             onChange={(e) => handleTimeChange(r._id, 'remarks', e.target.value)}
-                                            className="bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-blue-500/30 max-w-[150px]"
+                                            className="bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-schooladmin-primary/30 max-w-[150px]"
                                         />
                                     </td>
                                 </tr>

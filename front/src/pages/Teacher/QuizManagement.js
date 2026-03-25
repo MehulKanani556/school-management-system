@@ -193,7 +193,7 @@ const QuizManagement = () => {
                                         <div className="flex items-center justify-between">
                                             <span className="text-[10px] font-black text-teacher-primary uppercase tracking-widest">Q{qIdx + 1}</span>
                                             {form.questions.length > 1 && (
-                                                <button type="button" onClick={() => removeQuestion(qIdx)} className="text-slate-600 hover:text-rose-400 transition-colors">
+                                                <button type="button" onClick={() => removeQuestion(qIdx)} className="text-slate-600 hover:text-teacher-primary transition-colors">
                                                     <Trash2 size={14} />
                                                 </button>
                                             )}
@@ -281,7 +281,7 @@ const QuizManagement = () => {
                                     <button onClick={() => handleToggleExpand(quiz._id)} className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-widest">
                                         <Users size={14} /> Attempts {expandedQuiz === quiz._id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                                     </button>
-                                    <button onClick={() => handleDelete(quiz._id)} className="p-2 rounded-md bg-rose-500/10 hover:bg-rose-500 text-rose-400 hover:text-white transition-all">
+                                    <button onClick={() => handleDelete(quiz._id)} className="p-2 rounded-md bg-teacher-primary/10 hover:bg-teacher-primary text-teacher-primary hover:text-white transition-all">
                                         <Trash2 size={16} />
                                     </button>
                                 </div>
@@ -321,7 +321,7 @@ const QuizManagement = () => {
                                                                     <td className="py-3 text-sm font-bold text-white">{a.studentId?.firstName} {a.studentId?.lastName}</td>
                                                                     <td className="py-3 text-sm font-black text-white">{a.score} <span className="text-slate-600 text-xs">/ {a.totalPoints}</span></td>
                                                                     <td className="py-3">
-                                                                        <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest w-fit ${a.status === 'Passed' ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                                        <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest w-fit ${a.status === 'Passed' ? 'text-emerald-400' : 'text-teacher-primary'}`}>
                                                                             {a.status === 'Passed' ? <CheckCircle size={12} /> : <AlertCircle size={12} />} {a.status}
                                                                         </span>
                                                                     </td>

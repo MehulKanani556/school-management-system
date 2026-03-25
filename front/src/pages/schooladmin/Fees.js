@@ -15,7 +15,7 @@ import toast from 'react-hot-toast';
 
 const STATUS_COLORS = { 
   paid: 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20', 
-  pending: 'text-amber-400 bg-amber-400/10 border-amber-500/20', 
+  pending: 'text-schooladmin-primary bg-schooladmin-primary/10 border-schooladmin-primary/20', 
   overdue: 'text-red-400 bg-red-400/10 border-red-500/20',
   partially_paid: 'text-blue-400 bg-blue-400/10 border-blue-500/20'
 };
@@ -518,7 +518,7 @@ const Fees = () => {
                       <div className="flex items-center gap-4 mt-1">
                         <p className="text-xs text-slate-500 font-black uppercase tracking-[0.2em]">{s.academicYear}</p>
                         {s.dueDate && (
-                          <p className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-amber-500/10 text-amber-500 rounded-md border border-amber-500/20">
+                          <p className="text-[10px] font-black uppercase tracking-widest px-2 py-0.5 bg-schooladmin-primary/10 text-schooladmin-primary rounded-md border border-schooladmin-primary/20">
                             Due: {new Date(s.dueDate).toLocaleDateString()}
                           </p>
                         )}
@@ -600,7 +600,7 @@ const Fees = () => {
                       <div className="relative z-10 flex items-center justify-between">
                         <div>
                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Total Outstanding</p>
-                          <p className="text-4xl font-black font-outfit text-amber-500 italic tracking-tighter">${totalUnpaid.toLocaleString()}</p>
+                          <p className="text-4xl font-black font-outfit text-schooladmin-primary italic tracking-tighter">${totalUnpaid.toLocaleString()}</p>
                         </div>
                         {bulkPayingTotal > 0 && (
                           <div className="text-right">
@@ -879,7 +879,7 @@ const Fees = () => {
                    </div>
                    <div className="text-right">
                      <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Accounting Status</label>
-                     <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block ${receiptData.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                     <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block ${receiptData.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-schooladmin-primary'}`}>
                        {receiptData.status}
                      </span>
                      <span className="text-[10px] font-bold text-slate-500 block mt-2">Fiscal Session: 2026-27</span>

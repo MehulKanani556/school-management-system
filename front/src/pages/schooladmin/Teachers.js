@@ -134,7 +134,7 @@ const Teachers = () => {
             <Upload size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Import CSV
             <input type="file" accept=".csv" className="hidden" onChange={handleImport} />
           </label>
-          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
+          <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-lg shadow-brand-primary/20">
             <Plus size={18} /> Add Teacher
           </button>
         </div>
@@ -248,7 +248,7 @@ const Teachers = () => {
           )}
 
           <button type="submit" disabled={loading || formik.isSubmitting}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
+            className="w-full py-3 bg-brand-primary hover:bg-schooladmin-primary disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2">
             {loading ? 'Saving...' : editing ? 'Update Teacher' : 'Add Teacher'}
           </button>
         </form>

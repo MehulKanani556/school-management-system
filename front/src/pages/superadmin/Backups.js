@@ -45,7 +45,7 @@ const Backups = () => {
     const lastBackupTime = Array.isArray(backups) && backups.length > 0 ? moment(backups[0].createdAt).fromNow() : 'NEVER';
 
     const stats = [
-        { label: 'Aggregate Storage', value: storageDisplay, icon: HardDrive, note: `Last sync: ${lastBackupTime}`, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20' },
+        { label: 'Aggregate Storage', value: storageDisplay, icon: HardDrive, note: `Last sync: ${lastBackupTime}`, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20' },
         { label: 'Node Redundancy', value: '3/3 Clusters', icon: Shield, note: 'Mirror Sync Active', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
         { label: 'Security Layer', value: 'SHA-256', icon: Lock, note: 'End-to-End Encrypted', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' }
     ];

@@ -90,8 +90,8 @@ const Drivers = () => {
         return diff < 30 * 24 * 60 * 60 * 1000; // 30 days
     }
 
-    const filteredDrivers = drivers.filter(d => 
-        d.name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    const filteredDrivers = drivers.filter(d =>
+        d.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         d.licenseNumber?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -99,24 +99,24 @@ const Drivers = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-violet-500">Personnel Roster</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Personnel Roster</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Managing operator profiles and regulatory compliance.</p>
                 </div>
-                
+
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                     <div className="relative flex-1 sm:w-64">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
-                        <input 
-                            type="text" 
-                            placeholder="Identify Operator..." 
+                        <input
+                            type="text"
+                            placeholder="Identify Operator..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all w-full italic"
                         />
                     </div>
-                    <button 
+                    <button
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
-                        className="px-6 py-4 bg-violet-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
+                        className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
                     >
                         <Plus size={14} /> register operator
                     </button>
@@ -129,7 +129,7 @@ const Drivers = () => {
                         <div>
                             <div className="flex items-start justify-between mb-6">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-violet-500 shadow-inner group-hover:border-violet-600/40 transition-all">
+                                    <div className="w-12 h-12 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-transporter-primary shadow-inner group-hover:border-violet-600/40 transition-all">
                                         <User size={24} />
                                     </div>
                                     <div>
@@ -171,12 +171,12 @@ const Drivers = () => {
                         </div>
 
                         <div className="mt-8 flex items-center justify-between bg-neutral-950/40 p-3 rounded border border-slate-800/60">
-                             <div className="flex items-center gap-1">
+                            <div className="flex items-center gap-1">
                                 {[...Array(5)].map((_, i) => (
                                     <Star key={i} size={10} className={i < (driver.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
                                 ))}
-                             </div>
-                             <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Efficiency Index</span>
+                            </div>
+                            <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Efficiency Index</span>
                         </div>
                     </div>
                 ))}
@@ -191,72 +191,72 @@ const Drivers = () => {
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
                                     {isEditOpen ? 'Edit Operator Profile' : 'Register New Operator'}
                                 </h3>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Full Operator Name</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             required
                                             value={formData.name}
-                                            onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Primary Comms (Contact)</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             required
                                             value={formData.contact}
-                                            onChange={(e) => setFormData({...formData, contact: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Regulatory Identifier (License)</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             required
                                             value={formData.licenseNumber}
-                                            onChange={(e) => setFormData({...formData, licenseNumber: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">License Expiry Vector</label>
-                                        <input 
-                                            type="date" 
+                                        <input
+                                            type="date"
                                             required
                                             value={formData.licenseExpiry}
-                                            onChange={(e) => setFormData({...formData, licenseExpiry: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Emergency Comms Sync</label>
-                                        <input 
-                                            type="text" 
+                                        <input
+                                            type="text"
                                             value={formData.emergencyContact}
-                                            onChange={(e) => setFormData({...formData, emergencyContact: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Efficiency Rating (1-5)</label>
-                                        <select 
+                                        <select
                                             value={formData.performanceRating}
-                                            onChange={(e) => setFormData({...formData, performanceRating: parseInt(e.target.value)})}
+                                            onChange={(e) => setFormData({ ...formData, performanceRating: parseInt(e.target.value) })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none appearance-none"
                                         >
-                                            {[1,2,3,4,5].map(v => <option key={v} value={v}>{v} STAR RATING</option>)}
+                                            {[1, 2, 3, 4, 5].map(v => <option key={v} value={v}>{v} STAR RATING</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operator Profile Status</label>
-                                        <select 
+                                        <select
                                             value={formData.status}
-                                            onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-violet-600/50 transition-all leading-none appearance-none"
                                         >
                                             <option value="active">ACTIVE</option>
@@ -267,7 +267,7 @@ const Drivers = () => {
 
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort logic</button>
-                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-violet-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-violet-700 transition-all shadow-xl shadow-violet-600/20 leading-none hover:translate-y-[-2px]">
+                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-violet-700 transition-all shadow-xl shadow-violet-600/20 leading-none hover:translate-y-[-2px]">
                                         {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Registration'}
                                     </button>
                                 </div>

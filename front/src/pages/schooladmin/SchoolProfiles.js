@@ -227,7 +227,7 @@ const SchoolSettings = () => {
                   <button
                     type="button"
                     onClick={() => setIsPwdModalOpen(true)}
-                    className="flex items-center gap-2 px-6 py-3 bg-slate-800/40 hover:bg-orange-500/10 text-slate-400 hover:text-orange-500 border border-white/5 hover:border-orange-500/20 rounded-md text-[10px] font-black uppercase tracking-widest transition-all group scale-90"
+                    className="flex items-center gap-2 px-6 py-3 bg-slate-800/40 hover:bg-schooladmin-primary/10 text-slate-400 hover:text-schooladmin-primary border border-white/5 hover:border-schooladmin-primary/20 rounded-md text-[10px] font-black uppercase tracking-widest transition-all group scale-90"
                   >
                     <Key size={14} className="group-hover:rotate-12 transition-transform" />
                     Update Security
@@ -319,11 +319,11 @@ const SchoolSettings = () => {
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="relative w-full max-w-md bg-[#12121e] border border-white/10 rounded-md p-8 md:p-10 shadow-3xl overflow-hidden"
             >
-              <div className="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-md blur-[80px] -mr-20 -mt-20" />
+              <div className="absolute top-0 right-0 w-40 h-40 bg-schooladmin-primary/10 rounded-md blur-[80px] -mr-20 -mt-20" />
 
               <div className="flex items-center justify-between mb-8 relative">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 rounded-md bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/10">
+                  <div className="w-12 h-12 rounded-md bg-schooladmin-primary/10 flex items-center justify-center text-schooladmin-primary border border-schooladmin-primary/10">
                     <Lock size={20} />
                   </div>
                   <div>
@@ -378,7 +378,7 @@ const SchoolSettings = () => {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-12 py-4.5 bg-brand-primary hover:bg-orange-600 active:scale-[0.98] text-white rounded-md text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50"
+                    className="w-full h-12 py-4.5 bg-brand-primary hover:bg-schooladmin-primary active:scale-[0.98] text-white rounded-md text-[11px] font-black uppercase tracking-[0.2em] transition-all shadow-xl shadow-brand-primary/20 disabled:opacity-50"
                   >
                     {loading ? 'Processing...' : 'Secure Account Now'}
                   </button>

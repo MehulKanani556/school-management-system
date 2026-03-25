@@ -9,7 +9,7 @@ const statusIcon = { Present: CheckCircle, Absent: XCircle, Late: Clock, 'Half-D
 const statusColor = {
     Present: 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
     Absent: 'text-red-400 bg-red-400/10 border-red-400/20',
-    Late: 'text-amber-400 bg-amber-400/10 border-amber-400/20',
+    Late: 'text-schooladmin-primary bg-schooladmin-primary/10 border-schooladmin-primary/20',
     'Half-Day': 'text-blue-400 bg-blue-400/10 border-blue-400/20',
 };
 
@@ -289,7 +289,7 @@ const Attendance = () => {
                                                                         <div className="flex gap-4">
                                                                             <button 
                                                                                 onClick={() => updateRecord(s._id, 'isLate', !records[s._id]?.isLate)}
-                                                                                className={`flex-1 py-3 rounded-md border text-[10px] font-black uppercase transition-all ${records[s._id]?.isLate ? 'bg-amber-500/10 text-amber-500 border-amber-500/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
+                                                                                className={`flex-1 py-3 rounded-md border text-[10px] font-black uppercase transition-all ${records[s._id]?.isLate ? 'bg-schooladmin-primary/10 text-schooladmin-primary border-schooladmin-primary/30' : 'bg-slate-900 text-slate-600 border-slate-800'}`}
                                                                             >
                                                                                 Late Arrival
                                                                             </button>

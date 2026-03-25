@@ -43,7 +43,7 @@ const StaffAttendanceReport = () => {
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/40 p-8 rounded-[2rem] border border-white/5 shadow-2xl backdrop-blur-3xl">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <div className="w-2 h-8 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
+                        <div className="w-2 h-8 bg-schooladmin-primary rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]"></div>
                         <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Registry Analytics</h1>
                     </div>
                     <p className="text-slate-500 text-xs font-bold uppercase tracking-[0.2em] ml-5 italic opacity-80">Chronological intelligence report for institutional workforce</p>
@@ -54,7 +54,7 @@ const StaffAttendanceReport = () => {
                         <select 
                             value={month} 
                             onChange={(e) => setMonth(parseInt(e.target.value))}
-                            className="bg-transparent border-none text-xs font-black uppercase tracking-widest text-slate-400 outline-none px-4 py-2 cursor-pointer hover:text-blue-400 transition-colors"
+                            className="bg-transparent border-none text-xs font-black uppercase tracking-widest text-slate-400 outline-none px-4 py-2 cursor-pointer hover:text-schooladmin-primary transition-colors"
                         >
                             {months.map((m, i) => (
                                 <option key={i} value={i + 1} className="bg-slate-900">{m}</option>
@@ -63,7 +63,7 @@ const StaffAttendanceReport = () => {
                         <select 
                             value={year} 
                             onChange={(e) => setYear(parseInt(e.target.value))}
-                            className="bg-transparent border-none text-xs font-black uppercase tracking-widest text-slate-400 outline-none px-4 py-2 cursor-pointer border-l border-white/5 hover:text-blue-400 transition-colors"
+                            className="bg-transparent border-none text-xs font-black uppercase tracking-widest text-slate-400 outline-none px-4 py-2 cursor-pointer border-l border-white/5 hover:text-schooladmin-primary transition-colors"
                         >
                             {[2023, 2024, 2025, 2026].map(y => (
                                 <option key={y} value={y} className="bg-slate-900">{y}</option>
@@ -87,14 +87,14 @@ const StaffAttendanceReport = () => {
                     { label: 'Workforce Efficiency', val: '94.2%', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/5', desc: 'Average Presence Rate' },
                     { label: 'Critical Deviations', val: '12', icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-500/5', desc: 'Unnotified Absences' },
                     { label: 'Top Performer', val: 'K. Sharma', icon: Award, color: 'text-amber-400', bg: 'bg-amber-500/5', desc: '100% Monthly Uptime' },
-                    { label: 'Active Personnel', val: filteredSummary.length, icon: Users, color: 'text-blue-400', bg: 'bg-blue-500/5', desc: 'Synchronized Nodes' },
+                    { label: 'Active Personnel', val: filteredSummary.length, icon: Users, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/5', desc: 'Synchronized Nodes' },
                 ].map((s, i) => (
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: i * 0.1 }}
                         key={i} 
-                        className="bg-slate-900/40 backdrop-blur-2xl border border-white/5 p-6 rounded-[2rem] relative overflow-hidden group hover:border-blue-500/30 transition-all duration-500"
+                        className="bg-slate-900/40 backdrop-blur-2xl border border-white/5 p-6 rounded-[2rem] relative overflow-hidden group hover:border-schooladmin-primary/30 transition-all duration-500"
                     >
                         <div className={`absolute -right-4 -top-4 w-24 h-24 ${s.bg} rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700`}></div>
                         <div className="relative z-10">
@@ -126,7 +126,7 @@ const StaffAttendanceReport = () => {
                     </div>
                     <div className="hidden md:flex items-center gap-2">
                         <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-900/50 px-4 py-2 rounded-full border border-white/5">
-                            <Clock size={12} className="text-blue-500" />
+                            <Clock size={12} className="text-schooladmin-primary" />
                             Live Telemetry Active
                         </div>
                     </div>
@@ -144,11 +144,11 @@ const StaffAttendanceReport = () => {
                                 key={staff._id} 
                                 className="bg-slate-950/40 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/[0.02] transition-colors border-l-4 border-l-blue-500 shadow-2xl relative overflow-hidden group"
                             >
-                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-blue-500/10 transition-colors"></div>
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-schooladmin-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-schooladmin-primary/10 transition-colors"></div>
                                 
                                 <div className="flex items-start justify-between mb-8 relative z-10">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 flex items-center justify-center font-black text-blue-400 border border-white/10 shadow-lg text-xl group-hover:scale-110 transition-transform">
+                                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-slate-900 to-slate-800 flex items-center justify-center font-black text-schooladmin-primary border border-white/10 shadow-lg text-xl group-hover:scale-110 transition-transform">
                                             {(staff.teacher?.firstName || staff.user?.firstName)?.[0]}
                                         </div>
                                         <div>
@@ -176,9 +176,9 @@ const StaffAttendanceReport = () => {
                                         <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Half-Day</p>
                                         <p className="text-xl font-black text-amber-400 font-mono">{staff.halfDay}d</p>
                                     </div>
-                                    <div className="bg-slate-900/50 rounded-2xl p-4 border border-white/5 shadow-inner group-hover:border-blue-500/20 transition-all">
+                                    <div className="bg-slate-900/50 rounded-2xl p-4 border border-white/5 shadow-inner group-hover:border-schooladmin-primary/20 transition-all">
                                         <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-1">Leave</p>
-                                        <p className="text-xl font-black text-blue-400 font-mono">{staff.leave}d</p>
+                                        <p className="text-xl font-black text-schooladmin-primary font-mono">{staff.leave}d</p>
                                     </div>
                                 </div>
 
@@ -192,7 +192,7 @@ const StaffAttendanceReport = () => {
                                             initial={{ width: 0 }}
                                             animate={{ width: `${(staff.present / (staff.present + staff.absent + staff.halfDay + staff.leave || 1)) * 100}%` }}
                                             transition={{ duration: 1, ease: 'easeOut' }}
-                                            className="h-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]"
+                                            className="h-full bg-schooladmin-primary shadow-[0_0_10px_rgba(59,130,246,0.5)]"
                                         ></motion.div>
                                     </div>
                                 </div>

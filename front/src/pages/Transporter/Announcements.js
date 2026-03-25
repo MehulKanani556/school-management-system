@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Megaphone, 
-    Layout, 
-    Calendar, 
-    Search, 
+import {
+    Megaphone,
+    Layout,
+    Calendar,
+    Search,
     ArrowUpRight,
     AlertCircle,
     User,
@@ -37,13 +37,13 @@ const Announcements = () => {
         }
     };
 
-    const displayItems = (activeTab === 'announcements' ? announcements : notices).filter(item => 
-        item.subject.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    const displayItems = (activeTab === 'announcements' ? announcements : notices).filter(item =>
+        item.subject.toLowerCase().includes(searchTerm.toLowerCase()) ||
         item.content.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8 max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-160px)]"
@@ -53,17 +53,17 @@ const Announcements = () => {
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Transit Bulletins</h1>
                     <p className="text-slate-500 font-medium text-lg italic mt-1 leading-none">Sector-wide broadcast archive and logistics directives.</p>
                 </div>
-                
+
                 <div className="flex bg-neutral-900/50 p-1 rounded-md border border-slate-800/60 shadow-2xl">
-                    <button 
+                    <button
                         onClick={() => setActiveTab('announcements')}
-                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'announcements' ? 'bg-orange-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'announcements' ? 'bg-transporter-primary text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <Megaphone size={16} /> Broadcasts
                     </button>
-                    <button 
+                    <button
                         onClick={() => setActiveTab('notices')}
-                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'notices' ? 'bg-blue-600 text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'notices' ? 'bg-transporter-primary text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <Layout size={16} /> Notices
                     </button>
@@ -80,7 +80,7 @@ const Announcements = () => {
                             </h3>
                             <div className="relative group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-orange-500 transition-colors" size={18} />
-                                <input 
+                                <input
                                     type="text"
                                     placeholder="SCAN BROADCASTS..."
                                     value={searchTerm}
@@ -92,7 +92,7 @@ const Announcements = () => {
 
                         <div className="pt-8 border-t border-slate-800/50 space-y-4">
                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Terminal Status</h4>
-                            <div className="flex items-center gap-3 text-orange-500 text-[11px] font-bold italic leading-none">
+                            <div className="flex items-center gap-3 text-transporter-primary text-[11px] font-bold italic leading-none">
                                 <CheckCircle size={14} />
                                 <span>Direct Link Active</span>
                             </div>
@@ -100,7 +100,7 @@ const Announcements = () => {
                     </div>
 
                     <div className="bg-gradient-to-br from-orange-500/10 to-transparent border border-orange-500/20 p-8 rounded-md shadow-2xl">
-                        <h4 className="text-xs font-black text-orange-400 uppercase tracking-[.2em] mb-4">Authority Protocol</h4>
+                        <h4 className="text-xs font-black text-transporter-primary uppercase tracking-[.2em] mb-4">Authority Protocol</h4>
                         <p className="text-slate-400 text-xs font-medium leading-relaxed italic opacity-80 font-outfit">
                             All broadcasts are cryptographically signed by institutional authority nodes. Notices are for global consumption within the transit sector.
                         </p>
@@ -117,21 +117,21 @@ const Announcements = () => {
                             </div>
                         ) : displayItems.length > 0 ? (
                             displayItems.map((item, idx) => (
-                                <motion.div 
+                                <motion.div
                                     key={item._id}
                                     initial={{ opacity: 0, x: 20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.05 }}
-                                    className={`bg-neutral-900 border-l-4 p-10 rounded-md shadow-2xl relative overflow-hidden group hover:bg-neutral-800 transition-all font-outfit ${activeTab === 'announcements' ? 'border-l-orange-500 border-slate-800/40' : 'border-l-blue-500 border-slate-800/40'}`}
+                                    className={`bg-neutral-900 border-l-4 p-10 rounded-md shadow-2xl relative overflow-hidden group hover:bg-neutral-800 transition-all font-outfit ${activeTab === 'announcements' ? 'border-l-orange-500 border-slate-800/40' : 'border-l-transporter-primary border-slate-800/40'}`}
                                 >
                                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
                                         {activeTab === 'announcements' ? <Megaphone size={120} /> : <Layout size={120} />}
                                     </div>
-                                    
+
                                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-4 mb-4">
-                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}`}>
+                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-orange-500/10 text-orange-500 border-orange-500/20' : 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20'}`}>
                                                     {activeTab === 'announcements' ? 'Institutional Broadcast' : 'Sector Notice'}
                                                 </span>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest italic bg-neutral-950 px-3 py-1.5 rounded-md border border-slate-800/60">
@@ -147,11 +147,11 @@ const Announcements = () => {
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{item.sender?.firstName || 'Faculty'}</span>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="relative z-10 border-l-2 border-slate-800/80 pl-8 mb-8">
                                         <p className="text-slate-400 text-lg leading-relaxed font-medium italic uppercase tracking-tighter opacity-90">{item.content}</p>
                                     </div>
-                                    
+
                                     <div className="relative z-10 flex items-center justify-between pt-6 border-t border-slate-800/50">
                                         <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 italic">Directive Log Entry #{item._id.slice(-6).toUpperCase()}</span>
                                         <button className="flex items-center gap-3 text-[10px] font-black text-slate-400 uppercase tracking-widest hover:text-white transition-all italic group/btn leading-none">

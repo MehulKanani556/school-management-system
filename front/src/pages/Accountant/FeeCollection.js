@@ -505,7 +505,7 @@ const FeeCollection = () => {
                                 </button>
                                 <button 
                                     onClick={confirmModal.onConfirm}
-                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-rose-500 transition-all"
+                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-accountant-primary transition-all"
                                 >
                                     {confirmModal.confirmText}
                                 </button>

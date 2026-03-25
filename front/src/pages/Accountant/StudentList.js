@@ -312,7 +312,7 @@ const StudentList = () => {
                                         <SchoolIcon size={150} />
                                     </div>
                                     <div className="flex justify-between items-start mb-6">
-                                        <div className="w-14 h-14 rounded-md bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-accountant-primary group-hover:scale-110 transition-transform">
+                                        <div className="w-14 h-14 rounded-md bg-accountant-primary/10 border border-accountant-primary/20 flex items-center justify-center text-accountant-primary group-hover:scale-110 transition-transform">
                                             <SchoolIcon size={28} />
                                         </div>
                                         <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-900 px-3 py-1.5 rounded-md border border-slate-800 shadow-inner">
@@ -441,7 +441,7 @@ const StudentList = () => {
                                                     <span className={`inline-flex items-center px-3 py-1 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${
                                                         d.status === 'paid' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 
                                                         d.status === 'overdue' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500 animate-pulse' :
-                                                        'bg-amber-500/10 border-amber-500/20 text-amber-500'
+                                                        'bg-accountant-primary/10 border-accountant-primary/20 text-accountant-primary'
                                                     }`}>
                                                         {d.status.replace('_', ' ')}
                                                     </span>
@@ -635,7 +635,7 @@ const StudentList = () => {
                                                 <button 
                                                     onClick={handleCollectSubmit}
                                                     disabled={feeLoading || bulkPayingTotal === 0}
-                                                    className="w-full py-5 bg-white text-slate-900 hover:bg-accountant-primary hover:text-slate-900 active:bg-amber-600 rounded-md font-black text-sm uppercase tracking-[0.25em] transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed italic font-outfit"
+                                                    className="w-full py-5 bg-white text-slate-900 hover:bg-accountant-primary hover:text-slate-900 active:bg-accountant-primary rounded-md font-black text-sm uppercase tracking-[0.25em] transition-all shadow-xl flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-30 disabled:grayscale disabled:cursor-not-allowed italic font-outfit"
                                                 >
                                                     {feeLoading ? <Loader2 size={18} className="animate-spin" /> : (
                                                         <>

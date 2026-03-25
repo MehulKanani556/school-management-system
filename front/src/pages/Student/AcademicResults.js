@@ -113,8 +113,8 @@ const AcademicResults = () => {
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20 p-8 rounded-md">
-                        <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[.25em] mb-4 flex items-center gap-2 italic">
+                    <div className="bg-gradient-to-br from-student-primary/10 to-transparent border border-student-primary/20 p-8 rounded-md">
+                        <h4 className="text-xs font-black text-student-primary uppercase tracking-[.25em] mb-4 flex items-center gap-2 italic">
                             <Star size={14} /> Evaluation Disclaimer
                         </h4>
                         <p className="text-slate-500 text-xs font-medium leading-relaxed italic uppercase tracking-tighter">

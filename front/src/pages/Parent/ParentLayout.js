@@ -345,7 +345,7 @@ const ParentLayout = () => {
                         </div>
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-[10px] font-black uppercase tracking-widest group italic"
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-parent-primary/10 text-parent-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
                           Log Out

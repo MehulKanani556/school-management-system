@@ -376,7 +376,7 @@ const FeeStructures = () => {
                                                 <button 
                                                     type="button" 
                                                     onClick={() => handleRemoveItem(idx)}
-                                                    className="p-2 text-slate-600 hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100"
+                                                    className="p-2 text-slate-600 hover:text-accountant-primary transition-colors opacity-0 group-hover:opacity-100"
                                                 >
                                                     <Trash2 size={16} />
                                                 </button>
@@ -494,7 +494,7 @@ const FeeStructures = () => {
                                 </button>
                                 <button 
                                     onClick={confirmModal.onConfirm}
-                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-rose-500 transition-all font-outfit"
+                                    className="flex-1 py-3 bg-luxury-rose text-white rounded text-[10px] font-black uppercase tracking-[0.2em] italic shadow-xl shadow-luxury-rose/20 hover:bg-accountant-primary transition-all font-outfit"
                                 >
                                     {confirmModal.confirmText}
                                 </button>

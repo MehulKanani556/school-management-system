@@ -62,7 +62,7 @@ const ChildAssignments = () => {
                                     <BookOpen size={100} />
                                 </div>
                                 <div className="flex justify-between items-start mb-6">
-                                    <div className={`p-3 rounded-md ${isPastDue ? 'bg-rose-500/10 text-rose-400' : 'bg-luxury-rose/10 text-luxury-rose'} border border-current opacity-60`}>
+                                    <div className={`p-3 rounded-md ${isPastDue ? 'bg-parent-primary/10 text-parent-primary' : 'bg-luxury-rose/10 text-luxury-rose'} border border-current opacity-60`}>
                                         <BookOpen size={20} />
                                     </div>
                                     <div className="flex flex-col items-end">
@@ -78,7 +78,7 @@ const ChildAssignments = () => {
                                             <Calendar size={14} className="text-slate-500" />
                                             <span className="uppercase tracking-widest">Deadline</span>
                                         </div>
-                                        <span className={`uppercase tracking-widest ${isPastDue ? 'text-rose-400' : 'text-white'}`}>
+                                        <span className={`uppercase tracking-widest ${isPastDue ? 'text-parent-primary' : 'text-white'}`}>
                                             {new Date(task.dueDate).toLocaleDateString()}
                                         </span>
                                     </div>
@@ -100,8 +100,8 @@ const ChildAssignments = () => {
                                                 </>
                                             ) : (
                                                 <>
-                                                    <AlertCircle size={12} className={isPastDue ? 'text-rose-400' : 'text-amber-400'} />
-                                                    <span className={`uppercase tracking-widest ${isPastDue ? 'text-rose-400' : 'text-amber-400'}`}>
+                                                    <AlertCircle size={12} className={isPastDue ? 'text-parent-primary' : 'text-amber-400'} />
+                                                    <span className={`uppercase tracking-widest ${isPastDue ? 'text-parent-primary' : 'text-amber-400'}`}>
                                                         {isPastDue ? 'Late' : 'Pending'}
                                                     </span>
                                                 </>
@@ -168,7 +168,7 @@ const ChildAssignments = () => {
                                     href={selectedTask.fileUrl} 
                                     target="_blank" 
                                     rel="noopener noreferrer"
-                                    className="w-full py-4 bg-luxury-rose hover:bg-rose-600 text-white rounded-md font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl flex items-center justify-center gap-3 italic"
+                                    className="w-full py-4 bg-luxury-rose hover:bg-parent-primary text-white rounded-md font-black text-xs uppercase tracking-[0.2em] transition-all shadow-xl flex items-center justify-center gap-3 italic"
                                 >
                                     <Download size={18} /> Download Auxiliary Attachment
                                 </a>

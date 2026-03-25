@@ -84,7 +84,7 @@ const ResourceLocker = () => {
     const getIcon = (type) => {
         switch (type) {
             case 'PDF': return <FileText size={24} className="text-red-500" />;
-            case 'Video': return <Video size={24} className="text-blue-500" />;
+            case 'Video': return <Video size={24} className="text-teacher-primary" />;
             case 'Image': return <ImageIcon size={24} className="text-purple-500" />;
             case 'Document': return <File size={24} className="text-emerald-500" />;
             default: return <HardDrive size={24} className="text-slate-400" />;
@@ -120,7 +120,7 @@ const ResourceLocker = () => {
                     </div>
                     <button 
                         onClick={() => setShowUploadModal(true)}
-                        className="h-14 bg-brand-primary hover:bg-blue-600 text-white px-8 rounded-md font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(59,130,246,0.2)] italic"
+                        className="h-14 bg-brand-primary hover:bg-teacher-primary text-white px-8 rounded-md font-black text-[11px] uppercase tracking-widest transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(59,130,246,0.2)] italic"
                     >
                         <Upload size={18} /> Upload Data
                     </button>
@@ -235,7 +235,7 @@ const ResourceLocker = () => {
                         </div>
                     </div>
 
-                    <button type="submit" className="w-full h-14 bg-brand-primary hover:bg-blue-600 text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] mt-6 flex items-center justify-center gap-3 italic">
+                    <button type="submit" className="w-full h-14 bg-brand-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(59,130,246,0.3)] mt-6 flex items-center justify-center gap-3 italic">
                         <HardDrive size={18} /> INITIATE UPLINK
                     </button>
                 </form>

@@ -55,7 +55,7 @@ const AssignmentOverview = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Active Directives', val: stats.total, icon: BookOpen, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
+                    { label: 'Active Directives', val: stats.total, icon: BookOpen, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/10' },
                     { label: 'Total Submissions', val: stats.totalSubmissions, icon: FileText, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
                     { label: 'Global Completion', val: `${stats.avgSubmissionRate}%`, icon: BarChart3, color: 'text-amber-400', bg: 'bg-amber-400/10' },
                 ].map((s, i) => (
@@ -90,7 +90,7 @@ const AssignmentOverview = () => {
                         className="bg-brand-surface border border-brand-border/40 rounded-md p-6 hover:border-brand-primary/40 transition-all group"
                     >
                         <div className="flex items-start justify-between mb-4">
-                            <span className="px-3 py-1 bg-indigo-500/10 text-indigo-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-indigo-500/20">
+                            <span className="px-3 py-1 bg-schooladmin-primary/10 text-schooladmin-primary text-[9px] font-black uppercase tracking-widest rounded-md border border-schooladmin-primary/20">
                                 {a.subject}
                             </span>
                             <div className="flex items-center gap-2 text-slate-500">
@@ -120,7 +120,7 @@ const AssignmentOverview = () => {
                                 <motion.div 
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(a.submissionCount / (a.totalPotential || 1)) * 100}%` }}
-                                    className={`h-full bg-gradient-to-r ${a.submissionCount === a.totalPotential ? 'from-emerald-600 to-teal-400' : 'from-indigo-600 to-blue-400'}`}
+                                    className={`h-full bg-gradient-to-r ${a.submissionCount === a.totalPotential ? 'from-emerald-600 to-teal-400' : 'from-schooladmin-primary to-blue-400'}`}
                                 />
                             </div>
                             <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-widest">

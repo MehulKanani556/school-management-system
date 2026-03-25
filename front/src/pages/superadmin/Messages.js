@@ -146,7 +146,7 @@ const Messages = () => {
                                 <div className="w-12 h-12 rounded-md bg-slate-800 border border-white/5 overflow-hidden p-0.5">
                                     {c.photo ? <img src={c.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="w-full h-full p-2 text-slate-600" />}
                                 </div>
-                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-md border-2 border-slate-900 ${c.isActive ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                <div className={`absolute -top-1 -right-1 w-3 h-3 rounded-md border-2 border-slate-900 ${c.isActive ? 'bg-emerald-500' : 'bg-superadmin-primary'}`}></div>
                             </div>
                             <div className="flex-1 min-w-0">
                                 <h4 className="text-[11px] font-black italic uppercase tracking-tighter text-white truncate">{c.firstName} {c.lastName}</h4>

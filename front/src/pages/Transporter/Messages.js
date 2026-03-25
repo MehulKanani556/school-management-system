@@ -9,7 +9,7 @@ const Messages = () => {
     const dispatch = useDispatch();
     const { contacts, messages, loading } = useSelector((state) => state.communication);
     const { routes } = useSelector((state) => state.transport);
-    
+
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedChat, setSelectedChat] = useState(null);
     const [messageInput, setMessageInput] = useState('');
@@ -34,7 +34,7 @@ const Messages = () => {
     const handleSend = (e) => {
         e.preventDefault();
         if (!messageInput.trim() || !selectedChat) return;
-        
+
         dispatch(sendMessageSlice({
             recipient: selectedChat._id,
             subject: 'Direct Message',
@@ -43,7 +43,7 @@ const Messages = () => {
         setMessageInput('');
     }
 
-    const filteredContacts = contacts.filter(c => 
+    const filteredContacts = contacts.filter(c =>
         (c.firstName + ' ' + c.lastName).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
@@ -51,12 +51,12 @@ const Messages = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-180px)] font-outfit">
             <div className="flex justify-between items-end px-2 mb-8">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-sky-500">Comms Matrix</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Comms Matrix</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Establishing direct linkage between transport operators and parent nodes.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => setIsBroadcastOpen(true)}
-                    className="px-6 py-4 bg-sky-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-sky-600/20 hover:shadow-sky-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
+                    className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
                 >
                     <Plus size={14} /> broadcast pulse
                 </button>
@@ -68,19 +68,19 @@ const Messages = () => {
                     <div className="p-5 border-b border-slate-800/60">
                         <div className="relative">
                             <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
-                            <input 
-                                type="text" 
-                                placeholder="Locate Parent Node..." 
+                            <input
+                                type="text"
+                                placeholder="Locate Parent Node..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 className="bg-neutral-950 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-[10px] font-black uppercase text-slate-200 focus:outline-none focus:border-sky-600/50 transition-all w-full italic"
                             />
                         </div>
                     </div>
-                    
+
                     <div className="flex-1 overflow-y-auto custom-scrollbar">
                         {filteredContacts.map((chat) => (
-                            <button 
+                            <button
                                 key={chat._id}
                                 onClick={() => setSelectedChat(chat)}
                                 className={`w-full p-4 border-b border-slate-800/40 flex items-start gap-4 transition-all hover:bg-neutral-950/60 text-left relative ${selectedChat?._id === chat._id ? 'bg-neutral-950/80 border-l-4 border-l-sky-500' : ''}`}
@@ -95,7 +95,7 @@ const Messages = () => {
                                     <div className="flex justify-between items-center mb-1">
                                         <h4 className="text-[11px] font-black text-slate-200 uppercase italic tracking-tighter truncate">{chat.firstName} {chat.lastName}</h4>
                                     </div>
-                                    <p className="text-[9px] font-black text-sky-500 uppercase italic tracking-widest leading-none mb-1.5 opacity-80">{chat.role?.replace('_', ' ')}</p>
+                                    <p className="text-[9px] font-black text-transporter-primary uppercase italic tracking-widest leading-none mb-1.5 opacity-80">{chat.role?.replace('_', ' ')}</p>
                                     <p className="text-[10px] text-slate-500 italic truncate leading-tight">Click to establish connection...</p>
                                 </div>
                             </button>
@@ -122,7 +122,7 @@ const Messages = () => {
                                     <button className="p-2.5 text-slate-600 hover:text-sky-400 bg-neutral-950 border border-slate-800 rounded-md transition-all"><MapPin size={14} /></button>
                                 </div>
                             </div>
-                            
+
                             <div className="flex-1 p-8 overflow-y-auto custom-scrollbar flex flex-col gap-6">
                                 {messages.map((msg) => {
                                     const isMe = msg.sender?._id === localStorage.getItem('userId') || msg.sender === localStorage.getItem('userId');
@@ -138,17 +138,17 @@ const Messages = () => {
                                     );
                                 })}
                             </div>
-                            
+
                             <div className="p-6 border-t border-slate-800/60 bg-neutral-950/20">
-                                <form 
+                                <form
                                     onSubmit={handleSend}
                                     className="flex items-center gap-4 bg-neutral-950 border border-slate-800 rounded-md p-1.5 focus-within:border-sky-600/50 transition-all"
                                 >
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         value={messageInput}
                                         onChange={(e) => setMessageInput(e.target.value)}
-                                        placeholder="Type signal here..." 
+                                        placeholder="Type signal here..."
                                         className="flex-1 bg-transparent border-none text-[11px] font-black text-slate-200 focus:ring-0 px-4 italic"
                                     />
                                     <button type="submit" className="bg-sky-600 text-white p-2.5 rounded-md hover:bg-sky-700 transition-all shadow-lg shadow-sky-600/20">
@@ -178,7 +178,7 @@ const Messages = () => {
                                     <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Broadcast Pulse</h3>
                                     <button onClick={() => setIsBroadcastOpen(false)} className="text-slate-600 hover:text-white transition-all"><X size={18} /></button>
                                 </div>
-                                
+
                                 <div className="space-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Target Sector Vectors (Routes)</label>
@@ -191,11 +191,11 @@ const Messages = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    
+
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Signal Payload</label>
-                                        <textarea 
-                                            rows="4" 
+                                        <textarea
+                                            rows="4"
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md p-4 text-[11px] font-black text-slate-200 focus:outline-none focus:border-sky-600/50 transition-all italic resize-none"
                                             placeholder="Enter logic signal for mass distribution..."
                                         ></textarea>
@@ -204,7 +204,7 @@ const Messages = () => {
 
                                 <div className="flex gap-4">
                                     <button type="button" onClick={() => setIsBroadcastOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Abort Pulse</button>
-                                    <button type="button" className="flex-1 px-6 py-4 bg-sky-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-sky-700 transition-all shadow-xl shadow-sky-600/20 leading-none hover:translate-y-[-2px]">Initiate Mass Signal</button>
+                                    <button type="button" className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary transition-all shadow-xl shadow-sky-600/20 leading-none hover:translate-y-[-2px]">Initiate Mass Signal</button>
                                 </div>
                             </div>
                         </motion.div>

@@ -177,7 +177,7 @@ const Assignments = () => {
                                 
                                 <div className="relative z-10">
                                     <div className="flex items-center justify-between mb-6">
-                                        <span className="px-3 py-1 bg-indigo-500/10 rounded-md text-[9px] font-black uppercase tracking-widest text-indigo-400 border border-indigo-500/20">Archived Submission</span>
+                                        <span className="px-3 py-1 bg-student-primary/10 rounded-md text-[9px] font-black uppercase tracking-widest text-student-primary border border-student-primary/20">Archived Submission</span>
                                         <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">{new Date(sub.submittedAt).toLocaleDateString()}</span>
                                     </div>
 

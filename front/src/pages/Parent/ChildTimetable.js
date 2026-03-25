@@ -77,13 +77,13 @@ const ChildTimetable = () => {
                                         const isBreak = session?.type === 'Break';
 
                                         return (
-                                            <td key={day} className={`p-4 border border-brand-border/20 transition-all duration-300 relative group/cell min-w-[180px] ${isBreak ? 'bg-amber-400/5' : session ? 'hover:bg-white/[0.03]' : 'opacity-10'}`}>
+                                            <td key={day} className={`p-4 border border-brand-border/20 transition-all duration-300 relative group/cell min-w-[180px] ${isBreak ? 'bg-parent-primary/5' : session ? 'hover:bg-white/[0.03]' : 'opacity-10'}`}>
                                                 {session ? (
                                                     <div className="relative z-10">
                                                         {isBreak ? (
-                                                            <div className="flex flex-col items-center justify-center py-4 bg-amber-400/10 border border-amber-400/20 rounded-md">
-                                                                <Coffee className="text-amber-400/50 mb-2" size={24} />
-                                                                <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.4em]">Intermission</span>
+                                                            <div className="flex flex-col items-center justify-center py-4 bg-parent-primary/10 border border-parent-primary/20 rounded-md">
+                                                                <Coffee className="text-parent-primary/50 mb-2" size={24} />
+                                                                <span className="text-[10px] font-black text-parent-primary uppercase tracking-[0.4em]">Intermission</span>
                                                             </div>
                                                         ) : (
                                                             <div className="space-y-3">

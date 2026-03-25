@@ -49,12 +49,12 @@ const IssueRecords = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-amber-500">Circulation Logistics</h1>
+                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-librarian-primary">Circulation Logistics</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Tracking knowledge thread movements in the platform.</p>
                 </div>
                 <button 
                     onClick={() => setIsIssueOpen(true)}
-                    className="px-6 py-3 bg-amber-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-amber-600/20 hover:translate-y-[-2px] transition-all flex items-center gap-2"
+                    className="px-6 py-3 bg-librarian-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-librarian-primary/20 hover:translate-y-[-2px] transition-all flex items-center gap-2"
                 >
                     <Plus size={14} /> issue volume
                 </button>
@@ -70,7 +70,7 @@ const IssueRecords = () => {
                             placeholder="Identify borrower or volume..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all w-full sm:w-64 italic"
+                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all w-full sm:w-64 italic"
                         />
                     </div>
                 </div>
@@ -91,7 +91,7 @@ const IssueRecords = () => {
                                 <tr key={i} className="group/row hover:bg-neutral-950/60 transition-all">
                                     <td className="px-6 py-6 font-outfit">
                                         <div className="flex flex-col">
-                                            <span className="font-bold text-sm text-slate-200 tracking-tight leading-none mb-1.5 group-hover/row:text-amber-500 transition-all uppercase">{record.bookId?.title}</span>
+                                            <span className="font-bold text-sm text-slate-200 tracking-tight leading-none mb-1.5 group-hover/row:text-librarian-primary transition-all uppercase">{record.bookId?.title}</span>
                                             <span className="text-[10px] text-slate-500 uppercase italic opacity-60">ISBN: {record.bookId?.isbn}</span>
                                         </div>
                                     </td>
@@ -118,7 +118,7 @@ const IssueRecords = () => {
                                     </td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col">
-                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic mb-1 ${record.status === 'issued' ? 'bg-amber-600/10 border-amber-600/20 text-amber-500' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-500' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
+                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic mb-1 ${record.status === 'issued' ? 'bg-librarian-primary/10 border-librarian-primary/20 text-librarian-primary' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-500' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
                                                 {record.status}
                                             </span>
                                             {record.fine > 0 && <span className="text-[10px] font-black text-red-400 italic">Fine: ₹{record.fine}</span>}
@@ -128,7 +128,7 @@ const IssueRecords = () => {
                                         {record.status !== 'returned' && (
                                             <button 
                                                 onClick={() => handleReturn(record._id)}
-                                                className="p-2.5 text-slate-500 bg-neutral-950 border border-slate-800 inline-flex items-center gap-2 hover:text-amber-500 hover:border-amber-600/40 rounded-md transition-all opacity-0 group-hover/row:opacity-100"
+                                                className="p-2.5 text-slate-500 bg-neutral-950 border border-slate-800 inline-flex items-center gap-2 hover:text-librarian-primary hover:border-librarian-primary/40 rounded-md transition-all opacity-0 group-hover/row:opacity-100"
                                             >
                                                 <span className="text-[9px] font-black uppercase tracking-widest italic leading-none">de-cycle link</span>
                                                 <RotateCcw size={14} />
@@ -162,7 +162,7 @@ const IssueRecords = () => {
                                             required
                                             value={formData.bookId}
                                             onChange={(e) => setFormData({...formData, bookId: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all custom-scrollbar"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all custom-scrollbar"
                                         >
                                             <option value="">Select Knowledge Block...</option>
                                             {books.filter(b => b.availableCopies > 0).map(b => (
@@ -179,7 +179,7 @@ const IssueRecords = () => {
                                                 placeholder="Search by name or email..."
                                                 value={borrowerSearch}
                                                 onChange={(e) => setBorrowerSearch(e.target.value)}
-                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-t-md py-3 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic leading-none"
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-t-md py-3 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic leading-none"
                                             />
                                             <div className="max-h-32 overflow-y-auto bg-neutral-950 border-x border-b border-slate-800/60 rounded-b-md custom-scrollbarThin">
                                                 {filteredBorrowers.length > 0 ? filteredBorrowers.map(b => (
@@ -194,7 +194,7 @@ const IssueRecords = () => {
                                                             });
                                                             setBorrowerSearch(`${b.firstName} ${b.lastName}`);
                                                         }}
-                                                        className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase italic transition-all flex items-center justify-between ${formData.borrowerId === b._id ? 'bg-amber-600/20 text-amber-500' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'}`}
+                                                        className={`w-full text-left px-4 py-2 text-[10px] font-black uppercase italic transition-all flex items-center justify-between ${formData.borrowerId === b._id ? 'bg-librarian-primary/20 text-librarian-primary' : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'}`}
                                                     >
                                                         <span>{b.firstName} {b.lastName}</span>
                                                         <span className="text-[8px] opacity-40">{b.role}</span>
@@ -212,14 +212,14 @@ const IssueRecords = () => {
                                             required
                                             value={formData.dueDate}
                                             onChange={(e) => setFormData({...formData, dueDate: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all italic leading-none"
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic leading-none"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex gap-4 pt-6">
                                     <button type="button" onClick={() => setIsIssueOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort thread</button>
-                                    <button type="submit" className="flex-1 px-6 py-4 bg-amber-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-amber-700 transition-all shadow-xl shadow-amber-600/20 leading-none">confirm circulation</button>
+                                    <button type="submit" className="flex-1 px-6 py-4 bg-librarian-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-librarian-primary transition-all shadow-xl shadow-librarian-primary/20 leading-none">confirm circulation</button>
                                 </div>
                             </form>
                         </motion.div>

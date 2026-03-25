@@ -71,7 +71,7 @@ const Support = () => {
                             >
                                 <div className="flex justify-between items-start mb-2">
                                     <span className={`text-[8px] font-black uppercase px-2 py-0.5 rounded-md tracking-widest italic border ${
-                                        ticket.priority === 'Urgent' ? 'bg-rose-500/10 border-rose-500/20 text-rose-500' :
+                                        ticket.priority === 'Urgent' ? 'bg-superadmin-primary/10 border-superadmin-primary/20 text-superadmin-primary' :
                                         ticket.priority === 'High' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
                                         'bg-slate-800 border-white/5 text-slate-500'
                                     }`}>

@@ -40,7 +40,7 @@ const ParentNotifications = () => {
 
     const getIcon = (type) => {
         switch (type) {
-            case 'Assignment': return <BookOpen className="text-indigo-400" size={18} />;
+            case 'Assignment': return <BookOpen className="text-parent-primary" size={18} />;
             case 'Message': return <MessageSquare className="text-emerald-400" size={18} />;
             case 'Exam': return <AlertTriangle className="text-amber-400" size={18} />;
             case 'Attendance': return <Clock className="text-brand-primary" size={18} />;

@@ -120,8 +120,8 @@ const UserManagement = () => {
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-1.5 h-1.5 rounded-md ${user.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}></div>
-                                            <span className={`text-[9px] font-black uppercase tracking-widest italic ${user.isActive ? 'text-emerald-500' : 'text-rose-500'}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-md ${user.isActive ? 'bg-emerald-500 animate-pulse' : 'bg-superadmin-primary'}`}></div>
+                                            <span className={`text-[9px] font-black uppercase tracking-widest italic ${user.isActive ? 'text-emerald-500' : 'text-superadmin-primary'}`}>
                                                 {user.isActive ? 'Active Node' : 'Suspended'}
                                             </span>
                                         </div>
@@ -145,14 +145,14 @@ const UserManagement = () => {
                                                     <div className="p-2 space-y-1">
                                                         <button 
                                                             onClick={() => handleToggleStatus(user._id, user.isActive)}
-                                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest italic transition-all ${user.isActive ? 'text-rose-500 hover:bg-rose-500/10' : 'text-emerald-500 hover:bg-emerald-500/10'}`}
+                                                            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest italic transition-all ${user.isActive ? 'text-superadmin-primary hover:bg-superadmin-primary/10' : 'text-emerald-500 hover:bg-emerald-500/10'}`}
                                                         >
                                                             <Power size={14} />
                                                             {user.isActive ? 'Suspend Access' : 'Activate Node'}
                                                         </button>
                                                         <button 
                                                             onClick={() => handleDelete(user._id)}
-                                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest italic text-slate-400 hover:text-rose-500 hover:bg-rose-500/10 transition-all"
+                                                            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-[9px] font-black uppercase tracking-widest italic text-slate-400 hover:text-superadmin-primary hover:bg-superadmin-primary/10 transition-all"
                                                         >
                                                             <Trash2 size={14} />
                                                             Purge Identity

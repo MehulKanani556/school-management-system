@@ -52,8 +52,8 @@ const LibrarianAnnouncements = () => {
                        {item.subject}
                     </h3>
                     <div className="flex-shrink-0 bg-brand-background border border-brand-border rounded px-2 py-1 flex items-center gap-1.5">
-                       <BellRing size={10} className="text-amber-500" />
-                       <span className="text-[9px] font-black uppercase text-amber-500 tracking-widest">
+                       <BellRing size={10} className="text-librarian-primary" />
+                       <span className="text-[9px] font-black uppercase text-librarian-primary tracking-widest">
                          {new Date(item.createdAt).toLocaleDateString()}
                        </span>
                     </div>

@@ -22,7 +22,7 @@ const MemberRegistry = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-rose-500 italic uppercase tracking-tighter mb-1 leading-none">Member Registry</h1>
+                    <h1 className="text-3xl font-black text-librarian-primary italic uppercase tracking-tighter mb-1 leading-none">Member Registry</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Catalog of institutional nodes with borrowing privileges.</p>
                 </div>
             </div>
@@ -37,7 +37,7 @@ const MemberRegistry = () => {
                             placeholder="Identify member..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-rose-600/50 transition-all w-full sm:w-64 italic"
+                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all w-full sm:w-64 italic"
                         />
                     </div>
                 </div>
@@ -46,28 +46,28 @@ const MemberRegistry = () => {
                     {filteredMembers.length > 0 ? filteredMembers.map((member, i) => (
                         <div key={i} className="p-6 hover:bg-neutral-950/60 transition-all group/card relative overflow-hidden">
                             <div className="absolute top-0 right-0 p-4 opacity-10 group-hover/card:opacity-30 transition-all">
-                                <Users size={40} className="text-rose-500" />
+                                <Users size={40} className="text-librarian-primary" />
                             </div>
                             <div className="flex items-start gap-4">
-                                <div className="w-14 h-14 rounded-md bg-neutral-950 border border-slate-800/60 overflow-hidden flex items-center justify-center text-slate-600 shadow-inner group-hover/card:border-rose-500/40 transition-all">
+                                <div className="w-14 h-14 rounded-md bg-neutral-950 border border-slate-800/60 overflow-hidden flex items-center justify-center text-slate-600 shadow-inner group-hover/card:border-librarian-primary/40 transition-all">
                                     {member.photo ? <img src={member.photo} alt="" className="w-full h-full object-cover" /> : <User size={24} />}
                                 </div>
                                 <div className="flex flex-col flex-1">
-                                    <span className="font-bold text-base text-slate-100 tracking-tight leading-none mb-2 group-hover/card:text-rose-400 transition-all uppercase italic">{member.firstName} {member.lastName}</span>
+                                    <span className="font-bold text-base text-slate-100 tracking-tight leading-none mb-2 group-hover/card:text-librarian-primary transition-all uppercase italic">{member.firstName} {member.lastName}</span>
                                     <div className="space-y-1.5">
                                         <div className="flex items-center gap-2 text-slate-500">
-                                            <Mail size={12} className="text-rose-500/60" />
+                                            <Mail size={12} className="text-librarian-primary/60" />
                                             <span className="text-[10px] font-bold lowercase tracking-wider truncate max-w-[150px]">{member.email}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <Shield size={12} className="text-rose-500/60" />
-                                            <span className="text-[9px] font-black text-rose-500 border border-rose-500/20 bg-rose-500/5 px-2 py-0.5 rounded-md uppercase italic tracking-[0.1em]">{member.role} NODE</span>
+                                            <Shield size={12} className="text-librarian-primary/60" />
+                                            <span className="text-[9px] font-black text-librarian-primary border border-librarian-primary/20 bg-librarian-primary/5 px-2 py-0.5 rounded-md uppercase italic tracking-[0.1em]">{member.role} NODE</span>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                             <div className="mt-6 pt-4 border-t border-slate-800/40 flex items-center justify-between">
-                                <button className="text-[9px] font-black uppercase text-slate-500 hover:text-rose-400 italic tracking-widest transition-all">View Analytics</button>
+                                <button className="text-[9px] font-black uppercase text-slate-500 hover:text-librarian-primary italic tracking-widest transition-all">View Analytics</button>
                                 <span className="text-[9px] font-black text-slate-700 italic opacity-40 uppercase">ID: {member._id?.toString().slice(-6)}</span>
                             </div>
                         </div>

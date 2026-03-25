@@ -634,12 +634,12 @@ const AdminTimetable = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {timetableTemplates.map(template => (
-                            <div key={template._id} className="bg-slate-900 border border-white/5 p-5 rounded-md group hover:border-indigo-500/30 transition-all flex flex-col justify-between h-full shadow-lg">
+                            <div key={template._id} className="bg-slate-900 border border-white/5 p-5 rounded-md group hover:border-schooladmin-primary/30 transition-all flex flex-col justify-between h-full shadow-lg">
                                 <div>
                                     <div className="flex items-center justify-between mb-3">
                                         <h4 className="text-lg font-black text-white italic tracking-tighter uppercase font-outfit">{template.name}</h4>
                                         <div className="flex gap-1">
-                                            <button onClick={() => handleOpenEditTemplate(template)} className="p-2 text-slate-500 hover:text-indigo-400 transition-colors"><Edit2 size={14} /></button>
+                                            <button onClick={() => handleOpenEditTemplate(template)} className="p-2 text-slate-500 hover:text-schooladmin-primary transition-colors"><Edit2 size={14} /></button>
                                             <button onClick={() => handleDeleteTemplate(template._id)} className="p-2 text-slate-500 hover:text-red-400 transition-colors"><Trash2 size={14} /></button>
                                         </div>
                                     </div>
@@ -654,7 +654,7 @@ const AdminTimetable = () => {
                                 </div>
                                 <button 
                                     onClick={() => handleApplyTemplate(template)}
-                                    className="w-full h-10 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
+                                    className="w-full h-10 rounded-md bg-schooladmin-primary/10 border border-schooladmin-primary/20 text-schooladmin-primary hover:bg-schooladmin-primary hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
                                 >
                                     Apply Configuration
                                 </button>

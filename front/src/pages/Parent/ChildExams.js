@@ -53,7 +53,7 @@ const ChildExams = () => {
                             className="group relative bg-brand-surface/40 hover:bg-brand-surface/60 border border-brand-border/40 hover:border-brand-primary/40 rounded-md p-6 transition-all"
                         >
                             <div className="flex justify-between items-start mb-6">
-                                <div className="w-12 h-12 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400">
+                                <div className="w-12 h-12 rounded-md bg-parent-primary/10 border border-parent-primary/20 flex items-center justify-center text-parent-primary">
                                     <BookOpen size={24} />
                                 </div>
                                 <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/80 px-2 py-1 rounded">

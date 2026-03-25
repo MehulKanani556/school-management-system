@@ -52,7 +52,7 @@ const LibraryStudent = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-black text-white uppercase tracking-widest italic flex items-center gap-3">
-            <LibIcon className="text-blue-500" size={28} />
+            <LibIcon className="text-student-primary" size={28} />
             Digital Library Access
           </h1>
           <p className="text-sm text-slate-400 mt-1 uppercase tracking-widest text-[10px]">Browse Volumes & Manage Waitlists</p>
@@ -62,7 +62,7 @@ const LibraryStudent = () => {
           <button
             onClick={() => setActiveTab('catalog')}
             className={`px-4 py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${
-              activeTab === 'catalog' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'
+              activeTab === 'catalog' ? 'bg-student-primary text-white shadow-lg shadow-student-primary/20' : 'text-slate-400 hover:text-white'
             }`}
           >
             <Book size={14} /> Catalog
@@ -70,7 +70,7 @@ const LibraryStudent = () => {
           <button
             onClick={() => setActiveTab('ebooks')}
             className={`px-4 py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${
-              activeTab === 'ebooks' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'
+              activeTab === 'ebooks' ? 'bg-student-primary text-white shadow-lg shadow-student-primary/20' : 'text-slate-400 hover:text-white'
             }`}
           >
             <FileText size={14} /> E-Books
@@ -78,7 +78,7 @@ const LibraryStudent = () => {
           <button
             onClick={() => setActiveTab('reservations')}
             className={`px-4 py-2 rounded-md font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 ${
-              activeTab === 'reservations' ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'text-slate-400 hover:text-white'
+              activeTab === 'reservations' ? 'bg-student-primary text-white shadow-lg shadow-student-primary/20' : 'text-slate-400 hover:text-white'
             }`}
           >
             <BookmarkPlus size={14} /> My Waitlists
@@ -99,7 +99,7 @@ const LibraryStudent = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
              {catalogBooks.map(book => (
-                <div key={book._id} className="bg-brand-surface border border-brand-border rounded-xl p-5 hover:border-blue-500/30 transition-colors group relative overflow-hidden flex flex-col">
+                <div key={book._id} className="bg-brand-surface border border-brand-border rounded-xl p-5 hover:border-student-primary/30 transition-colors group relative overflow-hidden flex flex-col">
                   {book.availableCopies === 0 && (
                     <div className="absolute top-3 right-3 flex h-3 w-3">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
@@ -108,7 +108,7 @@ const LibraryStudent = () => {
                   )}
                   
                   <div className="mb-4">
-                    <span className="text-[9px] font-black uppercase tracking-widest text-blue-500 bg-blue-500/10 px-2 py-1 rounded inline-block mb-2">
+                    <span className="text-[9px] font-black uppercase tracking-widest text-student-primary bg-student-primary/10 px-2 py-1 rounded inline-block mb-2">
                        {book.category}
                     </span>
                     <h3 className="text-lg font-bold text-white leading-tight">{book.title}</h3>
@@ -135,8 +135,8 @@ const LibraryStudent = () => {
                        book.availableCopies > 0 
                        ? 'bg-brand-background border border-brand-border text-slate-500 opacity-50 cursor-not-allowed' 
                        : reservations.some(r => r.bookId._id === book._id && r.status === 'pending')
-                         ? 'bg-brand-background border border-blue-500/50 text-blue-500/50 cursor-not-allowed'
-                         : 'bg-blue-500/10 border border-blue-500/50 text-blue-400 hover:bg-blue-500 hover:text-white'
+                         ? 'bg-brand-background border border-student-primary/50 text-student-primary/50 cursor-not-allowed'
+                         : 'bg-student-primary/10 border border-student-primary/50 text-student-primary hover:bg-student-primary hover:text-white'
                     }`}
                   >
                      {book.availableCopies > 0 
@@ -165,7 +165,7 @@ const LibraryStudent = () => {
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
           >
              {ebookBooks.map(book => (
-                <div key={book._id} className="bg-brand-surface border border-brand-border rounded-xl p-5 hover:border-blue-500/30 transition-colors group relative overflow-hidden flex flex-col">
+                <div key={book._id} className="bg-brand-surface border border-brand-border rounded-xl p-5 hover:border-student-primary/30 transition-colors group relative overflow-hidden flex flex-col">
                   <div className="mb-4">
                     <span className="text-[9px] font-black uppercase tracking-widest text-purple-500 bg-purple-500/10 px-2 py-1 rounded inline-block mb-2">
                        Digital Resource

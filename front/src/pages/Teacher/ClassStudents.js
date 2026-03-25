@@ -87,7 +87,7 @@ const ClassStudents = () => {
                                 <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2 font-outfit">{studentDetail.student.firstName} {studentDetail.student.lastName}</h2>
                                 <div className="flex gap-3">
                                     <span className="text-[9px] bg-brand-primary/10 text-brand-primary border border-brand-primary/20 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">{studentDetail.student.studentId}</span>
-                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">Node Verified</span>
+                                    <span className="text-[9px] bg-teacher-primary/10 text-teacher-primary border border-teacher-primary/20 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">Node Verified</span>
                                 </div>
                             </div>
                         </section>
@@ -97,7 +97,7 @@ const ClassStudents = () => {
                                 <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-3 italic"> <Calendar size={14} className="text-brand-primary" /> Attendance Vector</h3>
                                 <div className="grid grid-cols-5 gap-2">
                                     {studentDetail.attendance.slice(-20).map((a, i) => (
-                                        <div key={i} title={new Date(a.date).toLocaleDateString()} className={`h-6 rounded-md flex items-center justify-center border ${a.status === 'Present' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500' : 'bg-red-500/10 border-red-500/20 text-red-500'} transition-all hover:scale-110 cursor-help shadow-lg`}>
+                                        <div key={i} title={new Date(a.date).toLocaleDateString()} className={`h-6 rounded-md flex items-center justify-center border ${a.status === 'Present' ? 'bg-teacher-primary/10 border-teacher-primary/20 text-teacher-primary' : 'bg-red-500/10 border-red-500/20 text-red-500'} transition-all hover:scale-110 cursor-help shadow-lg`}>
                                             {a.status === 'Present' ? <CheckCircle size={10} /> : <XCircle size={10} />}
                                         </div>
                                     ))}
@@ -141,7 +141,7 @@ const ClassStudents = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${s.status === 'Graded' ? 'bg-emerald-500/10 text-emerald-500' : 'bg-brand-primary/10 text-brand-primary'}`}>{s.status}</span>
+                                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${s.status === 'Graded' ? 'bg-teacher-primary/10 text-teacher-primary' : 'bg-brand-primary/10 text-brand-primary'}`}>{s.status}</span>
                                             {s.fileUrl && <a href={s.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-xl transition-all active:scale-90"> <Info size={14} /> </a>}
                                         </div>
                                     </div>

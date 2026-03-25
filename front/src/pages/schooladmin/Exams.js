@@ -92,8 +92,8 @@ const Exams = () => {
                         <div className="flex items-start justify-between relative z-10">
                             <div className="flex flex-col gap-2">
                                 <span className={`w-fit px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${typeColor[e.type] || 'text-slate-400 bg-slate-400/10'}`}>{e.type.replace('_', ' ')}</span>
-                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md w-fit border ${e.isPublished ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-amber-500/10 border-amber-500/20 text-amber-400'}`}>
-                                    <div className={`w-1 h-1 rounded-md ${e.isPublished ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></div>
+                                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-md w-fit border ${e.isPublished ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-schooladmin-primary/10 border-schooladmin-primary/20 text-schooladmin-primary'}`}>
+                                    <div className={`w-1 h-1 rounded-md ${e.isPublished ? 'bg-emerald-400 animate-pulse' : 'bg-schooladmin-primary'}`}></div>
                                     <span className="text-[8px] font-black uppercase tracking-widest">{e.isPublished ? 'Published' : 'Draft Status'}</span>
                                 </div>
                             </div>
@@ -106,7 +106,7 @@ const Exams = () => {
                                     <BarChart3 size={14} />
                                 </button>
                                 <button onClick={() => dispatch(toggleExamPublishStatus(e._id))} 
-                                    className={`p-2.5 rounded-md transition-all border ${e.isPublished ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-white' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white'}`} 
+                                    className={`p-2.5 rounded-md transition-all border ${e.isPublished ? 'bg-schooladmin-primary/10 border-schooladmin-primary/20 text-schooladmin-primary hover:bg-schooladmin-primary hover:text-white' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-500 hover:bg-emerald-500 hover:text-white'}`} 
                                     title={e.isPublished ? 'Revert to Draft' : 'Publish Results'}>
                                     {e.isPublished ? <EyeOff size={14} /> : <Send size={14} />}
                                 </button>
@@ -252,7 +252,7 @@ const Exams = () => {
                                     {[
                                         { label: 'Participated Students', val: examAnalytics.totalStudents, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
                                         { label: 'Average Score', val: `${examAnalytics.averageMarks}%`, icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-                                        { label: 'Highest Pulse', val: examAnalytics.highest, icon: Award, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+                                        { label: 'Highest Pulse', val: examAnalytics.highest, icon: Award, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/10' },
                                         { label: 'Lowest Directive', val: examAnalytics.lowest || 0, icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-400/10' },
                                     ].map((s, i) => (
                                         <div key={i} className="bg-slate-900/50 border border-white/5 rounded-md p-6">
@@ -291,12 +291,12 @@ const Exams = () => {
                                         </div>
                                     </div>
                                     <div className="bg-slate-900/40 border border-white/5 rounded-md p-8">
-                                        <h3 className="text-xs font-black uppercase tracking-widest text-amber-400 flex items-center gap-2 mb-6"><Award size={14} /> Top Achievers</h3>
+                                        <h3 className="text-xs font-black uppercase tracking-widest text-schooladmin-primary flex items-center gap-2 mb-6"><Award size={14} /> Top Achievers</h3>
                                         <div className="space-y-4">
                                             {examAnalytics.topPerformers.map((p, i) => (
                                                 <div key={i} className="flex items-center justify-between group">
                                                     <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-md flex items-center justify-center font-black text-xs ${i === 0 ? 'bg-amber-400/10 text-amber-400' : i === 1 ? 'bg-slate-300/10 text-slate-300' : i === 2 ? 'bg-orange-400/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>{i + 1}</div>
+                                                        <div className={`w-8 h-8 rounded-md flex items-center justify-center font-black text-xs ${i === 0 ? 'bg-schooladmin-primary/10 text-schooladmin-primary' : i === 1 ? 'bg-slate-300/10 text-slate-300' : i === 2 ? 'bg-orange-400/10 text-orange-400' : 'bg-slate-800 text-slate-500'}`}>{i + 1}</div>
                                                         <div>
                                                             <p className="text-xs font-bold text-slate-200 group-hover:text-white transition-colors capitalize">{p.name.toLowerCase()}</p>
                                                             <p className="text-[9px] font-medium text-slate-500">{p.admissionNumber}</p>

@@ -13,10 +13,10 @@ const Vehicles = () => {
     const [isMaintenanceOpen, setIsMaintenanceOpen] = React.useState(false);
     const [selectedVehicle, setSelectedVehicle] = React.useState(null);
     const [searchQuery, setSearchQuery] = React.useState('');
-    
-    const [formData, setFormData] = React.useState({ 
-        registrationNumber: '', 
-        capacity: 40, 
+
+    const [formData, setFormData] = React.useState({
+        registrationNumber: '',
+        capacity: 40,
         driverId: '',
         status: 'active',
         fuelType: 'Diesel',
@@ -54,9 +54,9 @@ const Vehicles = () => {
     }, [message, error, dispatch]);
 
     const resetForm = () => {
-        setFormData({ 
-            registrationNumber: '', 
-            capacity: 40, 
+        setFormData({
+            registrationNumber: '',
+            capacity: 40,
             driverId: '',
             status: 'active',
             fuelType: 'Diesel',
@@ -124,15 +124,15 @@ const Vehicles = () => {
         }
     }
 
-    const filteredVehicles = vehicles.filter(v => 
+    const filteredVehicles = vehicles.filter(v =>
         v.registrationNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
         v.driverId?.name?.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
     const getStatusStyles = (status) => {
-        switch(status) {
+        switch (status) {
             case 'active': return 'bg-emerald-600/10 border-emerald-600/20 text-emerald-500';
-            case 'maintenance': return 'bg-orange-600/10 border-orange-600/20 text-orange-500';
+            case 'maintenance': return 'bg-transporter-primary/10 border-transporter-primary/20 text-transporter-primary';
             case 'inactive': return 'bg-red-600/10 border-red-600/20 text-red-500';
             default: return 'bg-slate-600/10 border-slate-600/20 text-slate-500';
         }
@@ -142,12 +142,12 @@ const Vehicles = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-orange-500">Fleet Inventory</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Fleet Inventory</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Mapping organizational mobility units.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
-                    className="px-6 py-4 bg-orange-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-orange-600/20 hover:shadow-orange-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group"
+                    className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group"
                 >
                     <Plus size={14} className="group-hover:rotate-90 transition-transform" /> add vehicle
                 </button>
@@ -158,12 +158,12 @@ const Vehicles = () => {
                     <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none font-outfit">Unit Inventory</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
-                        <input 
-                            type="text" 
-                            placeholder="Identify Unit Number..." 
+                        <input
+                            type="text"
+                            placeholder="Identify Unit Number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all w-full sm:w-64 italic"
+                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all w-full sm:w-64 italic"
                         />
                     </div>
                 </div>
@@ -184,7 +184,7 @@ const Vehicles = () => {
                                 <tr key={vehicle._id} className="group/row hover:bg-neutral-950/60 transition-all">
                                     <td className="px-6 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-orange-500 group-hover/row:border-orange-600/40 transition-all duration-500 shadow-xl">
+                                            <div className="w-12 h-12 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-transporter-primary group-hover/row:border-transporter-primary/40 transition-all duration-500 shadow-xl">
                                                 <Bus size={22} />
                                             </div>
                                             <div className="flex flex-col">
@@ -218,26 +218,26 @@ const Vehicles = () => {
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
-                                        <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${getStatusStyles(vehicle.status || 'active')}`}> 
-                                            {vehicle.status || 'Operational'} 
+                                        <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${getStatusStyles(vehicle.status || 'active')}`}>
+                                            {vehicle.status || 'Operational'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-6 text-right">
                                         <div className="flex items-center gap-3 justify-end opacity-0 group-hover/row:opacity-100 transition-all">
-                                            <button 
+                                            <button
                                                 onClick={() => openMaintenance(vehicle)}
                                                 className="p-2.5 text-slate-500 hover:text-emerald-500 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg hover:shadow-emerald-600/10"
                                                 title="Log Maintenance"
                                             >
                                                 <Wrench size={16} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => openEdit(vehicle)}
-                                                className="p-2.5 text-slate-500 hover:text-orange-500 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg hover:shadow-orange-600/10"
+                                                className="p-2.5 text-slate-500 hover:text-transporter-primary bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg hover:shadow-transporter-primary/10"
                                             >
                                                 <Edit3 size={16} />
                                             </button>
-                                            <button 
+                                            <button
                                                 onClick={() => handleDelete(vehicle._id)}
                                                 className="p-2.5 text-slate-500 hover:text-red-400 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg hover:shadow-red-600/10"
                                             >
@@ -266,15 +266,15 @@ const Vehicles = () => {
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
                                     {isEditOpen ? 'Update mobility unit' : 'Provision new mobility unit'}
                                 </h3>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Registration Identifier</label>
-                                        <input type="text" required value={formData.registrationNumber} onChange={(e) => setFormData({...formData, registrationNumber: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
+                                        <input type="text" required value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Propulsion Matrix (Fuel)</label>
-                                        <select value={formData.fuelType} onChange={(e) => setFormData({...formData, fuelType: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
+                                        <select value={formData.fuelType} onChange={(e) => setFormData({ ...formData, fuelType: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none appearance-none">
                                             <option value="Diesel">DIESEL</option>
                                             <option value="Petrol">PETROL</option>
                                             <option value="Electric">ELECTRIC</option>
@@ -283,11 +283,11 @@ const Vehicles = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Max Entity Capacity</label>
-                                        <input type="number" required value={formData.capacity} onChange={(e) => setFormData({...formData, capacity: parseInt(e.target.value)})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
+                                        <input type="number" required value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Unit Operational Status</label>
-                                        <select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
+                                        <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none appearance-none">
                                             <option value="active">ACTIVE</option>
                                             <option value="maintenance">MAINTENANCE</option>
                                             <option value="inactive">INACTIVE</option>
@@ -295,7 +295,7 @@ const Vehicles = () => {
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Insurance Expiry Vector</label>
-                                        <input type="date" value={formData.insuranceExpiry} onChange={(e) => setFormData({...formData, insuranceExpiry: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
+                                        <input type="date" value={formData.insuranceExpiry} onChange={(e) => setFormData({ ...formData, insuranceExpiry: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
                                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Node Custodian (Driver)</label>
@@ -324,7 +324,7 @@ const Vehicles = () => {
 
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Abort Logic</button>
-                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-orange-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-orange-700 transition-all shadow-xl shadow-orange-600/20 leading-none disabled:opacity-50">
+                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none disabled:opacity-50">
                                         {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Provision'}
                                     </button>
                                 </div>
@@ -351,28 +351,28 @@ const Vehicles = () => {
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <form onSubmit={handleMaintenance} className="lg:col-span-1 space-y-5 bg-neutral-950/40 p-6 rounded-md border border-slate-800/60">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 italic mb-4 flex items-center gap-2"><Plus size={12} /> Log New Protocol</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-4 flex items-center gap-2"><Plus size={12} /> Log New Protocol</h4>
                                         <div className="space-y-4">
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">SVC Type</label>
-                                                <input type="text" required value={maintenanceFormData.serviceType} onChange={(e) => setMaintenanceFormData({...maintenanceFormData, serviceType: e.target.value})} placeholder="e.g. Engine Calibration" className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic" />
+                                                <input type="text" required value={maintenanceFormData.serviceType} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, serviceType: e.target.value })} placeholder="e.g. Engine Calibration" className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">Resource Allocation (Cost)</label>
-                                                <input type="number" required value={maintenanceFormData.cost} onChange={(e) => setMaintenanceFormData({...maintenanceFormData, cost: e.target.value})} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic" />
+                                                <input type="number" required value={maintenanceFormData.cost} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, cost: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">Timeline (Date)</label>
-                                                <input type="date" required value={maintenanceFormData.date} onChange={(e) => setMaintenanceFormData({...maintenanceFormData, date: e.target.value})} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic" />
+                                                <input type="date" required value={maintenanceFormData.date} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, date: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">Logic Logs (Notes)</label>
-                                                <textarea rows="3" value={maintenanceFormData.notes} onChange={(e) => setMaintenanceFormData({...maintenanceFormData, notes: e.target.value})} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic" />
+                                                <textarea rows="3" value={maintenanceFormData.notes} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, notes: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
-                                            <button type="submit" disabled={loading} className="w-full py-3 bg-orange-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-orange-700 transition-all shadow-lg shadow-orange-600/10">Commit Log</button>
+                                            <button type="submit" disabled={loading} className="w-full py-3 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-lg shadow-transporter-primary/10">Commit Log</button>
                                         </div>
                                     </form>
-
+                    
                                     <div className="lg:col-span-2 space-y-6">
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><History size={12} /> Execution History</h4>
                                         <div className="space-y-4">
@@ -380,7 +380,7 @@ const Vehicles = () => {
                                                 <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 p-5 rounded-md flex justify-between items-start group">
                                                     <div className="space-y-2">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-neutral-900 border border-slate-800 text-orange-500 rounded"><FileText size={14} /></div>
+                                                            <div className="p-2 bg-neutral-900 border border-slate-800 text-transporter-primary rounded"><FileText size={14} /></div>
                                                             <div>
                                                                 <p className="text-[11px] font-black text-slate-100 uppercase italic tracking-tighter">{log.serviceType}</p>
                                                                 <p className="text-[9px] font-bold text-slate-600 uppercase italic">{new Date(log.date).toLocaleDateString()}</p>

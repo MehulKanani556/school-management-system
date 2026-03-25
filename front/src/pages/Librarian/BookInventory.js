@@ -74,12 +74,12 @@ const BookInventory = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-indigo-400">Inventory Node</h1>
+                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-librarian-primary">Inventory Node</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Archived physical knowledge repositories.</p>
                 </div>
                 <button 
                     onClick={() => handleOpenModal()}
-                    className="px-6 py-3 bg-indigo-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-indigo-600/20 hover:translate-y-[-2px] transition-all flex items-center gap-2"
+                    className="px-6 py-3 bg-librarian-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-librarian-primary/20 hover:translate-y-[-2px] transition-all flex items-center gap-2"
                 >
                     <Plus size={14} /> add book
                 </button>
@@ -95,7 +95,7 @@ const BookInventory = () => {
                             placeholder="Identify volume..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all w-full sm:w-64 italic"
+                            className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all w-full sm:w-64 italic"
                         />
                     </div>
                 </div>
@@ -116,11 +116,11 @@ const BookInventory = () => {
                                 <tr key={i} className="group/row hover:bg-neutral-950/60 transition-all">
                                     <td className="px-6 py-6">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800/60 overflow-hidden flex items-center justify-center text-slate-600 shadow-inner group-hover/row:border-indigo-600/30 transition-all">
+                                            <div className="w-10 h-10 rounded-md bg-neutral-950 border border-slate-800/60 overflow-hidden flex items-center justify-center text-slate-600 shadow-inner group-hover/row:border-librarian-primary/30 transition-all">
                                                 <Library size={18} />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-sm text-slate-200 tracking-tight leading-none mb-1.5 group-hover/row:text-indigo-400 transition-all">{book.title}</span>
+                                                <span className="font-bold text-sm text-slate-200 tracking-tight leading-none mb-1.5 group-hover/row:text-librarian-primary transition-all">{book.title}</span>
                                                 <span className="text-[10px] text-slate-500 uppercase italic opacity-60">ISBN: {book.isbn}</span>
                                             </div>
                                         </div>
@@ -147,7 +147,7 @@ const BookInventory = () => {
                                                 <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">{book.availableCopies} Node(s)</span>
                                                 <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of {book.totalCopies} registered</span>
                                             </div>
-                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${book.type === 'E-Book' ? 'bg-purple-600/10 border-purple-600/20 text-purple-400' : book.availableCopies > 0 ? 'bg-indigo-600/10 border-indigo-600/20 text-indigo-400' : 'bg-red-600/10 border-red-600/20 text-red-400'}`}>
+                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${book.type === 'E-Book' ? 'bg-purple-600/10 border-purple-600/20 text-purple-400' : book.availableCopies > 0 ? 'bg-librarian-primary/10 border-librarian-primary/20 text-librarian-primary' : 'bg-red-600/10 border-red-600/20 text-red-400'}`}>
                                                 {book.type === 'E-Book' ? 'Digital' : book.availableCopies > 0 ? 'Accessible' : 'Restricted'}
                                             </span>
                                         </div>
@@ -156,7 +156,7 @@ const BookInventory = () => {
                                         <div className="flex items-center gap-3 justify-end opacity-0 group-hover/row:opacity-100 transition-all">
                                             <button 
                                                 onClick={() => handleOpenModal(book)}
-                                                className="p-2 text-slate-500 hover:text-indigo-400 transition-all"
+                                                className="p-2 text-slate-500 hover:text-librarian-primary transition-all"
                                             >
                                                 <Edit3 size={16} />
                                             </button>
@@ -188,7 +188,7 @@ const BookInventory = () => {
                                 {/* Header */}
                                 <div className="px-10 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                                     <div>
-                                        <h3 className="text-xl font-black italic uppercase tracking-tighter text-indigo-400 leading-none">
+                                        <h3 className="text-xl font-black italic uppercase tracking-tighter text-librarian-primary leading-none">
                                             {editingBook ? 'Update Volume Protocol' : 'New Volume Protocol'}
                                         </h3>
                                         <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic opacity-60">Master Archival Entry System</p>
@@ -201,7 +201,7 @@ const BookInventory = () => {
                                                 onClick={() => setFormData({...formData, type: t})}
                                                 className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${
                                                     formData.type === t 
-                                                    ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/20' 
+                                                    ? 'bg-librarian-primary border-librarian-primary text-white shadow-lg shadow-librarian-primary/20' 
                                                     : 'bg-neutral-950 border-slate-800/60 text-slate-500 hover:text-white'
                                                 }`}
                                             >
@@ -215,7 +215,7 @@ const BookInventory = () => {
                                     {/* Section: Core Identity */}
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500"></span>
+                                            <span className="w-1.5 h-1.5 rounded-full bg-librarian-primary"></span>
                                             <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Core Identity</h4>
                                         </div>
                                         <div className="grid grid-cols-1 gap-5">
@@ -229,7 +229,7 @@ const BookInventory = () => {
                                                     placeholder="The Chronicles of Knowledge..."
                                                     value={formData.title}
                                                     onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                 />
                                             </div>
                                         </div>
@@ -244,7 +244,7 @@ const BookInventory = () => {
                                                     placeholder="ISBN-000-00-000"
                                                     value={formData.isbn}
                                                     onChange={(e) => setFormData({...formData, isbn: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -257,7 +257,7 @@ const BookInventory = () => {
                                                     placeholder="Dr. John Doe..."
                                                     value={formData.author}
                                                     onChange={(e) => setFormData({...formData, author: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                 />
                                             </div>
                                         </div>
@@ -280,7 +280,7 @@ const BookInventory = () => {
                                                         min="1"
                                                         value={formData.totalCopies}
                                                         onChange={(e) => setFormData({...formData, totalCopies: parseInt(e.target.value)})}
-                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic"
+                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic"
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
@@ -290,7 +290,7 @@ const BookInventory = () => {
                                                         placeholder="Shelf A-12, Sector 4..."
                                                         value={formData.location}
                                                         onChange={(e) => setFormData({...formData, location: e.target.value})}
-                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                     />
                                                 </div>
                                             </div>
@@ -347,7 +347,7 @@ const BookInventory = () => {
                                                     placeholder="Scientific..."
                                                     value={formData.category}
                                                     onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                 />
                                                 <datalist id="categories">
                                                     {categories.map(c => <option key={c} value={c} />)}
@@ -360,7 +360,7 @@ const BookInventory = () => {
                                                     placeholder="Global Press..."
                                                     value={formData.publisher}
                                                     onChange={(e) => setFormData({...formData, publisher: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic placeholder:text-slate-800"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -369,7 +369,7 @@ const BookInventory = () => {
                                                     type="number" 
                                                     value={formData.publicationYear}
                                                     onChange={(e) => setFormData({...formData, publicationYear: parseInt(e.target.value)})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-indigo-600/50 transition-all italic"
+                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic"
                                                 />
                                             </div>
                                         </div>
@@ -387,7 +387,7 @@ const BookInventory = () => {
                                     </button>
                                     <button 
                                         type="submit" 
-                                        className="flex-[2] px-6 py-4 bg-indigo-600 text-[11px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-600/20 leading-none flex items-center justify-center gap-2 group"
+                                        className="flex-[2] px-6 py-4 bg-librarian-primary text-[11px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:bg-librarian-primary transition-all shadow-xl shadow-librarian-primary/20 leading-none flex items-center justify-center gap-2 group"
                                     >
                                         {editingBook ? 'Update Archive Registry' : 'Commit Volume to Matrix'}
                                         <Plus size={14} className="group-hover:rotate-90 transition-transform" />

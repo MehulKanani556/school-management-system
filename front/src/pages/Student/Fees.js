@@ -19,7 +19,7 @@ const Fees = () => {
         switch (status.toLowerCase()) {
             case 'paid': return 'text-luxury-emerald bg-emerald-500/10 border-emerald-500/20';
             case 'pending': return 'text-luxury-rose bg-rose-500/10 border-rose-500/20';
-            case 'partially_paid': return 'text-amber-500 bg-amber-500/10 border-amber-500/20';
+            case 'partially_paid': return 'text-student-primary bg-student-primary/10 border-student-primary/20';
             default: return 'text-slate-400 bg-slate-500/10 border-slate-500/20';
         }
     };

@@ -67,7 +67,7 @@ const Subjects = () => {
           <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Subjects Management</h1>
           <p className="text-slate-400 text-sm mt-1">{subjects.length} subjects available</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit text-white">
+        <button onClick={openAdd} className="flex items-center gap-2 px-5 py-3 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit text-white">
           <Plus size={18} /> Add Subject
         </button>
       </div>
@@ -155,7 +155,7 @@ const Subjects = () => {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white">
+            className="w-full py-3 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white">
             {loading ? 'Saving...' : editing ? 'Update Subject' : 'Add Subject'}
           </button>
         </form>

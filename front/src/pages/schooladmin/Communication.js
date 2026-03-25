@@ -346,7 +346,7 @@ const Communication = () => {
                                                 </div>
                                                 <div className="flex flex-col items-end gap-1.5">
                                                     <span className="text-[7px] font-bold text-slate-600">2M</span>
-                                                    {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-luxury-rose animate-pulse shadow-rose-500/50 shadow-lg"></div>}
+                                                    {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-luxury-rose animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
                                                 </div>
                                             </button>
                                         );
@@ -624,7 +624,7 @@ const Communication = () => {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button onClick={() => handleDelete(item._id)} className="p-3 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-700 hover:text-rose-500 hover:border-rose-500/30 transition-all opacity-0 group-hover:opacity-100 shadow-2xl active:scale-90">
+                                                <button onClick={() => handleDelete(item._id)} className="p-3 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-700 hover:text-schooladmin-primary hover:border-schooladmin-primary/30 transition-all opacity-0 group-hover:opacity-100 shadow-2xl active:scale-90">
                                                     <Trash2 size={16} />
                                                 </button>
                                             </div>

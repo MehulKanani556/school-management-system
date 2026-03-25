@@ -178,7 +178,7 @@ const AddMarks = () => {
                         <button 
                             onClick={formik.handleSubmit}
                             disabled={loading || students.length === 0}
-                            className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-blue-600 text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
+                            className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-teacher-primary text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
                         >
                             {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
                             Synchronize Grades

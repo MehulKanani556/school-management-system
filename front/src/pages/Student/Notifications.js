@@ -23,7 +23,7 @@ const Notifications = () => {
 
     const getTypeStyles = (type) => {
         switch (type) {
-            case 'Exam': return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
+            case 'Exam': return 'bg-student-primary/10 text-student-primary border-student-primary/20';
             case 'Assignment': return 'bg-luxury-emerald/10 text-luxury-emerald border-luxury-emerald/20';
             case 'Fee': return 'bg-luxury-rose/10 text-luxury-rose border-luxury-rose/20';
             default: return 'bg-slate-800 text-slate-400 border-slate-700/50';

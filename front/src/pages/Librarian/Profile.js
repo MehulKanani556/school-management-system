@@ -194,7 +194,7 @@ const LibrarianProfile = () => {
 
         {/* Password Reset */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface border border-brand-border rounded-xl p-6 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/5 rounded-full blur-3xl -mr-10 -mt-10" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-librarian-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
           
           <h2 className="text-xs font-black text-white/50 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
             Security Block
@@ -211,7 +211,7 @@ const LibrarianProfile = () => {
                     value={passwordData.oldPassword}
                     onChange={e => setPasswordData({...passwordData, oldPassword: e.target.value})}
                     required
-                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-colors text-sm"
+                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-librarian-primary transition-colors text-sm"
                   />
                   <button type="button" onClick={() => setShowPassword({...showPassword, old: !showPassword.old})} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
                     {showPassword.old ? <EyeOff size={16}/> : <Eye size={16}/>}
@@ -229,7 +229,7 @@ const LibrarianProfile = () => {
                     onChange={e => setPasswordData({...passwordData, newPassword: e.target.value})}
                     required
                     minLength={6}
-                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-colors text-sm"
+                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-librarian-primary transition-colors text-sm"
                   />
                   <button type="button" onClick={() => setShowPassword({...showPassword, new: !showPassword.new})} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
                     {showPassword.new ? <EyeOff size={16}/> : <Eye size={16}/>}
@@ -246,7 +246,7 @@ const LibrarianProfile = () => {
                     value={passwordData.confirmPassword}
                     onChange={e => setPasswordData({...passwordData, confirmPassword: e.target.value})}
                     required
-                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-amber-500 transition-colors text-sm"
+                    className="w-full bg-brand-background border border-brand-border rounded-lg pl-10 pr-10 py-2.5 text-white focus:outline-none focus:border-librarian-primary transition-colors text-sm"
                   />
                   <button type="button" onClick={() => setShowPassword({...showPassword, confirm: !showPassword.confirm})} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500">
                     {showPassword.confirm ? <EyeOff size={16}/> : <Eye size={16}/>}
@@ -254,7 +254,7 @@ const LibrarianProfile = () => {
                 </div>
               </div>
 
-              <button type="submit" disabled={!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword} className="w-full mt-4 bg-brand-background border border-amber-500/50 text-amber-500 px-4 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-amber-500/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed italic">
+              <button type="submit" disabled={!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword} className="w-full mt-4 bg-brand-background border border-librarian-primary/50 text-librarian-primary px-4 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-librarian-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed italic">
                 Update Security Root
               </button>
           </form>

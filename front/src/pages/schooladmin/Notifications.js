@@ -155,7 +155,7 @@ const Notifications = () => {
                                         )}
                                         <button 
                                             onClick={() => handleDelete(notif._id)}
-                                            className="p-3 rounded-md bg-slate-950 border border-slate-800 text-slate-600 hover:text-rose-500 hover:border-rose-500/30 transition-all opacity-0 group-hover:opacity-100 shadow-xl active:scale-90"
+                                            className="p-3 rounded-md bg-slate-950 border border-slate-800 text-slate-600 hover:text-schooladmin-primary hover:border-schooladmin-primary/30 transition-all opacity-0 group-hover:opacity-100 shadow-xl active:scale-90"
                                             title="Purge Event"
                                         >
                                             <Trash2 size={14} />

@@ -96,7 +96,7 @@ const Reports = () => {
                                         <m.icon size={20} />
                                     </div>
                                     {m.up !== null && (
-                                        <div className={`flex items-center gap-1 text-[9px] font-black ${m.up ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                        <div className={`flex items-center gap-1 text-[9px] font-black ${m.up ? 'text-emerald-400' : 'text-schooladmin-primary'}`}>
                                             {m.up ? <ArrowUpRight size={10} /> : <ArrowDownRight size={10} />}
                                             {m.trend}
                                         </div>
@@ -193,12 +193,12 @@ const Reports = () => {
                             <p className="text-[9px] font-black text-emerald-400 mt-2 uppercase tracking-widest">{feeReport.collectionRate}% of Target Reached</p>
                         </div>
 
-                        <div className="bg-slate-900/40 border border-rose-500/10 rounded-md p-8">
+                        <div className="bg-slate-900/40 border border-schooladmin-primary/10 rounded-md p-8">
                             <div className="flex justify-between items-start mb-6">
-                                <div className="p-4 rounded-md bg-rose-500/10 text-rose-400">
+                                <div className="p-4 rounded-md bg-schooladmin-primary/10 text-schooladmin-primary">
                                     <ArrowDownRight size={24} />
                                 </div>
-                                <div className="px-3 py-1 rounded-md bg-rose-500/10 text-[9px] font-black text-rose-400 uppercase tracking-widest">Outstanding Capital</div>
+                                <div className="px-3 py-1 rounded-md bg-schooladmin-primary/10 text-[9px] font-black text-schooladmin-primary uppercase tracking-widest">Outstanding Capital</div>
                             </div>
                             <h2 className="text-4xl font-black text-white font-outfit">₹{feeReport.totalOutstanding.toLocaleString()}</h2>
                             <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em] mt-2">Pending Transactions</p>

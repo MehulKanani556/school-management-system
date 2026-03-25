@@ -130,7 +130,7 @@ const CertificateHub = () => {
                             <button
                                 key={t.id}
                                 onClick={() => setDocType(t.id)}
-                                className={`flex items-center gap-2 px-5 py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${docType === t.id ? 'bg-indigo-500/10 border-indigo-500 text-indigo-400' : 'bg-slate-900 border-brand-border/40 text-slate-500 hover:text-slate-300'}`}
+                                className={`flex items-center gap-2 px-5 py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${docType === t.id ? 'bg-schooladmin-primary/10 border-schooladmin-primary text-schooladmin-primary' : 'bg-slate-900 border-brand-border/40 text-slate-500 hover:text-slate-300'}`}
                             >
                                 <t.icon size={14} /> {t.label}
                             </button>
@@ -176,7 +176,7 @@ const CertificateHub = () => {
 
                                                 <div className="space-y-2">
                                                     <div className="flex items-center gap-1.5 overflow-hidden whitespace-nowrap">
-                                                        <Fingerprint size={10} className="text-indigo-400 shrink-0" />
+                                                        <Fingerprint size={10} className="text-schooladmin-primary shrink-0" />
                                                         <span className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Identity Trace:</span>
                                                         <span className="text-[9px] font-black text-white font-mono">{selectedEntity.admissionNumber || selectedEntity.employeeId}</span>
                                                     </div>
@@ -261,7 +261,7 @@ const CertificateHub = () => {
                                             <header className="text-center border-b-4 border-slate-900 pb-10">
                                                 <h1 className="text-6xl font-black uppercase tracking-tighter text-slate-900 italic mb-4">Transfer Directive</h1>
                                                 <p className="text-sm font-bold uppercase tracking-[0.4em] text-slate-500">Global Academic Transit Protocol</p>
-                                                <p className="text-[12px] font-bold text-indigo-700 font-mono mt-4">SERIAL_ID: TC-{moment().year()}-{selectedEntity._id.toString().slice(-6).toUpperCase()}</p>
+                                                <p className="text-[12px] font-bold text-schooladmin-primary font-mono mt-4">SERIAL_ID: TC-{moment().year()}-{selectedEntity._id.toString().slice(-6).toUpperCase()}</p>
                                             </header>
 
                                             <div className="flex-1 py-12 space-y-6 text-lg text-slate-800 font-serif text-left">

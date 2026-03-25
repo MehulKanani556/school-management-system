@@ -126,7 +126,7 @@ const Messages = () => {
                             <div className="text-left relative z-10 overflow-hidden">
                                 <p className={`text-[11px] font-black uppercase tracking-wider truncate mb-1 ${selectedChat?._id === contact._id ? 'text-white' : 'text-slate-300'}`}>{contact.firstName} {contact.lastName}</p>
                                 <div className="flex items-center gap-2">
-                                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded ${contact.role === 'Teacher' ? 'bg-blue-500/10 text-blue-400' : 'bg-brand-primary/10 text-brand-primary'}`}>
+                                    <span className={`text-[8px] font-black uppercase tracking-[0.2em] px-1.5 py-0.5 rounded ${contact.role === 'Teacher' ? 'bg-parent-primary/10 text-parent-primary' : 'bg-brand-primary/10 text-brand-primary'}`}>
                                         {contact.role}
                                     </span>
                                 </div>

@@ -8,7 +8,7 @@ import { toast } from 'react-hot-toast';
 const StudentProfile = () => {
     const dispatch = useDispatch();
     const { profile, loading, message, error } = useSelector((state) => state.student);
-    
+
     const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({});
     const [passwordModal, setPasswordModal] = useState(false);
@@ -78,7 +78,7 @@ const StudentProfile = () => {
     }
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8 max-w-7xl mx-auto"
@@ -88,10 +88,10 @@ const StudentProfile = () => {
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Student Identity</h1>
                     <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Institutional node verification & credentials.</p>
                 </div>
-                
+
                 <div className="flex gap-4">
                     {!editMode ? (
-                        <button 
+                        <button
                             onClick={() => setEditMode(true)}
                             className="px-8 py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] flex items-center gap-3"
                         >
@@ -99,13 +99,13 @@ const StudentProfile = () => {
                         </button>
                     ) : (
                         <div className="flex gap-3">
-                            <button 
+                            <button
                                 onClick={() => { setEditMode(false); setPreview(null); }}
                                 className="px-6 py-4 bg-luxury-rose/10 text-luxury-rose border border-luxury-rose/20 rounded-md text-[10px] font-black uppercase tracking-[0.2em] hover:bg-luxury-rose hover:text-white transition-all"
                             >
                                 <X size={16} />
                             </button>
-                            <button 
+                            <button
                                 onClick={handleUpdate}
                                 className="px-8 py-4 bg-luxury-emerald text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3"
                             >
@@ -121,7 +121,7 @@ const StudentProfile = () => {
                 <div className="xl:col-span-1 space-y-6">
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md relative overflow-hidden group shadow-2xl">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-emerald/5 rounded-md blur-3xl -mr-10 -mt-10"></div>
-                        
+
                         <div className="relative z-10 text-center">
                             <div className="w-32 h-32 mx-auto rounded-md bg-slate-800 p-1 relative mb-8">
                                 <div className="w-full h-full overflow-hidden rounded-md border border-slate-700/50">
@@ -133,7 +133,7 @@ const StudentProfile = () => {
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 {editMode ? (
                                     <label htmlFor="photoUpload" className="absolute -bottom-2 -right-2 bg-luxury-emerald p-2.5 rounded-md shadow-2xl border-2 border-[#0f0f12] cursor-pointer hover:scale-110 transition-all">
                                         <Camera size={16} className="text-black" />
@@ -145,7 +145,7 @@ const StudentProfile = () => {
                                     </div>
                                 )}
                             </div>
-                            
+
                             {!editMode ? (
                                 <>
                                     <h2 className="text-2xl font-black text-white uppercase tracking-tight font-outfit mb-1">{profile?.firstName} {profile?.lastName}</h2>
@@ -153,13 +153,13 @@ const StudentProfile = () => {
                                 </>
                             ) : (
                                 <div className="flex gap-4 mb-6">
-                                    <input 
+                                    <input
                                         name="firstName"
                                         value={formData.firstName || ''}
                                         onChange={handleChange}
                                         className="w-1/2 bg-slate-950/60 border border-slate-800 p-3 rounded text-sm font-bold text-white uppercase tracking-tight italic outline-none focus:border-luxury-emerald"
                                     />
-                                    <input 
+                                    <input
                                         name="lastName"
                                         value={formData.lastName || ''}
                                         onChange={handleChange}
@@ -167,7 +167,7 @@ const StudentProfile = () => {
                                     />
                                 </div>
                             )}
-                            
+
                             <div className="inline-flex items-center gap-3 bg-slate-950/60 px-5 py-2.5 rounded-md border border-slate-800/60 shadow-inner">
                                 <Hash size={14} className="text-slate-600" />
                                 <span className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">{profile?.admissionNumber || 'ADM-VOID'}</span>
@@ -176,8 +176,8 @@ const StudentProfile = () => {
                     </div>
 
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 flex items-center gap-3 italic"> 
-                            <div className="h-px w-6 bg-slate-800"></div> Academic Matrix 
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 mb-8 flex items-center gap-3 italic">
+                            <div className="h-px w-6 bg-slate-800"></div> Academic Matrix
                         </h3>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center bg-slate-950/40 p-5 rounded-md border border-slate-800/40">
@@ -203,49 +203,49 @@ const StudentProfile = () => {
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all">
                             <ShieldCheck size={120} />
                         </div>
-                        
+
                         <div className="relative z-10">
                             <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-rose mb-12 italic border-b border-slate-800/60 pb-6">Security Cipher Uplink</h3>
-                            
+
                             <form onSubmit={handlePasswordChange} className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Current Protocol Hash</label>
-                                    <input 
+                                    <input
                                         type="password"
                                         required
                                         placeholder="••••••••"
                                         value={passData.oldPassword}
-                                        onChange={(e) => setPassData({...passData, oldPassword: e.target.value})}
+                                        onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })}
                                         className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-rose shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
                                     />
                                 </div>
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">New Cipher Sequence</label>
-                                    <input 
+                                    <input
                                         type="password"
                                         required
                                         placeholder="••••••••"
                                         value={passData.newPassword}
-                                        onChange={(e) => setPassData({...passData, newPassword: e.target.value})}
+                                        onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
                                         className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
                                     />
                                 </div>
                                 <div className="space-y-4">
                                     <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Verification Code</label>
-                                    <input 
+                                    <input
                                         type="password"
                                         required
                                         placeholder="••••••••"
                                         value={passData.confirmPassword}
-                                        onChange={(e) => setPassData({...passData, confirmPassword: e.target.value})}
+                                        onChange={(e) => setPassData({ ...passData, confirmPassword: e.target.value })}
                                         className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-luxury-emerald shadow-inner text-sm font-black tracking-[0.3em] font-outfit"
                                     />
                                 </div>
 
                                 <div className="md:col-span-3 flex justify-end pt-6">
-                                    <button 
+                                    <button
                                         type="submit"
-                                        className="px-10 py-5 bg-luxury-rose text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(244,63,94,0.3)] hover:bg-rose-600 active:scale-95 flex items-center justify-center gap-4 italic"
+                                        className="px-10 py-5 bg-luxury-emerald text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all hover:bg-student-primary active:scale-95 flex items-center justify-center gap-4 italic"
                                     >
                                         Execute Encryption Update <CheckCircle size={14} />
                                     </button>
@@ -256,26 +256,26 @@ const StudentProfile = () => {
 
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md shadow-2xl relative">
                         <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-emerald mb-12 italic border-b border-slate-800/60 pb-6">Telemetry & Spatial Data</h3>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Temporal Origin (DOB)</label>
-                               {!editMode ? (
+                                {!editMode ? (
                                     <div className="flex items-center gap-5 text-white bg-slate-950/40 p-5 rounded-md border border-slate-800/40">
                                         <Calendar size={20} className="text-luxury-emerald opacity-60" />
                                         <span className="font-bold text-lg italic tracking-widest">{profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString() : 'N/A'}</span>
                                     </div>
-                               ) : (
-                                   <input 
+                                ) : (
+                                    <input
                                         type="date"
                                         name="dateOfBirth"
                                         value={formData.dateOfBirth?.split('T')[0] || ''}
                                         onChange={handleChange}
                                         className="w-full bg-slate-950/60 border border-slate-800 p-5 rounded-md text-sm font-black text-white uppercase outline-none focus:border-luxury-emerald"
-                                   />
-                               )}
+                                    />
+                                )}
                             </div>
-                            
+
                             <div className="space-y-4">
                                 <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Biological Identity</label>
                                 {!editMode ? (
@@ -284,7 +284,7 @@ const StudentProfile = () => {
                                         <span className="font-bold text-lg uppercase tracking-widest italic">{profile?.gender || 'Unknown'}</span>
                                     </div>
                                 ) : (
-                                    <select 
+                                    <select
                                         name="gender"
                                         value={formData.gender || ''}
                                         onChange={handleChange}
@@ -305,7 +305,7 @@ const StudentProfile = () => {
                                         <span className="font-medium text-slate-300 italic tracking-wide">{profile?.address || 'Restricted Signal Area'}</span>
                                     </div>
                                 ) : (
-                                    <textarea 
+                                    <textarea
                                         name="address"
                                         value={formData.address || ''}
                                         onChange={handleChange}
@@ -330,7 +330,7 @@ const StudentProfile = () => {
                                         <span className="font-bold text-lg italic tracking-tighter uppercase">{profile?.guardianName || 'N/A'}</span>
                                     </div>
                                 ) : (
-                                    <input 
+                                    <input
                                         name="guardianName"
                                         value={formData.guardianName || ''}
                                         onChange={handleChange}
@@ -346,7 +346,7 @@ const StudentProfile = () => {
                                         <span className="font-black text-lg tracking-[0.15em]">{profile?.guardianContact || 'N/A'}</span>
                                     </div>
                                 ) : (
-                                    <input 
+                                    <input
                                         name="guardianContact"
                                         value={formData.guardianContact || ''}
                                         onChange={handleChange}

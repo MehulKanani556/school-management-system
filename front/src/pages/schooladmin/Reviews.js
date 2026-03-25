@@ -85,7 +85,7 @@ const Reviews = () => {
           <h1 className="text-3xl font-black uppercase tracking-tighter font-outfit text-white">Performance Reviews</h1>
           <p className="text-slate-400 text-sm mt-1">Institutional academic audit and teacher review system</p>
         </div>
-        <button onClick={openAdd} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-xs uppercase tracking-widest transition-all font-outfit border border-blue-400/20 shadow-xl shadow-blue-600/20 active:scale-95">
+        <button onClick={openAdd} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-xs uppercase tracking-widest transition-all font-outfit border border-schooladmin-primary/20 shadow-xl shadow-schooladmin-primary/20 active:scale-95">
           <Plus size={18} /> Add New Review
         </button>
       </div>
@@ -206,7 +206,7 @@ const Reviews = () => {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all font-outfit mt-4 flex items-center justify-center gap-3 shadow-xl shadow-blue-600/20 active:scale-95">
+            className="w-full py-4 bg-brand-primary hover:bg-schooladmin-primary disabled:opacity-60 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all font-outfit mt-4 flex items-center justify-center gap-3 shadow-xl shadow-schooladmin-primary/20 active:scale-95">
              {loading ? 'Committing to Registry...' : editing ? 'Update Performance Vector' : 'Publish Review Node'} <ChevronRight size={16} />
           </button>
         </form>

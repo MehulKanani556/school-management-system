@@ -17,7 +17,7 @@ const ChildBehavior = () => {
     const getStatusStyles = (type) => {
         switch (type) {
             case 'Positive': return 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400';
-            case 'Negative': return 'bg-rose-500/10 border-rose-500/20 text-rose-400';
+            case 'Negative': return 'bg-parent-primary/10 border-parent-primary/20 text-parent-primary';
             case 'Warning': return 'bg-amber-500/10 border-amber-500/20 text-amber-400';
             default: return 'bg-slate-800/50 border-slate-700/50 text-slate-400';
         }

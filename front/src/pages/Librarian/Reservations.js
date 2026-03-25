@@ -105,7 +105,7 @@ const LibrarianReservations = () => {
                            <span className={`inline-block mt-2 px-2 py-0.5 rounded text-[9px] uppercase tracking-widest font-black border ${
                               res.status === 'pending' ? 'bg-amber-500/10 text-amber-500 border-amber-500/20' : 
                               res.status === 'fulfilled' ? 'bg-librarian-primary/10 text-librarian-primary border-librarian-primary/20' :
-                              'bg-rose-500/10 text-rose-500 border-rose-500/20'
+                              'bg-librarian-primary/10 text-librarian-primary border-librarian-primary/20'
                            }`}>
                              {res.status}
                            </span>
@@ -122,7 +122,7 @@ const LibrarianReservations = () => {
                                 </button>
                                 <button
                                   onClick={() => handleUpdateStatus(res._id, 'cancelled')}
-                                  className="p-1.5 rounded-md hover:bg-rose-500/20 text-rose-500 transition-colors border border-transparent hover:border-rose-500/30"
+                                  className="p-1.5 rounded-md hover:bg-librarian-primary/20 text-librarian-primary transition-colors border border-transparent hover:border-librarian-primary/30"
                                   title="Cancel Request"
                                 >
                                   <XCircle size={16} />

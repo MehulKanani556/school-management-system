@@ -89,7 +89,7 @@ const TeacherLeaves = () => {
                     <h1 className="text-3xl text-left font-black uppercase tracking-tighter font-outfit text-white">Leave Portal</h1>
                     <p className="text-slate-500 text-sm mt-1">Manage your time-off applications and track status</p>
                 </div>
-                <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-blue-600/20 active:scale-95">
+                <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-teacher-primary rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-teacher-primary/20 active:scale-95">
                     <Plus size={18} /> Apply for Leave
                 </button>
             </div>
@@ -208,7 +208,7 @@ const TeacherLeaves = () => {
                         {formik.touched.reason && formik.errors.reason && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.reason}</p>}
                     </div>
 
-                    <button type="submit" disabled={loading} className="w-full mt-6 py-5 bg-gradient-to-r from-brand-primary to-blue-600 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand-primary/20 text-white">
+                    <button type="submit" disabled={loading} className="w-full mt-6 py-5 bg-gradient-to-r from-brand-primary to-teacher-primary hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand-primary/20 text-white">
                         {loading ? 'Transmitting Data...' : 'Confirm Institutional Extraction'} <ChevronRight size={16} />
                     </button>
                 </form>

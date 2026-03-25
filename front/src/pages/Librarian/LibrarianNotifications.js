@@ -85,7 +85,7 @@ const LibrarianNotifications = () => {
                       )}
                       <button
                         onClick={() => handleDelete(notif._id)}
-                        className="p-1.5 rounded-md hover:bg-rose-500/20 text-rose-500 transition-colors"
+                        className="p-1.5 rounded-md hover:bg-librarian-primary/20 text-librarian-primary transition-colors"
                         title="Purge Node"
                       >
                         <Trash2 size={16} />

@@ -107,7 +107,7 @@ const AccountantNotifications = () => {
                                     )}
                                     <button 
                                         onClick={() => handleDelete(notification._id)}
-                                        className="p-3 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white rounded-md transition-all shadow-xl"
+                                        className="p-3 bg-accountant-primary/10 hover:bg-accountant-primary text-accountant-primary hover:text-white rounded-md transition-all shadow-xl"
                                         title="Purge Record"
                                     >
                                         <Trash2 size={18} />

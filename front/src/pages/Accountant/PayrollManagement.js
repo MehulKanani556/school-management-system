@@ -264,7 +264,7 @@ const PayrollManagement = () => {
                                     ₹{(item.netSalary || 0).toLocaleString()}
                                 </td>
                                 <td className="px-8 py-6">
-                                    <span className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest italic border ${item.status === 'paid' ? 'text-luxury-emerald border-luxury-emerald/20 bg-luxury-emerald/5' : 'text-amber-500 border-amber-500/20 bg-amber-500/5'}`}>
+                                    <span className={`px-3 py-1 rounded text-[9px] font-black uppercase tracking-widest italic border ${item.status === 'paid' ? 'text-luxury-emerald border-luxury-emerald/20 bg-luxury-emerald/5' : 'text-accountant-primary border-accountant-primary/20 bg-accountant-primary/5'}`}>
                                         {item.status}
                                     </span>
                                 </td>

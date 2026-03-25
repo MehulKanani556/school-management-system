@@ -48,7 +48,7 @@ const ChildProfile = () => {
 
                     <div className="flex flex-wrap justify-center md:justify-start gap-3">
                         <button onClick={() => dispatch(downloadReportCard({ studentId: selectedChild._id, name: `${selectedChild.firstName}_${selectedChild.lastName}` }))}
-                            className="px-6 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-md font-black text-xs uppercase tracking-widest transition-all text-indigo-400 flex items-center gap-3">
+                            className="px-6 py-3 bg-parent-primary/10 hover:bg-parent-primary/20 border border-parent-primary/20 rounded-md font-black text-xs uppercase tracking-widest transition-all text-parent-primary flex items-center gap-3">
                             <FileText size={16} /> Download Report Card
                         </button>
                         <div className="px-6 py-3 bg-slate-800/50 border border-slate-700/50 rounded-md font-black text-xs uppercase tracking-widest text-slate-400 flex items-center gap-3">
@@ -83,7 +83,7 @@ const ChildProfile = () => {
 
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8 space-y-6">
                     <div className="flex items-center gap-3 mb-4 pb-4 border-b border-slate-700/50">
-                        <MapPin size={20} className="text-indigo-400" />
+                        <MapPin size={20} className="text-parent-primary" />
                         <h3 className="text-lg font-black uppercase tracking-tight text-white font-outfit">Guardian Integration</h3>
                     </div>
 
@@ -91,7 +91,7 @@ const ChildProfile = () => {
                         {info.slice(4).map((item, i) => (
                             <div key={i} className="flex items-center justify-between group">
                                 <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-md bg-slate-800/50 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                    <div className="w-10 h-10 rounded-md bg-slate-800/50 flex items-center justify-center text-parent-primary group-hover:scale-110 transition-transform">
                                         {item.icon}
                                     </div>
                                     <span className="text-xs font-black uppercase tracking-widest text-slate-500">{item.label}</span>

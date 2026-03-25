@@ -30,20 +30,20 @@ const Notifications = () => {
     };
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8 max-w-4xl mx-auto"
         >
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
                 <div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Transit Alerts</h1>
+                    <h1 className="text-4xl font-black text-transporter-primary italic uppercase tracking-tighter leading-none font-outfit">Transit Alerts</h1>
                     <p className="text-slate-500 font-medium text-lg italic mt-2">Real-time terminal telemetry and logistics interrupts.</p>
                 </div>
-                
-                <button 
+
+                <button
                     onClick={handleMarkAllRead}
-                    className="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/50 flex items-center gap-3"
+                    className="px-6 py-3 bg-slate-800 hover:bg-transporter-primary text-white rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/50 flex items-center gap-3"
                 >
                     Clear All Alerts <CheckCircle size={14} />
                 </button>
@@ -53,7 +53,7 @@ const Notifications = () => {
                 <AnimatePresence mode='popLayout'>
                     {items.length > 0 ? (
                         items.map((notification, idx) => (
-                            <motion.div 
+                            <motion.div
                                 key={notification._id}
                                 initial={{ opacity: 0, x: -20 }}
                                 animate={{ opacity: 1, x: 0 }}
@@ -66,7 +66,7 @@ const Notifications = () => {
                                     <div className={`p-4 rounded-md border shrink-0 h-fit ${getTypeStyles(notification.type)}`}>
                                         <Bell size={24} />
                                     </div>
-                                    
+
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${getTypeStyles(notification.type)}`}>
@@ -77,10 +77,10 @@ const Notifications = () => {
                                                 <span>{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}</span>
                                             </div>
                                         </div>
-                                        
+
                                         <h3 className="text-xl font-black text-white uppercase tracking-tight font-outfit mb-2 leading-none italic">{notification.title}</h3>
                                         <p className="text-slate-400 text-sm leading-relaxed italic line-clamp-2">{notification.message}</p>
-                                        
+
                                         {notification.link && (
                                             <div className="mt-4 pt-4 border-t border-slate-800/50">
                                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 group-hover:underline">Engage Matrix →</span>

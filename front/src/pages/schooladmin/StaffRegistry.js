@@ -250,7 +250,7 @@ const StaffRegistry = () => {
 
                                 <div className="flex gap-4 pt-10">
                                     <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
-                                    <button disabled={loading} type="submit" className="flex-1 px-8 py-5 bg-brand-primary text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-md hover:bg-blue-700 transition-all shadow-2xl shadow-blue-600/20 leading-none flex items-center justify-center gap-2">
+                                    <button disabled={loading} type="submit" className="flex-1 px-8 py-5 bg-brand-primary text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-md hover:bg-schooladmin-primary transition-all shadow-2xl shadow-schooladmin-primary/20 leading-none flex items-center justify-center gap-2">
                                         {loading ? <Loader2 size={16} className="animate-spin" /> : 'confirm provision'}
                                     </button>
                                 </div>
@@ -332,7 +332,7 @@ const StaffRegistry = () => {
 
                                 <div className="flex gap-4 pt-10">
                                     <button type="button" onClick={() => setIsEditOpen(false)} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
-                                    <button disabled={loading} type="submit" className="flex-1 px-8 py-5 bg-brand-primary text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-md hover:bg-blue-700 transition-all shadow-2xl shadow-blue-600/20 leading-none flex items-center justify-center gap-2">
+                                    <button disabled={loading} type="submit" className="flex-1 px-8 py-5 bg-brand-primary text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-md hover:bg-schooladmin-primary transition-all shadow-2xl shadow-schooladmin-primary/20 leading-none flex items-center justify-center gap-2">
                                         {loading ? <Loader2 size={16} className="animate-spin" /> : 'Apply modifications'}
                                     </button>
                                 </div>

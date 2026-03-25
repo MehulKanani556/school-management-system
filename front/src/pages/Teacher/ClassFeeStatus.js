@@ -41,7 +41,7 @@ const ClassFeeStatus = () => {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
                     { label: 'Enrolled Nodes', value: stats.total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-                    { label: 'Pending Obligations', value: stats.pending, icon: AlertCircle, color: 'text-amber-400', bg: 'bg-amber-400/10' },
+                    { label: 'Pending Obligations', value: stats.pending, icon: AlertCircle, color: 'text-teacher-primary', bg: 'bg-teacher-primary/10' },
                     { label: 'Cleared Protocols', value: stats.cleared, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
                     { label: 'Cumulative Pending', value: `₹${stats.totalPendingAmount.toLocaleString()}`, icon: DollarSign, color: 'text-rose-400', bg: 'bg-rose-400/10' },
                 ].map((stat, i) => (
@@ -122,8 +122,8 @@ const ClassFeeStatus = () => {
                                     </td>
                                     <td className="px-8 py-6">
                                         <div className="flex items-center gap-2">
-                                            <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Pending' ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]'}`} />
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'Pending' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                            <div className={`w-1.5 h-1.5 rounded-full ${item.status === 'Pending' ? 'bg-teacher-primary animate-pulse' : 'bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]'}`} />
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${item.status === 'Pending' ? 'text-teacher-primary' : 'text-emerald-400'}`}>
                                                 {item.status}
                                             </span>
                                         </div>
@@ -143,9 +143,9 @@ const ClassFeeStatus = () => {
                 </div>
             </div>
             
-            <div className="bg-amber-400/5 border border-amber-400/10 p-6 rounded-md flex items-start gap-4 italic shadow-2xl">
-                <AlertCircle className="text-amber-400 shrink-0" size={20} />
-                <p className="text-[11px] text-amber-400/80 leading-relaxed font-bold uppercase tracking-wide">
+            <div className="bg-teacher-primary/5 border border-teacher-primary/10 p-6 rounded-md flex items-start gap-4 italic shadow-2xl">
+                <AlertCircle className="text-teacher-primary shrink-0" size={20} />
+                <p className="text-[11px] text-teacher-primary/80 leading-relaxed font-bold uppercase tracking-wide">
                     Institutional Note: Financial telemetry is read-only for pedagogical staff. For directive modifications or manual synchronization, please contact the financial administrative node.
                 </p>
             </div>

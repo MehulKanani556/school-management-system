@@ -643,7 +643,7 @@ const Communication = () => {
                             <div className="bg-slate-900 border border-slate-800/60 rounded-md p-6 backdrop-blur-3xl shadow-2xl space-y-6">
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
-                                        <Shield size={14} className="text-emerald-500" />
+                                        <Shield size={14} className="text-teacher-primary" />
                                         <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Issue Advisory</h3>
                                     </div>
                                     <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">Targeted regional academic directive.</p>
@@ -655,7 +655,7 @@ const Communication = () => {
                                         <select 
                                             value={noticeInput.classSection} 
                                             onChange={(e) => setNoticeInput({...noticeInput, classSection: e.target.value})}
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[10px] uppercase font-black tracking-widest outline-none focus:border-emerald-500/50 transition-all italic h-12 appearance-none"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[10px] uppercase font-black tracking-widest outline-none focus:border-teacher-primary/50 transition-all italic h-12 appearance-none"
                                         >
                                             <option value="" className="text-slate-800">ALL SECTORS (GLOBAL)</option>
                                             {assignedClasses.map(c => (
@@ -670,7 +670,7 @@ const Communication = () => {
                                             placeholder="IDENTITY SUBJECT..."
                                             value={noticeInput.subject}
                                             onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[11px] font-bold outline-none focus:border-emerald-500/50 transition-all italic h-12 uppercase tracking-tight"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[11px] font-bold outline-none focus:border-teacher-primary/50 transition-all italic h-12 uppercase tracking-tight"
                                         />
                                     </div>
 
@@ -681,11 +681,11 @@ const Communication = () => {
                                             placeholder="ARCHIVE BROADCAST CONTENT..."
                                             value={noticeInput.content}
                                             onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-emerald-500/50 transition-all italic resize-none uppercase tracking-tight"
+                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-teacher-primary/50 transition-all italic resize-none uppercase tracking-tight"
                                         />
                                     </div>
 
-                                    <button type="submit" className="w-full py-4 rounded-md bg-emerald-500 text-slate-950 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95 hover:bg-emerald-400">
+                                    <button type="submit" className="w-full py-4 rounded-md bg-teacher-primary text-slate-950 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95 hover:bg-teacher-primary">
                                         <Layout size={16} />
                                         DEPLOY BULLETIN
                                     </button>
@@ -696,7 +696,7 @@ const Communication = () => {
                         <div className="lg:col-span-8 flex flex-col gap-4 min-h-0">
                             <div className="flex items-center justify-between px-2 shrink-0">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
-                                    <Layout size={16} className="text-emerald-500" />
+                                    <Layout size={16} className="text-teacher-primary" />
                                     INSTITUTIONAL BULLETIN
                                 </h3>
                                 <div className="flex items-center gap-3">
@@ -712,12 +712,12 @@ const Communication = () => {
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
                                             transition={{ delay: idx * 0.05 }}
-                                            className="bg-slate-900 border border-slate-800 rounded-md p-6 backdrop-blur-3xl hover:border-emerald-500/30 transition-all border-t-[3px] border-t-emerald-500/40 group relative overflow-hidden flex flex-col justify-between"
+                                            className="bg-slate-900 border border-slate-800 rounded-md p-6 backdrop-blur-3xl hover:border-teacher-primary/30 transition-all border-t-[3px] border-t-emerald-500/40 group relative overflow-hidden flex flex-col justify-between"
                                         >
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-3">
-                                                        <div className="w-10 h-10 rounded-md bg-emerald-500/10 flex items-center justify-center text-emerald-500 border border-emerald-500/20 shadow-lg group-hover:scale-110 transition-transform">
+                                                        <div className="w-10 h-10 rounded-md bg-teacher-primary/10 flex items-center justify-center text-teacher-primary border border-teacher-primary/20 shadow-lg group-hover:scale-110 transition-transform">
                                                             <AlertCircle size={18} />
                                                         </div>
                                                         <div className="min-w-0">
@@ -738,7 +738,7 @@ const Communication = () => {
                                             </div>
                                             <div className="pt-4 border-t border-white/5 flex items-center justify-between text-[7px] font-black uppercase tracking-widest text-slate-800 mt-6">
                                                 <span>{not.classSection ? `SEC: ${not.classSection.gradeLevel}-${not.classSection.sectionLabel}` : 'GLOBAL PROTOCOL'}</span>
-                                                <span className="text-emerald-500/30 font-black">SYSTEM RELAY</span>
+                                                <span className="text-teacher-primary/30 font-black">SYSTEM RELAY</span>
                                             </div>
                                         </motion.div>
                                     ))}

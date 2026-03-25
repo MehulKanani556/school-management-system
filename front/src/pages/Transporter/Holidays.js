@@ -52,7 +52,7 @@ const Holidays = () => {
                             <div className="space-y-3">
                                 <h1 className="text-3xl md:text-5xl font-extrabold text-white italic uppercase tracking-tighter leading-tight font-outfit pr-6">
                                     Institutional <br />
-                                    <span className="text-orange-500">Temporal Breaks</span>
+                                    <span className="text-transporter-primary">Temporal Breaks</span>
                                 </h1>
                                 <p className="text-slate-500 font-medium text-xs md:text-sm max-w-md leading-normal italic tracking-wide opacity-80">
                                     Synchronization layer for tracking academic rest windows and holiday protocols. Use this to plan transit operations.
@@ -68,7 +68,7 @@ const Holidays = () => {
                                     </div>
                                     <div className="space-y-0.5">
                                         <p className="text-[10px] font-bold text-white uppercase tracking-wider leading-none">
-                                            {nextHoliday.title} <span className="text-orange-500 italic ml-1">in {Math.ceil((new Date(nextHoliday.startDate) - new Date()) / (1000 * 60 * 60 * 24))} Days</span>
+                                            {nextHoliday.title} <span className="text-transporter-primary italic ml-1">in {Math.ceil((new Date(nextHoliday.startDate) - new Date()) / (1000 * 60 * 60 * 24))} Days</span>
                                         </p>
                                     </div>
                                 </div>
@@ -106,8 +106,8 @@ const Holidays = () => {
                                 <div className="bg-neutral-950/40 rounded-md p-6 space-y-4 h-full">
                                     <div className="flex items-start justify-between">
                                         <div className="flex flex-col items-center justify-center w-12 h-16 rounded-md bg-neutral-950 border border-white/10 shadow-lg group-hover:border-orange-500/50 transition-all duration-500 overflow-hidden relative">
-                                            <div className="absolute top-0 left-0 w-full h-1.5 bg-orange-600"></div>
-                                            <span className="text-orange-500 text-[8px] font-black uppercase tracking-tighter opacity-80 mt-1">{new Date(holiday.startDate).toLocaleString('default', { month: 'short' })}</span>
+                                            <div className="absolute top-0 left-0 w-full h-1.5 bg-transporter-primary"></div>
+                                            <span className="text-transporter-primary text-[8px] font-black uppercase tracking-tighter opacity-80 mt-1">{new Date(holiday.startDate).toLocaleString('default', { month: 'short' })}</span>
                                             <span className="text-white text-xl font-black leading-tight">{new Date(holiday.startDate).getDate()}</span>
                                         </div>
                                     </div>
@@ -115,10 +115,10 @@ const Holidays = () => {
                                     <div className="space-y-3">
                                         <div>
                                             <div className="flex items-center gap-2 mb-1 opacity-60">
-                                                <MapPin size={10} className="text-orange-500" />
+                                                <MapPin size={10} className="text-transporter-primary" />
                                                 <span className="text-[8px] font-bold uppercase tracking-[0.3em] text-slate-400">Institutional Sector</span>
                                             </div>
-                                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter group-hover:text-orange-500 transition-colors duration-500 leading-tight">{holiday.title}</h3>
+                                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter group-hover:text-transporter-primary transition-colors duration-500 leading-tight">{holiday.title}</h3>
                                         </div>
 
                                         {holiday.description && (
@@ -130,7 +130,7 @@ const Holidays = () => {
 
                                     <div className="pt-2 flex flex-col gap-3 mt-auto">
                                         <div className="flex items-center gap-2 px-4 py-2 rounded-md bg-neutral-950 border border-white/5 w-fit">
-                                            <Clock size={10} className="text-orange-500" />
+                                            <Clock size={10} className="text-transporter-primary" />
                                             <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest italic flex items-center gap-2">
                                                 {new Date(holiday.startDate).toLocaleDateString()}
                                                 <ArrowRight size={10} className="text-slate-600" />

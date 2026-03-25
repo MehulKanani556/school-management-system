@@ -105,7 +105,7 @@ const Holidays = () => {
                                         </button>
                                         <button 
                                             onClick={() => handleDelete(h._id)}
-                                            className="p-2 rounded-md hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all shadow-lg"
+                                            className="p-2 rounded-md hover:bg-superadmin-primary/10 text-slate-500 hover:text-superadmin-primary transition-all shadow-lg"
                                         >
                                             <Trash2 size={14} />
                                         </button>

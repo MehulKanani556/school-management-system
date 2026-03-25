@@ -55,7 +55,7 @@ const StudentDetail = () => {
   const stats = [
     { label: 'Attendance', value: `${attendance.length > 0 ? Math.round((attendance.filter(a => a.status === 'Present').length / attendance.length) * 100) : 0}%`, icon: Clock, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
     { label: 'Avg Grade', value: `${exams.length > 0 ? Math.round(exams.reduce((acc, e) => acc + (e.score / e.maxMarks), 0) / exams.length * 100) : 0}%`, icon: Award, color: 'text-indigo-400', bg: 'bg-indigo-400/10' },
-    { label: 'Fee Status', value: fees.every(f => f.status === 'paid') ? 'Cleared' : 'Pending', icon: DollarSign, color: fees.every(f => f.status === 'paid') ? 'text-blue-400' : 'text-amber-400', bg: fees.every(f => f.status === 'paid') ? 'bg-blue-400/10' : 'bg-amber-400/10' },
+    { label: 'Fee Status', value: fees.every(f => f.status === 'paid') ? 'Cleared' : 'Pending', icon: DollarSign, color: fees.every(f => f.status === 'paid') ? 'text-schooladmin-primary' : 'text-amber-400', bg: fees.every(f => f.status === 'paid') ? 'bg-schooladmin-primary/10' : 'bg-amber-400/10' },
     { label: 'Avg Attendance', value: `${attendance.filter(a => a.status === 'Present').length} / ${attendance.length}`, icon: BarChart3, color: 'text-purple-400', bg: 'bg-purple-400/10' },
   ];
 
@@ -247,7 +247,7 @@ const StudentDetail = () => {
                       <td className="px-6 py-4 text-center">
                         <span className={`px-2 py-1 rounded text-[10px] font-black
                           ${(exam.score/exam.maxMarks) >= 0.8 ? 'bg-emerald-500/10 text-emerald-400' : 
-                            (exam.score/exam.maxMarks) >= 0.4 ? 'bg-blue-500/10 text-blue-400' : 'bg-red-500/10 text-red-400'}`}>
+                            (exam.score/exam.maxMarks) >= 0.4 ? 'bg-schooladmin-primary/10 text-schooladmin-primary' : 'bg-red-500/10 text-red-400'}`}>
                           {exam.maxMarks > 0 ? Math.round((exam.score / exam.maxMarks) * 100) : 0}%
                         </span>
                       </td>
@@ -342,7 +342,7 @@ const StudentDetail = () => {
                       <td className="px-6 py-4 text-center text-brand-primary">₹{fee.paidAmount}</td>
                       <td className="px-6 py-4 text-center">
                         <span className={`px-2 py-1 rounded text-[10px] font-black uppercase tracking-widest
-                          ${fee.status === 'paid' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 
+                          ${fee.status === 'paid' ? 'bg-schooladmin-primary/10 text-schooladmin-primary border border-schooladmin-primary/20' : 
                             fee.status === 'overdue' ? 'bg-red-500/10 text-red-400 border border-red-500/20' : 
                             'bg-amber-500/10 text-amber-400 border border-amber-500/20'}`}>
                           {fee.status}

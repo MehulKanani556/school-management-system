@@ -21,7 +21,7 @@ const ChildResults = () => {
         if (p >= 80) return { label: 'A', color: 'text-emerald-500' };
         if (p >= 70) return { label: 'B+', color: 'text-brand-primary' };
         if (p >= 60) return { label: 'B', color: 'text-brand-secondary' };
-        if (p >= 50) return { label: 'C', color: 'text-amber-400' };
+        if (p >= 50) return { label: 'C', color: 'text-parent-primary' };
         return { label: 'D', color: 'text-rose-400' };
     };
 

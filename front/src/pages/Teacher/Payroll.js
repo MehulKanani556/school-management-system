@@ -185,7 +185,7 @@ const Payroll = () => {
                                     <div className="text-right">
                                         <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Cycle Period</label>
                                         <span className="text-sm font-black text-slate-900 block uppercase italic tracking-tight">{getMonthName(selectedPayroll.month)} {selectedPayroll.year}</span>
-                                        <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block mt-2 ${selectedPayroll.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+                                        <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block mt-2 ${selectedPayroll.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-teacher-primary'}`}>
                                             {selectedPayroll.status}
                                         </span>
                                     </div>

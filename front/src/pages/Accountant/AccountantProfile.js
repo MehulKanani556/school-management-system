@@ -110,7 +110,7 @@ const AccountantProfile = () => {
                         <div className="flex gap-3">
                             <button 
                                 onClick={() => setEditMode(false)}
-                                className="px-6 py-4 bg-rose-500/10 text-rose-500 border border-rose-500/20 rounded-md text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-500 hover:text-white transition-all"
+                                className="px-6 py-4 bg-accountant-primary/10 text-accountant-primary border border-accountant-primary/20 rounded-md text-[10px] font-black uppercase tracking-[0.2em] hover:bg-accountant-primary hover:text-white transition-all"
                             >
                                 <X size={16} />
                             </button>
@@ -242,8 +242,8 @@ const AccountantProfile = () => {
                             </div>
 
                             <div className="relative z-10 space-y-8 text-center">
-                                <div className="w-20 h-20 bg-rose-500/10 border border-rose-500/20 rounded-md flex items-center justify-center mx-auto mb-6">
-                                    <Lock size={32} className="text-rose-500" />
+                                <div className="w-20 h-20 bg-accountant-primary/10 border border-accountant-primary/20 rounded-md flex items-center justify-center mx-auto mb-6">
+                                    <Lock size={32} className="text-accountant-primary" />
                                 </div>
                                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Security Uplink</h2>
                                 
@@ -256,7 +256,7 @@ const AccountantProfile = () => {
                                             placeholder="••••••••"
                                             value={passData.oldPassword}
                                             onChange={(e) => setPassData({...passData, oldPassword: e.target.value})}
-                                            className="w-full bg-slate-950/60 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-rose-500 shadow-inner"
+                                            className="w-full bg-slate-950/60 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-accountant-primary shadow-inner"
                                         />
                                     </div>
                                     <div className="space-y-3">
@@ -285,7 +285,7 @@ const AccountantProfile = () => {
                                     <button 
                                         type="submit"
                                         disabled={loading}
-                                        className="w-full py-5 bg-rose-600 text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:bg-rose-500 active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
+                                        className="w-full py-5 bg-accountant-primary text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:bg-accountant-primary active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                                     >
                                         {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
                                         Apply Encryption Update

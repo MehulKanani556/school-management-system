@@ -67,7 +67,7 @@ const Notifications = () => {
 
     const getColor = (type) => {
         switch (type) {
-            case 'Security': return 'text-rose-500 bg-rose-500/10 border-rose-500/20';
+            case 'Security': return 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20';
             case 'System': return 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20';
             default: return 'text-slate-400 bg-slate-800 border-white/5';
         }
@@ -80,7 +80,7 @@ const Notifications = () => {
                     <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 flex items-center gap-4">
                         <div className="relative">
                             <Bell className="text-superadmin-primary" size={32} />
-                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-rose-600 rounded-md animate-ping"></div>
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-superadmin-primary rounded-md animate-ping"></div>
                         </div>
                         System Notifications
                     </h1>
@@ -133,7 +133,7 @@ const Notifications = () => {
                                                     {!n.isRead && (
                                                         <button onClick={() => markAsRead(n._id)} className="p-2 rounded-md hover:bg-superadmin-primary/10 text-slate-500 hover:text-superadmin-primary transition-all"><CheckCircle size={14} /></button>
                                                     )}
-                                                    <button onClick={() => deleteNotification(n._id)} className="p-2 rounded-md hover:bg-rose-500/10 text-slate-500 hover:text-rose-500 transition-all"><Trash2 size={14} /></button>
+                                                    <button onClick={() => deleteNotification(n._id)} className="p-2 rounded-md hover:bg-superadmin-primary/10 text-slate-500 hover:text-superadmin-primary transition-all"><Trash2 size={14} /></button>
                                                 </div>
                                             </div>
                                         </div>

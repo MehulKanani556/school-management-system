@@ -82,7 +82,7 @@ const ChildMeetings = () => {
                                             </div>
                                         </div>
                                         <div className={`px-8 py-3 rounded-md border text-[10px] font-black uppercase tracking-[0.2em] shadow-inner ${
-                                            m.meetingType === 'Virtual' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400 shadow-cyan-500/5' : 'bg-slate-800/50 border-slate-700/60 text-slate-400 shadow-white/5'
+                                            m.meetingType === 'Virtual' ? 'bg-parent-primary/10 border-parent-primary/30 text-parent-primary shadow-parent-primary/5' : 'bg-slate-800/50 border-slate-700/60 text-slate-400 shadow-white/5'
                                         }`}>
                                             {m.meetingType === 'Virtual' ? <Video size={12} className="inline mr-3 -translate-y-[1px]" /> : <MapPin size={12} className="inline mr-3 -translate-y-[1px]" />}
                                             {m.meetingType} SECTOR
@@ -97,7 +97,7 @@ const ChildMeetings = () => {
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] italic">Protocol Status: {m.status}</span>
                                         </div>
                                         {m.meetingType === 'Virtual' ? (
-                                            <button className="flex items-center gap-4 text-cyan-400 hover:text-cyan-300 text-[11px] font-black uppercase tracking-[0.3em] bg-cyan-900/10 hover:bg-cyan-900/20 px-10 py-4 rounded-md transition-all border border-cyan-500/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                                            <button className="flex items-center gap-4 text-parent-primary hover:text-parent-primary text-[11px] font-black uppercase tracking-[0.3em] bg-cyan-900/10 hover:bg-cyan-900/20 px-10 py-4 rounded-md transition-all border border-parent-primary/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
                                                 INITIALIZE SYNC
                                                 <ChevronRight size={18} />
                                             </button>

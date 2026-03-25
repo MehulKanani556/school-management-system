@@ -225,7 +225,7 @@ const Students = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-indigo-500/10 hover:bg-indigo-500/20 border border-indigo-500/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-indigo-400 hover:text-indigo-300 group">
+          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-schooladmin-primary/10 hover:bg-schooladmin-primary/20 border border-schooladmin-primary/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-schooladmin-primary hover:text-schooladmin-primary group">
             <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Promote Students
           </button>
           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
@@ -296,14 +296,14 @@ const Students = () => {
                     <School size={120} />
                   </div>
                   <div className="flex justify-between items-start mb-4">
-                    <div className="w-12 h-12 rounded-md bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 rounded-md bg-schooladmin-primary/10 border border-schooladmin-primary/20 flex items-center justify-center text-schooladmin-primary group-hover:scale-110 transition-transform">
                       <School size={24} />
                     </div>
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-800/50 px-2 py-1 rounded">
                       {getStudentCount('section', sec._id)} Students
                     </div>
                   </div>
-                  <h3 className="text-xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-indigo-400 transition-colors">
+                  <h3 className="text-xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-schooladmin-primary transition-colors">
                     Section {sec.sectionLabel}
                   </h3>
                   <p className="text-slate-500 text-xs mt-1 font-medium italic">Explore student list</p>
@@ -364,7 +364,7 @@ const Students = () => {
                           <button onClick={() => navigate(`/school-admin/students/${s._id}`)}
                             className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="View Profile"><Eye size={15} /></button>
                           <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
-                            className="p-2 rounded-md hover:bg-slate-700/50 text-indigo-400 hover:text-indigo-300 transition-all" title="Report Card"><FileText size={15} /></button>
+                            className="p-2 rounded-md hover:bg-slate-700/50 text-schooladmin-primary hover:text-schooladmin-primary transition-all" title="Report Card"><FileText size={15} /></button>
                           <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
                           <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                         </div>
@@ -555,8 +555,8 @@ const Students = () => {
       {/* Promotion Modal */}
       <Modal open={promoteModal} onClose={() => setPromoteModal(false)} title="Promote Students">
         <form onSubmit={promoteFormik.handleSubmit} className="space-y-6">
-          <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-md">
-            <p className="text-xs text-indigo-300 leading-relaxed font-medium">
+          <div className="p-4 bg-schooladmin-primary/5 border border-schooladmin-primary/10 rounded-md">
+            <p className="text-xs text-schooladmin-primary leading-relaxed font-medium">
               This cycle will migrate students from one grade level to another. Use this at the end of the academic year.
             </p>
           </div>
@@ -630,7 +630,7 @@ const Students = () => {
           <button
             type="submit"
             disabled={!promoteFormik.isValid || loading}
-            className="w-full py-4 bg-indigo-500 hover:bg-indigo-600 disabled:opacity-50 text-white rounded-md font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-indigo-500/20"
+            className="w-full py-4 bg-schooladmin-primary hover:bg-schooladmin-primary disabled:opacity-50 text-white rounded-md font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-schooladmin-primary/20"
           >
             {loading ? 'Processing cycle...' : 'Execute Promotion Cycle'}
           </button>

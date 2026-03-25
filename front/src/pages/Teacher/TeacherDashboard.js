@@ -103,7 +103,7 @@ const TeacherDashboard = () => {
                                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{item.students} Students</p>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <Link to={`/teacher/attendance`} className="flex-1 py-4 text-center bg-brand-primary hover:bg-blue-600 rounded-md text-[10px] font-black uppercase text-white tracking-[0.2em] transition-all shadow-xl active:scale-95">Attendance</Link>
+                                    <Link to={`/teacher/attendance`} className="flex-1 py-4 text-center bg-brand-primary hover:bg-teacher-primary rounded-md text-[10px] font-black uppercase text-white tracking-[0.2em] transition-all shadow-xl active:scale-95">Attendance</Link>
                                     <Link to={`/teacher/classes`} className="flex-1 py-4 text-center bg-brand-surface/80 hover:bg-brand-surface rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-brand-border/50 active:scale-95 text-slate-300">Marks</Link>
                                 </div>
                             </motion.div>

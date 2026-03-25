@@ -187,7 +187,7 @@ const QuestionBank = () => {
                                 </div>
                             )}
 
-                            <button disabled={loading} type="submit" className="w-full h-16 bg-brand-primary hover:bg-blue-600 text-white rounded-md font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 italic">
+                            <button disabled={loading} type="submit" className="w-full h-16 bg-brand-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 italic">
                                 {loading ? <AlertCircle className="animate-spin" /> : <Save size={18} />} ARCHIVE NODE TO VAULT
                             </button>
                         </form>
@@ -250,7 +250,7 @@ const QuestionBank = () => {
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Total Weightage target</label>
                                     <input type="number" min="5" value={examParams.totalMarks} onChange={e => setExamParams({...examParams, totalMarks: Number(e.target.value)})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary" />
                                 </div>
-                                <button disabled={loading} type="submit" className="w-full h-16 bg-brand-primary hover:bg-blue-600 text-white rounded-md font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)] italic group">
+                                <button disabled={loading} type="submit" className="w-full h-16 bg-brand-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.3em] transition-all flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)] italic group">
                                     <Wand2 className="mr-3 group-hover:rotate-12 transition-transform" /> INITIATE SYNTHESIS
                                 </button>
                             </form>

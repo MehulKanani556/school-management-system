@@ -52,8 +52,8 @@ const ParentAnnouncements = () => {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
                 <div className="space-y-3">
                     <div className="flex items-center gap-3">
-                        <span className="w-8 h-[2px] bg-rose-500 rounded-full"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-rose-500">Guardian Intel</span>
+                        <span className="w-8 h-[2px] bg-parent-primary rounded-full"></span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-parent-primary">Guardian Intel</span>
                     </div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Bulletin Port</h1>
                     <p className="text-slate-500 font-medium text-lg italic">Sector-wide broadcast archive and institutional notices.</p>
@@ -62,7 +62,7 @@ const ParentAnnouncements = () => {
                 <div className="flex bg-[#0f0f12] p-1 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl">
                     <button 
                         onClick={() => setActiveTab('announcements')}
-                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'announcements' ? 'bg-rose-500 text-white shadow-xl shadow-rose-500/20' : 'text-slate-500 hover:text-slate-200'}`}
+                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'announcements' ? 'bg-parent-primary text-white shadow-xl shadow-parent-primary/20' : 'text-slate-500 hover:text-slate-200'}`}
                     >
                         <Megaphone size={16} /> Broadcasts
                     </button>
@@ -81,31 +81,31 @@ const ParentAnnouncements = () => {
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl space-y-8">
                         <div>
                             <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3">
-                                <span className="w-8 h-px bg-rose-500"></span> Filter Archive
+                                <span className="w-8 h-px bg-parent-primary"></span> Filter Archive
                             </h3>
                             <div className="relative group">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-rose-500 transition-colors" size={18} />
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-parent-primary transition-colors" size={18} />
                                 <input 
                                     type="text"
                                     placeholder="SCAN KEYWORDS..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
-                                    className="w-full bg-slate-950/50 border border-slate-800 h-14 pl-12 pr-6 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-rose-500 placeholder:text-slate-800 italic transition-all shadow-inner"
+                                    className="w-full bg-slate-950/50 border border-slate-800 h-14 pl-12 pr-6 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-parent-primary placeholder:text-slate-800 italic transition-all shadow-inner"
                                 />
                             </div>
                         </div>
 
                         <div className="pt-8 border-t border-slate-800/50 space-y-4">
                             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Signal Status</h4>
-                            <div className="flex items-center gap-3 text-rose-500 text-[11px] font-bold italic">
+                            <div className="flex items-center gap-3 text-parent-primary text-[11px] font-bold italic">
                                 <Bell size={14} className="animate-pulse" />
                                 <span>Secured Guardian Stream</span>
                             </div>
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-rose-500/10 to-transparent border border-rose-500/20 p-8 rounded-md shadow-2xl">
-                        <h4 className="text-xs font-black text-rose-400 uppercase tracking-[.2em] mb-4">Verification Node</h4>
+                    <div className="bg-gradient-to-br from-parent-primary/10 to-transparent border border-parent-primary/20 p-8 rounded-md shadow-2xl">
+                        <h4 className="text-xs font-black text-parent-primary uppercase tracking-[.2em] mb-4">Verification Node</h4>
                         <p className="text-slate-400 text-xs font-medium leading-relaxed italic">
                             Institutional broadcasts are authenticated by the school administration board. Notices are specific to your ward's grade sector.
                         </p>
@@ -117,7 +117,7 @@ const ParentAnnouncements = () => {
                     <AnimatePresence mode="popLayout">
                         {loading ? (
                             <div className="py-40 flex flex-col items-center justify-center space-y-6">
-                                <div className="w-12 h-12 border-4 border-rose-500/20 border-t-rose-500 rounded-md animate-spin shadow-[0_0_20px_rgba(244,63,94,0.2)]"></div>
+                                <div className="w-12 h-12 border-4 border-parent-primary/20 border-t-rose-500 rounded-md animate-spin shadow-[0_0_20px_rgba(244,63,94,0.2)]"></div>
                                 <span className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-500 italic animate-pulse">Synchronizing feed...</span>
                             </div>
                         ) : displayItems.length > 0 ? (
@@ -136,7 +136,7 @@ const ParentAnnouncements = () => {
                                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-4 mb-4">
-                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-rose-500/10 text-rose-500 border-rose-500/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
+                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-parent-primary/10 text-parent-primary border-parent-primary/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
                                                     {activeTab === 'announcements' ? 'Institutional Broadcast' : 'Public Notice'}
                                                 </span>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest italic bg-slate-950/50 px-3 py-1.5 rounded-md border border-slate-800/60">

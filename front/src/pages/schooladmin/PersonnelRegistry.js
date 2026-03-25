@@ -176,7 +176,7 @@ const PersonnelRegistry = () => {
                         </button>
                         <button 
                             onClick={() => setActiveTab('fleet')}
-                            className={`px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'fleet' ? 'bg-violet-600 text-white shadow-lg shadow-violet-600/20' : 'text-slate-500 hover:text-white'}`}
+                            className={`px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${activeTab === 'fleet' ? 'bg-schooladmin-primary text-white shadow-lg shadow-schooladmin-primary/20' : 'text-slate-500 hover:text-white'}`}
                         >
                             <Truck size={14} /> Fleet Personnel
                         </button>
@@ -187,7 +187,7 @@ const PersonnelRegistry = () => {
                             setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', name: '', contact: '', licenseNumber: '', licenseExpiry: '', emergencyContact: '', performanceRating: 5 });
                             setIsAddOpen(true);
                         }}
-                        className={`px-8 py-5 text-white text-[10px] font-black uppercase tracking-widest italic rounded-xl shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-3 ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-violet-600 shadow-violet-600/20'}`}
+                        className={`px-8 py-5 text-white text-[10px] font-black uppercase tracking-widest italic rounded-xl shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-3 ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-schooladmin-primary shadow-schooladmin-primary/20'}`}
                     >
                         <UserPlus size={16} /> Provision Node
                     </button>
@@ -339,7 +339,7 @@ const PersonnelRegistry = () => {
                                                 <input
                                                     type="text" required value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -347,7 +347,7 @@ const PersonnelRegistry = () => {
                                                 <input
                                                     type="text" required value={formData.contact}
                                                     onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -357,7 +357,7 @@ const PersonnelRegistry = () => {
                                                 <input
                                                     type="text" required value={formData.licenseNumber}
                                                     onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -365,7 +365,7 @@ const PersonnelRegistry = () => {
                                                 <input
                                                     type="date" required value={formData.licenseExpiry}
                                                     onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -375,7 +375,7 @@ const PersonnelRegistry = () => {
                                                 <select
                                                     value={formData.performanceRating}
                                                     onChange={(e) => setFormData({ ...formData, performanceRating: parseInt(e.target.value) })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 >
                                                     {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star Efficiency</option>)}
                                                 </select>
@@ -385,7 +385,7 @@ const PersonnelRegistry = () => {
                                                 <input
                                                     type="text" value={formData.emergencyContact}
                                                     onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
-                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-violet-600 transition-all"
+                                                    className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 />
                                             </div>
                                         </div>
@@ -394,7 +394,7 @@ const PersonnelRegistry = () => {
 
                                 <div className="flex gap-4 pt-10">
                                     <button type="button" onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-xl">Abort Protocol</button>
-                                    <button type="submit" className={`flex-1 px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:translate-y-[-2px] transition-all shadow-2xl ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-violet-600 shadow-violet-600/20'}`}>
+                                    <button type="submit" className={`flex-1 px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:translate-y-[-2px] transition-all shadow-2xl ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-schooladmin-primary shadow-schooladmin-primary/20'}`}>
                                         {isEditOpen ? 'Apply Modifications' : 'Finalize Provision'}
                                     </button>
                                 </div>
@@ -416,7 +416,7 @@ const PersonnelCard = ({ member, onEdit, onDelete, type }) => {
             animate={{ opacity: 1, x: 0 }}
             className={`bg-brand-surface/60 backdrop-blur-3xl border border-brand-border/40 rounded-3xl p-8 shadow-2xl group hover:border-sky-500/30 transition-all flex flex-col sm:flex-row gap-8 relative overflow-hidden font-outfit border-l-4 ${isStaff ? 'border-l-brand-primary' : 'border-l-violet-500'}`}
         >
-            <div className={`absolute top-0 right-0 w-44 h-44 ${isStaff ? 'bg-brand-primary/5' : 'bg-violet-500/5'} blur-[80px] rounded-full -mr-20 -mt-20`}></div>
+            <div className={`absolute top-0 right-0 w-44 h-44 ${isStaff ? 'bg-brand-primary/5' : 'bg-schooladmin-primary/5'} blur-[80px] rounded-full -mr-20 -mt-20`}></div>
 
             <div className="relative z-10">
                 <div className="w-24 h-24 rounded-2xl bg-neutral-950 border border-brand-border/40 flex items-center justify-center text-slate-500 overflow-hidden shadow-2xl ring-1 ring-white/5 uppercase font-black text-3xl italic group-hover:scale-105 transition-transform">

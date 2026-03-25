@@ -133,7 +133,7 @@ const ParentProfile = () => {
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-outfit">Residential Vector (Address)</label>
                                 <textarea {...profileFormik.getFieldProps('address')} rows={3} className={ic} />
                             </div>
-                            <button type="submit" disabled={loading} className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-50 text-white font-black text-sm uppercase tracking-widest transition-all rounded-md shadow-xl shadow-brand-primary/20">
+                            <button type="submit" disabled={loading} className="w-full py-4 bg-brand-primary hover:bg-parent-primary disabled:opacity-50 text-white font-black text-sm uppercase tracking-widest transition-all rounded-md shadow-xl shadow-brand-primary/20">
                                 {loading ? 'Synchronizing...' : 'Save Synchronization'}
                             </button>
                         </form>

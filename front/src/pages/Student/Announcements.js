@@ -64,7 +64,7 @@ const Announcements = () => {
                     </button>
                     <button 
                         onClick={() => setActiveTab('notices')}
-                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'notices' ? 'bg-indigo-500 text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
+                        className={`flex items-center gap-3 px-8 py-3.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${activeTab === 'notices' ? 'bg-student-primary text-white shadow-xl' : 'text-slate-500 hover:text-slate-300'}`}
                     >
                         <Layout size={16} /> Notices
                     </button>
@@ -100,8 +100,8 @@ const Announcements = () => {
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-indigo-500/10 to-transparent border border-indigo-500/20 p-8 rounded-md shadow-2xl">
-                        <h4 className="text-xs font-black text-indigo-400 uppercase tracking-[.2em] mb-4">Verification Protocol</h4>
+                    <div className="bg-gradient-to-br from-student-primary/10 to-transparent border border-student-primary/20 p-8 rounded-md shadow-2xl">
+                        <h4 className="text-xs font-black text-student-primary uppercase tracking-[.2em] mb-4">Verification Protocol</h4>
                         <p className="text-slate-400 text-xs font-medium leading-relaxed italic">
                             All broadcasts are cryptographically signed by institutional authority nodes. Notices are for global consumption within the student sector.
                         </p>
@@ -132,7 +132,7 @@ const Announcements = () => {
                                     <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6 mb-8">
                                         <div className="flex-1">
                                             <div className="flex items-center gap-4 mb-4">
-                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-luxury-emerald/10 text-luxury-emerald border-luxury-emerald/20' : 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20'}`}>
+                                                <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-luxury-emerald/10 text-luxury-emerald border-luxury-emerald/20' : 'bg-student-primary/10 text-student-primary border-student-primary/20'}`}>
                                                     {activeTab === 'announcements' ? 'Institutional Broadcast' : 'Public Notice'}
                                                 </span>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest italic bg-slate-950/50 px-3 py-1.5 rounded-md border border-slate-800/60">

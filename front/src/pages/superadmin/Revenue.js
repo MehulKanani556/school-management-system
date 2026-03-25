@@ -120,7 +120,7 @@ const Revenue = () => {
                                             <div className="flex flex-col items-end gap-1">
                                                 <span className="text-sm font-black text-white tracking-tighter leading-none font-outfit uppercase italic">${school.revenue?.toLocaleString() || '0'}</span>
                                                 <div className="flex items-center gap-1">
-                                                    <div className={`w-1 h-1 rounded-md animate-pulse ${school.revenue > 0 ? 'bg-emerald-500' : 'bg-rose-500'}`}></div>
+                                                    <div className={`w-1 h-1 rounded-md animate-pulse ${school.revenue > 0 ? 'bg-emerald-500' : 'bg-superadmin-primary'}`}></div>
                                                     <span className={`text-[8px] font-black uppercase tracking-widest italic ${school.revenue > 0 ? 'text-emerald-500' : 'text-slate-600'}`}>{school.revenue > 0 ? 'Sync Active' : 'Idle Node'}</span>
                                                 </div>
                                             </div>

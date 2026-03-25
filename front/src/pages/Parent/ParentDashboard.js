@@ -83,7 +83,7 @@ const ParentDashboard = () => {
                     <Icon size={24} className={`text-${color.replace('bg-', '')}`} />
                 </div>
                 {trend && (
-                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                    <span className={`text-[10px] font-black uppercase px-2 py-1 rounded-full ${trend > 0 ? 'bg-emerald-500/10 text-emerald-400' : 'bg-parent-primary/10 text-parent-primary'}`}>
                         {trend > 0 ? '+' : ''}{trend}%
                     </span>
                 )}

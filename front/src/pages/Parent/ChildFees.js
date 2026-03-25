@@ -78,8 +78,8 @@ const ChildFees = () => {
 
     const statusConfig = {
         'paid': { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', label: 'Paid' },
-        'pending': { icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-400/10', border: 'border-rose-400/20', label: 'Pending' },
-        'overdue': { icon: Clock, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', label: 'Overdue' },
+        'pending': { icon: AlertCircle, color: 'text-parent-primary', bg: 'bg-parent-primary/10', border: 'border-parent-primary/20', label: 'Pending' },
+        'overdue': { icon: Clock, color: 'text-parent-primary', bg: 'bg-parent-primary/10', border: 'border-parent-primary/20', label: 'Overdue' },
         'partially_paid': { icon: Activity, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20', label: 'Partial' },
     };
 
@@ -178,7 +178,7 @@ const ChildFees = () => {
                                                      ) : (
                                                          <button 
                                                               onClick={() => handlePay(fee._id)} 
-                                                              className="px-6 py-2.5 bg-luxury-rose hover:bg-rose-500 text-white rounded-[4px] text-[10px] font-black uppercase tracking-widest shadow-lg shadow-luxury-rose/20 active:scale-95 transition-all"
+                                                              className="px-6 py-2.5 bg-luxury-rose hover:bg-parent-primary text-white rounded-[4px] text-[10px] font-black uppercase tracking-widest shadow-lg shadow-luxury-rose/20 active:scale-95 transition-all"
                                                           >Pay Now</button>
                                                      )}
                                                  </td>

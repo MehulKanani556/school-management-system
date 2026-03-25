@@ -33,7 +33,7 @@ const ChildAttendance = () => {
 
     const statusConfig = {
         'Present': { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
-        'Absent': { icon: XCircle, color: 'text-rose-400', bg: 'bg-rose-400/10', border: 'border-rose-400/20' },
+        'Absent': { icon: XCircle, color: 'text-parent-primary', bg: 'bg-parent-primary/10', border: 'border-parent-primary/20' },
         'Late': { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' },
         'Half-Day': { icon: Clock, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' },
     };
@@ -59,7 +59,7 @@ const ChildAttendance = () => {
                         { label: 'Success Rate', val: `${percentage}%`, color: 'text-emerald-400' },
                         { label: 'Present', val: stats.present, color: 'text-emerald-400' },
                         { label: 'Late Logs', val: stats.late, color: 'text-amber-400' },
-                        { label: 'Absent', val: stats.absent, color: 'text-rose-400' },
+                        { label: 'Absent', val: stats.absent, color: 'text-parent-primary' },
                     ].map((st, i) => (
                         <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800 last:border-0 min-w-[100px]">
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>

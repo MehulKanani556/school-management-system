@@ -108,7 +108,7 @@ const PTMMeetings = () => {
                                             </div>
                                         </div>
                                         <div className={`px-6 py-2.5 rounded-md border text-[9px] font-black uppercase tracking-widest shadow-inner ${
-                                            m.meetingType === 'Virtual' ? 'bg-cyan-500/10 border-cyan-500/30 text-cyan-400' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
+                                            m.meetingType === 'Virtual' ? 'bg-teacher-primary/10 border-teacher-primary/30 text-teacher-primary' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
                                         }`}>
                                             {m.meetingType === 'Virtual' ? <Video size={10} className="inline mr-2" /> : <MapPin size={10} className="inline mr-2" />}
                                             {m.meetingType} SECTOR
@@ -125,7 +125,7 @@ const PTMMeetings = () => {
                                             <div className="w-8 h-8 rounded-full border-2 border-slate-900 bg-brand-primary/10 flex items-center justify-center text-[8px] font-black text-brand-primary">+1</div>
                                         </div>
                                         {m.meetingType === 'Virtual' ? (
-                                            <button className="flex items-center gap-3 text-cyan-400 hover:text-cyan-300 text-[10px] font-black uppercase tracking-widest bg-cyan-900/10 hover:bg-cyan-900/20 px-6 py-2.5 rounded-md transition-all border border-cyan-500/20">
+                                            <button className="flex items-center gap-3 text-teacher-primary hover:text-teacher-primary text-[10px] font-black uppercase tracking-widest bg-cyan-900/10 hover:bg-cyan-900/20 px-6 py-2.5 rounded-md transition-all border border-teacher-primary/20">
                                                 Initialize Link
                                                 <ChevronRight size={14} />
                                             </button>
@@ -298,12 +298,12 @@ const PTMMeetings = () => {
                                     {formData.meetingType === 'Virtual' && (
                                         <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-2">
-                                                <Video size={12} className="text-cyan-400" />
+                                                <Video size={12} className="text-teacher-primary" />
                                                 Video Protocol Link
                                             </label>
                                             <input 
                                                 type="url" 
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-cyan-400 outline-none focus:border-cyan-500/50 transition-all"
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-teacher-primary outline-none focus:border-teacher-primary/50 transition-all"
                                                 placeholder="https://meet.google.com/xxx-xxxx-xxx"
                                                 value={formData.meetingLink}
                                                 onChange={(e) => setFormData({...formData, meetingLink: e.target.value})}

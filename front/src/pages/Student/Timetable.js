@@ -43,7 +43,7 @@ const Timetable = () => {
         const hour = parseInt(time.split(':')[0]);
         if (hour < 10) return 'from-cyan-500 to-blue-600';
         if (hour < 13) return 'from-luxury-emerald to-emerald-600';
-        if (hour < 16) return 'from-amber-400 to-orange-600';
+        if (hour < 16) return 'from-student-primary to-orange-600';
         return 'from-rose-500 to-purple-600';
     };
 
@@ -283,10 +283,10 @@ const Timetable = () => {
                                                         {slot ? (
                                                             <div className="space-y-3">
                                                                 <div className="flex items-center justify-between">
-                                                                    <span className={`text-[8px] font-black italic uppercase tracking-widest ${slot.type === 'Break' ? 'text-amber-500' : 'text-luxury-emerald'}`}>{slot.startTime}</span>
-                                                                    <div className={`w-1.5 h-1.5 rounded-sm bg-slate-700 group-hover/slot:bg-luxury-emerald animate-pulse ${slot.type === 'Break' ? 'group-hover/slot:bg-amber-500' : ''}`}></div>
+                                                                    <span className={`text-[8px] font-black italic uppercase tracking-widest ${slot.type === 'Break' ? 'text-student-primary' : 'text-luxury-emerald'}`}>{slot.startTime}</span>
+                                                                    <div className={`w-1.5 h-1.5 rounded-sm bg-slate-700 group-hover/slot:bg-luxury-emerald animate-pulse ${slot.type === 'Break' ? 'group-hover/slot:bg-student-primary' : ''}`}></div>
                                                                 </div>
-                                                                <h5 className={`font-black italic uppercase tracking-tighter text-[11px] font-outfit line-clamp-1 transition-colors ${slot.type === 'Break' ? 'text-amber-500' : 'text-white group-hover/slot:text-luxury-emerald'}`}>
+                                                                <h5 className={`font-black italic uppercase tracking-tighter text-[11px] font-outfit line-clamp-1 transition-colors ${slot.type === 'Break' ? 'text-student-primary' : 'text-white group-hover/slot:text-luxury-emerald'}`}>
                                                                     {slot.type === 'Break' ? 'Break' : (slot.subject?.name || 'Subject')}
                                                                 </h5>
                                                                 <div className="flex flex-col gap-1 text-[8px] font-bold text-slate-600 uppercase tracking-widest leading-none">
@@ -296,7 +296,7 @@ const Timetable = () => {
                                                                             <span className="italic flex items-center gap-1"><MapPin size={8} /> RM {slot.room || 'A01'}</span>
                                                                         </>
                                                                     ) : (
-                                                                        <span className="text-amber-500/60 flex items-center gap-1 italic">Intermission</span>
+                                                                        <span className="text-student-primary/60 flex items-center gap-1 italic">Intermission</span>
                                                                     )}
                                                                 </div>
                                                             </div>

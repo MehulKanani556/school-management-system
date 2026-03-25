@@ -51,8 +51,8 @@ const ClassNoticeboard = () => {
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-3xl">
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
-                        <div className="h-[2px] w-12 bg-emerald-500 rounded-md"></div>
-                        <span className="text-[10px] font-black text-emerald-500 uppercase tracking-[0.45em] italic">Sector Bulletin</span>
+                        <div className="h-[2px] w-12 bg-teacher-primary rounded-md"></div>
+                        <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.45em] italic">Sector Bulletin</span>
                     </div>
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Class Noticeboard</h1>
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic leading-relaxed">Cluster-specific archival transmissions and academic directives.</p>
@@ -64,7 +64,7 @@ const ClassNoticeboard = () => {
                         <select 
                             value={selectedClass}
                             onChange={(e) => setSelectedClass(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-emerald-500/40 transition-all text-white shadow-xl italic"
+                            className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-teacher-primary/40 transition-all text-white shadow-xl italic"
                         >
                             <option value="">All Sectors</option>
                             {classes.map(c => (
@@ -74,7 +74,7 @@ const ClassNoticeboard = () => {
                     </div>
                     <button 
                         onClick={() => setShowPostModal(true)}
-                        className="h-14 bg-emerald-500 hover:bg-emerald-600 text-white px-8 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3 italic"
+                        className="h-14 bg-teacher-primary hover:bg-teacher-primary text-white px-8 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3 italic"
                     >
                         <Plus size={18} /> Compose Protocol
                     </button>
@@ -89,23 +89,23 @@ const ClassNoticeboard = () => {
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl shadow-2xl relative overflow-hidden group hover:border-emerald-500/20 transition-all"
+                            className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl shadow-2xl relative overflow-hidden group hover:border-teacher-primary/20 transition-all"
                         >
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-2xl group-hover:bg-emerald-500/10 transition-all"></div>
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-teacher-primary/5 rounded-full blur-2xl group-hover:bg-teacher-primary/10 transition-all"></div>
                             <div className="flex items-center justify-between mb-8">
-                                <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-md border border-emerald-500/20 shadow-xl">
+                                <div className="p-3 bg-teacher-primary/10 text-teacher-primary rounded-md border border-teacher-primary/20 shadow-xl">
                                     <Pin size={18} />
                                 </div>
                                 <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2 italic">
                                     <Calendar size={12} /> {new Date(notice.createdAt).toLocaleDateString()}
                                 </span>
                             </div>
-                            <h3 className="text-xl font-black text-white italic tracking-tighter leading-none mb-4 group-hover:text-emerald-400 transition-colors uppercase">{notice.subject}</h3>
+                            <h3 className="text-xl font-black text-white italic tracking-tighter leading-none mb-4 group-hover:text-teacher-primary transition-colors uppercase">{notice.subject}</h3>
                             <p className="text-slate-400 text-sm font-bold leading-relaxed mb-10 h-[60px] overflow-hidden uppercase tracking-tight">{notice.content}</p>
                             
                             <div className="pt-6 border-t border-white/5 flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-700">
                                 <span>Target: Academic Cluster</span>
-                                <span className="text-emerald-500/40 italic">Active Directive</span>
+                                <span className="text-teacher-primary/40 italic">Active Directive</span>
                             </div>
                         </motion.div>
                     ))}
@@ -135,7 +135,7 @@ const ClassNoticeboard = () => {
                                     placeholder="Enter directive nomenclature..."
                                     value={noticeInput.subject}
                                     onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
-                                    className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-emerald-500 transition-all italic uppercase"
+                                    className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic uppercase"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -144,10 +144,10 @@ const ClassNoticeboard = () => {
                                     placeholder="Compose institutional archival data..."
                                     value={noticeInput.content}
                                     onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
-                                    className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-emerald-500 transition-all italic resize-none h-[180px] uppercase"
+                                    className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic resize-none h-[180px] uppercase"
                                 />
                             </div>
-                            <button type="submit" className="w-full h-16 bg-emerald-500 hover:bg-emerald-600 text-white rounded-md font-black text-[11px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-xl italic">
+                            <button type="submit" className="w-full h-16 bg-teacher-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-xl italic">
                                 <Send size={20} /> Initiate Archival Signal
                             </button>
                         </form>

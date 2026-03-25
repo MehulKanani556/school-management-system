@@ -23,7 +23,7 @@ const LibrarianDashboard = () => {
     }, 0);
 
     const stats = [
-        { label: 'Archived Knowledge', value: books.length, icon: Library, color: 'text-indigo-400' },
+        { label: 'Archived Knowledge', value: books.length, icon: Library, color: 'text-librarian-primary' },
         { label: 'Active Circulation', value: records.filter(r => r.status === 'issued').length, icon: BookOpen, color: 'text-emerald-400' },
         { label: 'Overdue Threads', value: records.filter(r => r.status === 'overdue' || (r.status==='issued' && new Date() > new Date(r.dueDate))).length, icon: AlertCircle, color: 'text-amber-400' },
         { label: 'Pending Fines', value: estimatedFines > 0 ? `₹${estimatedFines}` : '₹0', icon: AlertCircle, color: 'text-red-400' },
@@ -39,7 +39,7 @@ const LibrarianDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {stats.map((stat, idx) => (
-                    <div key={idx} className="bg-neutral-900 p-8 rounded-md border border-slate-800/60 relative overflow-hidden group hover:border-indigo-600/30 transition-all duration-300 shadow-xl">
+                    <div key={idx} className="bg-neutral-900 p-8 rounded-md border border-slate-800/60 relative overflow-hidden group hover:border-librarian-primary/30 transition-all duration-300 shadow-xl">
                         <div className="flex justify-between items-start mb-8">
                             <div className={`p-4 rounded-md bg-neutral-950/60 border border-slate-800/60 ${stat.color}`}>
                                 <stat.icon size={24} />
@@ -62,7 +62,7 @@ const LibrarianDashboard = () => {
                                     <p className="text-xs font-bold text-slate-200">{record.bookId?.title}</p>
                                     <p className="text-[10px] text-slate-500 uppercase italic">Issued to {record.borrowerId?.firstName}</p>
                                 </div>
-                                <span className="text-[9px] font-black uppercase text-indigo-400 italic bg-indigo-600/10 px-2 py-0.5 rounded-md border border-indigo-600/20">{record.status}</span>
+                                <span className="text-[9px] font-black uppercase text-librarian-primary italic bg-librarian-primary/10 px-2 py-0.5 rounded-md border border-librarian-primary/20">{record.status}</span>
                             </div>
                         ))}
                         {records.length === 0 && <p className="text-center py-10 text-[10px] font-black uppercase tracking-[0.2em] opacity-40 italic">No circulation events detected.</p>}
@@ -70,8 +70,8 @@ const LibrarianDashboard = () => {
                 </div>
                 
                 <div className="bg-neutral-900 border border-slate-800/60 rounded-md p-10 flex flex-col items-center justify-center text-center shadow-2xl overflow-hidden relative group">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-600 to-indigo-400"></div>
-                    <Library size={48} className="text-indigo-600/40 mb-6 group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-librarian-primary to-librarian-primary"></div>
+                    <Library size={48} className="text-librarian-primary/40 mb-6 group-hover:scale-110 transition-transform duration-500" />
                     <h4 className="text-[11px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Integrity Guard</h4>
                     <p className="text-[10px] font-bold text-slate-400 opacity-60 uppercase italic leading-relaxed">System syncing with Global Archive Cluster... <br/> No integrity breaches reported.</p>
                 </div>

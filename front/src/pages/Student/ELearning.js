@@ -426,17 +426,17 @@ const ELearning = () => {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: qIdx * 0.05 }}
-                                                className={`p-6 rounded-md border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-rose-500/5 border-rose-500/20'}`}
+                                                className={`p-6 rounded-md border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-student-primary/5 border-student-primary/20'}`}
                                             >
                                                 {/* Question Header */}
                                                 <div className="flex items-start justify-between gap-4 mb-4">
                                                     <div className="flex items-start gap-4 flex-1">
-                                                        <div className={`w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-black uppercase flex-shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'}`}>
+                                                        <div className={`w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-black uppercase flex-shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-student-primary/20 text-student-primary border border-student-primary/30'}`}>
                                                             Q{qIdx + 1}
                                                         </div>
                                                         <p className="text-sm font-bold text-slate-200 leading-relaxed pt-2">{question.text}</p>
                                                     </div>
-                                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`}>
+                                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-student-primary/20 text-student-primary'}`}>
                                                         {isCorrect ? <CheckCircle size={12} /> : <X size={12} />}
                                                         {isCorrect ? 'Correct' : 'Wrong'}
                                                     </div>
@@ -453,7 +453,7 @@ const ELearning = () => {
                                                         if (isCorrectAnswer) {
                                                             optionClass += "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
                                                         } else if (isUserAnswer && !isCorrect) {
-                                                            optionClass += "bg-rose-500/10 border-rose-500/30 text-rose-300";
+                                                            optionClass += "bg-student-primary/10 border-student-primary/30 text-student-primary";
                                                         } else {
                                                             optionClass += "bg-slate-900/40 border-slate-800/60 text-slate-500";
                                                         }
@@ -469,7 +469,7 @@ const ELearning = () => {
                                                                         <CheckCircle size={14} className="text-emerald-400 flex-shrink-0" />
                                                                     )}
                                                                     {isUserAnswer && !isCorrect && (
-                                                                        <X size={14} className="text-rose-400 flex-shrink-0" />
+                                                                        <X size={14} className="text-student-primary flex-shrink-0" />
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -544,7 +544,7 @@ const ELearning = () => {
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex justify-center">
-                                                        <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-[.15em] border ${attempt.status === 'Passed' ? 'text-luxury-emerald border-emerald-500/20 bg-emerald-500/10' : 'text-luxury-rose border-rose-500/20 bg-rose-500/10'}`}>
+                                                        <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-[.15em] border ${attempt.status === 'Passed' ? 'text-luxury-emerald border-emerald-500/20 bg-emerald-500/10' : 'text-luxury-rose border-student-primary/20 bg-student-primary/10'}`}>
                                                             {attempt.status}
                                                         </span>
                                                     </div>

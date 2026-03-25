@@ -83,7 +83,7 @@ const TeacherProfile = () => {
                                 </div>
                             )}
                         </div>
-                        <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-brand-primary hover:bg-blue-600 rounded-md flex items-center justify-center cursor-pointer shadow-xl border-4 border-brand-background transition-all hover:scale-110 z-10">
+                        <label className="absolute -bottom-2 -right-2 w-10 h-10 bg-brand-primary hover:bg-teacher-primary rounded-md flex items-center justify-center cursor-pointer shadow-xl border-4 border-brand-background transition-all hover:scale-110 z-10">
                             <Camera size={18} className="text-white" />
                             <input type="file" className="hidden" onChange={handlePhotoChange} accept="image/*" />
                         </label>
@@ -139,7 +139,7 @@ const TeacherProfile = () => {
                             />
                         </div>
 
-                        <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3">
+                        <button type="submit" className="w-full py-5 bg-brand-primary hover:bg-teacher-primary rounded-md font-black text-xs uppercase tracking-[0.4em] text-white transition-all shadow-2xl active:scale-95 flex items-center justify-center gap-3">
                             {loading ? <Loader2 className="animate-spin" /> : 'Synchronize Identity Records'}
                         </button>
                     </form>

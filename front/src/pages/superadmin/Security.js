@@ -76,7 +76,7 @@ const Security = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                 {[
                     { label: 'Platform Logs', value: stats.totalLogs, icon: History, color: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20', note: 'Global Trace Matrix' },
-                    { label: 'Security Alerts', value: stats.criticalAlerts, icon: AlertTriangle, color: 'text-rose-500 bg-rose-500/10 border-rose-500/20', note: 'Critical Anomalies' },
+                    { label: 'Security Alerts', value: stats.criticalAlerts, icon: AlertTriangle, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20', note: 'Critical Anomalies' },
                     { label: 'Failed Access', value: stats.failedAttempts, icon: ShieldOff, color: 'text-orange-500 bg-orange-500/10 border-orange-500/20', note: 'Credential Faults' },
                     { label: 'Cluster Sync', value: '100%', icon: Globe, color: 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20', note: 'Global Nodes Active' }
                 ].map((s, idx) => (
@@ -146,8 +146,8 @@ const Security = () => {
                                     </td>
                                     <td className="px-8 py-5">
                                         <div className="flex items-center gap-2">
-                                            <Terminal size={12} className={log.action.includes('delete') || log.action.includes('error') ? 'text-rose-500' : 'text-white/40'} />
-                                            <span className={`text-[10px] font-black uppercase tracking-widest italic truncate max-w-[200px] ${log.action.includes('delete') || log.action.includes('error') ? 'text-rose-500' : 'text-slate-400'}`}>{log.action}</span>
+                                            <Terminal size={12} className={log.action.includes('delete') || log.action.includes('error') ? 'text-superadmin-primary' : 'text-white/40'} />
+                                            <span className={`text-[10px] font-black uppercase tracking-widest italic truncate max-w-[200px] ${log.action.includes('delete') || log.action.includes('error') ? 'text-superadmin-primary' : 'text-slate-400'}`}>{log.action}</span>
                                         </div>
                                     </td>
                                     <td className="px-8 py-5">

@@ -151,12 +151,12 @@ const Routes = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2 font-outfit">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-blue-500">Route Architecture</h1>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Route Architecture</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Mapping logical transit paths across the sector.</p>
                 </div>
-                <button 
+                <button
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
-                    className="px-6 py-4 bg-blue-600 text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group h-[42px] leading-none"
+                    className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group h-[42px] leading-none"
                 >
                     <Plus size={14} className="group-hover:rotate-90 transition-transform" /> generate matrix
                 </button>
@@ -167,7 +167,7 @@ const Routes = () => {
                     <div key={route._id} className={`bg-neutral-900 border ${route.status === 'inactive' ? 'border-rose-900/40 opacity-70' : 'border-slate-800/60'} rounded-md p-8 shadow-2xl group hover:border-blue-600/30 transition-all relative`}>
                         <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-800/40">
                             <div className="flex items-center gap-4">
-                                <div className={`p-3 bg-neutral-950 border border-slate-800 rounded-md ${route.status === 'inactive' ? 'text-rose-500' : 'text-blue-500'}`}><Navigation size={20} /></div>
+                                <div className={`p-3 bg-neutral-950 border border-slate-800 rounded-md ${route.status === 'inactive' ? 'text-rose-500' : 'text-transporter-primary'}`}><Navigation size={20} /></div>
                                 <div>
                                     <div className="flex items-center gap-2">
                                         <h3 className="text-xl font-black text-slate-200 uppercase italic tracking-tighter leading-none">{route.name}</h3>
@@ -201,7 +201,7 @@ const Routes = () => {
                                 >
                                     <Edit3 size={16} />
                                 </button>
-                                <button 
+                                <button
                                     onClick={() => handleDelete(route._id)}
                                     className="p-2.5 text-slate-600 hover:text-red-400 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg"
                                 >
@@ -210,8 +210,8 @@ const Routes = () => {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mb-4 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
-                            <div className="flex items-center gap-2 text-blue-400">
+                        <div className="flex items-center gap-6 mb-8 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
+                            <div className="flex items-center gap-2">
                                 <Users size={14} />
                                 <span className="text-xs font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Entities</span>
                             </div>
@@ -249,10 +249,10 @@ const Routes = () => {
                         <div className="space-y-6">
                             <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Logic Nodes (Stops)</h4>
                             <div className="grid grid-cols-1 gap-4">
-                                {[...route.stops].sort((a,b) => a.order - b.order).map((stop, idx) => (
+                                {[...route.stops].sort((a, b) => a.order - b.order).map((stop, idx) => (
                                     <div key={idx} className="flex items-center gap-4 group/stop">
                                         <div className="relative flex flex-col items-center">
-                                            <div className={`w-2.5 h-2.5 rounded-full ${route.status === 'inactive' ? 'bg-rose-900/60' : 'bg-blue-600 shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`}></div>
+                                            <div className={`w-2.5 h-2.5 rounded-full ${route.status === 'inactive' ? 'bg-rose-900/60' : 'bg-transporter-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`}></div>
                                             {idx !== route.stops.length - 1 && <div className="w-px h-10 bg-slate-800/80 my-1"></div>}
                                         </div>
                                         <div className="flex-1 bg-neutral-950/40 p-3 rounded-md border border-slate-800/60 group-hover/stop:border-blue-600/20 transition-all flex justify-between items-center">
@@ -264,7 +264,7 @@ const Routes = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[10px] font-black italic text-blue-400 opacity-80 leading-none">{stop.estimatedTime}</p>
+                                                <p className="text-[10px] font-black italic opacity-80 leading-none">{stop.estimatedTime}</p>
                                                 <p className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mt-0.5">EST_WINDOW</p>
                                             </div>
                                         </div>
@@ -276,7 +276,7 @@ const Routes = () => {
                     </div>
                 )) : (
                     <div className="xl:col-span-2 p-20 border border-slate-800 border-dashed rounded-md text-center bg-neutral-900/40 shadow-2xl">
-                         <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No route matrices detected in sector memory.</p>
+                        <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No route matrices detected in sector memory.</p>
                     </div>
                 )}
             </div>
@@ -292,7 +292,7 @@ const Routes = () => {
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
                                     {isEditOpen ? 'Edit Route Matrix' : 'Generate Route Matrix'}
                                 </h3>
-                                
+
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-3 gap-4">
                                          <div className="space-y-2 col-span-1">
@@ -329,10 +329,10 @@ const Routes = () => {
                                      </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assigned Fleet Unit</label>
-                                        <select 
+                                        <select
                                             required
                                             value={formData.vehicleId}
-                                            onChange={(e) => setFormData({...formData, vehicleId: e.target.value})}
+                                            onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-blue-600/50 appearance-none h-[42px] leading-none"
                                         >
                                             <option value="">Sync Unit...</option>
@@ -402,15 +402,15 @@ const Routes = () => {
                                 </div>
 
                                 <div className="flex gap-4 pt-4">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} 
+                                    <button
+                                        type="button"
+                                        onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }}
                                         className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]"
                                     >
                                         abort
                                     </button>
-                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-blue-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 leading-none h-[42px] disabled:opacity-50">
-                                        {loading ? 'Synthesizing...' : (isEditOpen ? 'update' : 'commit')}
+                                    <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 leading-none h-[42px] disabled:opacity-50">
+                                        {loading ? 'Synthesizing...' : (isEditOpen ? 'update matrix' : 'commit matrix')}
                                     </button>
                                 </div>
                             </form>

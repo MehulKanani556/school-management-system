@@ -7,7 +7,7 @@ const LibrarianMessages = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-140px)] flex flex-col font-outfit pb-10">
             <div className="flex justify-between items-end mb-8 flex-shrink-0">
                 <div>
-                    <h1 className="text-3xl font-black text-amber-500 italic uppercase tracking-tighter mb-1 leading-none">Institutional Messaging</h1>
+                    <h1 className="text-3xl font-black text-librarian-primary italic uppercase tracking-tighter mb-1 leading-none">Institutional Messaging</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Internal communication channel for institutional nodes.</p>
                 </div>
             </div>
@@ -20,7 +20,7 @@ const LibrarianMessages = () => {
                             <input 
                                 type="text" 
                                 placeholder="Identify node..." 
-                                className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-[10px] font-bold text-slate-200 focus:outline-none focus:border-amber-600/50 transition-all w-full italic uppercase tracking-widest"
+                                className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-[10px] font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all w-full italic uppercase tracking-widest"
                             />
                         </div>
                     </div>
@@ -29,9 +29,9 @@ const LibrarianMessages = () => {
                         {[1, 2, 3].map((_, i) => (
                             <button 
                                 key={i}
-                                className={`w-full p-4 flex items-center gap-4 hover:bg-white/5 transition-all text-left group border-b border-slate-800/20 last:border-0 rounded-md mb-1 ${i === 0 ? 'bg-amber-600/5 border-amber-600/20' : ''}`}
+                                className={`w-full p-4 flex items-center gap-4 hover:bg-white/5 transition-all text-left group border-b border-slate-800/20 last:border-0 rounded-md mb-1 ${i === 0 ? 'bg-librarian-primary/5 border-librarian-primary/20' : ''}`}
                             >
-                                <div className="w-10 h-10 rounded-md bg-neutral-900 border border-slate-800 flex flex-shrink-0 items-center justify-center text-slate-600 group-hover:border-amber-500/40 transition-all">
+                                <div className="w-10 h-10 rounded-md bg-neutral-900 border border-slate-800 flex flex-shrink-0 items-center justify-center text-slate-600 group-hover:border-librarian-primary/40 transition-all">
                                     <User size={18} />
                                 </div>
                                 <div className="flex-1 overflow-hidden">
@@ -49,7 +49,7 @@ const LibrarianMessages = () => {
                 <div className="flex-1 flex flex-col bg-neutral-950/10">
                     <div className="p-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between flex-shrink-0">
                         <div className="flex items-center gap-4">
-                            <div className="w-10 h-10 rounded-md bg-neutral-900 border border-amber-600/20 flex items-center justify-center text-amber-500">
+                            <div className="w-10 h-10 rounded-md bg-neutral-900 border border-librarian-primary/20 flex items-center justify-center text-librarian-primary">
                                 <Shield size={18} />
                             </div>
                             <div>
@@ -65,9 +65,9 @@ const LibrarianMessages = () => {
                             <span className="text-[8px] font-black text-slate-600 mt-3 block italic tracking-tighter">02:30 PM / EXTERNAL NODE</span>
                         </div>
                         
-                        <div className="max-w-[80%] self-end p-4 bg-amber-600/10 border border-amber-600/20 rounded-md relative shadow-xl">
+                        <div className="max-w-[80%] self-end p-4 bg-librarian-primary/10 border border-librarian-primary/20 rounded-md relative shadow-xl">
                             <p className="text-xs font-bold text-slate-200 italic">Scanning records now. The discrepancy might be due to the recent system upgrade. Will report once protocol is complete.</p>
-                            <span className="text-[8px] font-black text-amber-600/40 mt-3 block italic tracking-tighter">03:45 PM / ARCHIVE NODE</span>
+                            <span className="text-[8px] font-black text-librarian-primary/40 mt-3 block italic tracking-tighter">03:45 PM / ARCHIVE NODE</span>
                         </div>
                     </div>
 
@@ -75,9 +75,9 @@ const LibrarianMessages = () => {
                         <input 
                             type="text" 
                             placeholder="Type institutional transmission..." 
-                            className="flex-1 bg-neutral-950 border border-slate-800/60 rounded-md px-6 py-4 text-[10px] font-bold text-slate-100 focus:outline-none focus:border-amber-600/50 transition-all italic tracking-[0.1em] placeholder:text-slate-700"
+                            className="flex-1 bg-neutral-950 border border-slate-800/60 rounded-md px-6 py-4 text-[10px] font-bold text-slate-100 focus:outline-none focus:border-librarian-primary/50 transition-all italic tracking-[0.1em] placeholder:text-slate-700"
                         />
-                        <button className="w-14 h-14 bg-amber-600 text-white rounded-md flex items-center justify-center shadow-lg shadow-amber-600/20 hover:translate-y-[-2px] hover:bg-amber-700 transition-all">
+                        <button className="w-14 h-14 bg-librarian-primary text-white rounded-md flex items-center justify-center shadow-lg shadow-librarian-primary/20 hover:translate-y-[-2px] hover:bg-librarian-primary transition-all">
                             <Send size={18} />
                         </button>
                     </div>

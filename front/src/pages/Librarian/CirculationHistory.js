@@ -15,7 +15,7 @@ const CirculationHistory = () => {
         dispatch(fetchHistorySlice({ status: statusFilter === 'all' ? '' : statusFilter }));
     }, [dispatch, statusFilter]);
 
-    const filteredHistory = (history || []).filter(r => 
+    const filteredHistory = (history || []).filter(r =>
         r.bookId?.title?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
         r.borrowerId?.firstName?.toLowerCase()?.includes(searchTerm.toLowerCase()) ||
         r.borrowerId?.lastName?.toLowerCase()?.includes(searchTerm.toLowerCase())
@@ -25,11 +25,11 @@ const CirculationHistory = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-emerald-500 italic uppercase tracking-tighter mb-1 leading-none">Circulation Archive</h1>
+                    <h1 className="text-3xl font-black text-librarian-primary italic uppercase tracking-tighter mb-1 leading-none">Circulation Archive</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Historical log of all knowledge transfers.</p>
                 </div>
                 <div className="flex gap-4">
-                    <select 
+                    <select
                         value={statusFilter}
                         onChange={(e) => setStatusFilter(e.target.value)}
                         className="bg-neutral-900 border border-slate-800/60 rounded-md px-4 py-2 text-[10px] font-black uppercase italic text-slate-400 focus:outline-none focus:border-emerald-600/50 transition-all"
@@ -47,9 +47,9 @@ const CirculationHistory = () => {
                     <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none">Archived Threads</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
-                        <input 
-                            type="text" 
-                            placeholder="Identify entry..." 
+                        <input
+                            type="text"
+                            placeholder="Identify entry..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all w-full sm:w-64 italic"
@@ -99,7 +99,7 @@ const CirculationHistory = () => {
                                     </td>
                                     <td className="px-6 py-6 text-center">
                                         <div className="flex flex-col items-center">
-                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic mb-1 ${record.status === 'issued' ? 'bg-amber-600/10 border-amber-600/20 text-amber-500' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-400' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
+                                            <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic mb-1 ${record.status === 'issued' ? 'bg-librarian-primary/10 border-librarian-primary/20 text-librarian-primary' : record.status === 'returned' ? 'bg-emerald-600/10 border-emerald-600/20 text-emerald-400' : 'bg-red-600/10 border-red-600/20 text-red-500'}`}>
                                                 {record.status}
                                             </span>
                                             {record.fine > 0 && <span className="text-[9px] font-black text-red-500 italic opacity-80">FINE: ₹{record.fine}</span>}

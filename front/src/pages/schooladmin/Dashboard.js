@@ -66,9 +66,9 @@ const Dashboard = () => {
   useEffect(() => { dispatch(fetchDashboard()); }, [dispatch]);
 
   const stats = [
-    { icon: Users, label: 'Total Students', value: dashboard?.students, color: 'from-blue-500 to-indigo-600', delay: 0, subtext: `${dashboard?.metrics?.studentGrowth >= 0 ? '+' : ''}${dashboard?.metrics?.studentGrowth || 0}% this month` },
+    { icon: Users, label: 'Total Students', value: dashboard?.students, color: 'from-schooladmin-primary to-indigo-600', delay: 0, subtext: `${dashboard?.metrics?.studentGrowth >= 0 ? '+' : ''}${dashboard?.metrics?.studentGrowth || 0}% this month` },
     { icon: GraduationCap, label: 'Total Teachers', value: dashboard?.teachers, color: 'from-emerald-500 to-teal-600', delay: 0.05, subtext: `${dashboard?.metrics?.newTeachers || 0} Added this month` },
-    { icon: ShieldCheck, label: 'Operational Staff', value: (dashboard?.accountants || 0) + (dashboard?.librarians || 0) + (dashboard?.transporters || 0), color: 'from-indigo-500 to-blue-600', delay: 0.1, subtext: 'Fiscal & Logistics' },
+    { icon: ShieldCheck, label: 'Operational Staff', value: (dashboard?.accountants || 0) + (dashboard?.librarians || 0) + (dashboard?.transporters || 0), color: 'from-indigo-500 to-schooladmin-primary', delay: 0.1, subtext: 'Fiscal & Logistics' },
     { icon: CreditCard, label: 'Pending Fees', value: dashboard?.pendingFees, color: 'from-amber-500 to-orange-600', delay: 0.15, subtext: `${dashboard?.alerts?.overdueFees || 0} Overdue` },
     { icon: ClipboardList, label: 'Total Exams', value: dashboard?.exams, color: 'from-rose-500 to-pink-600', delay: 0.2, subtext: `${dashboard?.alerts?.examsToday || 0} Scheduled today` },
   ];
@@ -190,16 +190,16 @@ const Dashboard = () => {
               )}
 
               {dashboard?.alerts?.examsToday > 0 && (
-                <div className="p-4 rounded-md bg-blue-500/10 border border-blue-500/20 flex gap-4">
-                  <div className="p-2 h-fit rounded-md bg-blue-500/20">
-                    <Clock size={18} className="text-blue-500" />
+                <div className="p-4 rounded-md bg-schooladmin-primary/10 border border-schooladmin-primary/20 flex gap-4">
+                  <div className="p-2 h-fit rounded-md bg-schooladmin-primary/20">
+                    <Clock size={18} className="text-schooladmin-primary" />
                   </div>
                   <div className='text-start'>
                     <h4 className="text-sm font-bold text-white mb-1">Exams Scheduled Today</h4>
                     <p className="text-xs text-slate-400 leading-relaxed">
                       {dashboard.alerts.examsToday} exams are scheduled for today. Check rosters.
                     </p>
-                    <button className="mt-3 text-[10px] font-black uppercase text-blue-500 hover:underline">View Schedule</button>
+                    <button className="mt-3 text-[10px] font-black uppercase text-schooladmin-primary hover:underline">View Schedule</button>
                   </div>
                 </div>
               )}
@@ -257,7 +257,7 @@ const Dashboard = () => {
                 <div key={i} className="flex gap-4 group cursor-default">
                   <div className="relative">
                     <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center flex-shrink-0 group-hover:border-brand-primary transition-colors">
-                      {item.type === 'student' ? <Users size={16} className="text-blue-400" /> :
+                      {item.type === 'student' ? <Users size={16} className="text-schooladmin-primary" /> :
                         item.type === 'teacher' ? <GraduationCap size={16} className="text-emerald-400" /> :
                           <ClipboardList size={16} className="text-purple-400" />}
                     </div>
@@ -310,7 +310,7 @@ const Dashboard = () => {
                   <div className="flex-1 min-w-0">
                     <h4 className="text-xs font-bold text-white mb-1 truncate group-hover:text-orange-400 transition-colors">{event.title}</h4>
                     <div className="flex items-center gap-2">
-                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase ${event.type === 'holiday' ? 'bg-rose-500/20 text-rose-500' : 'bg-blue-500/20 text-blue-500'}`}>
+                      <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase ${event.type === 'holiday' ? 'bg-rose-500/20 text-rose-500' : 'bg-schooladmin-primary/20 text-schooladmin-primary'}`}>
                         {event.type}
                       </span>
                       {event.endDate && (
@@ -365,14 +365,14 @@ const Dashboard = () => {
             <TrendingUp size={120} />
           </div>
 
-          <div className="p-4 rounded-md bg-blue-500/10 border border-blue-500/20 mb-6">
-            <ArrowUpRight size={32} className="text-blue-500" />
+          <div className="p-4 rounded-md bg-schooladmin-primary/10 border border-schooladmin-primary/20 mb-6">
+            <ArrowUpRight size={32} className="text-schooladmin-primary" />
           </div>
           <h3 className="text-xl font-black text-white mb-2 font-outfit uppercase tracking-tighter">Growth Insights</h3>
           <p className="text-sm text-slate-400 mb-8 max-w-[200px] leading-relaxed">
             {dashboard?.metrics?.growthInsight || 'All performance metrics are stable for the current month.'}
           </p>
-          <button className="px-8 py-3 rounded-md bg-brand-primary hover:bg-blue-700 text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+          <button className="px-8 py-3 rounded-md bg-brand-primary hover:bg-schooladmin-primary text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-schooladmin-primary/20 active:scale-95">
             View Analytics
           </button>
         </motion.div>
@@ -388,7 +388,7 @@ const Dashboard = () => {
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6 font-outfit text-center">Quick Administration Access</p>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
           {[
-            { label: 'Admission', icon: Users, href: '/school-admin/students', color: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500 hover:text-white' },
+            { label: 'Admission', icon: Users, href: '/school-admin/students', color: 'bg-schooladmin-primary/10 text-schooladmin-primary hover:bg-schooladmin-primary hover:text-white' },
             { label: 'Staffing', icon: GraduationCap, href: '/school-admin/teachers', color: 'bg-emerald-500/10 text-emerald-500 hover:bg-emerald-500 hover:text-white' },
             { label: 'Exam Portal', icon: ClipboardList, href: '/school-admin/exams', color: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500 hover:text-white' },
             { label: 'Finance', icon: CreditCard, href: '/school-admin/fees', color: 'bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-white' },

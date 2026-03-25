@@ -134,8 +134,8 @@ const AttendanceAnalytics = () => {
             value: attendanceAlerts?.length || 0, 
             trend: '-5', 
             icon: AlertTriangle, 
-            color: 'text-rose-400',
-            bg: 'bg-rose-400/10'
+            color: 'text-schooladmin-primary',
+            bg: 'bg-schooladmin-primary/10'
         },
         { 
             label: 'Total Active Sectors', 
@@ -324,7 +324,7 @@ const AttendanceAnalytics = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-slate-950/80 border border-slate-800/80 rounded-md p-12 shadow-2xl relative overflow-hidden"
                     >
-                        <div className="absolute top-0 left-0 w-full h-2 bg-rose-500/20 blur-md"></div>
+                        <div className="absolute top-0 left-0 w-full h-2 bg-schooladmin-primary/20 blur-md"></div>
                         <div className="flex items-center justify-between mb-12">
                             <div>
                                 <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2 font-outfit">Critical Anomaly Detection</h3>
@@ -340,18 +340,18 @@ const AttendanceAnalytics = () => {
                                 <div className="flex bg-slate-900/50 p-1.5 rounded-md border border-slate-800 mr-6">
                                     <button 
                                         onClick={() => setAlertView('grid')}
-                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'grid' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'grid' ? 'bg-schooladmin-primary text-white shadow-lg shadow-schooladmin-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Grid
                                     </button>
                                     <button 
                                         onClick={() => setAlertView('table')}
-                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'table' ? 'bg-rose-500 text-white shadow-lg shadow-rose-500/20' : 'text-slate-500 hover:text-slate-300'}`}
+                                        className={`px-6 py-2 rounded-md text-[10px] font-black uppercase tracking-widest transition-all ${alertView === 'table' ? 'bg-schooladmin-primary text-white shadow-lg shadow-schooladmin-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                                     >
                                         Table
                                     </button>
                                 </div>
-                                <div className="p-5 bg-rose-500/10 rounded-md border border-rose-500/20 text-rose-500">
+                                <div className="p-5 bg-schooladmin-primary/10 rounded-md border border-schooladmin-primary/20 text-schooladmin-primary">
                                     <AlertTriangle size={32} />
                                 </div>
                             </div>
@@ -365,11 +365,11 @@ const AttendanceAnalytics = () => {
                                         animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: i * 0.05 }}
                                         key={alert._id || alert.studentId || i}
-                                        className="p-8 rounded-md bg-slate-900/40 border border-rose-500/20 hover:border-rose-500/50 transition-all group relative overflow-hidden"
+                                        className="p-8 rounded-md bg-slate-900/40 border border-schooladmin-primary/20 hover:border-schooladmin-primary/50 transition-all group relative overflow-hidden"
                                     >
-                                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-rose-500/5 blur-[40px] rounded-md"></div>
+                                        <div className="absolute -right-4 -top-4 w-24 h-24 bg-schooladmin-primary/5 blur-[40px] rounded-md"></div>
                                         <div className="flex items-center gap-6 mb-8">
-                                            <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-slate-500 overflow-hidden shadow-inner group-hover:border-rose-500/40 transition-all duration-500">
+                                            <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center font-black text-slate-500 overflow-hidden shadow-inner group-hover:border-schooladmin-primary/40 transition-all duration-500">
                                                 {alert.photo ? (
                                                     <img src={alert.photo} alt={alert.firstName} className="w-full h-full object-cover" />
                                                 ) : (
@@ -377,7 +377,7 @@ const AttendanceAnalytics = () => {
                                                 )}
                                             </div>
                                             <div>
-                                                <h4 className="text-lg font-black text-white italic uppercase font-outfit tracking-tight leading-none mb-1 group-hover:text-rose-400 transition-colors">
+                                                <h4 className="text-lg font-black text-white italic uppercase font-outfit tracking-tight leading-none mb-1 group-hover:text-schooladmin-primary transition-colors">
                                                     {alert.firstName ? `${alert.firstName} ${alert.lastName}` : (alert.name || 'Anonymous Node')}
                                                 </h4>
                                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">{alert.admissionNumber || 'REF: N/A'}</p>
@@ -387,14 +387,14 @@ const AttendanceAnalytics = () => {
                                         <div className="space-y-4">
                                             <div className="flex items-center justify-between">
                                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Engagement Velocity</span>
-                                                <span className="text-2xl font-black text-rose-500 font-outfit">{alert.stats?.percentage || alert.percentage || 0}%</span>
+                                                <span className="text-2xl font-black text-schooladmin-primary font-outfit">{alert.stats?.percentage || alert.percentage || 0}%</span>
                                             </div>
                                             <div className="w-full h-2.5 bg-slate-800/50 rounded-md border border-slate-700 overflow-hidden shadow-inner">
                                                 <motion.div 
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${alert.stats?.percentage || alert.percentage || 0}%` }}
                                                     transition={{ duration: 1.5, ease: "easeOut" }}
-                                                    className="h-full bg-gradient-to-r from-rose-600 to-rose-400 shadow-[0_0_10px_rgba(244,63,94,0.3)]"
+                                                    className="h-full bg-gradient-to-r from-schooladmin-primary to-schooladmin-primary shadow-[0_0_10px_rgba(244,63,94,0.3)]"
                                                 />
                                             </div>
                                             <div className="flex items-center justify-between pt-2">
@@ -416,18 +416,18 @@ const AttendanceAnalytics = () => {
                             <div className="overflow-x-auto rounded-md border border-slate-800 group transition-all">
                                 <table className="w-full text-left border-collapse">
                                     <thead>
-                                        <tr className="bg-slate-900/60 border-b border-rose-500/20">
+                                        <tr className="bg-slate-900/60 border-b border-schooladmin-primary/20">
                                             {['Anomaly Entity', 'Registry', 'Engagement', 'Timeline Nodes', 'Action'].map(h => (
-                                                <th key={h} className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em] text-rose-500 font-outfit italic">{h}</th>
+                                                <th key={h} className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em] text-schooladmin-primary font-outfit italic">{h}</th>
                                             ))}
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-slate-800/40">
                                         {attendanceAlerts?.map((alert, i) => (
-                                            <tr key={alert._id || alert.studentId || i} className="hover:bg-rose-500/[0.03] transition-colors group/row">
+                                            <tr key={alert._id || alert.studentId || i} className="hover:bg-schooladmin-primary/[0.03] transition-colors group/row">
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-4">
-                                                        <div className="w-11 h-11 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 group-hover/row:border-rose-500/30 transition-all overflow-hidden bg-center bg-cover">
+                                                        <div className="w-11 h-11 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center font-black text-slate-600 group-hover/row:border-schooladmin-primary/30 transition-all overflow-hidden bg-center bg-cover">
                                                             {alert.photo ? (
                                                                 <img src={alert.photo} alt={alert.firstName} className="w-full h-full object-cover" />
                                                             ) : (
@@ -444,8 +444,8 @@ const AttendanceAnalytics = () => {
                                                 </td>
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-lg font-black text-rose-500 font-outfit">{alert.stats?.percentage || alert.percentage || 0}%</span>
-                                                        <ArrowDownRight size={14} className="text-rose-500" />
+                                                        <span className="text-lg font-black text-schooladmin-primary font-outfit">{alert.stats?.percentage || alert.percentage || 0}%</span>
+                                                        <ArrowDownRight size={14} className="text-schooladmin-primary" />
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
@@ -454,7 +454,7 @@ const AttendanceAnalytics = () => {
                                                     </span>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <button className="p-3 bg-rose-500/10 rounded-md text-rose-500 border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all transform active:scale-95">
+                                                    <button className="p-3 bg-schooladmin-primary/10 rounded-md text-schooladmin-primary border border-schooladmin-primary/20 hover:bg-schooladmin-primary hover:text-white transition-all transform active:scale-95">
                                                         <Search size={16} />
                                                     </button>
                                                 </td>
@@ -576,11 +576,11 @@ const AttendanceAnalytics = () => {
                                                     <div className="flex items-center gap-3">
                                                         <div className="w-32 h-1.5 bg-slate-800 rounded-md overflow-hidden">
                                                             <div 
-                                                                className={`h-full rounded-md ${report.stats?.percentage >= 75 ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                                                                className={`h-full rounded-md ${report.stats?.percentage >= 75 ? 'bg-emerald-500' : 'bg-schooladmin-primary'}`}
                                                                 style={{ width: `${report.stats?.percentage}%` }}
                                                             />
                                                         </div>
-                                                        <span className={`text-xs font-black font-outfit ${report.stats?.percentage >= 75 ? 'text-emerald-400' : 'text-rose-400'}`}>{report.stats?.percentage}%</span>
+                                                        <span className={`text-xs font-black font-outfit ${report.stats?.percentage >= 75 ? 'text-emerald-400' : 'text-schooladmin-primary'}`}>{report.stats?.percentage}%</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
@@ -590,7 +590,7 @@ const AttendanceAnalytics = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-md border italic ${report.stats?.percentage >= 90 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : report.stats?.percentage >= 75 ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' : 'bg-rose-500/10 text-rose-500 border-rose-500/20'}`}>
+                                                    <span className={`text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-md border italic ${report.stats?.percentage >= 90 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' : report.stats?.percentage >= 75 ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' : 'bg-schooladmin-primary/10 text-schooladmin-primary border-schooladmin-primary/20'}`}>
                                                         {report.stats?.percentage >= 90 ? 'High Retention' : report.stats?.percentage >= 75 ? 'Nominal' : 'Critical Risk'}
                                                     </span>
                                                 </td>

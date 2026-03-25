@@ -301,7 +301,7 @@ const AccountantDashboard = () => {
                             </div>
                             <button 
                                 onClick={() => setShowFilterModal(false)}
-                                className="w-full mt-8 py-3 bg-accountant-primary text-[10px] font-black text-slate-900 uppercase tracking-widest rounded-md hover:bg-amber-500 hover:shadow-lg transition-all"
+                                className="w-full mt-8 py-3 bg-accountant-primary text-[10px] font-black text-slate-900 uppercase tracking-widest rounded-md hover:bg-accountant-primary hover:shadow-lg transition-all"
                             >
                                 Execute Protocol Search
                             </button>

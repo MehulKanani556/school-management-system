@@ -213,7 +213,7 @@ const Classes = () => {
           <button onClick={openStdAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-surface/40 hover:bg-slate-800 border border-brand-border/40 rounded-md font-black text-xs uppercase tracking-wider transition-all text-slate-300">
             <Layout size={16} /> Manage Standards
           </button>
-          <button onClick={() => openAdd()} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-primary/20 text-white">
+          <button onClick={() => openAdd()} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider transition-all shadow-lg shadow-brand-primary/20 text-white">
             <Plus size={18} /> Add Classroom
           </button>
         </div>
@@ -477,7 +477,7 @@ const Classes = () => {
           </div>
 
           <button type="submit" disabled={loading}
-            className="w-full py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white shadow-xl shadow-brand-primary/20">
+            className="w-full py-3 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-2 text-white shadow-xl shadow-brand-primary/20">
             {loading ? 'Processing...' : editing ? 'Update Classroom' : 'Create Classroom'}
           </button>
         </form>
@@ -546,7 +546,7 @@ const Classes = () => {
                  <Trash2 size={18} />
                </button>
             )}
-            <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-primary hover:bg-blue-500 rounded-md font-black text-sm uppercase tracking-wider text-white shadow-xl shadow-brand-primary/20 transition-all">
+            <button type="submit" disabled={loading} className="flex-1 py-3 bg-brand-primary hover:bg-schooladmin-primary rounded-md font-black text-sm uppercase tracking-wider text-white shadow-xl shadow-brand-primary/20 transition-all">
               {loading ? 'Saving...' : editingStd ? 'Update Standard' : 'Create Standard'}
             </button>
           </div>
