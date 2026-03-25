@@ -1,19 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchUsers, addStaff, updateStaff, deleteStaff, clearUserMessage, clearUserError } from '../../redux/slice/user.slice';
 import { UserPlus, Search, Mail, Phone, ShieldCheck, MoreVertical, Trash2, Edit3, Loader2, X, Lock } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
+
 
 const StaffRegistry = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { users, loading, message, error } = useSelector((state) => state.user);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRole, setSelectedRole] = useState('All');
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '' });
+    const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '' });
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
-    const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant' });
+    const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', baseSalary: '', employeeId: '' });
 
     useEffect(() => {
         dispatch(fetchUsers());
@@ -41,7 +46,7 @@ const StaffRegistry = () => {
     const handleAdd = (e) => {
         e.preventDefault();
         dispatch(addStaff(formData));
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '' });
     };
 
     const handleEditClick = (member) => {
@@ -51,7 +56,9 @@ const StaffRegistry = () => {
             lastName: member.lastName,
             email: member.email,
             phone: member.phoneNumber || '',
-            role: member.role
+            role: member.role,
+            baseSalary: member.baseSalary || '',
+            employeeId: member.employeeId || ''
         });
         setIsEditOpen(true);
     };
@@ -133,7 +140,13 @@ const StaffRegistry = () => {
                         <div className="flex-1 space-y-5 relative z-10">
                             <div className="flex justify-between items-start">
                                 <div>
-                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 group-hover:text-brand-primary transition-colors">{member.firstName} {member.lastName}</h3>
+                                    <div 
+                                        className="cursor-pointer group/name flex items-center gap-3"
+                                        onClick={() => navigate(`/school-admin/profile/${member._id}`)}
+                                    >
+                                        <h3 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 group-hover/name:text-brand-primary transition-colors">{member.firstName} {member.lastName}</h3>
+                                        <span className="text-[10px] text-slate-500 font-mono tracking-tighter shadow-sm bg-slate-800/50 px-2 py-1 rounded border border-white/5 lowercase italic font-bold">id: {member.employeeId || 'auto-gen'}</span>
+                                    </div>
                                     <span className={`text-[9px] font-black uppercase tracking-[0.2em] italic px-3 py-1 rounded-md border ${member.role === 'Accountant' ? 'border-luxury-gold/20 text-luxury-gold bg-luxury-gold/5' :
                                             member.role === 'Librarian' ? 'border-indigo-600/20 text-indigo-400 bg-indigo-600/5' :
                                                 'border-orange-600/20 text-orange-400 bg-orange-600/5'
@@ -165,6 +178,10 @@ const StaffRegistry = () => {
                                 <div className="flex items-center gap-3">
                                     <Phone size={14} className="text-brand-primary opacity-60" />
                                     <span className="text-[11px] font-bold text-slate-400">{member.phoneNumber || 'Node Locked'}</span>
+                                </div>
+                                <div className="flex items-center gap-3 col-span-2">
+                                    <ShieldCheck size={14} className="text-emerald-500 opacity-60" />
+                                    <span className="text-[11px] font-black text-white uppercase italic tracking-widest">Base Yield: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
                                 </div>
                             </div>
                         </div>
@@ -235,11 +252,32 @@ const StaffRegistry = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Phone Contact</label>
+                                        <input
+                                            type="text" placeholder="COMM LINK ID"
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full bg-slate-950 border border-brand-border/40 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all leading-none shadow-inner"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Base Salary (₹)</label>
+                                        <input
+                                            type="number" required placeholder="e.g. 25000"
+                                            value={formData.baseSalary}
+                                            onChange={(e) => setFormData({ ...formData, baseSalary: e.target.value })}
+                                            className="w-full bg-slate-950 border border-brand-border/40 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all leading-none shadow-inner"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Initial Passkey</label>
                                         <div className="relative">
                                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
                                             <input
-                                                type="password" placeholder="LEAVE BLANK FOR EMAIL_ID"
+                                                type="password" placeholder="MIN 6 CHAR"
                                                 value={formData.password}
                                                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                 className="w-full bg-slate-950 border border-brand-border/40 rounded-md py-4 pl-12 pr-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all leading-none shadow-inner"
@@ -328,6 +366,16 @@ const StaffRegistry = () => {
                                             />
                                         </div>
                                     </div>
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Base Salary (₹)</label>
+                                    <input
+                                        type="number" required placeholder="e.g. 25000"
+                                        value={editFormData.baseSalary}
+                                        onChange={(e) => setEditFormData({ ...editFormData, baseSalary: e.target.value })}
+                                        className="w-full bg-slate-950 border border-brand-border/40 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all leading-none shadow-inner"
+                                    />
                                 </div>
 
                                 <div className="flex gap-4 pt-10">

@@ -13,6 +13,7 @@ import {
     MoreVertical
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -27,13 +28,18 @@ const Messages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     
     const { user: currentUser } = useSelector(state => state.auth);
+    const location = useLocation();
     const scrollRef = useRef();
 
     const { socket } = useSocket();
 
     useEffect(() => {
         fetchData();
-    }, []);
+        // Check for direct chat from navigation state
+        if (location.state?.directChat) {
+            setSelectedChat(location.state.directChat);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         if (!socket) return;

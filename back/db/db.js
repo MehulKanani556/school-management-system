@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 
+mongoose.set('strictPopulate', false);
+
 const connectDb = async (req, res) => {
     try {
         await mongoose

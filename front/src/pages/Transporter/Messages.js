@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchContacts, fetchChatHistory, sendMessageSlice } from '../../redux/slice/communication.slice';
 import { fetchRoutesSlice } from '../../redux/slice/transport.slice';
@@ -9,6 +10,7 @@ const Messages = () => {
     const dispatch = useDispatch();
     const { contacts, messages, loading } = useSelector((state) => state.communication);
     const { routes } = useSelector((state) => state.transport);
+    const location = useLocation();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedChat, setSelectedChat] = useState(null);
@@ -24,6 +26,15 @@ const Messages = () => {
         dispatch(fetchContacts());
         dispatch(fetchRoutesSlice());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (location.state?.directChat && contacts.length > 0) {
+            const contact = contacts.find(c => c._id === location.state.directChat);
+            if (contact) {
+                setSelectedChat(contact);
+            }
+        }
+    }, [location.state, contacts]);
 
     useEffect(() => {
         if (selectedChat) {

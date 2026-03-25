@@ -5,6 +5,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Plus, Calculator, Filter, X, CheckCircle2, ChevronLeft, Hash, Printer, FileText, TrendingUp, TrendingDown, ShieldCheck, Zap, Pencil, Trash2, Banknote, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 
 const PayrollManagement = () => {
     const dispatch = useDispatch();
@@ -21,10 +22,10 @@ const PayrollManagement = () => {
     const [editingPayroll, setEditingPayroll] = useState(null);
     
     // Component State
-    const [teachers, setTeachers] = useState([]);
+    const [staffData, setStaffData] = useState({ teachers: [], otherStaff: [] });
     const [processData, setProcessData] = useState({ paymentMethod: 'Bank Transfer', transactionId: '', remarks: '' });
     const [formData, setFormData] = useState({ 
-        teacherId: '', 
+        staffId: '', 
         month: new Date().getMonth() + 1, 
         year: new Date().getFullYear(), 
         basicSalary: '', 
@@ -54,8 +55,8 @@ const PayrollManagement = () => {
 
     useEffect(() => {
         if (isSingleModalOpen || editingPayroll) {
-            axiosInstance.get('/accountant/teachers')
-                .then(res => setTeachers(res.data))
+            axiosInstance.get('/accountant/teachers?includeStaff=true')
+                .then(res => setStaffData(res.data))
                 .catch(err => console.error(err));
         }
     }, [isSingleModalOpen, editingPayroll]);
@@ -84,15 +85,21 @@ const PayrollManagement = () => {
 
     const handleSingleSubmit = (e) => {
         e.preventDefault();
+        const isTeacher = staffData.teachers.some(t => t._id === formData.staffId);
+        const submissionData = {
+          ...formData,
+          teacherId: isTeacher ? formData.staffId : undefined,
+          userId: !isTeacher ? formData.staffId : undefined
+        };
         if (editingPayroll) {
-          dispatch(updatePayroll({ id: editingPayroll._id, data: formData }));
+          dispatch(updatePayroll({ id: editingPayroll._id, data: submissionData }));
           setEditingPayroll(null);
         } else {
-          dispatch(createSinglePayroll(formData));
+          dispatch(createSinglePayroll(submissionData));
         }
         setIsSingleModalOpen(false);
         setFormData({ 
-            teacherId: '', 
+            staffId: '', 
             month: new Date().getMonth() + 1, 
             year: new Date().getFullYear(), 
             basicSalary: '', 
@@ -107,7 +114,7 @@ const PayrollManagement = () => {
     const handleEdit = (item) => {
       setEditingPayroll(item);
       setFormData({
-        teacherId: item.teacherId?._id || '',
+        staffId: item.teacherId?._id || item.userId?._id || '',
         month: item.month,
         year: item.year,
         basicSalary: item.basicSalary,
@@ -135,13 +142,16 @@ const PayrollManagement = () => {
 
     const exportCSV = () => {
         const headers = ["Identity", "Employee ID", "Month/Year", "Net Salary", "Status"];
-        const rows = (payroll || []).map(p => [
-            `${p.teacherId?.firstName} ${p.teacherId?.lastName}`,
-            p.teacherId?.employeeId,
-            `${p.month}/${p.year}`,
-            p.netSalary,
-            p.status
-        ]);
+        const rows = (payroll || []).map(p => {
+            const staff = p.teacherId || p.userId;
+            return [
+                `${staff?.firstName} ${staff?.lastName}`,
+                staff?.employeeId,
+                `${p.month}/${p.year}`,
+                p.netSalary,
+                p.status
+            ];
+        });
         const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
         const link = document.createElement("a");
         link.setAttribute("href", encodeURI(csvContent));
@@ -157,7 +167,8 @@ const PayrollManagement = () => {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Payslip_${item.teacherId?.firstName}_${item.month}_${item.year}.pdf`);
+            const staff = item.teacherId || item.userId;
+            link.setAttribute('download', `Payslip_${staff?.firstName}_${item.month}_${item.year}.pdf`);
             document.body.appendChild(link);
             link.click();
             link.remove();
@@ -243,8 +254,11 @@ const PayrollManagement = () => {
                             <tr key={i} className="group/row hover:bg-slate-800/40 transition-all font-outfit">
                                 <td className="px-8 py-6">
                                     <div className="flex flex-col">
-                                        <span className="font-bold text-slate-100 group-hover:text-brand-primary transition-colors text-[13px] uppercase tracking-tight">{item.teacherId?.firstName} {item.teacherId?.lastName}</span>
-                                        <span className="text-[10px] text-slate-600 font-mono tracking-tighter">{item.teacherId?.employeeId}</span>
+                                        <Link to={`/accountant/profile/${item.teacherId?._id || item.userId?._id}`} className="font-bold text-slate-100 hover:text-brand-primary transition-colors text-[13px] uppercase tracking-tight">
+                                            {item.teacherId ? `${item.teacherId.firstName} ${item.teacherId.lastName}` : `${item.userId?.firstName} ${item.userId?.lastName}`}
+                                            {!item.teacherId && item.userId?.role && <span className="ml-2 text-[8px] px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded uppercase tracking-tighter">{item.userId.role.replace('_', ' ')}</span>}
+                                        </Link>
+                                        <span className="text-[10px] text-slate-600 font-mono tracking-tighter">{item.teacherId?.employeeId || item.userId?.employeeId}</span>
                                     </div>
                                 </td>
                                 <td className="px-8 py-6">
@@ -321,8 +335,25 @@ const PayrollManagement = () => {
                                 <button onClick={() => setIsSingleModalOpen(false)} className="text-slate-500 hover:text-white transition-all"><X size={20} /></button>
                             </div>
                             <form onSubmit={handleSingleSubmit} className="p-8 space-y-6 text-left">
-                                <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Selected Teacher Identity</label>
-                                    <select required value={formData.teacherId} onChange={(e) => { const tId = e.target.value; const teacher = teachers.find(t => t._id === tId); setFormData({ ...formData, teacherId: tId, basicSalary: teacher ? (teacher.baseSalary || 0) : '' }); }} className={inputClass + " appearance-none"} disabled={!!editingPayroll}><option value="">Scan Staff Inventory...</option>{teachers.map(t => <option key={t._id} value={t._id}>{t.firstName} {t.lastName} ({t.employeeId})</option>)}</select></div>
+                                <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Selected Staff Identity</label>
+                                    <select required value={formData.staffId} onChange={(e) => { 
+                                        const sId = e.target.value; 
+                                        const teacher = staffData.teachers.find(t => t._id === sId); 
+                                        const other = staffData.otherStaff.find(o => o._id === sId);
+                                        setFormData({ 
+                                            ...formData, 
+                                            staffId: sId, 
+                                            basicSalary: teacher ? (teacher.baseSalary || 0) : (other ? (other.baseSalary || 0) : '') 
+                                        }); 
+                                    }} className={inputClass + " appearance-none"} disabled={!!editingPayroll}>
+                                        <option value="">Scan Staff Inventory...</option>
+                                        <optgroup label="Pedagogical Staff (Teachers)" className="bg-[#111827] text-slate-400">
+                                            {staffData.teachers.map(t => <option key={t._id} value={t._id}>{t.firstName} {t.lastName} ({t.employeeId})</option>)}
+                                        </optgroup>
+                                        <optgroup label="Operational Personnel" className="bg-[#111827] text-slate-400">
+                                            {staffData.otherStaff.map(o => <option key={o._id} value={o._id}>{o.firstName} {o.lastName} ({o.role})</option>)}
+                                        </optgroup>
+                                    </select></div>
                                 <div className="grid grid-cols-2 gap-5">
                                     <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Fiscal Cycle Month</label><select value={formData.month} onChange={(e) => setFormData({...formData, month: e.target.value})} className={inputClass}>{months.map((m, i) => <option key={m} value={i+1}>{m}</option>)}</select></div>
                                     <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Fiscal Cycle Year</label><input type="number" value={formData.year} onChange={(e) => setFormData({...formData, year: e.target.value})} className={inputClass} /></div>

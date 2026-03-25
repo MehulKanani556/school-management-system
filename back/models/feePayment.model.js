@@ -27,8 +27,8 @@ feePaymentSchema.pre('save', function(next) {
 feePaymentSchema.pre('findOneAndUpdate', async function(next) {
     const update = this.getUpdate();
     
-    // Recalculate if any component of totalAmount is being modified
-    if (update.amount !== undefined || update.discount !== undefined || update.lateFees !== undefined) {
+    // Recalculate if any component of totalAmount or paidAmount is being modified
+    if (update.amount !== undefined || update.discount !== undefined || update.lateFees !== undefined || update.paidAmount !== undefined) {
         try {
             // Find current document to get values for fields NOT included in the update
             const doc = await this.model.findOne(this.getQuery());
@@ -36,17 +36,30 @@ feePaymentSchema.pre('findOneAndUpdate', async function(next) {
                 const amount = update.amount !== undefined ? update.amount : doc.amount;
                 const discount = update.discount !== undefined ? update.discount : doc.discount;
                 const lateFees = update.lateFees !== undefined ? update.lateFees : doc.lateFees;
+                const paidAmount = update.paidAmount !== undefined ? update.paidAmount : doc.paidAmount;
                 
                 const totalAmount = (amount || 0) - (discount || 0) + (lateFees || 0);
 
                 // Update the totalAmount in the update object
                 this.set({ totalAmount });
 
-                // If status logic was also needed here, we'd add it... 
-                // but usually status is handled by business logic based on paidAmount.
+                // Automatic Status Resolution Protocol
+                let status = update.status || doc.status;
+                if (paidAmount >= totalAmount && totalAmount > 0) {
+                    status = 'paid';
+                } else if (paidAmount > 0 && paidAmount < totalAmount) {
+                    status = 'partially_paid';
+                } else if (paidAmount === 0 && totalAmount > 0) {
+                    status = 'pending';
+                }
+                
+                this.set({ status });
+                if (status === 'paid' && !update.paidDate && !doc.paidDate) {
+                    this.set({ paidDate: new Date() });
+                }
             }
         } catch (err) {
-            console.error('FAILED TO RECALCULATE TOTAL AMOUNT IN HOOK:', err);
+            console.error('PROTOCOL FAILURE: Fee recalculation hook aborted.', err);
         }
     }
     next();

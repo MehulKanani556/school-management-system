@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
     Activity, 
@@ -20,6 +21,7 @@ import {
     fetchChildTimetable,
     addAnnouncement 
 } from '../../redux/slice/parent.slice';
+
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { useSocket } from '../../context/SocketContext';
@@ -29,6 +31,7 @@ import { toast } from 'react-hot-toast';
 
 const ParentDashboard = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { socket } = useSocket();
     const { 
         selectedChild, 
@@ -111,7 +114,12 @@ const ParentDashboard = () => {
                         Dashboard <span className="text-luxury-rose">//</span> Summary
                     </h1>
                     <p className="text-slate-400 font-medium tracking-wide">
-                        Connected to <span className="text-white font-bold">{selectedChild?.firstName}'s</span> academic terminal
+                        Connected to <span 
+                            className="text-white font-bold cursor-pointer hover:text-luxury-rose transition-colors underline decoration-luxury-rose/30 underline-offset-4"
+                            onClick={() => navigate(`/parent/profile/${selectedChild._id}`)}
+                        >
+                            {selectedChild?.firstName}'s
+                        </span> academic terminal
                     </p>
                 </div>
                 <div className="flex items-center gap-3 bg-slate-900/40 border border-slate-800 p-2 rounded-md px-4">

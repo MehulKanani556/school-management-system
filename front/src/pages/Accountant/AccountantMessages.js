@@ -12,6 +12,7 @@ import {
     MoreVertical
 } from 'lucide-react';
 import { useSelector } from 'react-redux';
+import { useLocation } from 'react-router-dom';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,6 +26,7 @@ const AccountantMessages = () => {
     const [searchTerm, setSearchTerm] = useState('');
     
     const { user: currentUser } = useSelector(state => state.auth);
+    const location = useLocation();
     const scrollRef = useRef();
 
     useEffect(() => {
@@ -32,6 +34,12 @@ const AccountantMessages = () => {
         const interval = setInterval(fetchData, 10000); // Poll for new messages every 10s
         return () => clearInterval(interval);
     }, []);
+
+    useEffect(() => {
+        if (location.state?.directChat) {
+            setSelectedChat(location.state.directChat);
+        }
+    }, [location.state]);
 
     useEffect(() => {
         if (scrollRef.current) {

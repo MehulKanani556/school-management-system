@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchPlatformUsers, clearStatus, updateUserStatus, deletePlatformUser } from '../../redux/slice/superAdmin.slice';
 import { Users, Search, Shield, School, MoreVertical, CheckCircle, XCircle, Trash2, Power, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,7 +8,9 @@ import toast from 'react-hot-toast';
 
 const UserManagement = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { users, loading, error, success } = useSelector((state) => state.superAdmin);
+
     const [searchTerm, setSearchTerm] = useState('');
     const [filterRole, setFilterRole] = useState('All');
     const [activeMenu, setActiveMenu] = useState(null);
@@ -93,7 +96,11 @@ const UserManagement = () => {
                             {filteredUsers.map((user) => (
                                 <tr key={user._id} className="group hover:bg-white/[0.01] transition-all">
                                     <td className="px-8 py-5">
-                                        <div className="flex items-center gap-4">
+                                        <div 
+                                            className="flex items-center gap-4 cursor-pointer"
+                                            onClick={() => navigate(`/superadmin/profile/${user._id}`)}
+                                        >
+
                                             <div className="w-11 h-11 rounded-md bg-slate-800 border border-white/5 overflow-hidden flex items-center justify-center grayscale group-hover:grayscale-0 transition-all shrink-0">
                                                 {user.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <Users size={18} className="text-slate-600" />}
                                             </div>

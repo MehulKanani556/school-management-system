@@ -1,15 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Users, Info, ArrowLeft, Loader2, Calendar, Award, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
 import { fetchClassStudents, fetchStudentDetail } from '../../redux/slice/teacher.slice';
+
+
 import Modal from '../../components/Modal';
 
 const ClassStudents = () => {
     const { classId } = useParams();
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { students, studentDetail, loading } = useSelector((state) => state.teacher);
+
     const [selectedStudent, setSelectedStudent] = useState(null);
 
     useEffect(() => {
@@ -48,8 +53,11 @@ const ClassStudents = () => {
                             <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
                                 {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-600 font-outfit uppercase">{student.firstName.charAt(0)}</div>}
                             </div>
-                            <div>
-                                <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1">{student.firstName} <br /> {student.lastName}</h4>
+                            <div 
+                                className="cursor-pointer group/name"
+                                onClick={() => navigate(`/teacher/profile/${student._id}`)}
+                            >
+                                <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1 group-hover/name:text-brand-primary transition-colors">{student.firstName} <br /> {student.lastName}</h4>
                                 <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId}</p>
                             </div>
                         </div>

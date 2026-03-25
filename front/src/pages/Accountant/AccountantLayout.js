@@ -17,49 +17,49 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 import { logout } from '../../redux/slice/auth.slice';
 
-const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/accountant' },
-  {
-    label: 'Fee & Accounts',
-    icon: DollarSign,
-    children: [
-      { path: '/accountant/fees', icon: Receipt, label: 'Collect Fees' },
-      { path: '/accountant/students', icon: Users, label: 'Student List' },
-      { path: '/accountant/fee-structures', icon: BookOpen, label: 'Fee Structures' },
-      { path: '/accountant/payroll', icon: Wallet, label: 'Staff Payroll' },
-    ]
-  },
-  {
-    label: 'Reports & Audit',
-    icon: Shield,
-    children: [
-      { path: '/accountant/reports', icon: PieChart, label: 'Financial Reports' },
-      { path: '/accountant/audit-logs', icon: Shield, label: 'Security Audit' },
-      { path: '/accountant/holidays', icon: Calendar, label: 'Holiday List' },
-    ]
-  },
-  {
-    label: 'Communication',
-    icon: MessageSquare,
-    children: [
-      { path: '/accountant/announcements', icon: Bell, label: 'Announcements' },
-    ]
-  },
-  {
-    label: 'Profile Settings',
-    icon: User,
-    children: [
-      { path: '/accountant/profile', icon: User, label: 'My Profile' },
-    ]
-  }
-];
-
-
 const AccountantLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+
+  const navItems = [
+    { icon: LayoutDashboard, label: 'Dashboard', path: '/accountant' },
+    {
+      label: 'Fee & Accounts',
+      icon: DollarSign,
+      children: [
+        { path: '/accountant/fees', icon: Receipt, label: 'Collect Fees' },
+        { path: '/accountant/students', icon: Users, label: 'Student List' },
+        { path: '/accountant/fee-structures', icon: BookOpen, label: 'Fee Structures' },
+        { path: '/accountant/payroll', icon: Wallet, label: 'Staff Payroll' },
+      ]
+    },
+    {
+      label: 'Reports & Audit',
+      icon: Shield,
+      children: [
+        { path: '/accountant/reports', icon: PieChart, label: 'Financial Reports' },
+        { path: '/accountant/audit-logs', icon: Shield, label: 'Security Audit' },
+        { path: '/accountant/holidays', icon: Calendar, label: 'Holiday List' },
+      ]
+    },
+    {
+      label: 'Communication',
+      icon: MessageSquare,
+      children: [
+        { path: '/accountant/announcements', icon: Bell, label: 'Announcements' },
+      ]
+    },
+    {
+      label: 'Profile Settings',
+      icon: User,
+      children: [
+        { path: '/accountant/profile', icon: User, label: 'My Profile' },
+      ]
+    }
+  ];
+
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
   const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -105,7 +105,7 @@ const AccountantLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/accountant/profile');
+    navigate(`/accountant/profile`);
     setShowProfileMenu(false);
   };
 

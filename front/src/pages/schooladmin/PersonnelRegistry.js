@@ -1,16 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchUsers, addStaff, updateStaff, deleteStaff, clearUserMessage, clearUserError } from '../../redux/slice/user.slice';
 import { fetchDriversSlice, addDriverSlice, updateDriverSlice, deleteDriverSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
 import { 
     UserPlus, Search, Mail, Phone, ShieldCheck, MoreVertical, Trash2, Edit3, Loader2, X, Lock, 
-    Truck, Users, BookOpen, Briefcase, GraduationCap, Star, ShieldAlert, CreditCard
+    Truck, Users, BookOpen, Briefcase, GraduationCap, Star, ShieldAlert, CreditCard, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const PersonnelRegistry = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     
     // Selectors
     const { users, loading: userLoading, message: userMsg, error: userErr } = useSelector((state) => state.user);
@@ -26,6 +28,7 @@ const PersonnelRegistry = () => {
     // Form States
     const [formData, setFormData] = useState({
         firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '',
+        baseSalary: '', employeeId: '',
         name: '', contact: '', licenseNumber: '', licenseExpiry: '', emergencyContact: '', performanceRating: 5
     });
     const [selectedEntity, setSelectedEntity] = useState(null);
@@ -82,7 +85,9 @@ const PersonnelRegistry = () => {
                 email: formData.email,
                 phone: formData.phone,
                 role: formData.role,
-                password: formData.password
+                password: formData.password,
+                baseSalary: formData.baseSalary,
+                employeeId: formData.employeeId
             }));
         } else {
             dispatch(addDriverSlice({
@@ -106,7 +111,9 @@ const PersonnelRegistry = () => {
                     lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone,
-                    role: formData.role
+                    role: formData.role,
+                    baseSalary: formData.baseSalary,
+                    employeeId: formData.employeeId
                 } 
             }));
         } else {
@@ -142,7 +149,9 @@ const PersonnelRegistry = () => {
                 lastName: entity.lastName,
                 email: entity.email,
                 phone: entity.phoneNumber || '',
-                role: entity.role
+                role: entity.role,
+                baseSalary: entity.baseSalary || '',
+                employeeId: entity.employeeId || ''
             });
         } else {
             setFormData({
@@ -184,7 +193,7 @@ const PersonnelRegistry = () => {
 
                     <button
                         onClick={() => {
-                            setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', name: '', contact: '', licenseNumber: '', licenseExpiry: '', emergencyContact: '', performanceRating: 5 });
+                            setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '', name: '', contact: '', licenseNumber: '', licenseExpiry: '', emergencyContact: '', performanceRating: 5 });
                             setIsAddOpen(true);
                         }}
                         className={`px-8 py-5 text-white text-[10px] font-black uppercase tracking-widest italic rounded-xl shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-3 ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-schooladmin-primary shadow-schooladmin-primary/20'}`}
@@ -234,6 +243,7 @@ const PersonnelRegistry = () => {
                             member={member} 
                             onEdit={() => openEdit(member)} 
                             onDelete={() => handleDelete(member._id)}
+                            onView={() => navigate(`/school-admin/profile/${member._id}`)}
                             type="staff"
                         />
                     ))
@@ -276,6 +286,7 @@ const PersonnelRegistry = () => {
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">First Name</label>
                                                 <input
                                                     type="text" required value={formData.firstName}
+                                                    placeholder="GIVEN NAME"
                                                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
@@ -284,6 +295,7 @@ const PersonnelRegistry = () => {
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Last Name</label>
                                                 <input
                                                     type="text" required value={formData.lastName}
+                                                    placeholder="SURNAME"
                                                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
@@ -293,6 +305,7 @@ const PersonnelRegistry = () => {
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Official Email</label>
                                             <input
                                                 type="email" required value={formData.email}
+                                                placeholder="OFFICIAL@SCHOOL.COM"
                                                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                                 className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                             />
@@ -314,10 +327,20 @@ const PersonnelRegistry = () => {
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Contact Link (Phone)</label>
                                                 <input
                                                     type="text" value={formData.phone}
+                                                    placeholder="COMM PHONE LINK"
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
                                             </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Base Salary (₹)</label>
+                                            <input
+                                                type="number" required value={formData.baseSalary}
+                                                placeholder="e.g. 25000"
+                                                onChange={(e) => setFormData({ ...formData, baseSalary: e.target.value })}
+                                                className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
+                                            />
                                         </div>
                                         {!isEditOpen && (
                                             <div className="space-y-2">
@@ -408,7 +431,7 @@ const PersonnelRegistry = () => {
 };
 
 // Reusable Personnel Card Component
-const PersonnelCard = ({ member, onEdit, onDelete, type }) => {
+const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
     const isStaff = type === 'staff';
     return (
         <motion.div
@@ -438,13 +461,19 @@ const PersonnelCard = ({ member, onEdit, onDelete, type }) => {
             <div className="flex-1 space-y-6 relative z-10">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 group-hover:text-sky-400 transition-colors">
+                        <h3 
+                            className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 group-hover:text-sky-400 transition-colors cursor-pointer"
+                            onClick={() => isStaff && onView && onView()}
+                        >
                             {isStaff ? `${member.firstName} ${member.lastName}` : member.name}
                         </h3>
                         {isStaff ? (
-                            <div className="flex items-center gap-2">
-                                <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">{member.role} NODE</span>
+                            <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">{member.role} NODE</span>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">ID: {member.employeeId || 'GENERATING...'}</span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
@@ -454,8 +483,11 @@ const PersonnelCard = ({ member, onEdit, onDelete, type }) => {
                         )}
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={onEdit} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl"><Edit3 size={16} /></button>
-                        <button onClick={onDelete} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl"><Trash2 size={16} /></button>
+                        {isStaff && (
+                            <button onClick={onView} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all shadow-xl" title="View Profile"><Eye size={16} /></button>
+                        )}
+                        <button onClick={onEdit} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl" title="Edit Entity"><Edit3 size={16} /></button>
+                        <button onClick={onDelete} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl" title="Purge Node"><Trash2 size={16} /></button>
                     </div>
                 </div>
 
@@ -474,6 +506,15 @@ const PersonnelCard = ({ member, onEdit, onDelete, type }) => {
                             <span className="text-[11px] font-bold text-slate-400">{isStaff ? (member.phoneNumber || 'LOCKED') : (member.emergencyContact || 'UNSET')}</span>
                         </div>
                     </div>
+                    {isStaff && (
+                        <div className="space-y-1 sm:col-span-2 pt-2 border-t border-brand-border/10">
+                            <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Compensation Manifest</p>
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck size={14} className="text-emerald-500 opacity-60" />
+                                <span className="text-[12px] font-black text-white italic uppercase tracking-tighter">Base Yield: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </motion.div>

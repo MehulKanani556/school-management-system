@@ -13,6 +13,8 @@ import {
 import toast from 'react-hot-toast';
 import moment from 'moment';
 
+
+
 import Pagination from '../../components/Pagination';
 import Modal from '../../components/Modal';
 
@@ -408,8 +410,12 @@ const StudentList = () => {
                                                                 <span className="font-black text-slate-700 italic text-lg">{d.student.firstName?.[0]}</span>
                                                             )}
                                                         </div>
-                                                        <div>
-                                                            <div className="font-black text-white italic uppercase tracking-tighter text-sm group-hover:text-accountant-primary transition-colors leading-none">{d.student.firstName} {d.student.lastName}</div>
+                                                        <div 
+                                                            className="cursor-pointer group/name"
+                                                            onClick={() => navigate(`/accountant/profile/${d.student._id}`)}
+                                                        >
+
+                                                            <div className="font-black text-white italic uppercase tracking-tighter text-sm group-hover/name:text-accountant-primary transition-colors leading-none">{d.student.firstName} {d.student.lastName}</div>
                                                             <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5 opacity-60">ADM-{d.student.admissionNumber} • GRADE {selectedStandard?.level}</div>
                                                         </div>
                                                     </div>

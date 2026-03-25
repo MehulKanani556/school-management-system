@@ -16,59 +16,60 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const navItems = [
-  { to: '/parent', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  {
-    label: 'My Children',
-    icon: GraduationCap,
-    children: [
-      { to: '/parent/attendance', icon: CalendarCheck, label: 'Attendance' },
-      { to: '/parent/results', icon: Trophy, label: 'Exams & Results' },
-      { to: '/parent/timetable', icon: Clock, label: 'Class Timetable' },
-      { to: '/parent/exams', icon: Calendar, label: 'Exam Schedule' },
-      { to: '/parent/assignments', icon: FileText, label: 'Assignments' },
-    ]
-  },
-  {
-    label: 'Behavior & Meetings',
-    icon: Shield,
-    children: [
-      { to: '/parent/behavior', icon: Shield, label: 'Student Conduct' },
-      { to: '/parent/meetings', icon: Calendar, label: 'PTM Meetings' },
-    ]
-  },
-  {
-    label: 'Communication',
-    icon: Globe,
-    children: [
-      { to: '/parent/announcements', icon: Megaphone, label: 'Announcements' },
-      { to: '/parent/messages', icon: MessageSquare, label: 'Messages' },
-      { to: '/parent/notifications', icon: Bell, label: 'Notifications' },
-      { to: '/parent/holidays', icon: Sun, label: 'Holidays' },
-    ]
-  },
-  {
-    label: 'Fees & Transport',
-    icon: CreditCard,
-    children: [
-      { to: '/parent/fees', icon: CreditCard, label: 'Fee Payment' },
-      { to: '/parent/transport', icon: Truck, label: 'Transport Service' },
-    ]
-  },
-  {
-    label: 'My Profile',
-    icon: User,
-    children: [
-      { to: '/parent/profile', icon: User, label: 'Profile Settings' },
-    ]
-  }
-];
-
 const ParentLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+
+  const navItems = [
+    { to: '/parent', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    {
+      label: 'My Children',
+      icon: GraduationCap,
+      children: [
+        { to: '/parent/attendance', icon: CalendarCheck, label: 'Attendance' },
+        { to: '/parent/results', icon: Trophy, label: 'Exams & Results' },
+        { to: '/parent/timetable', icon: Clock, label: 'Class Timetable' },
+        { to: '/parent/exams', icon: Calendar, label: 'Exam Schedule' },
+        { to: '/parent/assignments', icon: FileText, label: 'Assignments' },
+      ]
+    },
+    {
+      label: 'Behavior & Meetings',
+      icon: Shield,
+      children: [
+        { to: '/parent/behavior', icon: Shield, label: 'Student Conduct' },
+        { to: '/parent/meetings', icon: Calendar, label: 'PTM Meetings' },
+      ]
+    },
+    {
+      label: 'Communication',
+      icon: Globe,
+      children: [
+        { to: '/parent/announcements', icon: Megaphone, label: 'Announcements' },
+        { to: '/parent/messages', icon: MessageSquare, label: 'Messages' },
+        { to: '/parent/notifications', icon: Bell, label: 'Notifications' },
+        { to: '/parent/holidays', icon: Sun, label: 'Holidays' },
+      ]
+    },
+    {
+      label: 'Fees & Transport',
+      icon: CreditCard,
+      children: [
+        { to: '/parent/fees', icon: CreditCard, label: 'Fee Payment' },
+        { to: '/parent/transport', icon: Truck, label: 'Transport Service' },
+      ]
+    },
+    {
+      label: 'My Profile',
+      icon: User,
+      children: [
+        { to: '/parent/profile', icon: User, label: 'Profile Settings' },
+      ]
+    }
+  ];
+
   const { children, selectedChild } = useSelector((state) => state.parent);
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
   const { socket } = useSocket();
@@ -117,7 +118,7 @@ const ParentLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/parent/profile');
+    navigate(`/parent/profile`);
     setShowProfileMenu(false);
   };
 

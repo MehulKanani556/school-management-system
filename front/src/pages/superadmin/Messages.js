@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useSocket } from '../../context/SocketContext';
 import { useSelector } from 'react-redux';
 import { MessageSquare, Send, Search, User, CheckCheck, Shield, Globe, MoreVertical, Paperclip } from 'lucide-react';
@@ -10,6 +11,7 @@ import toast from 'react-hot-toast';
 const Messages = () => {
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(s => s.auth);
+    const location = useLocation();
     const [contacts, setContacts] = useState([]);
     const [selectedContact, setSelectedContact] = useState(null);
     const [messages, setMessages] = useState([]);
@@ -34,6 +36,15 @@ const Messages = () => {
         };
         fetchContacts();
     }, [currentUser._id]);
+
+    useEffect(() => {
+        if (location.state?.directChat && contacts.length > 0) {
+            const contact = contacts.find(c => c._id === location.state.directChat);
+            if (contact) {
+                setSelectedContact(contact);
+            }
+        }
+    }, [location.state, contacts]);
 
     // Fetch message history when contact selected
     useEffect(() => {

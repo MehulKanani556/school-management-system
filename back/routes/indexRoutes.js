@@ -8,7 +8,8 @@ const { requireRole } = require('../middleware/roleCheck');
 
 // Platform Wide Routing Policies
 router.use(checkMaintenance); 
-const { getAllUsers, getSingleUser, deleteUser, updateUser } = require('../controllers/user.controller');
+const { getAllUsers, getSingleUser, deleteUser, updateUser, getUniversalProfile } = require('../controllers/user.controller');
+
 const sa = require('../controllers/schoolAdmin.controller');
 const { createSchool, getAllSchools, getSchoolStats, updateSchool, deleteSchool, updateSchoolStatus } = require('../controllers/school.controller');
 const ayc = require('../controllers/academicYear.controller');
@@ -47,6 +48,8 @@ router.put('/notifications/read-all', auth, nc.markAllAsRead);
 router.delete('/notifications/:id', auth, nc.deleteNotification);
 router.get('/users', auth, getAllUsers);
 router.get('/users/:id', auth, getSingleUser);
+router.get('/users/:id/profile', auth, getUniversalProfile);
+
 router.delete('/users/:id', auth, deleteUser);
 router.put('/users/:id', auth, updateUser);
 

@@ -1,16 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll } from '../../redux/slice/schoolAdmin.slice';
+import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll, fetchStaffForAttendance } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Zap, AlertCircle, TrendingUp } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Banknote, CheckCircle2, XCircle, ChevronLeft, ChevronRight, Zap, AlertCircle, TrendingUp, User as UserIcon } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { format } from 'date-fns';
 import moment from 'moment';
+import { Link } from 'react-router-dom';
 
 const validationSchema = Yup.object({
-  teacherId: Yup.string().required('Teacher is required'),
+  staffId: Yup.string().required('Staff member is required'),
   month: Yup.number().min(1).max(12).required('Month is required'),
   year: Yup.number().required('Year is required'),
   basicSalary: Yup.number().min(0).required('Basic Salary is required'),
@@ -28,7 +29,7 @@ const FieldError = ({ touched, error }) =>
   touched && error ? <p className="mt-1 text-[10px] text-red-400 font-bold tracking-wide">{error}</p> : null;
 
 const emptyValues = { 
-  teacherId: '', 
+  staffId: '', 
   month: new Date().getMonth() + 1, 
   year: new Date().getFullYear(), 
   basicSalary: '',
@@ -41,7 +42,7 @@ const emptyValues = {
 
 const Payroll = () => {
   const dispatch = useDispatch();
-  const { payroll, teachers, loading, error } = useSelector((s) => s.schoolAdmin);
+  const { payroll, teachers, loading, error, staffList } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [bulkModal, setBulkModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -54,6 +55,7 @@ const Payroll = () => {
   useEffect(() => { 
     dispatch(fetchPayroll());
     dispatch(fetchTeachers());
+    dispatch(fetchStaffForAttendance());
   }, [dispatch]);
 
   const handleBulkGenerate = async () => {
@@ -70,7 +72,13 @@ const Payroll = () => {
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
       const netSalary = (Number(values.basicSalary) || 0) + (Number(values.bonus) || 0) - (Number(values.deductions) || 0);
-      const submissionData = { ...values, netSalary };
+      const isTeacher = teachers.some(t => t._id === values.staffId);
+      const submissionData = { 
+        ...values, 
+        teacherId: isTeacher ? values.staffId : undefined,
+        userId: !isTeacher ? values.staffId : undefined,
+        netSalary 
+      };
       
       const action = editing
         ? dispatch(updatePayroll({ id: editing, data: submissionData }))
@@ -111,9 +119,11 @@ const Payroll = () => {
     'July', 'August', 'September', 'October', 'November', 'December'
   ];
 
-  const filtered = payroll.filter(p =>
-    `${p.teacherId?.firstName} ${p.teacherId?.lastName}`.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = payroll.filter(p => {
+    const staff = p.teacherId || p.userId;
+    const name = `${staff?.firstName} ${staff?.lastName}`.toLowerCase();
+    return name.includes(search.toLowerCase());
+  });
 
   const totalPages = Math.ceil(filtered.length / itemsPerPage);
   const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
@@ -185,7 +195,7 @@ const Payroll = () => {
 
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search records by teacher name..."
+        <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search records by staff name..."
           className="w-full bg-brand-surface/40 border border-brand-border/40 rounded-md py-3 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-brand-primary transition-all" />
       </div>
 
@@ -193,7 +203,7 @@ const Payroll = () => {
         <table className="w-full">
           <thead>
             <tr className="border-b border-brand-border/30 bg-white/5">
-              {['Teacher', 'Month/Year', 'Basic Salary', 'Bonus/Ded', 'Net Salary', 'Status', 'Actions'].map(h => (
+              {['Staff Member', 'Month/Year', 'Basic Salary', 'Bonus/Ded', 'Net Salary', 'Status', 'Actions'].map(h => (
                 <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
               ))}
             </tr>
@@ -208,8 +218,11 @@ const Payroll = () => {
                 className="hover:bg-slate-800/20 transition-colors group">
                 <td className="px-6 py-5">
                   <div className="flex flex-col">
-                    <span className="font-bold text-white group-hover:text-brand-primary transition-colors">{p.teacherId?.firstName} {p.teacherId?.lastName}</span>
-                    <span className="text-[10px] text-slate-500 font-mono tracking-tighter">{p.teacherId?.employeeId}</span>
+                    <Link to={`/school-admin/profile/${p.teacherId?._id || p.userId?._id}`} className="font-bold text-white hover:text-brand-primary transition-colors">
+                      {p.teacherId ? `${p.teacherId.firstName} ${p.teacherId.lastName}` : `${p.userId?.firstName} ${p.userId?.lastName}`}
+                      {!p.teacherId && p.userId?.role && <span className="ml-2 text-[8px] px-1.5 py-0.5 bg-slate-800 text-slate-400 rounded uppercase tracking-tighter">{p.userId.role.replace('_', ' ')}</span>}
+                    </Link>
+                    <span className="text-[10px] text-slate-500 font-mono tracking-tighter">{p.teacherId?.employeeId || p.userId?.employeeId}</span>
                   </div>
                 </td>
                 <td className="px-6 py-5">
@@ -286,27 +299,37 @@ const Payroll = () => {
             </div>
           )}
           <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Select Teacher</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Select Staff Member</label>
             <select 
-              name="teacherId"
-              value={formik.values.teacherId}
+              name="staffId"
+              value={formik.values.staffId}
               onChange={(e) => {
-                const tId = e.target.value;
-                formik.setFieldValue('teacherId', tId);
-                const teacher = teachers.find(t => t._id === tId);
+                const sId = e.target.value;
+                formik.setFieldValue('staffId', sId);
+                const teacher = teachers.find(t => t._id === sId);
+                const other = staffList.otherStaff.find(s => s._id === sId);
                 if (teacher) {
                   formik.setFieldValue('basicSalary', teacher.baseSalary || 0);
+                } else if (other) {
+                  formik.setFieldValue('basicSalary', other.baseSalary || 0);
                 }
               }}
-              className={inputClass(formik.touched.teacherId, formik.errors.teacherId)}
+              className={inputClass(formik.touched.staffId, formik.errors.staffId)}
               disabled={!!editing}
             >
-              <option value="">Choose a teacher...</option>
-              {teachers.map(t => (
-                <option key={t._id} value={t._id}>{t.firstName} {t.lastName} ({t.employeeId})</option>
-              ))}
+              <option value="">Choose a staff member...</option>
+              <optgroup label="Pedagogical Staff (Teachers)" className="bg-slate-900 text-slate-400">
+                {teachers.map(t => (
+                  <option key={t._id} value={t._id}>{t.firstName} {t.lastName} ({t.employeeId})</option>
+                ))}
+              </optgroup>
+              <optgroup label="Operational Personnel" className="bg-slate-900 text-slate-400">
+                {(staffList?.otherStaff || []).map(s => (
+                  <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.role})</option>
+                ))}
+              </optgroup>
             </select>
-            <FieldError touched={formik.touched.teacherId} error={formik.errors.teacherId} />
+            <FieldError touched={formik.touched.staffId} error={formik.errors.staffId} />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -372,7 +395,7 @@ const Payroll = () => {
           </div>
           <div className="space-y-2">
             <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">Confirm Deletion</h4>
-            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-widest">Are you sure you want to purge the payroll record for <span className="text-white">{deleteTarget?.teacherId?.firstName} {deleteTarget?.teacherId?.lastName}</span> ({months[(deleteTarget?.month || 1) - 1]} {deleteTarget?.year})?</p>
+            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-widest">Are you sure you want to purge the payroll record for <span className="text-white">{(deleteTarget?.teacherId || deleteTarget?.userId)?.firstName} {(deleteTarget?.teacherId || deleteTarget?.userId)?.lastName}</span> ({months[(deleteTarget?.month || 1) - 1]} {deleteTarget?.year})?</p>
           </div>
           <div className="flex gap-4 pt-4">
             <button onClick={() => setDeleteTarget(null)} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Abort</button>

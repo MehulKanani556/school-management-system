@@ -378,13 +378,35 @@ exports.getFinancialReport = async (req, res) => {
 
         const payrollMatch = { schoolId: new mongoose.Types.ObjectId(schoolId) };
         if (startDate || endDate) {
-            // For report period, we can look at paidAt OR the record context (month/year)
-            // But usually, financial reports look at disbursement date for expenses
-            payrollMatch.paidAt = {};
-            if (startDate) payrollMatch.paidAt.$gte = new Date(startDate);
-            if (endDate) payrollMatch.paidAt.$lte = new Date(endDate);
-            payrollMatch.status = 'paid'; // Fallback to paid-only if specific dates are used
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            
+            if (start && end) {
+                // If specific date range, we can try to filter by month/year 
+                // but for simple logic we can look at paidAt OR better: 
+                // look at year/month if it matches.
+                // For now, let's allow all statuses to include accrued expenses
+                payrollMatch.$or = [
+                    { paidAt: { $gte: start, $lte: end } },
+                    { 
+                        year: { $gte: start.getFullYear(), $lte: end.getFullYear() },
+                        month: { $gte: start.getMonth() + 1, $lte: end.getMonth() + 1 }
+                    }
+                ];
+            } else if (start) {
+                payrollMatch.$or = [
+                    { paidAt: { $gte: start } },
+                    { year: { $gte: start.getFullYear() }, month: { $gte: start.getMonth() + 1 } }
+                ];
+            } else if (end) {
+                payrollMatch.$or = [
+                    { paidAt: { $lte: end } },
+                    { year: { $lte: end.getFullYear() }, month: { $lte: end.getMonth() + 1 } }
+                ];
+            }
         }
+        // If academicYear is provided, we might want to filter by it too
+        // but Payroll model uses month/year. We'll skip complex mapping for now.
 
         const payrollExpenses = await Payroll.aggregate([
             { $match: payrollMatch },
@@ -408,7 +430,7 @@ exports.getFinancialReport = async (req, res) => {
         }));
 
         const payrollTrend = await Payroll.aggregate([
-            { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } }, // Include all in trends context
+            { $match: payrollMatch }, // Sync with total expenses match
             { $group: {
                 _id: '$month', // Use the month field (1-12) from the model
                 expenses: { $sum: '$netSalary' }

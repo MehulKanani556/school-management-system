@@ -249,7 +249,7 @@ exports.getDashboardStats = async (req, res) => {
 
 exports.createStaff = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, role, password } = req.body;
+    const { firstName, lastName, email, phone, role, password, baseSalary, employeeId } = req.body;
     const schoolId = getSchoolId(req);
 
     const allowedRoles = ['Accountant', 'Librarian', 'Transport_Manager'];
@@ -261,13 +261,19 @@ exports.createStaff = async (req, res) => {
     if (existingUser) return res.status(400).json({ message: 'User with this email already exists' });
 
     const hashedPassword = await bcrypt.hash(password || email, 10);
+    
+    // Auto-generate employee ID if not provided
+    const finalEmployeeId = employeeId || `EMP-${new Date().getFullYear()}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
     const user = await User.create({
       firstName, lastName, email,
       password: hashedPassword,
       role,
       schoolId,
       photo: `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName + ' ' + lastName)}&background=random&color=fff`,
-      phoneNumber: phone
+      phoneNumber: phone,
+      baseSalary: Number(baseSalary) || 0,
+      employeeId: finalEmployeeId
     });
 
     res.status(201).json({ message: 'Staff member provisioned successfully', user });
@@ -276,12 +282,23 @@ exports.createStaff = async (req, res) => {
 
 exports.updateStaff = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, role } = req.body;
+    const { firstName, lastName, email, phone, role, baseSalary, employeeId } = req.body;
     const schoolId = getSchoolId(req);
+
+    const updateData = { 
+      firstName, lastName, email, role, 
+      phoneNumber: phone, 
+      baseSalary: Number(baseSalary) 
+    };
+
+    // Only update employeeId if it's not an empty string
+    if (employeeId && employeeId !== '') {
+      updateData.employeeId = employeeId;
+    }
 
     const user = await User.findOneAndUpdate(
       { _id: req.params.id, schoolId },
-      { firstName, lastName, email, role, phoneNumber: phone },
+      updateData,
       { new: true }
     );
 
@@ -607,7 +624,22 @@ const validateTeacher = (body) => {
 // ─── Teachers ─────────────────────────────────────────────────────────────────
 exports.getTeachers = async (req, res) => {
   try {
-    const teachers = await Teacher.find({ schoolId: getSchoolId(req), deletedAt: null }).sort({ createdAt: -1 });
+    const { includeStaff } = req.query;
+    const schoolId = getSchoolId(req);
+    
+    // Fetch teachers
+    const teachers = await Teacher.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 });
+    
+    if (includeStaff === 'true') {
+      const otherStaff = await User.find({ 
+        schoolId, 
+        isActive: true, 
+        role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] } 
+      }).select('firstName lastName employeeId role baseSalary');
+      
+      return res.json({ teachers, otherStaff });
+    }
+
     res.json(teachers);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1633,23 +1665,34 @@ exports.deleteSubject = async (req, res) => {
 // ─── Payroll ──────────────────────────────────────────────────────────────────
 exports.getAllPayroll = async (req, res) => {
   try {
-    const payroll = await Payroll.find({ schoolId: getSchoolId(req) }).populate('teacherId', 'firstName lastName employeeId');
+    const payroll = await Payroll.find({ schoolId: getSchoolId(req) })
+      .populate('teacherId', 'firstName lastName employeeId')
+      .populate('userId', 'firstName lastName employeeId role');
     res.json(payroll);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createPayroll = async (req, res) => {
   try {
-    const { teacherId, month, year, basicSalary, bonus, deductions, status, paymentDate, remarks } = req.body;
-    const teacher = await Teacher.findById(teacherId);
-    if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+    const { teacherId, userId, month, year, basicSalary, bonus, deductions, status, paymentDate, remarks } = req.body;
+    
+    let bSalary = Number(basicSalary) || 0;
+    if (teacherId) {
+      const teacher = await Teacher.findById(teacherId);
+      if (!teacher) return res.status(404).json({ message: 'Teacher not found' });
+      if (!bSalary) bSalary = teacher.baseSalary || 0;
+    } else if (userId) {
+      const user = await User.findById(userId);
+      if (!user) return res.status(404).json({ message: 'Staff member not found' });
+      if (!bSalary) bSalary = user.baseSalary || 0;
+    }
 
-    const bSalary = Number(basicSalary) || teacher.baseSalary || 0;
     const nSalary = bSalary + (Number(bonus) || 0) - (Number(deductions) || 0);
 
     const payroll = await Payroll.create({
       schoolId: getSchoolId(req),
-      teacherId,
+      teacherId: teacherId || undefined,
+      userId: userId || undefined,
       month,
       year,
       basicSalary: bSalary,
@@ -1661,7 +1704,10 @@ exports.createPayroll = async (req, res) => {
       remarks,
       submittedBy: req.user._id
     });
-    const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
+    const populated = await payroll.populate([
+      { path: 'teacherId', select: 'firstName lastName employeeId' },
+      { path: 'userId', select: 'firstName lastName employeeId role' }
+    ]);
     res.status(201).json({ message: 'Payroll record created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1681,7 +1727,10 @@ exports.updatePayroll = async (req, res) => {
     payroll.netSalary = payroll.basicSalary + (Number(payroll.bonus) || 0) - (Number(payroll.deductions) || 0);
 
     await payroll.save();
-    const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
+    const populated = await payroll.populate([
+      { path: 'teacherId', select: 'firstName lastName employeeId' },
+      { path: 'userId', select: 'firstName lastName employeeId role' }
+    ]);
     res.json({ message: 'Payroll record modified successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1753,7 +1802,11 @@ exports.generateBulkPayroll = async (req, res) => {
     const { month, year, bonusPercent = 0 } = req.body;
     const schoolId = getSchoolId(req);
 
+    // Get Teachers
     const teachers = await Teacher.find({ schoolId, isActive: true });
+    
+    // Get Other Staff
+    const otherStaff = await User.find({ schoolId, isActive: true, role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] } });
 
     // 1. Get attendance summary for the month
     const start = new Date(year, month - 1, 1);
@@ -1765,12 +1818,13 @@ exports.generateBulkPayroll = async (req, res) => {
     });
 
     const payrolls = [];
+    
+    // Process Teachers
     for (const t of teachers) {
-      // Basic check: Skip if already exists
       const exists = await Payroll.findOne({ schoolId, teacherId: t._id, month, year });
       if (exists) continue;
 
-      const tAttendance = attendance.filter(a => a.teacherId.toString() === t._id.toString());
+      const tAttendance = attendance.filter(a => a.teacherId?.toString() === t._id.toString());
       const absentCount = tAttendance.filter(a => a.status === 'Absent').length;
 
       const basicSalary = t.baseSalary || 0;
@@ -1780,16 +1834,30 @@ exports.generateBulkPayroll = async (req, res) => {
       const netSalary = basicSalary + bonus - deductions;
 
       payrolls.push({
-        schoolId,
-        teacherId: t._id,
-        month,
-        year,
-        basicSalary,
-        bonus,
-        deductions,
-        netSalary,
-        status: 'unpaid',
-        submittedBy: req.user._id
+        schoolId, teacherId: t._id, month, year,
+        basicSalary, bonus, deductions, netSalary,
+        status: 'unpaid', submittedBy: req.user._id
+      });
+    }
+
+    // Process Other Staff
+    for (const s of otherStaff) {
+      const exists = await Payroll.findOne({ schoolId, userId: s._id, month, year });
+      if (exists) continue;
+
+      const sAttendance = attendance.filter(a => a.userId?.toString() === s._id.toString());
+      const absentCount = sAttendance.filter(a => a.status === 'Absent').length;
+
+      const basicSalary = s.baseSalary || 0;
+      const dailyRate = basicSalary / 30;
+      const deductions = dailyRate * absentCount;
+      const bonus = (basicSalary * bonusPercent) / 100;
+      const netSalary = basicSalary + bonus - deductions;
+
+      payrolls.push({
+        schoolId, userId: s._id, month, year,
+        basicSalary, bonus, deductions, netSalary,
+        status: 'unpaid', submittedBy: req.user._id
       });
     }
 
@@ -1798,7 +1866,7 @@ exports.generateBulkPayroll = async (req, res) => {
     }
 
     res.json({
-      message: `${payrolls.length} Payroll entries pushed to global node pipeline`,
+      message: `${payrolls.length} Payroll entries pushed for pedagogical and support staff units`,
       count: payrolls.length
     });
   } catch (err) { res.status(500).json({ message: err.message }); }

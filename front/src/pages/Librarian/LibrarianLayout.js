@@ -14,51 +14,52 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const navItems = [
-  { to: '/librarian', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  {
-    label: 'Library Management',
-    icon: Archive,
-    children: [
-      { to: '/librarian/inventory', icon: BookOpen, label: 'Book Inventory' },
-      { to: '/librarian/categories', icon: Layout, label: 'Book Categories' },
-      { to: '/librarian/students', icon: Users, label: 'Member Registry' },
-    ]
-  },
-  {
-    label: 'Book Circulation',
-    icon: Database,
-    children: [
-      { to: '/librarian/issue', icon: ClipboardList, label: 'Issue Books' },
-      { to: '/librarian/return', icon: ClipboardList, label: 'Manage Returns' },
-      { to: '/librarian/history', icon: History, label: 'Circulation History' },
-      { to: '/librarian/reservations', icon: BookOpen, label: 'Book Reservations' },
-    ]
-  },
-  {
-    label: 'Communication',
-    icon: MessageSquare,
-    children: [
-      { to: '/librarian/messages', icon: MessageSquare, label: 'Messages' },
-      { to: '/librarian/announcements', icon: Bell, label: 'Announcements' },
-      { to: '/librarian/notifications', icon: Bell, label: 'Notifications' },
-    ]
-  },
-  {
-    label: 'Profile Settings',
-    icon: User,
-    children: [
-      { to: '/librarian/profile', icon: User, label: 'My Profile' },
-      { to: '/librarian/holidays', icon: Calendar, label: 'Holidays' },
-    ]
-  }
-];
-
 const LibrarianLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+
+  const navItems = [
+    { to: '/librarian', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    {
+      label: 'Library Management',
+      icon: Archive,
+      children: [
+        { to: '/librarian/inventory', icon: BookOpen, label: 'Book Inventory' },
+        { to: '/librarian/categories', icon: Layout, label: 'Book Categories' },
+        { to: '/librarian/students', icon: Users, label: 'Member Registry' },
+      ]
+    },
+    {
+      label: 'Book Circulation',
+      icon: Database,
+      children: [
+        { to: '/librarian/issue', icon: ClipboardList, label: 'Issue Books' },
+        { to: '/librarian/return', icon: ClipboardList, label: 'Manage Returns' },
+        { to: '/librarian/history', icon: History, label: 'Circulation History' },
+        { to: '/librarian/reservations', icon: BookOpen, label: 'Book Reservations' },
+      ]
+    },
+    {
+      label: 'Communication',
+      icon: MessageSquare,
+      children: [
+        { to: '/librarian/messages', icon: MessageSquare, label: 'Messages' },
+        { to: '/librarian/announcements', icon: Bell, label: 'Announcements' },
+        { to: '/librarian/notifications', icon: Bell, label: 'Notifications' },
+      ]
+    },
+    {
+      label: 'Profile Settings',
+      icon: User,
+      children: [
+        { to: '/librarian/profile', icon: User, label: 'My Profile' },
+        { to: '/librarian/holidays', icon: Calendar, label: 'Holidays' },
+      ]
+    }
+  ];
+
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
   const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -104,7 +105,7 @@ const LibrarianLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/librarian/profile');
+    navigate(`/librarian/profile`);
     setShowProfileMenu(false);
   };
 

@@ -165,7 +165,7 @@ const SchoolAdminLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/school-admin/profile');
+    navigate(`/school-admin/profile`);
     setShowProfileMenu(false);
   };
 

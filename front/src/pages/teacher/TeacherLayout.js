@@ -116,7 +116,7 @@ const TeacherLayout = () => {
     };
 
     const handleSettings = () => {
-        navigate('/teacher/profile');
+        navigate(`/teacher/profile`);
         setShowProfileMenu(false);
     };
 

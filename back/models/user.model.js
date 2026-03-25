@@ -32,6 +32,19 @@ const userSchema = new mongoose.Schema({
         ref: 'School',
         required: function() { return this.role !== 'Super_Admin'; } // Super Admin doesn't belong to a specific school
     },
+    phoneNumber: {
+        type: String,
+    },
+    employeeId: {
+        type: String,
+        unique: true,
+        sparse: true,
+        set: v => v === '' ? undefined : v
+    },
+    baseSalary: {
+        type: Number,
+        default: 0,
+    },
     otp: {
         type: String,
     },

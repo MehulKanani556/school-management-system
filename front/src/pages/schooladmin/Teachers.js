@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchTeachers, createTeacher, updateTeacher, deleteTeacher, toggleTeacherStatus, exportTeachers, importTeachers } from '../../redux/slice/schoolAdmin.slice';
+
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
@@ -30,6 +32,7 @@ const emptyValues = { firstName: '', lastName: '', email: '', phone: '', qualifi
 
 const Teachers = () => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const handleImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -163,7 +166,12 @@ const Teachers = () => {
             ) : currentItems.map((t, i) => (
               <motion.tr key={t._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                 className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
-                <td className="px-6 py-4 font-semibold">{t.firstName} {t.lastName}</td>
+                <td 
+                  className="px-6 py-4 font-semibold cursor-pointer hover:text-brand-primary transition-colors hover:italic"
+                  onClick={() => navigate(`/school-admin/profile/${t.userId?._id || t.userId}`)}
+                >
+                  {t.firstName} {t.lastName}
+                </td>
                 <td className="px-6 py-4 text-slate-400 text-sm font-mono">{t.employeeId}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{t.email || '—'}</td>
                 <td className="px-6 py-4 text-slate-400 text-sm">{t.phone || '—'}</td>

@@ -14,58 +14,59 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const navItems = [
-  { to: '/student', icon: LayoutDashboard, label: 'Dashboard', end: true },
-  {
-    label: 'Academic Records',
-    icon: GraduationCap,
-    children: [
-      { to: '/student/attendance', icon: ClipboardList, label: 'My Attendance' },
-      { to: '/student/results', icon: Award, label: 'Exams & Results' },
-      { to: '/student/timetable', icon: Calendar, label: 'Class Timetable' },
-      { to: '/student/exams', icon: BookOpen, label: 'Online Exams' },
-      { to: '/student/assignments', icon: Download, label: 'Homework/Assignments' },
-      { to: '/student/e-learning', icon: Brain, label: 'Study Materials' },
-    ]
-  },
-  {
-    label: 'Communication',
-    icon: Globe,
-    children: [
-      { to: '/student/notifications', icon: Bell, label: 'Notifications' },
-      { to: '/student/announcements', icon: Megaphone, label: 'School Announcements' },
-      { to: '/student/messages', icon: MessageSquare, label: 'Chat & Messages' },
-      { to: '/student/holidays', icon: Clock, label: 'Holiday List' },
-    ]
-  },
-  {
-    label: 'Fee Management',
-    icon: CreditCard,
-    children: [
-      { to: '/student/fees', icon: CreditCard, label: 'Fee Payment' },
-    ]
-  },
-  {
-    label: 'Library',
-    icon: Book,
-    children: [
-      { to: '/student/library', icon: Book, label: 'School Library' },
-    ]
-  },
-  {
-    label: 'Profile Settings',
-    icon: User,
-    children: [
-      { to: '/student/profile', icon: User, label: 'My Profile' },
-    ]
-  }
-];
-
 const StudentLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+
+  const navItems = [
+    { to: '/student', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    {
+      label: 'Academic Records',
+      icon: GraduationCap,
+      children: [
+        { to: '/student/attendance', icon: ClipboardList, label: 'My Attendance' },
+        { to: '/student/results', icon: Award, label: 'Exams & Results' },
+        { to: '/student/timetable', icon: Calendar, label: 'Class Timetable' },
+        { to: '/student/exams', icon: BookOpen, label: 'Online Exams' },
+        { to: '/student/assignments', icon: Download, label: 'Homework/Assignments' },
+        { to: '/student/e-learning', icon: Brain, label: 'Study Materials' },
+      ]
+    },
+    {
+      label: 'Communication',
+      icon: Globe,
+      children: [
+        { to: '/student/notifications', icon: Bell, label: 'Notifications' },
+        { to: '/student/announcements', icon: Megaphone, label: 'School Announcements' },
+        { to: '/student/messages', icon: MessageSquare, label: 'Chat & Messages' },
+        { to: '/student/holidays', icon: Clock, label: 'Holiday List' },
+      ]
+    },
+    {
+      label: 'Fee Management',
+      icon: CreditCard,
+      children: [
+        { to: '/student/fees', icon: CreditCard, label: 'Fee Payment' },
+      ]
+    },
+    {
+      label: 'Library',
+      icon: Book,
+      children: [
+        { to: '/student/library', icon: Book, label: 'School Library' },
+      ]
+    },
+    {
+      label: 'Profile Settings',
+      icon: User,
+      children: [
+        { to: '/student/profile', icon: User, label: 'My Profile' },
+      ]
+    }
+  ];
+
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
   const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -111,7 +112,7 @@ const StudentLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/student/profile');
+    navigate(`/student/profile`);
     setShowProfileMenu(false);
   };
 

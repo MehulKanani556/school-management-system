@@ -15,6 +15,7 @@ const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
 const Teacher = require('../models/teacher.model');
 const Subject = require('../models/subject.model');
+const Timetable = require('../models/timetable.model');
 const nc = require('./notification.controller');
 
 const PDFDocument = require('pdfkit');
@@ -82,7 +83,20 @@ exports.getAssignments = async (req, res) => {
 exports.getTimetable = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        res.json(student.classSection.timetable || []);
+        if (!student.classSection) {
+            return res.json([]);
+        }
+        const timetable = await Timetable.findOne({ classSection: student.classSection._id })
+            .populate({
+                path: 'schedule.periods.subject',
+                select: 'name'
+            })
+            .populate({
+                path: 'schedule.periods.teacher',
+                select: 'firstName lastName'
+            });
+            
+        res.json(timetable || { schedule: [] });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

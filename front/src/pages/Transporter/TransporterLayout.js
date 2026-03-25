@@ -15,7 +15,13 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const navItems = [
+const TransporterLayout = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useSelector((state) => state.auth);
+
+  const navItems = [
     { to: '/transporter', icon: LayoutDashboard, label: 'Dashboard', end: true },
     {
         label: 'Transport Operations',
@@ -53,13 +59,8 @@ const navItems = [
             { to: '/transporter/holidays', icon: Calendar, label: 'Holidays' },
         ]
     }
-];
+  ];
 
-const TransporterLayout = () => {
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
   const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -105,7 +106,7 @@ const TransporterLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate('/transporter/profile');
+    navigate(`/transporter/profile`);
     setShowProfileMenu(false);
   };
 

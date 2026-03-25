@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentDetail, downloadReportCard } from '../../redux/slice/schoolAdmin.slice';
+
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Mail, Phone, MapPin, Calendar, GraduationCap, 
@@ -177,7 +179,13 @@ const StudentDetail = () => {
                   <div className="grid grid-cols-1 gap-6">
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Guardian Identity</p>
-                      <p className="text-white font-bold">{student.guardianName || '—'}</p>
+                      <p 
+                        className={`font-bold transition-all ${student.parentId ? 'text-white hover:text-brand-primary cursor-pointer hover:italic' : 'text-white'}`}
+                        onClick={() => student.parentId && navigate(`/school-admin/profile/${student.parentId?._id || student.parentId}`)}
+                      >
+                        {student.guardianName || '—'}
+                        {student.parentId && <span className="ml-2 text-[8px] px-1.5 py-0.5 bg-brand-primary/10 text-brand-primary border border-brand-primary/20 rounded uppercase tracking-tighter">Verified Parent</span>}
+                      </p>
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Contact Terminal</p>

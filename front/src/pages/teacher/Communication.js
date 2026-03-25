@@ -29,12 +29,13 @@ import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 
 const Communication = () => {
     const dispatch = useDispatch();
     const [searchParams] = useSearchParams();
     const tabParam = searchParams.get('tab');
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState('feed'); // 'feed', 'chat', 'notices'
     const [chatSubTab, setChatSubTab] = useState('Teachers'); // 'Teachers', 'Parents'
     const [sentMessages, setSentMessages] = useState([]);
@@ -73,7 +74,12 @@ const Communication = () => {
         if (tabParam && ['feed', 'chat', 'notices'].includes(tabParam)) {
             setActiveTab(tabParam);
         }
-    }, [tabParam]);
+        // Handle direct chat from profile
+        if (location.state?.directChat) {
+            setActiveTab('chat');
+            setSelectedChat(location.state.directChat);
+        }
+    }, [tabParam, location.state]);
 
     useEffect(() => {
         fetchData();

@@ -1,12 +1,17 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchBorrowersSlice } from '../../redux/slice/librarian.slice';
 import { Users, Search, Mail, User, Shield, Phone, MapPin } from 'lucide-react';
+
+
 import { motion } from 'framer-motion';
 
 const MemberRegistry = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { borrowers, loading } = useSelector((state) => state.librarian);
+
     const [searchTerm, setSearchTerm] = React.useState('');
 
     useEffect(() => {
@@ -53,7 +58,12 @@ const MemberRegistry = () => {
                                     {member.photo ? <img src={member.photo} alt="" className="w-full h-full object-cover" /> : <User size={24} />}
                                 </div>
                                 <div className="flex flex-col flex-1">
-                                    <span className="font-bold text-base text-slate-100 tracking-tight leading-none mb-2 group-hover/card:text-librarian-primary transition-all uppercase italic">{member.firstName} {member.lastName}</span>
+                                    <span 
+                                        className="font-bold text-base text-slate-100 tracking-tight leading-none mb-2 group-hover/card:text-librarian-primary transition-all uppercase italic cursor-pointer"
+                                        onClick={() => navigate(`/librarian/profile/${member._id}`)}
+                                    >
+                                        {member.firstName} {member.lastName}
+                                    </span>
                                     <div className="space-y-1.5">
                                         <div className="flex items-center gap-2 text-slate-500">
                                             <Mail size={12} className="text-librarian-primary/60" />

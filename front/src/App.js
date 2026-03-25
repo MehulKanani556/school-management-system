@@ -109,11 +109,15 @@ import ParentAnnouncements from './pages/Parent/ParentAnnouncements';
 
 // Common Pages
 import Holidays from './pages/common/Holidays';
+import ProfileDetail from './pages/shared/ProfileDetail';
+
 
 import Maintenance from './pages/common/Maintenance';
 
 // Utilities & Context
 import ToastManager from './ToastManager';
+import ProfileModal from './components/ProfileModal';
+
 import { SocketProvider } from './context/SocketContext';
 import { ThemeProvider } from './context/ThemeContext';
 
@@ -246,6 +250,8 @@ function AppRoutes() {
             <Route path="attendance" element={<AttendanceHistory />} />
             <Route path="results" element={<AcademicResults />} />
             <Route path="assignments" element={<AssignmentsStudent />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
+
             <Route path="timetable" element={<Timetable />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="fees" element={<FeesStudent />} />
@@ -290,7 +296,9 @@ function AppRoutes() {
             <Route path="resources" element={<ResourceLocker />} />
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="quizzes" element={<TeacherQuizManagement />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
 
           {/* Parent Panel */}
           <Route path="/parent" element={
@@ -310,9 +318,10 @@ function AppRoutes() {
             <Route path="messages" element={<ParentMessages />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="profile" element={<ParentProfile />} />
-            <Route path="child-profile" element={<ChildProfile />} />
             <Route path="transport" element={<ChildTransport />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
 
 
           {/* School Admin Panel */}
@@ -321,7 +330,7 @@ function AppRoutes() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
-            <Route path="students/:id" element={<StudentDetail />} />
+            <Route path="students/:id" element={<ProfileDetail />} />
             <Route path="staff-attendance" element={<StaffAttendance />} />
             <Route path="staff-attendance-report" element={<StaffAttendanceReport />} />
             <Route path="teachers" element={<Teachers />} />
@@ -345,8 +354,10 @@ function AppRoutes() {
             <Route path="academic-years" element={<AcademicYears />} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
             
             {/* Logistics & Fleet Nodes */}
+
             <Route path="vehicles" element={<Suspense fallback={<Loader2 className="animate-spin" />}><Vehicles /></Suspense>} />
             <Route path="transport-routes" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TransporterRoutes /></Suspense>} />
             <Route path="trip-logs" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TripLogs /></Suspense>} />
@@ -377,8 +388,9 @@ function AppRoutes() {
             <Route path="holidays" element={<SuperAdminHolidays />} />
             <Route path="notifications" element={<SuperAdminNotifications />} />
             <Route path="messages" element={<Messages />} />
-
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
 
           {/* Accountant Panel */}
           <Route path="/accountant" element={
@@ -396,8 +408,9 @@ function AppRoutes() {
             <Route path="notifications" element={<AccountantNotifications />} />
             <Route path="holidays" element={<AccountantHolidays />} />
             <Route path="students" element={<AccountantStudentList />} />
-
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
 
           {/* Librarian Panel */}
           <Route path="/librarian" element={
@@ -417,7 +430,9 @@ function AppRoutes() {
             <Route path="holidays" element={<LibrarianHolidays />} />
             <Route path="announcements" element={<LibrarianAnnouncements />} />
             <Route path="reservations" element={<LibrarianReservations />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
 
           {/* Transporter Panel */}
           <Route path="/transporter" element={
@@ -436,7 +451,9 @@ function AppRoutes() {
             <Route path="announcements" element={<TransporterAnnouncements />} />
             <Route path="messages" element={<TransporterMessages />} />
             <Route path="profile" element={<TransporterProfile />} />
+            <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
+
         </Routes>
       </Suspense>
     </Router>
@@ -453,6 +470,7 @@ function App() {
               <AppRoutes />
               <Toaster position="top-right" reverseOrder={false} />
               <ToastManager />
+              <ProfileModal />
             </div>
           </SocketProvider>
         </ThemeProvider>

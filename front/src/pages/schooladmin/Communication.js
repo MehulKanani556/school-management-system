@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
 import {
     Send,
     Bell,
@@ -30,6 +30,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const Communication = () => {
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
     const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'announcements'); // 'announcements', 'messages', 'notices'
     const [announcements, setAnnouncements] = useState([]);
     const [messages, setMessages] = useState([]);
@@ -57,7 +58,13 @@ const Communication = () => {
         if (tab && ['announcements', 'messages', 'notices'].includes(tab)) {
             setActiveTab(tab);
         }
-    }, [searchParams]);
+
+        // Handle direct chat from profile
+        if (location.state?.directChat) {
+            setActiveTab('messages');
+            setSelectedChat(location.state.directChat);
+        }
+    }, [searchParams, location.state]);
 
     const handleTabChange = (tabId) => {
         setActiveTab(tabId);

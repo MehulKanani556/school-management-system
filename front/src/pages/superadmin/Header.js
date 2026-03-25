@@ -42,7 +42,7 @@ const Header = ({ user, onLogout }) => {
     }, [socket, dispatch]);
 
     const handleSettings = () => {
-        navigate('/superadmin/profile');
+        navigate(`/superadmin/profile`);
         setShowProfileMenu(false);
     };
 

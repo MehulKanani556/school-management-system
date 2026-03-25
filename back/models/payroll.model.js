@@ -2,7 +2,8 @@ const mongoose = require('mongoose');
 
 const payrollSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
-  teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
+  teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' }, // Optional for non-teacher staff
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Mandatory for staff without Teacher record
   month: { type: Number, required: true }, // 1-12
   year: { type: Number, required: true },
   basicSalary: { type: Number, required: true },

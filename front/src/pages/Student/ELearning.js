@@ -21,6 +21,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentQuizzes, submitQuizAttempt, fetchQuizHistory, fetchStudentResources } from '../../redux/slice/student.slice';
 
 import { toast } from 'react-hot-toast';
+import { BASE_URL } from '../../utils/BASE_URL';
 
 const ELearning = () => {
     const dispatch = useDispatch();
@@ -91,7 +92,8 @@ const ELearning = () => {
 
     const handleAccessStream = (url) => {
         if (!url) return toast.error("Stream URI not found");
-        window.open(url, '_blank');
+        const fullUrl = url.startsWith('http') ? url : `${BASE_URL.replace('/api', '')}/${url}`;
+        window.open(fullUrl, '_blank');
     };
 
 

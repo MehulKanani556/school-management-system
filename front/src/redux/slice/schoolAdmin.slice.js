@@ -342,7 +342,15 @@ const schoolAdminSlice = createSlice({
     builder
       .addCase(fetchDashboard.fulfilled, (state, a) => { state.dashboard = a.payload; state.loading = false; })
       .addCase(fetchStudents.fulfilled, handleList('students'))
-      .addCase(fetchTeachers.fulfilled, handleList('teachers'))
+      .addCase(fetchTeachers.fulfilled, (state, action) => {
+        if (Array.isArray(action.payload)) {
+          state.teachers = action.payload;
+        } else {
+          state.teachers = action.payload.teachers || [];
+          state.staffList.otherStaff = action.payload.otherStaff || [];
+        }
+        state.loading = false;
+      })
       .addCase(fetchClasses.fulfilled, handleList('classes'))
       .addCase(fetchStandards.fulfilled, handleList('standards'))
       .addCase(fetchSubjects.fulfilled, handleList('subjects'))

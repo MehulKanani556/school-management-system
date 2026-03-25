@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard } from '../../redux/slice/schoolAdmin.slice';
+
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -344,10 +345,13 @@ const Students = () => {
                     <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                       className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
+                        <div 
+                          className="flex items-center gap-3 cursor-pointer group/name"
+                          onClick={() => navigate(`/school-admin/profile/${s._id}`)}
+                        >
                           <img src={s.photo || `https://ui-avatars.com/api/?name=${s.firstName}+${s.lastName}&background=random`}
-                            className="w-10 h-10 rounded-md object-cover bg-slate-800 border border-slate-700" alt="" />
-                          <div className="font-semibold">{s.firstName} {s.lastName}</div>
+                            className="w-10 h-10 rounded-md object-cover bg-slate-800 border border-slate-700 group-hover/name:border-brand-primary transition-colors" alt="" />
+                          <div className="font-semibold group-hover/name:text-brand-primary transition-colors">{s.firstName} {s.lastName}</div>
                         </div>
                       </td>
                       <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
