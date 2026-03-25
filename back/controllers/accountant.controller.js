@@ -333,9 +333,10 @@ exports.processPayroll = async (req, res) => {
 
         // Automated Disbursement Notification
         if (status === 'paid') {
+            const teacher = await Teacher.findById(payroll.teacherId).select('userId');
             await nc.sendNotification({
                 schoolId: getSchoolId(req),
-                recipient: payroll.teacherId?._id,
+                recipient: teacher.userId,
                 sender: req.user._id,
                 type: 'Payroll',
                 title: 'Capital Dispatched: Salary Credited',
@@ -375,11 +376,14 @@ exports.getFinancialReport = async (req, res) => {
             { $group: { _id: null, total: { $sum: { $subtract: ['$totalAmount', '$paidAmount'] } } } }
         ]);
 
-        const payrollMatch = { schoolId: new mongoose.Types.ObjectId(schoolId), status: 'paid' };
+        const payrollMatch = { schoolId: new mongoose.Types.ObjectId(schoolId) };
         if (startDate || endDate) {
+            // For report period, we can look at paidAt OR the record context (month/year)
+            // But usually, financial reports look at disbursement date for expenses
             payrollMatch.paidAt = {};
             if (startDate) payrollMatch.paidAt.$gte = new Date(startDate);
             if (endDate) payrollMatch.paidAt.$lte = new Date(endDate);
+            payrollMatch.status = 'paid'; // Fallback to paid-only if specific dates are used
         }
 
         const payrollExpenses = await Payroll.aggregate([
@@ -404,9 +408,9 @@ exports.getFinancialReport = async (req, res) => {
         }));
 
         const payrollTrend = await Payroll.aggregate([
-            { $match: payrollMatch },
+            { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } }, // Include all in trends context
             { $group: {
-                _id: { $month: '$paidAt' },
+                _id: '$month', // Use the month field (1-12) from the model
                 expenses: { $sum: '$netSalary' }
             }},
             { $sort: { '_id': 1 } }
@@ -414,10 +418,12 @@ exports.getFinancialReport = async (req, res) => {
 
         payrollTrend.forEach(p => {
             const mName = months[p._id - 1];
+            if (!mName) return; 
             let entry = trends.find(t => t.name === mName);
             if (entry) entry.expenses = p.expenses;
             else trends.push({ name: mName, income: 0, expenses: p.expenses });
         });
+
 
         const income = feeIncome[0]?.total || 0;
         const pending = pendingFees[0]?.total || 0;

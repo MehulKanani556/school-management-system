@@ -342,6 +342,8 @@ router.get('/student/library/reservations', ...student, stc.getMyReservations);
 router.get('/student/quizzes', ...student, stc.getQuizzes);
 router.post('/student/quiz/submit', ...student, stc.submitQuiz);
 router.get('/student/quiz-history', ...student, stc.getQuizHistory);
+router.get('/student/resources', ...student, stc.getStudentResources);
+
 
 // ─── Parent Routes ─────────────────────────────────────────────────────────
 const parent = [auth, requireRole('Parent')];

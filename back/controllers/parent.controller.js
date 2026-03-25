@@ -437,7 +437,8 @@ exports.verifyFeePayment = async (req, res) => {
 
         if (successPayment) {
             // Find feeId from orderId (Format: ORDER-{feeId}-...)
-            const feeId = orderId.split('-')[1];
+            const parts = orderId.split('-');
+            const feeId = parts.slice(1, -1).join('-');
             const fee = await FeePayment.findById(feeId);
             if (fee && fee.status !== 'paid') {
                 fee.status = 'paid';

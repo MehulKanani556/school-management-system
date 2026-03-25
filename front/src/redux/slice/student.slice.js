@@ -126,6 +126,16 @@ export const fetchQuizHistory = createAsyncThunk('student/fetchQuizHistory', asy
     }
 });
 
+export const fetchStudentResources = createAsyncThunk('student/fetchResources', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/resources');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+
 const studentSlice = createSlice({
     name: 'student',
     initialState: {
@@ -139,9 +149,11 @@ const studentSlice = createSlice({
         timetable: null,
         quizzes: [],
         quizHistory: [],
+        resources: [],
         loading: false,
         error: null,
         message: null
+
     },
     reducers: {
         clearStudentError: (state) => { state.error = null; },
@@ -197,6 +209,10 @@ const studentSlice = createSlice({
             .addCase(fetchQuizHistory.fulfilled, (state, action) => {
                 state.quizHistory = action.payload;
             })
+            .addCase(fetchStudentResources.fulfilled, (state, action) => {
+                state.resources = action.payload;
+            })
+
             .addMatcher(
                 (action) => action.type.endsWith('/rejected'),
                 (state, action) => {

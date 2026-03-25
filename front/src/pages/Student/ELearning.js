@@ -13,16 +13,20 @@ import {
     RotateCcw,
     Download,
     History,
-    X
+    X,
+    Eye
 } from 'lucide-react';
+
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentQuizzes, submitQuizAttempt, fetchQuizHistory } from '../../redux/slice/student.slice';
+import { fetchStudentQuizzes, submitQuizAttempt, fetchQuizHistory, fetchStudentResources } from '../../redux/slice/student.slice';
+
 import { toast } from 'react-hot-toast';
 
 const ELearning = () => {
     const dispatch = useDispatch();
-    const { quizzes, quizHistory, loading } = useSelector(state => state.student);
+    const { quizzes, quizHistory, resources, loading } = useSelector(state => state.student);
     const [activeView, setActiveView] = useState('portal'); // portal, quiz, study
+
     const [selectedQuiz, setSelectedQuiz] = useState(null);
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [score, setScore] = useState(0);
@@ -32,7 +36,9 @@ const ELearning = () => {
     React.useEffect(() => {
         dispatch(fetchStudentQuizzes());
         dispatch(fetchQuizHistory());
+        dispatch(fetchStudentResources());
     }, [dispatch]);
+
 
     // Calculate dynamic stats from quiz history
     const calculateStats = () => {
@@ -68,10 +74,7 @@ const ELearning = () => {
 
     const stats = calculateStats();
 
-    const studyMaterials = [
-        { title: 'Vector Calculus Theory', type: 'PDF Archive', size: '4.2MB', date: '2026-02-15' },
-        { title: 'Organic Synthesis Logic', type: 'Stream Feed', size: '45m 12s', date: '2026-03-01' }
-    ];
+
 
     const startQuiz = (quiz) => {
         if (!quiz.questions || quiz.questions.length === 0) {
@@ -85,6 +88,12 @@ const ELearning = () => {
         setQuizComplete(false);
         setUserAnswers([]);
     };
+
+    const handleAccessStream = (url) => {
+        if (!url) return toast.error("Stream URI not found");
+        window.open(url, '_blank');
+    };
+
 
     const handleAnswer = (index) => {
         const currentQ = selectedQuiz.questions[currentQuestion];
@@ -294,23 +303,37 @@ const ELearning = () => {
                             </h3>
                         </div>
                         <div className="divide-y divide-slate-800/40">
-                            {studyMaterials.map((item, idx) => (
-                                <div key={idx} className="p-8 flex items-center justify-between group hover:bg-white/[0.02] transition-all">
+                            {resources.length === 0 ? (
+                                <div className="p-20 text-center">
+                                    <BookOpen size={48} className="text-slate-800 mx-auto mb-4 opacity-20" />
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-600">No archival nodes mapped for your credentials</p>
+                                </div>
+                            ) : resources.map((item, idx) => (
+                                <div key={item._id || idx} className="p-8 flex items-center justify-between group hover:bg-white/[0.02] transition-all">
                                     <div className="flex items-center gap-6">
                                         <div className="w-12 h-12 bg-slate-800 rounded-md flex items-center justify-center text-slate-500 group-hover:text-student-primary transition-colors border border-slate-700/30">
                                             <Download size={20} />
                                         </div>
                                         <div>
                                             <h4 className="text-sm font-black text-white uppercase tracking-wider italic mb-1">{item.title}</h4>
-                                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">{item.type} • {item.size} • Uploaded {item.date}</p>
+                                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
+                                                {item.resourceType} • {item.subject?.name || 'General Academic'} • Uploaded {new Date(item.uploadDate).toLocaleDateString()}
+                                            </p>
+                                            {item.description && (
+                                                <p className="text-[8px] text-slate-500 mt-1 max-w-md line-clamp-1 italic font-medium">{item.description}</p>
+                                            )}
                                         </div>
                                     </div>
-                                    <button className="px-6 py-3 bg-slate-800/50 hover:bg-student-primary hover:text-black rounded-md text-[9px] font-black uppercase tracking-widest transition-all border border-slate-700/30 opacity-60 hover:opacity-100 italic">
-                                        Access Stream
+                                    <button 
+                                        onClick={() => handleAccessStream(item.fileUrl)}
+                                        className="px-6 py-3 bg-slate-800/50 hover:bg-student-primary hover:text-black rounded-md text-[9px] font-black uppercase tracking-widest transition-all border border-slate-700/30 opacity-60 hover:opacity-100 italic flex items-center gap-2"
+                                    >
+                                        Access Stream <Eye size={12} />
                                     </button>
                                 </div>
                             ))}
                         </div>
+
                     </motion.div>
                 )}
 

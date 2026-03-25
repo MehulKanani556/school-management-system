@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
 const resourceLockerSchema = new mongoose.Schema({
-    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolDomain', required: true },
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Staff', required: true },
+    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
+
     classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
     subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject' },
     title: { type: String, required: true },

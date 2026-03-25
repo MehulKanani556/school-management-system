@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
 const questionBankSchema = new mongoose.Schema({
-    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'SchoolDomain', required: true },
-    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Staff', required: true },
+    schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+
+    teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
+
     subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
     classLevel: { type: String, required: true },
     content: { type: String, required: true },

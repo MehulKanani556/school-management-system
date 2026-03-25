@@ -355,12 +355,11 @@ exports.getStudentDetail = async (req, res) => {
         }));
 
         // 2. Exam Marks
-        const exams = await Exam.find({ schoolId: teacher.schoolId._id, 'studentMarks.studentId': id });
-        const examSummary = exams.map(e => ({
-            title: e.title,
-            subject: e.subject,
-            maxMarks: e.maxMarks,
-            score: e.studentMarks.find(m => m.studentId.toString() === id)?.score || 0
+        const marks = await Mark.find({ studentId: id, schoolId: teacher.schoolId._id })
+            .populate({ path: 'examId', populate: { path: 'subject' } });
+        const examSummary = marks.map(m => ({
+            title: m.examId?.name, subject: m.examId?.subject?.name,
+            maxMarks: m.examId?.maxMarks, score: m.marksObtained
         }));
 
         // 3. Assignment Submissions

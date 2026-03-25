@@ -13,9 +13,14 @@ const BookReservation = require('../models/bookReservation.model');
 const Quiz = require('../models/quiz.model');
 const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
+const Teacher = require('../models/teacher.model');
+const Subject = require('../models/subject.model');
 const nc = require('./notification.controller');
+
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
+const ResourceLocker = require('../models/resourceLocker.model');
+
 
 // Helper to get student node
 const getStudent = async (studentId) => {
@@ -504,5 +509,23 @@ exports.getQuizHistory = async (req, res) => {
             })
             .sort({ createdAt: -1 });
         res.json(attempts);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 17. E-Learning Resources
+exports.getStudentResources = async (req, res) => {
+    try {
+        const student = await getStudent(req.user._id);
+        const resources = await ResourceLocker.find({
+            schoolId: student.schoolId._id,
+            $or: [
+                { classSection: student.classSection._id },
+                { classSection: null }
+            ]
+        })
+        .populate('teacherId', 'firstName lastName')
+        .populate('subject', 'name')
+        .sort({ uploadDate: -1 });
+        res.json(resources);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

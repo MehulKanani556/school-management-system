@@ -24,17 +24,34 @@ feePaymentSchema.pre('save', function(next) {
   next();
 });
 
-feePaymentSchema.pre('findOneAndUpdate', function(next) {
+feePaymentSchema.pre('findOneAndUpdate', async function(next) {
     const update = this.getUpdate();
+    
+    // Recalculate if any component of totalAmount is being modified
     if (update.amount !== undefined || update.discount !== undefined || update.lateFees !== undefined) {
-        const amount = update.amount ?? this._update.amount;
-        const discount = update.discount ?? this._update.discount;
-        const lateFees = update.lateFees ?? this._update.lateFees;
-        // This is complex because we don't have access to current document values easily in pre-findOneAndUpdate if not provided in update
-        // But for our simplified logic we can try to calculate if all are provided or assume they are managed.
+        try {
+            // Find current document to get values for fields NOT included in the update
+            const doc = await this.model.findOne(this.getQuery());
+            if (doc) {
+                const amount = update.amount !== undefined ? update.amount : doc.amount;
+                const discount = update.discount !== undefined ? update.discount : doc.discount;
+                const lateFees = update.lateFees !== undefined ? update.lateFees : doc.lateFees;
+                
+                const totalAmount = (amount || 0) - (discount || 0) + (lateFees || 0);
+
+                // Update the totalAmount in the update object
+                this.set({ totalAmount });
+
+                // If status logic was also needed here, we'd add it... 
+                // but usually status is handled by business logic based on paidAmount.
+            }
+        } catch (err) {
+            console.error('FAILED TO RECALCULATE TOTAL AMOUNT IN HOOK:', err);
+        }
     }
     next();
 });
+
 
 feePaymentSchema.index({ schoolId: 1, studentId: 1, category: 1, academicYear: 1 }, { unique: true });
 
