@@ -142,10 +142,10 @@ exports.getTeacherContext = async (req, res) => {
                 { 'subjectAssignments.teachers': teacher._id }
             ]
         })
-        .populate('standardId', 'level name _id')
-        .populate('subjects', 'name _id')
-        .populate('subjectAssignments.subject', 'name _id')
-        .lean();
+            .populate('standardId', 'level name _id')
+            .populate('subjects', 'name _id')
+            .populate('subjectAssignments.subject', 'name _id')
+            .lean();
 
         // Deduplicate standards
         const standardMap = new Map();
@@ -723,19 +723,19 @@ exports.getPerformanceAnalytics = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
-        
+
         const assignedClasses = await ClassSection.find({
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const classIds = assignedClasses.map(c => c._id);
         const standardIds = assignedClasses.map(c => c.standardId).filter(Boolean);
 
-        const exams = await Exam.find({ 
+        const exams = await Exam.find({
             $or: [
                 { classSection: { $in: classIds } },
                 { standardId: { $in: standardIds }, classSection: null }
             ],
-            schoolId: teacher.schoolId._id 
+            schoolId: teacher.schoolId._id
         });
         const examIds = exams.map(e => e._id);
 
@@ -828,11 +828,10 @@ exports.bulkAttendanceImport = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
 
         // Find or create the attendance document for this class and date
+        const cs = await ClassSection.findById(classSectionId);
         const attendance = await Attendance.findOneAndUpdate(
             { schoolId: teacher.schoolId._id, classSection: classSectionId, date: new Date(date) },
-            {
-                $setOnInsert: { standardId: (await ClassSection.findById(classSectionId)).standardId, submittedBy: req.user._id }
-            },
+            { $setOnInsert: { standardId: cs.standardId, submittedBy: req.user._id } },
             { upsert: true, new: true }
         );
 
@@ -899,15 +898,15 @@ exports.getExamsByClass = async (req, res) => {
         });
         const standardIds = assignedClasses.map(c => c.standardId);
 
-        const exams = await Exam.find({ 
+        const exams = await Exam.find({
             $or: [
                 { classSection: { $in: assignedClasses.map(c => c._id) } },
                 { standardId: { $in: standardIds }, classSection: null }
             ],
-            schoolId: teacher.schoolId._id 
+            schoolId: teacher.schoolId._id
         })
-        .populate('subject', 'name')
-        .sort({ date: 1 });
+            .populate('subject', 'name')
+            .sort({ date: 1 });
 
         // Transform to match frontend expectations if necessary
         const formatted = exams.map(e => ({
@@ -1086,7 +1085,7 @@ exports.generateExam = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         const { subject, classLevel, totalMarks } = req.body;
-        
+
         const questions = await QuestionBank.find({
             teacherId: teacher._id,
             subject,
@@ -1097,7 +1096,7 @@ exports.generateExam = async (req, res) => {
         let examPaper = [];
         let currentMarks = 0;
         const shuffled = questions.sort(() => 0.5 - Math.random());
-        
+
         for (let q of shuffled) {
             if (currentMarks + q.marks <= totalMarks) {
                 examPaper.push(q);
@@ -1106,10 +1105,10 @@ exports.generateExam = async (req, res) => {
             if (currentMarks >= totalMarks) break;
         }
 
-        res.json({ 
-            message: 'Academic assessment generation complete', 
+        res.json({
+            message: 'Academic assessment generation complete',
             examPaper,
-            totalMarks: currentMarks 
+            totalMarks: currentMarks
         });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1208,7 +1207,7 @@ exports.getQuizAttempts = async (req, res) => {
             .sort({ createdAt: -1 });
         res.json(attempts);
     } catch (err) { res.status(500).json({ message: err.message }); }
-};  
+};
 
 module.exports = {
     getTeacherDashboard: exports.getTeacherDashboard,

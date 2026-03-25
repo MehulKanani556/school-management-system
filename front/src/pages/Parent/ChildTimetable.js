@@ -7,6 +7,7 @@ import { Calendar, Clock, BookOpen, Coffee, User } from 'lucide-react';
 const ChildTimetable = () => {
     const dispatch = useDispatch();
     const { selectedChild, timetable, loading } = useSelector((state) => state.parent);
+    console.log(timetable);
 
     useEffect(() => {
         if (selectedChild?._id) {
@@ -15,17 +16,28 @@ const ChildTimetable = () => {
     }, [selectedChild?._id, dispatch]);
 
     const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const timeSlots = Array.from({ length: 8 }, (_, i) => ({
-        start: `${9 + i}:00`,
-        end: `${10 + i}:00`
-    }));
+
+    // Dynamically derive time slots from the schedule data
+    const timeSlots = React.useMemo(() => {
+        if (!timetable?.schedule) return [];
+        const slots = [];
+        timetable.schedule.forEach(day => {
+            day.periods?.forEach(period => {
+                const exists = slots.find(s => s.start === period.startTime && s.end === period.endTime);
+                if (!exists) {
+                    slots.push({ start: period.startTime, end: period.endTime });
+                }
+            });
+        });
+        return slots.sort((a, b) => a.start.localeCompare(b.start));
+    }, [timetable?.schedule]);
 
     if (loading && !timetable) {
         return <div className="flex items-center justify-center pt-20 animate-pulse text-luxury-rose">INITIALizing SCHEDULE SYNC...</div>;
     }
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8"
@@ -62,58 +74,66 @@ const ChildTimetable = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {timeSlots.map((slot, rowIndex) => (
-                                <tr key={rowIndex} className="group">
-                                    <td className="p-6 border border-brand-border/20 bg-slate-900/40 sticky left-0 z-10 backdrop-blur-md">
-                                        <div className="flex flex-col items-center justify-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
-                                            <span className="text-[10px] font-black text-white tracking-widest">{slot.start}</span>
-                                            <div className="w-[1px] h-3 bg-luxury-rose" />
-                                            <span className="text-[10px] font-black text-slate-500 tracking-widest">{slot.end}</span>
-                                        </div>
-                                    </td>
-                                    {days.map(day => {
-                                        const dayData = timetable?.days?.find(d => d.day === day);
-                                        const session = dayData?.slots?.find(s => s.startTime === slot.start);
-                                        const isBreak = session?.type === 'Break';
+                            {timeSlots.length > 0 ? (
+                                timeSlots.map((slot, rowIndex) => (
+                                    <tr key={rowIndex} className="group">
+                                        <td className="p-6 border border-brand-border/20 bg-slate-900/40 sticky left-0 z-10 backdrop-blur-md">
+                                            <div className="flex flex-col items-center justify-center gap-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                                                <span className="text-[10px] font-black text-white tracking-widest">{slot.start}</span>
+                                                <div className="w-[1px] h-3 bg-luxury-rose" />
+                                                <span className="text-[10px] font-black text-slate-500 tracking-widest">{slot.end}</span>
+                                            </div>
+                                        </td>
+                                        {days.map(day => {
+                                            const dayData = timetable?.schedule?.find(d => d.day === day);
+                                            const session = dayData?.periods?.find(p => p.startTime === slot.start);
+                                            const isBreak = session?.type === 'Break';
 
-                                        return (
-                                            <td key={day} className={`p-4 border border-brand-border/20 transition-all duration-300 relative group/cell min-w-[180px] ${isBreak ? 'bg-parent-primary/5' : session ? 'hover:bg-white/[0.03]' : 'opacity-10'}`}>
-                                                {session ? (
-                                                    <div className="relative z-10">
-                                                        {isBreak ? (
-                                                            <div className="flex flex-col items-center justify-center py-4 bg-parent-primary/10 border border-parent-primary/20 rounded-md">
-                                                                <Coffee className="text-parent-primary/50 mb-2" size={24} />
-                                                                <span className="text-[10px] font-black text-parent-primary uppercase tracking-[0.4em]">Intermission</span>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-3">
-                                                                <div className="flex items-center gap-2 mb-2">
-                                                                    <BookOpen size={14} className="text-luxury-rose" />
-                                                                    <span className="text-[11px] font-black text-white uppercase tracking-wider">{session.subject?.name}</span>
+                                            return (
+                                                <td key={day} className={`p-4 border border-brand-border/20 transition-all duration-300 relative group/cell min-w-[180px] ${isBreak ? 'bg-parent-primary/5' : session ? 'hover:bg-white/[0.03]' : 'opacity-10'}`}>
+                                                    {session ? (
+                                                        <div className="relative z-10">
+                                                            {isBreak ? (
+                                                                <div className="flex flex-col items-center justify-center py-4 bg-parent-primary/10 border border-parent-primary/20 rounded-md">
+                                                                    <Coffee className="text-parent-primary/50 mb-2" size={24} />
+                                                                    <span className="text-[10px] font-black text-parent-primary uppercase tracking-[0.4em]">Intermission</span>
                                                                 </div>
-                                                                <div className="flex items-center gap-2 opacity-50">
-                                                                    <User size={12} className="text-slate-400" />
-                                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                                                                        {session.teacher?.firstName} {session.teacher?.lastName}
-                                                                    </span>
+                                                            ) : (
+                                                                <div className="space-y-3">
+                                                                    <div className="flex items-center gap-2 mb-2">
+                                                                        <BookOpen size={14} className="text-luxury-rose" />
+                                                                        <span className="text-[11px] font-black text-white uppercase tracking-wider">{session.subject?.name}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 opacity-50">
+                                                                        <User size={12} className="text-slate-400" />
+                                                                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                                                                            {session.teacher?.firstName} {session.teacher?.lastName}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 opacity-40">
+                                                                        <Clock size={11} className="text-slate-500" />
+                                                                        <span className="text-[8px] font-bold text-slate-500 tracking-[0.2em]">{session.startTime} - {session.endTime}</span>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex items-center gap-2 opacity-40">
-                                                                    <Clock size={11} className="text-slate-500" />
-                                                                    <span className="text-[8px] font-bold text-slate-500 tracking-[0.2em]">{session.startTime} - {session.endTime}</span>
-                                                                </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                ) : (
-                                                    <div className="h-20 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity">
-                                                        <span className="text-[8px] font-black uppercase text-slate-800 tracking-widest">Unscheduled</span>
-                                                    </div>
-                                                )}
-                                            </td>
-                                        );
-                                    })}
+                                                            )}
+                                                        </div>
+                                                    ) : (
+                                                        <div className="h-20 flex items-center justify-center opacity-0 group-hover/cell:opacity-100 transition-opacity">
+                                                            <span className="text-[8px] font-black uppercase text-slate-800 tracking-widest">Unscheduled</span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={days.length + 1} className="p-20 text-center text-slate-500 italic text-sm tracking-widest uppercase font-black">
+                                        No active schedule found for the selected term.
+                                    </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

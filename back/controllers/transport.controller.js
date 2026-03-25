@@ -79,7 +79,7 @@ exports.unassignStudent = async (req, res) => {
     try {
         const { studentId } = req.body;
         const schoolId = getSchoolId(req);
-        
+
         const route = await Route.findOne({ _id: req.params.id, schoolId });
         if (!route) return res.status(404).json({ message: 'Route not found' });
 
@@ -98,7 +98,7 @@ exports.unassignStudent = async (req, res) => {
 
 exports.getTransportApplicants = async (req, res) => {
     try {
-        const students = await Student.find({ 
+        const students = await Student.find({
             schoolId: getSchoolId(req),
             transportStatus: { $in: ['Applied', 'Approved', 'Active'] }
         }).populate('standard classSection');
@@ -141,7 +141,7 @@ exports.assignStudent = async (req, res) => {
     try {
         const { studentId, pickupStop, dropoffStop, seatNumber } = req.body;
         const schoolId = getSchoolId(req);
-        
+
         const student = await Student.findById(studentId);
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
@@ -159,7 +159,7 @@ exports.assignStudent = async (req, res) => {
         // 2. State Transformation
         const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
         const assignmentData = { studentId, pickupStop, dropoffStop, seatNumber };
-        
+
         if (index !== -1) {
             route.assignedStudents[index] = assignmentData;
         } else {
@@ -177,12 +177,12 @@ exports.assignStudent = async (req, res) => {
         if (route.fee > 0) {
             const FeePayment = require('../models/feePayment.model');
             const currentYear = new Date().getFullYear().toString();
-            
+
             // Upsert Transport Fee for current cycle
             await FeePayment.findOneAndUpdate(
-                { 
-                    studentId, 
-                    category: 'Transport', 
+                {
+                    studentId,
+                    category: 'Transport',
                     academicYear: currentYear,
                     status: { $ne: 'paid' } // Only if not already paid
                 },
@@ -234,7 +234,7 @@ exports.addMaintenanceRecord = async (req, res) => {
             notes
         });
         vehicle.lastServiceDate = date || new Date();
-        
+
         await vehicle.save();
         const updated = await Vehicle.findById(id).populate('driverId');
         res.json({ message: 'Maintenance record synthesized', data: updated });
@@ -257,7 +257,7 @@ exports.addFuelLog = async (req, res) => {
             odometerReading,
             notes
         });
-        
+
         await vehicle.save();
         res.json({ message: 'Fuel allocation logged', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -280,7 +280,7 @@ exports.addInsuranceRenewal = async (req, res) => {
             provider
         });
         vehicle.insuranceExpiry = expiryDate;
-        
+
         await vehicle.save();
         res.json({ message: 'Insurance matrix updated', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -294,12 +294,12 @@ exports.updateVehicleLocation = async (req, res) => {
 
         const vehicle = await Vehicle.findOneAndUpdate(
             { _id: id, schoolId },
-            { 
-                $set: { 
-                    'currentLocation.lat': lat, 
-                    'currentLocation.lng': lng, 
-                    'currentLocation.updatedAt': new Date() 
-                } 
+            {
+                $set: {
+                    'currentLocation.lat': lat,
+                    'currentLocation.lng': lng,
+                    'currentLocation.updatedAt': new Date()
+                }
             },
             { new: true }
         );
@@ -313,7 +313,7 @@ exports.updateVehicleLocation = async (req, res) => {
             io.to(`vehicle_${id}`).emit("vehicle_location_updated", updatePayload);
             io.to("fleet_management").emit("fleet_location_updated", updatePayload);
         }
-        
+
         res.json({ message: 'Coordinate uplink successful', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -355,17 +355,17 @@ exports.getTripLogs = async (req, res) => {
     try {
         const { date, startDate, endDate } = req.query;
         let query = { schoolId: getSchoolId(req) };
-        
+
         if (startDate && endDate) {
-            query.date = { 
-                $gte: new Date(startDate), 
-                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999)) 
+            query.date = {
+                $gte: new Date(startDate),
+                $lte: new Date(new Date(endDate).setHours(23, 59, 59, 999))
             };
         } else if (date) {
             const start = new Date(date);
-            start.setHours(0,0,0,0);
+            start.setHours(0, 0, 0, 0);
             const end = new Date(date);
-            end.setHours(23,59,59,999);
+            end.setHours(23, 59, 59, 999);
             query.date = { $gte: start, $lte: end };
         }
 
@@ -428,7 +428,7 @@ exports.toggleBoarding = async (req, res) => {
         record.boardingTime = boarded ? new Date() : null;
 
         await log.save();
-        
+
         const updatedLog = await TripLog.findById(log._id)
             .populate('routeId').populate('vehicleId').populate('driverId').populate('attendance.studentId', 'firstName lastName');
 
@@ -442,7 +442,7 @@ exports.getTransportAnalytics = async (req, res) => {
         const vehicles = await Vehicle.find({ schoolId });
         const drivers = await Driver.find({ schoolId });
         const routes = await Route.find({ schoolId });
-        const students = await Student.find({ schoolId, isDeleted: false });
+        const students = await Student.find({ schoolId, deletedAt: null, isActive: true });
 
         // Fleet Telemetry
         const vehicleStats = {
@@ -470,7 +470,7 @@ exports.getTransportAnalytics = async (req, res) => {
         const recentTrips = await TripLog.find({ schoolId, status: 'Completed' })
             .limit(10)
             .sort({ date: -1 });
-        
+
         const delayMetric = recentTrips.length ? (recentTrips.filter(t => t.delayReason).length / recentTrips.length * 100).toFixed(0) : 0;
 
         res.json({
@@ -486,7 +486,7 @@ exports.bulkAssignStudents = async (req, res) => {
     try {
         const { routeId, studentIds, pickupStop, dropoffStop } = req.body;
         const schoolId = getSchoolId(req);
-        
+
         const route = await Route.findOne({ _id: routeId, schoolId }).populate('vehicleId');
         if (!route) return res.status(404).json({ message: 'Route matrix not found' });
 

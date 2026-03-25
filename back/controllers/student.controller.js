@@ -47,10 +47,10 @@ exports.getAttendance = async (req, res) => {
         }).select('date records.$').sort({ date: -1 });
 
         // Format to only show this student's status for each date
-        const formatted = attendance.map(a => ({
-            date: a.date,
-            status: a.records[0].status
-        }));
+        const formatted = attendance.map(a => {
+            const myRecord = a.records.find(r => r.studentId.toString() === student._id.toString());
+            return { date: a.date, status: myRecord?.status || 'N/A', arrivalTime: myRecord?.arrivalTime, departureTime: myRecord?.departureTime };
+        });
         res.json(formatted);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
