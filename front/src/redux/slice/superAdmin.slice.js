@@ -331,7 +331,20 @@ const superAdminSlice = createSlice({
                 (action) => action.type.endsWith('/rejected'),
                 (state, action) => {
                     state.loading = false;
-                    state.error = action.payload;
+                    const payload = action.payload;
+                    let errorMsg = 'Error';
+                    
+                    if (typeof payload === 'string') {
+                        errorMsg = payload;
+                    } else if (payload && typeof payload.message === 'string') {
+                        errorMsg = payload.message;
+                    } else if (action.error && typeof action.error.message === 'string') {
+                        errorMsg = action.error.message;
+                    } else if (payload && typeof payload === 'object') {
+                        errorMsg = JSON.stringify(payload);
+                    }
+                    
+                    state.error = errorMsg;
                 }
             );
     }

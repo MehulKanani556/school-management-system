@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchRoutesSlice, assignStudentSlice, unassignStudentSlice, bulkAssignStudentSlice, clearTransportMessage, fetchTransportApplicantsSlice, rejectApplicantSlice } from '../../redux/slice/transport.slice';
 import { fetchStudents } from '../../redux/slice/schoolAdmin.slice';
 import { Users, Navigation, MapPin, Search, Plus, User, Loader2, X, AlertCircle, Inbox, CheckCircle, XCircle } from 'lucide-react';
@@ -233,7 +234,11 @@ const StudentAssignment = () => {
                                                 <User size={18} />
                                             </div>
                                             <div className="flex-1 overflow-hidden">
-                                                <p className="text-xs font-black text-slate-100 uppercase italic tracking-tighter truncate">{as.studentId?.firstName} {as.studentId?.lastName}</p>
+                                                <Link to={`/school-admin/profile/${as.studentId?._id}`} className="block">
+                                                    <p className="text-xs font-black text-slate-100 uppercase italic tracking-tighter truncate hover:text-transporter-primary transition-colors cursor-pointer">
+                                                        {as.studentId?.firstName} {as.studentId?.lastName}
+                                                    </p>
+                                                </Link>
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <MapPin size={10} className="text-emerald-500 opacity-60 flex-shrink-0" />
                                                     <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
@@ -275,7 +280,9 @@ const StudentAssignment = () => {
                                             <User size={24} />
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-black text-slate-100 uppercase italic tracking-tighter leading-none">{a.firstName} {a.lastName}</h4>
+                                            <Link to={`/school-admin/profile/${a._id}`} className="block">
+                                                <h4 className="text-sm font-black text-slate-100 uppercase italic tracking-tighter leading-none hover:text-transporter-primary transition-colors cursor-pointer">{a.firstName} {a.lastName}</h4>
+                                            </Link>
                                             <p className="text-[10px] font-black text-slate-500 uppercase italic tracking-widest mt-2 bg-slate-950 px-2 py-0.5 rounded border border-slate-800/60 inline-block">{a.standard?.name || 'GEN-X'} // {a.classSection?.name || 'ALPHA'}</p>
                                         </div>
                                     </div>

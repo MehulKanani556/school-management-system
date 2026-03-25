@@ -96,22 +96,36 @@ exports.getUniversalProfile = async (req, res) => {
         }
 
         // 2. Try to find in User model
-        const user = await User.findById(id).select('-password').populate('schoolId', 'name logo');
+        let user = await User.findById(id).select('-password').populate('schoolId', 'name logo');
+        
+        let teacherRecord = null;
         if (!user) {
+            // 3. Try to find in Teacher model directly (using Teacher _id)
+            teacherRecord = await Teacher.findById(id).populate('schoolId', 'name logo');
+            if (teacherRecord && teacherRecord.userId) {
+                user = await User.findById(teacherRecord.userId).select('-password');
+            }
+        }
+
+        if (!user && !teacherRecord) {
             return res.status(404).json({ success: false, message: "Identity not detected in platform registry." });
         }
 
         let extraData = {};
-        if (user.role === 'Teacher') {
-            const teacherRecord = await Teacher.findOne({ userId: id })
-                .populate('schoolId', 'name logo');
+        const activeRole = user ? user.role : 'Teacher';
+        const activeId = user ? user._id : id;
+
+        if (activeRole === 'Teacher') {
+            if (!teacherRecord) {
+                teacherRecord = await Teacher.findOne({ userId: activeId }).populate('schoolId', 'name logo');
+            }
             
             let teacherMetrics = {};
             // If viewer is Admin or self
-            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === id) {
+            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === activeId.toString() || (teacherRecord && viewerId.toString() === teacherRecord._id.toString())) {
                 const salary = teacherRecord ? await Payroll.find({ teacherId: teacherRecord._id }).sort({ paidAt: -1 }).limit(12) : [];
 
-                const attendance = await StaffAttendance.find({ userId: id }).sort({ date: -1 }).limit(30);
+                const attendance = await StaffAttendance.find({ userId: activeId }).sort({ date: -1 }).limit(30);
                 
                 // Fetch whole class-timetables where this teacher has any period
                 const fullTimetables = teacherRecord ? await Timetable.find({ 'schedule.periods.teacher': teacherRecord._id })
@@ -150,22 +164,22 @@ exports.getUniversalProfile = async (req, res) => {
                 ...teacherMetrics 
             };
         } else if (user.role === 'Parent') {
-            const children = await Student.find({ parentId: id }).select('firstName lastName admissionNumber rollNumber photo');
+            const children = await Student.find({ parentId: activeId }).select('firstName lastName admissionNumber rollNumber photo');
             extraData = { children };
         } else if (user.role === 'Accountant' || user.role === 'Librarian' || user.role === 'Transport_Manager') {
              // For staff members, fetch their specific record if needed, but for now we have User basic info
-             if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === id) {
-                const salary = await Payroll.find({ userId: id }).sort({ paidAt: -1 }).limit(12);
-                const attendance = await StaffAttendance.find({ userId: id }).sort({ date: -1 }).limit(30);
+             if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === activeId.toString()) {
+                const salary = await Payroll.find({ userId: activeId }).sort({ paidAt: -1 }).limit(12);
+                const attendance = await StaffAttendance.find({ userId: activeId }).sort({ date: -1 }).limit(30);
                 extraData = { salary, attendance };
              }
         }
 
         res.status(200).json({
             success: true,
-            role: user.role,
+            role: user ? user.role : 'Teacher',
             data: {
-                ...user._doc,
+                ...(user ? user._doc : {}),
                 ...extraData
             }
         });

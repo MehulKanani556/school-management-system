@@ -9,7 +9,8 @@ export const fetchUsers = createAsyncThunk(
             const response = await axiosInstance.get('/users');
             return response.data.users;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Security feed interruption');
+            const message = error.response?.data?.message || error.message || 'Security feed interruption';
+            return rejectWithValue(typeof message === 'object' ? JSON.stringify(message) : message);
         }
     }
 );
@@ -21,7 +22,8 @@ export const addStaff = createAsyncThunk(
             const response = await axiosInstance.post('/school-admin/staff', staffData);
             return response.data.user;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Provisioning failed');
+            const message = error.response?.data?.message || error.message || 'Provisioning failed';
+            return rejectWithValue(typeof message === 'object' ? JSON.stringify(message) : message);
         }
     }
 );
@@ -33,7 +35,8 @@ export const updateStaff = createAsyncThunk(
             const response = await axiosInstance.put(`/school-admin/staff/${id}`, staffData);
             return response.data;
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Update failed');
+            const message = error.response?.data?.message || error.message || 'Update failed';
+            return rejectWithValue(typeof message === 'object' ? JSON.stringify(message) : message);
         }
     }
 );
@@ -45,7 +48,8 @@ export const deleteStaff = createAsyncThunk(
             const response = await axiosInstance.delete(`/school-admin/staff/${id}`);
             return { id, message: response.data.message };
         } catch (error) {
-            return rejectWithValue(error.response?.data?.message || 'Deletion failed');
+            const message = error.response?.data?.message || error.message || 'Deletion failed';
+            return rejectWithValue(typeof message === 'object' ? JSON.stringify(message) : message);
         }
     }
 );

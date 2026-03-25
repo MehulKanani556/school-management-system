@@ -111,8 +111,8 @@ const StaffRegistry = () => {
                 </div>
             </div>
 
-            {message && <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest italic rounded-md shadow-xl text-center">{message}</div>}
-            {error && <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest italic rounded-md shadow-xl text-center">{error}</div>}
+            {message && <div className="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-500 text-[10px] font-black uppercase tracking-widest italic rounded-md shadow-xl text-center">{typeof message === 'object' ? message.message : message}</div>}
+            {error && <div className="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-500 text-[10px] font-black uppercase tracking-widest italic rounded-md shadow-xl text-center">{typeof error === 'object' ? error.message : error}</div>}
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20">
                 {loading && !users.length ? (

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { fetchUsers, addStaff, updateStaff, deleteStaff, clearUserMessage, clearUserError } from '../../redux/slice/user.slice';
 import { fetchDriversSlice, addDriverSlice, updateDriverSlice, deleteDriverSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
 import { 
@@ -461,12 +461,21 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
             <div className="flex-1 space-y-6 relative z-10">
                 <div className="flex justify-between items-start">
                     <div>
-                        <h3 
-                            className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 group-hover:text-sky-400 transition-colors cursor-pointer"
-                            onClick={() => isStaff && onView && onView()}
-                        >
-                            {isStaff ? `${member.firstName} ${member.lastName}` : member.name}
-                        </h3>
+                        {isStaff ? (
+                            <h3 
+                                className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 group-hover:text-sky-400 transition-colors cursor-pointer"
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    onView && onView();
+                                }}
+                            >
+                                {member.firstName} {member.lastName}
+                            </h3>
+                        ) : (
+                            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 hover:text-schooladmin-primary transition-colors">
+                                {member.name}
+                            </h3>
+                        )}
                         {isStaff ? (
                             <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">

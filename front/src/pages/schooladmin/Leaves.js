@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchLeaves, updateLeaveStatus } from '../../redux/slice/schoolAdmin.slice';
 import { motion } from 'framer-motion';
 import { CheckCircle2, XCircle, Clock, CalendarDays, Search, User, FileText, ChevronRight } from 'lucide-react';
@@ -109,7 +110,11 @@ const Leaves = () => {
                       <User size={20} className="text-slate-400" />
                     </div>
                     <div>
-                      <h3 className="font-black text-white uppercase tracking-tighter leading-none mb-1">{l.teacherId?.firstName} {l.teacherId?.lastName}</h3>
+                      <Link to={`/school-admin/profile/${l.teacherId?._id}`} className="block">
+                        <h3 className="font-black text-white uppercase tracking-tighter leading-none mb-1 hover:text-schooladmin-primary transition-colors cursor-pointer">
+                          {l.teacherId?.firstName} {l.teacherId?.lastName}
+                        </h3>
+                      </Link>
                       <p className="text-[10px] text-slate-500 font-black tracking-widest uppercase">{l.teacherId?.employeeId}</p>
                     </div>
                   </div>

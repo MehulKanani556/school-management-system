@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Plus, Pencil, Trash2, Search, Star, MessageSquareQuote, Rocket, GraduationCap, ChevronRight } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { format, parseISO } from 'date-fns';
+import { Link } from 'react-router-dom';
 
 const validationSchema = Yup.object({
   teacherId: Yup.string().required('Teacher is required'),
@@ -123,7 +124,11 @@ const Reviews = () => {
                     <GraduationCap size={24} className="text-white opacity-80" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-white hover:text-brand-primary transition-colors cursor-default uppercase tracking-tighter">{r.teacherId?.firstName} {r.teacherId?.lastName}</h3>
+                    <Link to={`/school-admin/profile/${r.teacherId?._id}`} className="block">
+                      <h3 className="text-lg font-black text-white hover:text-brand-primary transition-colors cursor-pointer uppercase tracking-tighter">
+                        {r.teacherId?.firstName} {r.teacherId?.lastName}
+                      </h3>
+                    </Link>
                     <div className="flex items-center gap-2 mt-1">
                        <p className="text-[10px] text-brand-primary font-black uppercase tracking-widest">Employee {r.teacherId?.employeeId}</p>
                        <div className="w-1 h-1 rounded-md bg-slate-700" />

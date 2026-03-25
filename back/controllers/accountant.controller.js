@@ -200,27 +200,41 @@ exports.getPayroll = async (req, res) => {
     try {
         const { search, month, year, page = 1, limit = 10 } = req.query;
         const schoolId = req.user.schoolId;
-        const query = { schoolId };
+        const query = { schoolId: new mongoose.Types.ObjectId(schoolId) };
 
         if (month) query.month = parseInt(month);
         if (year) query.year = parseInt(year);
         
-        let teacherIds = [];
         if (search) {
-            const teachers = await Teacher.find({
-                schoolId,
-                $or: [
-                    { firstName: { $regex: search, $options: 'i' } },
-                    { lastName: { $regex: search, $options: 'i' } },
-                    { employeeId: { $regex: search, $options: 'i' } }
-                ]
-            }).select('_id');
-            teacherIds = teachers.map(t => t._id);
-            query.teacherId = { $in: teacherIds };
+            const [teachers, users] = await Promise.all([
+                Teacher.find({
+                    schoolId,
+                    $or: [
+                        { firstName: { $regex: search, $options: 'i' } },
+                        { lastName: { $regex: search, $options: 'i' } },
+                        { employeeId: { $regex: search, $options: 'i' } }
+                    ]
+                }).select('_id'),
+                User.find({
+                    schoolId,
+                    role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] },
+                    $or: [
+                        { firstName: { $regex: search, $options: 'i' } },
+                        { lastName: { $regex: search, $options: 'i' } },
+                        { employeeId: { $regex: search, $options: 'i' } }
+                    ]
+                }).select('_id')
+            ]);
+            
+            query.$or = [
+                { teacherId: { $in: teachers.map(t => t._id) } },
+                { userId: { $in: users.map(u => u._id) } }
+            ];
         }
 
         const payroll = await Payroll.find(query)
             .populate('teacherId', 'firstName lastName employeeId')
+            .populate('userId', 'firstName lastName employeeId role')
             .sort({ createdAt: -1 })
             .skip((page - 1) * limit)
             .limit(parseInt(limit));
@@ -239,11 +253,17 @@ exports.getPayroll = async (req, res) => {
 
         res.status(200).json({
             payroll,
-            total,
-            pages: Math.ceil(total / limit),
-            currentPage: parseInt(page),
-            totalPaid: totals[0]?.totalPaid || 0,
-            totalPending: totals[0]?.totalPending || 0
+            pagination: {
+                payroll: {
+                    total,
+                    pages: Math.ceil(total / limit),
+                    current: parseInt(page)
+                }
+            },
+            totals: {
+                paid: totals[0]?.totalPaid || 0,
+                pending: totals[0]?.totalPending || 0
+            }
         });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -253,28 +273,54 @@ exports.generatePayroll = async (req, res) => {
         const { month, year } = req.body;
         const schoolId = getSchoolId(req);
 
-        // Fetch all active teachers
-        const teachers = await Teacher.find({ schoolId, isActive: true, deletedAt: null });
-        if (!teachers.length) return res.status(404).json({ message: 'No active staff members found' });
+        // Fetch all active teachers AND staff
+        const [teachers, otherStaff] = await Promise.all([
+            Teacher.find({ schoolId, isActive: true, deletedAt: null }),
+            User.find({ 
+                schoolId, 
+                isActive: true, 
+                role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] } 
+            })
+        ]);
+
+        if (!teachers.length && !otherStaff.length) return res.status(404).json({ message: 'No active staff members found' });
 
         // Check for existing records
         const existing = await Payroll.find({ schoolId, month, year });
-        const existingIds = new Set(existing.map(p => p.teacherId.toString()));
+        const existingTeacherIds = new Set(existing.filter(p => p.teacherId).map(p => p.teacherId.toString()));
+        const existingUserIds = new Set(existing.filter(p => p.userId).map(p => p.userId.toString()));
 
         const payload = [];
+        
+        // Teachers
         for (const t of teachers) {
-            if (!existingIds.has(t._id.toString())) {
-                const bonus = 0;
-                const deductions = 0;
+            if (!existingTeacherIds.has(t._id.toString())) {
                 payload.push({
                     schoolId,
                     teacherId: t._id,
                     month,
                     year,
                     basicSalary: t.baseSalary || 0,
-                    bonus,
-                    deductions,
-                    netSalary: (t.baseSalary || 0) + bonus - deductions,
+                    bonus: 0,
+                    deductions: 0,
+                    netSalary: t.baseSalary || 0,
+                    status: 'unpaid'
+                });
+            }
+        }
+
+        // Other Staff
+        for (const s of otherStaff) {
+            if (!existingUserIds.has(s._id.toString())) {
+                payload.push({
+                    schoolId,
+                    userId: s._id,
+                    month,
+                    year,
+                    basicSalary: s.baseSalary || 0,
+                    bonus: 0,
+                    deductions: 0,
+                    netSalary: s.baseSalary || 0,
                     status: 'unpaid'
                 });
             }
@@ -282,21 +328,23 @@ exports.generatePayroll = async (req, res) => {
 
         if (!payload.length) return res.status(400).json({ message: 'Payroll cluster already synchronized for this cycle. All staff members are up to date.' });
 
-
         await Payroll.insertMany(payload);
-
         await logAudit(req, 'GENERATE_PAYROLL', 'Finance', `Generated payroll for ${payload.length} staff members for ${month}/${year}`);
 
-        res.json({ message: `Payroll generated for ${payload.length} teachers.` });
+        res.json({ message: `Payroll generated for ${payload.length} staff members.` });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createSinglePayroll = async (req, res) => {
     try {
-        const { teacherId, month, year, basicSalary, bonus, deductions } = req.body;
+        const { teacherId, userId, month, year, basicSalary, bonus, deductions } = req.body;
         const schoolId = getSchoolId(req);
 
-        const existing = await Payroll.findOne({ schoolId, teacherId, month, year });
+        const query = { schoolId, month, year };
+        if (teacherId) query.teacherId = teacherId;
+        if (userId) query.userId = userId;
+
+        const existing = await Payroll.findOne(query);
         if (existing) return res.status(400).json({ message: 'Payroll for this member already exists for the selected cycle' });
 
         const netSalary = Number(basicSalary) + (Number(bonus) || 0) - (Number(deductions) || 0);
@@ -308,7 +356,10 @@ exports.createSinglePayroll = async (req, res) => {
             paidAt: req.body.status === 'paid' ? new Date() : undefined
         });
 
-        const populated = await payroll.populate('teacherId', 'firstName lastName employeeId');
+        const populated = await payroll.populate([
+            { path: 'teacherId', select: 'firstName lastName employeeId' },
+            { path: 'userId', select: 'firstName lastName employeeId role' }
+        ]);
         res.status(201).json({ message: 'Payroll identity created successfully', data: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -327,26 +378,34 @@ exports.processPayroll = async (req, res) => {
                 submittedBy: req.user._id
             },
             { new: true }
-        ).populate('teacherId', 'firstName lastName employeeId');
+        ).populate('teacherId', 'firstName lastName employeeId')
+         .populate('userId', 'firstName lastName employeeId role');
 
         if (!payroll) return res.status(404).json({ message: 'Payroll record not found' });
 
         // Automated Disbursement Notification
         if (status === 'paid') {
-            const teacher = await Teacher.findById(payroll.teacherId).select('userId');
-            await nc.sendNotification({
-                schoolId: getSchoolId(req),
-                recipient: teacher.userId,
-                sender: req.user._id,
-                type: 'Payroll',
-                title: 'Capital Dispatched: Salary Credited',
-                message: `Institutional payroll node for ${payroll.month}/${payroll.year} has been synchronized. Net Amount: ₹${payroll.netSalary.toLocaleString()}. Reference: ${transactionId || 'Internal Transfer'}.`,
-                link: '/teacher/payroll'
-            });
+            const recipientId = payroll.userId || (await Teacher.findById(payroll.teacherId).select('userId'))?.userId;
+            
+            if (recipientId) {
+                await nc.sendNotification({
+                    schoolId: getSchoolId(req),
+                    recipient: recipientId,
+                    sender: req.user._id,
+                    type: 'Payroll',
+                    title: 'Capital Dispatched: Salary Credited',
+                    message: `Institutional payroll node for ${payroll.month}/${payroll.year} has been synchronized. Net Amount: ₹${payroll.netSalary.toLocaleString()}. Reference: ${transactionId || 'Internal Transfer'}.`,
+                    link: payroll.teacherId ? '/teacher/payroll' : '/profile'
+                });
+            }
         }
 
         // Log Audit
-        await logAudit(req, 'PROCESS_PAYROLL', 'Finance', `Processed payroll of ${payroll.netSalary} for teacher ${payroll.teacherId?.firstName} ${payroll.teacherId?.lastName}`);
+        const staffName = payroll.teacherId 
+            ? `${payroll.teacherId.firstName} ${payroll.teacherId.lastName}` 
+            : `${payroll.userId?.firstName} ${payroll.userId?.lastName}`;
+            
+        await logAudit(req, 'PROCESS_PAYROLL', 'Finance', `Processed payroll of ${payroll.netSalary} for ${staffName}`);
 
         res.json({ message: 'Payroll processed successfully', data: payroll });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -495,7 +554,8 @@ exports.updatePayroll = async (req, res) => {
             { _id: id, schoolId },
             { ...req.body, netSalary },
             { new: true }
-        ).populate('teacherId', 'firstName lastName employeeId');
+        ).populate('teacherId', 'firstName lastName employeeId')
+         .populate('userId', 'firstName lastName employeeId role');
 
         res.status(200).json(updated);
     } catch (error) { res.status(500).json({ message: error.message }); }

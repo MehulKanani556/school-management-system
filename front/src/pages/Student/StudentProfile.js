@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentProfile, updateStudentProfile, changeStudentPassword, clearStudentMessage, clearStudentError } from '../../redux/slice/student.slice';
+import { fetchStudentProfile, updateStudentProfile, changeStudentPassword, clearStudentMessage, clearStudentError, fetchStudentFees } from '../../redux/slice/student.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Phone, MapPin, ShieldCheck, Hash, Calendar, Info, Edit3, Save, X, Lock, Camera, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -17,6 +17,7 @@ const StudentProfile = () => {
 
     useEffect(() => {
         dispatch(fetchStudentProfile());
+        dispatch(fetchStudentFees());
     }, [dispatch]);
 
     useEffect(() => {
@@ -202,6 +203,24 @@ const StudentProfile = () => {
                     <div className="bg-[#0f0f12] border border-slate-800/60 p-10 rounded-md shadow-2xl relative overflow-hidden group">
                         <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-all">
                             <ShieldCheck size={120} />
+                        </div>
+
+                        {/* Financial Ledger Section */}
+                        <div className="relative z-10 mb-12">
+                            <h3 className="text-xs font-black uppercase tracking-[0.5em] text-brand-primary mb-8 italic border-b border-slate-800/60 pb-6">Financial Ledger Node</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="bg-slate-950/60 border border-slate-800 p-6 rounded-md group hover:border-brand-primary/30 transition-all shadow-inner">
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Fee Compliance Status</p>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-2 h-2 rounded-full ${profile?.feeStatus === 'paid' ? 'bg-luxury-emerald shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-luxury-rose shadow-[0_0_10px_rgba(244,63,94,0.5)]'}`}></div>
+                                        <p className="text-xl font-black text-white font-outfit italic uppercase tracking-wider">{profile?.feeStatus || 'Pending Analysis'}</p>
+                                    </div>
+                                </div>
+                                <div className="bg-slate-950/60 border border-slate-800 p-6 rounded-md group hover:border-brand-primary/30 transition-all shadow-inner">
+                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Active Financial Cycle</p>
+                                    <p className="text-xl font-black text-white font-outfit italic uppercase tracking-wider">{new Date().getFullYear()}-{new Date().getFullYear() + 1}</p>
+                                </div>
+                            </div>
                         </div>
 
                         <div className="relative z-10">

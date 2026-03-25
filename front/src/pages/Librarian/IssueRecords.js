@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchRecordsSlice, returnBookSlice, fetchBooksSlice, issueBookSlice, fetchBorrowersSlice } from '../../redux/slice/librarian.slice';
 import { Clock, Search, RotateCcw, User, Calendar, Plus, BookOpen, Library, Loader2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -101,7 +102,11 @@ const IssueRecords = () => {
                                                 <User size={14} />
                                             </div>
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-black text-slate-200 tracking-tighter italic uppercase leading-none mb-1">{record.borrowerId?.firstName} {record.borrowerId?.lastName}</span>
+                                                <Link to={`/school-admin/profile/${record.borrowerId?._id}`} className="block">
+                                                    <span className="text-sm font-black text-slate-200 tracking-tighter italic uppercase leading-none mb-1 hover:text-librarian-primary transition-colors cursor-pointer">
+                                                        {record.borrowerId?.firstName} {record.borrowerId?.lastName}
+                                                    </span>
+                                                </Link>
                                                 <span className="text-[10px] font-bold text-slate-600 uppercase italic opacity-60 tracking-widest">{record.borrowerId?.role} node</span>
                                             </div>
                                         </div>

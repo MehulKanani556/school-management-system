@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchStaffForAttendance, saveStaffAttendance, fetchStaffAttendance } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -181,7 +182,9 @@ const StaffAttendance = () => {
                                                 {r.firstName[0]}
                                             </div>
                                             <div>
-                                                <p className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-schooladmin-primary transition-colors">{r.firstName} {r.lastName}</p>
+                                                <Link to={`/school-admin/profile/${r._id}`} className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-schooladmin-primary transition-colors cursor-pointer block">
+                                                    {r.firstName} {r.lastName}
+                                                </Link>
                                                 <p className="text-[10px] font-black text-slate-600 font-mono">ID: {r.employeeId}</p>
                                             </div>
                                         </div>

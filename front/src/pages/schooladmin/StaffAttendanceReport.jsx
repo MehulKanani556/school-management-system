@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { fetchStaffMonthlySummary, fetchStaffAttendance, exportStaffAttendance } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -152,9 +153,11 @@ const StaffAttendanceReport = () => {
                                             {(staff.teacher?.firstName || staff.user?.firstName)?.[0]}
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-black text-white uppercase tracking-tight italic">
-                                                {staff.teacher ? `${staff.teacher.firstName} ${staff.teacher.lastName}` : `${staff.user?.firstName} ${staff.user?.lastName}`}
-                                            </h3>
+                                            <Link to={`/school-admin/profile/${staff.teacher?._id || staff.user?._id}`} className="block">
+                                                <h3 className="text-lg font-black text-white uppercase tracking-tight italic hover:text-schooladmin-primary transition-colors cursor-pointer">
+                                                    {staff.teacher ? `${staff.teacher.firstName} ${staff.teacher.lastName}` : `${staff.user?.firstName} ${staff.user?.lastName}`}
+                                                </h3>
+                                            </Link>
                                             <p className="text-[10px] font-black text-slate-600 font-mono tracking-widest mt-1 uppercase">
                                                 ID: {staff.teacher?.employeeId || `${staff.user?.role}-${staff.user?._id?.slice(-4)}`}
                                             </p>

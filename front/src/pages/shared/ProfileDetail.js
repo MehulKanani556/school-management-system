@@ -35,12 +35,14 @@ const ProfileDetail = () => {
         setError(null);
         try {
             const response = await axiosInstance.get(`/users/${id}/profile`);
+            console.log("Profile Sync Result:", response.data);
             if (response.data.success) {
                 setProfile(response.data);
             } else {
                 setError(response.data.message || 'Institutional search failed.');
             }
         } catch (err) {
+            console.error("Profile Synchronization Fault:", err);
             setError(err.response?.data?.message || 'Platform synchronization error.');
         } finally {
             setLoading(false);

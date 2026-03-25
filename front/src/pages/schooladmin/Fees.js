@@ -7,6 +7,7 @@ import {
   fetchFeeSummary, sendFeeReminders
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter,  ChevronLeft, ChevronRight } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
@@ -374,7 +375,9 @@ const Fees = () => {
                               {f.studentId?.firstName?.[0] || 'U'}
                             </div>
                             <div>
-                              <p className="text-sm font-black text-white italic uppercase">{f.studentId?.firstName || 'Unknown'} {f.studentId?.lastName || ''}</p>
+                              <Link to={`/school-admin/profile/${f.studentId?._id}`} className="text-sm font-black text-white italic uppercase hover:text-brand-primary transition-colors cursor-pointer">
+                                {f.studentId?.firstName || 'Unknown'} {f.studentId?.lastName || ''}
+                              </Link>
                               <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{f.studentId?.admissionNumber || 'N/A'} • Grade {f.studentId?.standard?.level || 'N/A'}</p>
                             </div>
                           </div>
