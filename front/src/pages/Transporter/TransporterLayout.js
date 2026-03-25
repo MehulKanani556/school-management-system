@@ -16,19 +16,54 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/transporter', icon: LayoutDashboard, label: 'Transit Deck', end: true },
-  { to: '/transporter/tracking', icon: Navigation, label: 'Fleet Radar' },
-  { to: '/transporter/vehicles', icon: Truck, label: 'Fleet Matrix' },
-  { to: '/transporter/Maintenancetransport', icon: Wrench, label: 'Resource Logs' },
-  { to: '/transporter/drivers', icon: User, label: 'Personnel Hub' },
-  { to: '/transporter/routes', icon: MapPin, label: 'Logistics Map' },
-  { to: '/transporter/students', icon: Users, label: 'Transit Registry' },
-  { to: '/transporter/logs', icon: ClipboardList, label: 'Transit Logs' },
-  { to: '/transporter/notifications', icon: Bell, label: 'Transit Alerts' },
-  { to: '/transporter/holidays', icon: Calendar, label: 'Temporal Break' },
-  { to: '/transporter/announcements', icon: Megaphone, label: 'Bulletins' },
-  { to: '/transporter/messages', icon: MessageSquare, label: 'Transit Comm' },
-  { to: '/transporter/profile', icon: Settings, label: 'Core Identity' },
+  { to: '/transporter', icon: LayoutDashboard, label: 'Operations Deck', end: true },
+  { 
+    label: 'Fleet Command', 
+    icon: Truck, 
+    id: 'fleet',
+    children: [
+      { to: '/transporter/vehicles', label: 'Fleet Matrix' },
+      { to: '/transporter/Maintenancetransport', label: 'Maintenance Logs' },
+      { to: '/transporter/tracking', label: 'Fleet Radar' },
+    ] 
+  },
+  {
+    label: 'Transit Logistics',
+    icon: MapPin,
+    id: 'logistics',
+    children: [
+      { to: '/transporter/routes', label: 'Logistics Map' },
+      { to: '/transporter/students', label: 'Transit Registry' },
+      { to: '/transporter/logs', label: 'Transit Logs' },
+    ]
+  },
+  {
+    label: 'Personnel Hub',
+    icon: User,
+    id: 'personnel',
+    children: [
+      { to: '/transporter/drivers', label: 'Driver Registry' },
+    ]
+  },
+  {
+    label: 'Intelligence Center',
+    icon: Bell,
+    id: 'intel',
+    children: [
+      { to: '/transporter/notifications', label: 'Signal Alerts' },
+      { to: '/transporter/announcements', label: 'Bulletins' },
+      { to: '/transporter/messages', label: 'Transit Comm' },
+    ]
+  },
+  {
+    label: 'Institutional Config',
+    icon: Settings,
+    id: 'config',
+    children: [
+      { to: '/transporter/holidays', label: 'Temporal Break' },
+      { to: '/transporter/profile', label: 'Core Identity' },
+    ]
+  }
 ];
 
 const TransporterLayout = () => {
@@ -46,6 +81,15 @@ const TransporterLayout = () => {
   useEffect(() => {
     dispatch(fetchNotifications());
   }, [dispatch]);
+
+  useEffect(() => {
+    // Auto-expand current active group
+    navItems.forEach(item => {
+      if (item.children?.some(child => location.pathname === child.to)) {
+        setExpanded(item.id);
+      }
+    });
+  }, [location.pathname]);
 
   useEffect(() => {
     if (!socket) return;
@@ -92,28 +136,76 @@ const TransporterLayout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbarThin">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Logistics Control</p>
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-            >
-              <item.icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
-              <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
-              {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
-            </Link>
-          ))}
+          <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Logistics Systems</p>
+          <div className="space-y-1">
+            {navItems.map((item) => (
+              <div key={item.id || item.to} className="space-y-1">
+                {item.children ? (
+                  <>
+                    <button
+                      onClick={() => setExpanded(expanded === item.id ? null : item.id)}
+                      className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${expanded === item.id ? 'bg-white/5 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                    >
+                      <item.icon size={18} className={expanded === item.id ? 'text-transporter-primary' : 'group-hover:text-transporter-primary transition-colors'} />
+                      <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit text-left flex-1">{item.label}</span>
+                      <motion.div animate={{ rotate: expanded === item.id ? 180 : 0 }}>
+                        <ChevronDown size={14} className="opacity-40" />
+                      </motion.div>
+                    </button>
+                    <AnimatePresence>
+                      {expanded === item.id && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden bg-black/20 rounded-md mx-2"
+                        >
+                          <div className="py-2 pl-12 pr-4 space-y-1">
+                            {item.children.map((child) => (
+                              <Link
+                                key={child.to}
+                                to={child.to}
+                                onClick={() => setSidebarOpen(false)}
+                                className={`flex items-center gap-3 py-3 rounded-md transition-all duration-300 group relative ${isActive(child.to) ? 'text-transporter-primary' : 'text-slate-500 hover:text-white'}`}
+                              >
+                                {isActive(child.to) && (
+                                  <motion.div layoutId="activeSub" className="absolute left-[-20px] w-1 h-4 bg-transporter-primary rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
+                                )}
+                                <span className={`text-[10px] font-bold uppercase tracking-widest font-outfit ${isActive(child.to) ? 'italic' : ''}`}>{child.label}</span>
+                              </Link>
+                            ))}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </>
+                ) : (
+                  <Link
+                    to={item.to}
+                    onClick={() => {
+                      setSidebarOpen(false);
+                      setExpanded(null);
+                    }}
+                    className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                  >
+                    <item.icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
+                    <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
+                    {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
         </nav>
 
         <div className="p-6 flex-shrink-0">
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-transporter-primary/10 hover:text-transporter-primary transition-all group font-outfit border border-transparent hover:border-transporter-primary/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Shutdown</span>
+            <span className="italic">Shutdown System</span>
           </button>
         </div>
       </aside>
+
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
