@@ -19,26 +19,26 @@ import toast from 'react-hot-toast';
 const navItems = [
   { to: '/parent', icon: LayoutDashboard, label: 'Dashboard', end: true },
   {
-    label: 'Ward Performance',
+    label: 'My Children',
     icon: GraduationCap,
     children: [
       { to: '/parent/attendance', icon: CalendarCheck, label: 'Attendance' },
-      { to: '/parent/results', icon: Trophy, label: 'Academics' },
-      { to: '/parent/timetable', icon: Clock, label: 'Timetable' },
-      { to: '/parent/exams', icon: Calendar, label: 'Exams' },
+      { to: '/parent/results', icon: Trophy, label: 'Exams & Results' },
+      { to: '/parent/timetable', icon: Clock, label: 'Class Timetable' },
+      { to: '/parent/exams', icon: Calendar, label: 'Exam Schedule' },
       { to: '/parent/assignments', icon: FileText, label: 'Assignments' },
     ]
   },
   {
-    label: 'Conduct & Meetings',
+    label: 'Behavior & Meetings',
     icon: Shield,
     children: [
-      { to: '/parent/behavior', icon: Shield, label: 'Conduct Registry' },
-      { to: '/parent/meetings', icon: Calendar, label: 'PTM Protocols' },
+      { to: '/parent/behavior', icon: Shield, label: 'Student Conduct' },
+      { to: '/parent/meetings', icon: Calendar, label: 'PTM Meetings' },
     ]
   },
   {
-    label: 'Institutional Hub',
+    label: 'Communication',
     icon: Globe,
     children: [
       { to: '/parent/announcements', icon: Megaphone, label: 'Announcements' },
@@ -48,14 +48,20 @@ const navItems = [
     ]
   },
   {
-    label: 'Financials & Logistics',
+    label: 'Fees & Transport',
     icon: CreditCard,
     children: [
-      { to: '/parent/fees', icon: CreditCard, label: 'Financial Ledger' },
-      { to: '/parent/transport', icon: Truck, label: 'Transport' },
+      { to: '/parent/fees', icon: CreditCard, label: 'Fee Payment' },
+      { to: '/parent/transport', icon: Truck, label: 'Transport Service' },
     ]
   },
-//   { to: '/parent/profile', icon: User, label: 'Profile' },
+  {
+    label: 'My Profile',
+    icon: User,
+    children: [
+      { to: '/parent/profile', icon: User, label: 'Profile Settings' },
+    ]
+  }
 ];
 
 const ParentLayout = () => {

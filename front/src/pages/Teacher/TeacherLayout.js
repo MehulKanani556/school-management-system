@@ -24,67 +24,58 @@ const TeacherLayout = () => {
     const { unreadCount: notifCount } = useSelector((state) => state.notifications);
     const { socket } = useSocket();
 
+    const [expanded, setExpanded] = useState(null);
     const [isNotifOpen, setIsNotifOpen] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [expandedMenu, setExpandedMenu] = useState(null);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-    const menuItems = [
-        { icon: LayoutDashboard, label: 'Dashboard', path: '/teacher' },
+    const navItems = [
+        { to: '/teacher', icon: LayoutDashboard, label: 'Dashboard', end: true },
         {
-            label: 'Academic Cluster',
+            label: 'Academic Records',
             icon: BookOpen,
             children: [
-                { path: '/teacher/classes', icon: BookOpen, label: 'Assigned Sectors' },
-                { path: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Matrix' },
-                { path: '/teacher/attendance', icon: ClipboardList, label: 'Mark Attendance' },
-                { path: '/teacher/bulk-attendance', icon: Upload, label: 'Mass Import' },
-                { path: '/teacher/marks', icon: Activity, label: 'Entry Marks' },
-                { path: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
-                { path: '/teacher/assignments', icon: Upload, label: 'Homework Node' },
-                { path: '/teacher/quizzes', icon: Brain, label: 'Quiz Matrix' },
-                { path: '/teacher/timetable', icon: Clock, label: 'Timetable Matrix' },
-                { path: '/teacher/question-bank', icon: Database, label: 'Evaluation Vault' },
+                { to: '/teacher/classes', icon: Layout, label: 'My Classes' },
+                { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planning' },
+                { to: '/teacher/attendance', icon: CalendarIcon, label: 'Attendance' },
+                { to: '/teacher/bulk-attendance', icon: Upload, label: 'Bulk Attendance' },
+                { to: '/teacher/marks', icon: Activity, label: 'Examination Marks' },
+                { to: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
+                { to: '/teacher/assignments', icon: Upload, label: 'Assignments' },
+                { to: '/teacher/quizzes', icon: Brain, label: 'Student Quizzes' },
+                { to: '/teacher/timetable', icon: Clock, label: 'My Timetable' },
+                { to: '/teacher/question-bank', icon: Database, label: 'Question Bank' },
             ]
         },
         {
-            label: 'Communicate',
+            label: 'Communication Hub',
             icon: MessageSquare,
             children: [
-                { path: '/teacher/announcements', icon: Megaphone, label: 'Announcements' },
-                { path: '/teacher/messages?tab=chat', icon: Shield, label: 'Direct Probe' },
-                { path: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
-                { path: '/teacher/meetings', icon: Calendar, label: 'PTM Protocols' },
-                { path: '/teacher/resources', icon: HardDrive, label: 'Asset Vault' },
+                { to: '/teacher/announcements', icon: Megaphone, label: 'Announcements' },
+                { to: '/teacher/messages?tab=chat', icon: Shield, label: 'Chat & Messages' },
+                { to: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
+                { to: '/teacher/meetings', icon: Calendar, label: 'PTM Meetings' },
+                { to: '/teacher/resources', icon: HardDrive, label: 'Resource Library' },
             ]
         },
         {
-            label: 'Management Matrix',
-            icon: DollarSign,
+            label: 'Staff Management',
+            icon: Clock,
             children: [
-                { path: '/teacher/fee-status', icon: DollarSign, label: 'Financial Status' },
-                { path: '/teacher/payroll', icon: Clock, label: 'My Payroll' },
-                { path: '/teacher/leaves', icon: CalendarDays, label: 'My Leaves' },
+                { to: '/teacher/payroll', icon: DollarSign, label: 'Salary/Payroll' },
+                { to: '/teacher/leaves', icon: CalendarDays, label: 'Leave Requests' },
+                { to: '/teacher/performance-report', icon: TrendingUp, label: 'My Performance' },
             ]
         },
         {
-            label: 'Performance Intel',
-            icon: TrendingUp,
-            children: [
-                { path: '/teacher/performance-report', icon: TrendingUp, label: 'Analytics' },
-                { path: '/teacher/behavior-log', icon: Shield, label: 'Conduct Registry' },
-                { path: '/teacher/reviews', icon: MessageSquare, label: 'Staff Reviews' },
-            ]
-        },
-        {
-            label: 'Professional Map',
+            label: 'Profile Settings',
             icon: User,
             children: [
-                { path: '/teacher/profile', icon: User, label: 'Matrix Profile' },
-                { path: '/teacher/unified-calendar', icon: CalendarIcon, label: 'Professional Roadmap' },
-                { path: '/teacher/holidays', icon: Calendar, label: 'Holiday Sync' },
+                { to: '/teacher/profile', icon: User, label: 'My Profile' },
+                { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'Calendar' },
+                { to: '/teacher/holidays', icon: Calendar, label: 'Holidays' },
             ]
-        },
+        }
     ];
 
     useEffect(() => {
@@ -95,8 +86,8 @@ const TeacherLayout = () => {
         if (!socket) return;
         socket.on('NEW_NOTIFICATION', (notif) => {
             dispatch(receiveNotification(notif));
-            toast.success(`Matrix Alert: ${notif.title}`, {
-                icon: '🔔',
+            toast.success(`Teacher Intel: ${notif.title}`, {
+                icon: '👨‍🏫',
                 style: {
                     borderRadius: '1.5rem',
                     background: '#0f172a',
@@ -105,12 +96,19 @@ const TeacherLayout = () => {
                     fontWeight: 900,
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    fontSize: '10px'
+                    fontSize: '11px'
                 }
             });
         });
         return () => socket.off('NEW_NOTIFICATION');
     }, [socket, dispatch]);
+
+    useEffect(() => {
+        const activeParent = navItems.find(item =>
+            item.children?.some(child => location.pathname === child.to)
+        );
+        if (activeParent) setExpanded(activeParent.label);
+    }, [location.pathname]);
 
     const handleLogout = () => {
         dispatch(logout());
@@ -132,15 +130,8 @@ const TeacherLayout = () => {
     };
 
     const toggleSubmenu = (label) => {
-        setExpandedMenu(expandedMenu === label ? null : label);
+        setExpanded(expanded === label ? null : label);
     };
-
-    useEffect(() => {
-        const activeItem = menuItems.find(item =>
-            item.children?.some(child => isActive(child.path))
-        );
-        if (activeItem) setExpandedMenu(activeItem.label);
-    }, [location.pathname, location.search]);
 
     return (
         <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
@@ -148,28 +139,29 @@ const TeacherLayout = () => {
             <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
                 <div className="p-8 flex-shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-md bg-gradient-to-br from-teacher-primary to-teacher-secondary flex items-center justify-center font-black text-xl italic shadow-lg">SM</div>
+                        <div className="w-10 h-10 rounded-md bg-gradient-to-br from-teacher-primary to-teacher-secondary flex items-center justify-center font-black text-xl italic shadow-lg">TC</div>
                         <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Teacher <span className="text-teacher-primary">Node</span></span>
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbarThin">
+                <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
                     <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Faculty Operations</p>
-                    {menuItems.map((item) => {
+                    {navItems.map((item) => {
                         const hasChildren = !!item.children;
-                        const isExpanded = expandedMenu === item.label;
+                        const isExpanded = expanded === item.label;
+                        const Icon = item.icon;
 
                         if (!hasChildren) {
                             return (
                                 <Link
-                                    key={item.path}
-                                    to={item.path}
+                                    key={item.to}
+                                    to={item.to}
                                     onClick={() => setSidebarOpen(false)}
-                                    className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.path) ? 'bg-teacher-primary text-black shadow-lg shadow-teacher-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                                    className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-teacher-primary text-black shadow-lg shadow-teacher-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                                 >
-                                    <item.icon size={18} className={isActive(item.path) ? 'text-black' : 'group-hover:text-teacher-primary transition-colors'} />
+                                    <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-teacher-primary transition-colors'} />
                                     <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1">{item.label}</span>
-                                    {isActive(item.path) && <ChevronRight size={14} className="ml-auto" />}
+                                    {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                                 </Link>
                             );
                         }
@@ -180,7 +172,7 @@ const TeacherLayout = () => {
                                     onClick={() => toggleSubmenu(item.label)}
                                     className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                                 >
-                                    <item.icon size={18} className={isExpanded ? 'text-teacher-primary' : 'group-hover:text-teacher-primary transition-colors'} />
+                                    <Icon size={18} className={isExpanded ? 'text-teacher-primary' : 'group-hover:text-teacher-primary transition-colors'} />
                                     <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
                                     <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-teacher-primary' : 'opacity-40'}`} />
                                 </button>
@@ -191,20 +183,24 @@ const TeacherLayout = () => {
                                             initial={{ opacity: 0, height: 0 }}
                                             animate={{ opacity: 1, height: 'auto' }}
                                             exit={{ opacity: 0, height: 0 }}
-                                            className="overflow-hidden bg-brand-background/50 rounded-md mx-2 border border-brand-border/40"
+                                            className="overflow-hidden bg-brand-background/30 rounded-md mx-2 border border-brand-border/40"
                                         >
                                             <div className="py-1 space-y-1">
-                                                {item.children.map((child) => (
-                                                    <Link
-                                                        key={child.path}
-                                                        to={child.path}
-                                                        onClick={() => setSidebarOpen(false)}
-                                                        className={`flex items-center gap-4 px-8 py-3 rounded-md transition-all duration-300 group ${isActive(child.path) ? 'text-teacher-primary bg-teacher-primary/10' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
-                                                    >
-                                                        <child.icon size={16} className={isActive(child.path) ? 'text-teacher-primary' : 'group-hover:text-teacher-primary transition-colors'} />
-                                                        <span className="text-[10px] font-black uppercase tracking-[0.1em] font-outfit">{child.label}</span>
-                                                    </Link>
-                                                ))}
+                                                {item.children.map((child) => {
+                                                    const ChildIcon = child.icon;
+                                                    const childActive = isActive(child.to);
+                                                    return (
+                                                        <Link
+                                                            key={child.to}
+                                                            to={child.to}
+                                                            onClick={() => setSidebarOpen(false)}
+                                                            className={`flex items-center gap-4 px-8 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-teacher-primary bg-teacher-primary/10' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                                                        >
+                                                            <ChildIcon size={16} className={childActive ? 'text-teacher-primary' : 'group-hover:text-teacher-primary transition-colors'} />
+                                                            <span className="text-[10px] font-black uppercase tracking-[0.1em] font-outfit">{child.label}</span>
+                                                        </Link>
+                                                    );
+                                                })}
                                             </div>
                                         </motion.div>
                                     )}

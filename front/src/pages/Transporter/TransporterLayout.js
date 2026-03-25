@@ -3,11 +3,11 @@ import { NavLink, Outlet, useNavigate, useLocation, Link } from 'react-router-do
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
-  LayoutDashboard, Truck, Users, MapPin,
-  MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
+  LayoutDashboard, Truck, Users, MapPin, Map,
+  MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
   LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
   ClipboardList, Wrench, Megaphone,
-  Settings
+  Settings, UserPlus, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -16,54 +16,43 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/transporter', icon: LayoutDashboard, label: 'Operations Deck', end: true },
-  { 
-    label: 'Fleet Command', 
-    icon: Truck, 
-    id: 'fleet',
-    children: [
-      { to: '/transporter/vehicles', label: 'Fleet Matrix' },
-      { to: '/transporter/Maintenancetransport', label: 'Maintenance Logs' },
-      { to: '/transporter/tracking', label: 'Fleet Radar' },
-    ] 
-  },
-  {
-    label: 'Transit Logistics',
-    icon: MapPin,
-    id: 'logistics',
-    children: [
-      { to: '/transporter/routes', label: 'Logistics Map' },
-      { to: '/transporter/students', label: 'Transit Registry' },
-      { to: '/transporter/logs', label: 'Transit Logs' },
-    ]
-  },
-  {
-    label: 'Personnel Hub',
-    icon: User,
-    id: 'personnel',
-    children: [
-      { to: '/transporter/drivers', label: 'Driver Registry' },
-    ]
-  },
-  {
-    label: 'Intelligence Center',
-    icon: Bell,
-    id: 'intel',
-    children: [
-      { to: '/transporter/notifications', label: 'Signal Alerts' },
-      { to: '/transporter/announcements', label: 'Bulletins' },
-      { to: '/transporter/messages', label: 'Transit Comm' },
-    ]
-  },
-  {
-    label: 'Institutional Config',
-    icon: Settings,
-    id: 'config',
-    children: [
-      { to: '/transporter/holidays', label: 'Temporal Break' },
-      { to: '/transporter/profile', label: 'Core Identity' },
-    ]
-  }
+    { to: '/transporter', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    {
+        label: 'Transport Operations',
+        icon: Truck,
+        children: [
+            { to: '/transporter/logs', icon: Activity, label: 'Trip Logs' },
+            { to: '/transporter/tracking', icon: MapPin, label: 'Vehicle Tracking' },
+            { to: '/transporter/Maintenancetransport', icon: Settings, label: 'Maintenance' },
+        ]
+    },
+    {
+        label: 'Route & Fleet',
+        icon: Map,
+        children: [
+            { to: '/transporter/vehicles', icon: Truck, label: 'Vehicle Fleet' },
+            { to: '/transporter/routes', icon: Map, label: 'Manage Routes' },
+            { to: '/transporter/drivers', icon: Users, label: 'Driver Registry' },
+            { to: '/transporter/students', icon: UserPlus, label: 'Student Assignment' },
+        ]
+    },
+    {
+        label: 'Communication',
+        icon: MessageSquare,
+        children: [
+            { to: '/transporter/messages', icon: MessageSquare, label: 'Messages' },
+            { to: '/transporter/announcements', icon: Bell, label: 'Announcements' },
+            { to: '/transporter/notifications', icon: Bell, label: 'Notifications' },
+        ]
+    },
+    {
+        label: 'Profile Settings',
+        icon: User,
+        children: [
+            { to: '/transporter/profile', icon: User, label: 'My Profile' },
+            { to: '/transporter/holidays', icon: Calendar, label: 'Holidays' },
+        ]
+    }
 ];
 
 const TransporterLayout = () => {
@@ -81,15 +70,6 @@ const TransporterLayout = () => {
   useEffect(() => {
     dispatch(fetchNotifications());
   }, [dispatch]);
-
-  useEffect(() => {
-    // Auto-expand current active group
-    navItems.forEach(item => {
-      if (item.children?.some(child => location.pathname === child.to)) {
-        setExpanded(item.id);
-      }
-    });
-  }, [location.pathname]);
 
   useEffect(() => {
     if (!socket) return;
@@ -112,6 +92,13 @@ const TransporterLayout = () => {
     return () => socket.off('NEW_NOTIFICATION');
   }, [socket, dispatch]);
 
+  useEffect(() => {
+    const activeParent = navItems.find(item =>
+      item.children?.some(child => location.pathname === child.to)
+    );
+    if (activeParent) setExpanded(activeParent.label);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
@@ -120,6 +107,10 @@ const TransporterLayout = () => {
   const handleSettings = () => {
     navigate('/transporter/profile');
     setShowProfileMenu(false);
+  };
+
+  const toggleSubmenu = (label) => {
+    setExpanded(expanded === label ? null : label);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -135,76 +126,80 @@ const TransporterLayout = () => {
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbarThin">
-          <p className="px-4 mb-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Logistics Systems</p>
-          <div className="space-y-1">
-            {navItems.map((item) => (
-              <div key={item.id || item.to} className="space-y-1">
-                {item.children ? (
-                  <>
-                    <button
-                      onClick={() => setExpanded(expanded === item.id ? null : item.id)}
-                      className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${expanded === item.id ? 'bg-white/5 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Logistics Systems</p>
+          {navItems.map((item) => {
+            const hasChildren = !!item.children;
+            const isExpanded = expanded === item.label;
+            const Icon = item.icon;
+
+            if (!hasChildren) {
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                  <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
+                  {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={item.label} className="space-y-1">
+                <button
+                  onClick={() => toggleSubmenu(item.label)}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
+                >
+                  <Icon size={18} className={isExpanded ? 'text-transporter-primary' : 'group-hover:text-transporter-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-transporter-primary' : 'opacity-40'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden bg-brand-background/30 rounded-md mx-2 border border-brand-border/40"
                     >
-                      <item.icon size={18} className={expanded === item.id ? 'text-transporter-primary' : 'group-hover:text-transporter-primary transition-colors'} />
-                      <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit text-left flex-1">{item.label}</span>
-                      <motion.div animate={{ rotate: expanded === item.id ? 180 : 0 }}>
-                        <ChevronDown size={14} className="opacity-40" />
-                      </motion.div>
-                    </button>
-                    <AnimatePresence>
-                      {expanded === item.id && (
-                        <motion.div
-                          initial={{ height: 0, opacity: 0 }}
-                          animate={{ height: 'auto', opacity: 1 }}
-                          exit={{ height: 0, opacity: 0 }}
-                          className="overflow-hidden bg-black/20 rounded-md mx-2"
-                        >
-                          <div className="py-2 pl-12 pr-4 space-y-1">
-                            {item.children.map((child) => (
-                              <Link
-                                key={child.to}
-                                to={child.to}
-                                onClick={() => setSidebarOpen(false)}
-                                className={`flex items-center gap-3 py-3 rounded-md transition-all duration-300 group relative ${isActive(child.to) ? 'text-transporter-primary' : 'text-slate-500 hover:text-white'}`}
-                              >
-                                {isActive(child.to) && (
-                                  <motion.div layoutId="activeSub" className="absolute left-[-20px] w-1 h-4 bg-transporter-primary rounded-full shadow-[0_0_10px_rgba(249,115,22,0.5)]" />
-                                )}
-                                <span className={`text-[10px] font-bold uppercase tracking-widest font-outfit ${isActive(child.to) ? 'italic' : ''}`}>{child.label}</span>
-                              </Link>
-                            ))}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </>
-                ) : (
-                  <Link
-                    to={item.to}
-                    onClick={() => {
-                      setSidebarOpen(false);
-                      setExpanded(null);
-                    }}
-                    className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-                  >
-                    <item.icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
-                    <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
-                    {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
-                  </Link>
-                )}
+                      <div className="py-1 space-y-1">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childActive = isActive(child.to);
+                          return (
+                            <Link
+                              key={child.to}
+                              to={child.to}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-transporter-primary bg-transporter-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                            >
+                              <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-transporter-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                              <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
-            ))}
-          </div>
+            );
+          })}
         </nav>
 
         <div className="p-6 flex-shrink-0">
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-transporter-primary/10 hover:text-transporter-primary transition-all group font-outfit border border-transparent hover:border-transporter-primary/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Shutdown System</span>
+            <span className="italic">Shutdown</span>
           </button>
         </div>
       </aside>
+
 
 
       {/* Main Content Area */}
@@ -235,7 +230,7 @@ const TransporterLayout = () => {
             <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >

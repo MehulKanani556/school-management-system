@@ -4,8 +4,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import {
   LayoutDashboard, Book, Users, BookOpen,
-  MessageSquare, Menu, BookMarked, Clock, Calendar, Bell, 
-  LogOut, ChevronDown, ChevronRight, User, Globe, Library
+  MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
+  LogOut, ChevronDown, ChevronRight, User, Globe, Library,
+  Archive, History, ClipboardList, Database, Layout
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -14,16 +15,43 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/librarian', icon: LayoutDashboard, label: 'Archive Deck', end: true },
-  { to: '/librarian/inventory', icon: Book, label: 'Asset Ledger' },
-  { to: '/librarian/records', icon: Clock, label: 'Active Threads' },
-  { to: '/librarian/categories', icon: Library, label: 'Categorical Matrix' },
-  { to: '/librarian/reservations', icon: BookOpen, label: 'Volume Waitlist' },
-  { to: '/librarian/history', icon: BookMarked, label: 'Circulation Archive' },
-  { to: '/librarian/students', icon: Users, label: 'Member Registry' },
-  { to: '/librarian/messages', icon: MessageSquare, label: 'Archive Comm' },
-  { to: '/librarian/announcements', icon: Bell, label: 'Directives' },
-  { to: '/librarian/holidays', icon: Calendar, label: 'Term Pauses' },
+  { to: '/librarian', icon: LayoutDashboard, label: 'Dashboard', end: true },
+  {
+    label: 'Library Management',
+    icon: Archive,
+    children: [
+      { to: '/librarian/inventory', icon: BookOpen, label: 'Book Inventory' },
+      { to: '/librarian/categories', icon: Layout, label: 'Book Categories' },
+      { to: '/librarian/students', icon: Users, label: 'Member Registry' },
+    ]
+  },
+  {
+    label: 'Book Circulation',
+    icon: Database,
+    children: [
+      { to: '/librarian/issue', icon: ClipboardList, label: 'Issue Books' },
+      { to: '/librarian/return', icon: ClipboardList, label: 'Manage Returns' },
+      { to: '/librarian/history', icon: History, label: 'Circulation History' },
+      { to: '/librarian/reservations', icon: BookOpen, label: 'Book Reservations' },
+    ]
+  },
+  {
+    label: 'Communication',
+    icon: MessageSquare,
+    children: [
+      { to: '/librarian/messages', icon: MessageSquare, label: 'Messages' },
+      { to: '/librarian/announcements', icon: Bell, label: 'Announcements' },
+      { to: '/librarian/notifications', icon: Bell, label: 'Notifications' },
+    ]
+  },
+  {
+    label: 'Profile Settings',
+    icon: User,
+    children: [
+      { to: '/librarian/profile', icon: User, label: 'My Profile' },
+      { to: '/librarian/holidays', icon: Calendar, label: 'Holidays' },
+    ]
+  }
 ];
 
 const LibrarianLayout = () => {
@@ -63,6 +91,13 @@ const LibrarianLayout = () => {
     return () => socket.off('NEW_NOTIFICATION');
   }, [socket, dispatch]);
 
+  useEffect(() => {
+    const activeParent = navItems.find(item =>
+      item.children?.some(child => location.pathname === child.to)
+    );
+    if (activeParent) setExpanded(activeParent.label);
+  }, [location.pathname]);
+
   const handleLogout = () => {
     dispatch(logout());
     navigate('/login');
@@ -71,6 +106,10 @@ const LibrarianLayout = () => {
   const handleSettings = () => {
     navigate('/librarian/profile');
     setShowProfileMenu(false);
+  };
+
+  const toggleSubmenu = (label) => {
+    setExpanded(expanded === label ? null : label);
   };
 
   const isActive = (path) => location.pathname === path;
@@ -86,20 +125,70 @@ const LibrarianLayout = () => {
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbarThin">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
           <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Knowledge Custodian</p>
-          {navItems.map((item) => (
-            <Link
-              key={item.to}
-              to={item.to}
-              onClick={() => setSidebarOpen(false)}
-              className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-librarian-primary text-black shadow-lg shadow-librarian-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
-            >
-              <item.icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-librarian-primary transition-colors'} />
-              <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
-              {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
-            </Link>
-          ))}
+          {navItems.map((item) => {
+            const hasChildren = !!item.children;
+            const isExpanded = expanded === item.label;
+            const Icon = item.icon;
+
+            if (!hasChildren) {
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setSidebarOpen(false)}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-librarian-primary text-black shadow-lg shadow-librarian-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                  <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-librarian-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
+                  {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
+                </Link>
+              );
+            }
+
+            return (
+              <div key={item.label} className="space-y-1">
+                <button
+                  onClick={() => toggleSubmenu(item.label)}
+                  className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
+                >
+                  <Icon size={18} className={isExpanded ? 'text-librarian-primary' : 'group-hover:text-librarian-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-librarian-primary' : 'opacity-40'}`} />
+                </button>
+
+                <AnimatePresence>
+                  {isExpanded && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="overflow-hidden bg-brand-background/30 rounded-md mx-2 border border-brand-border/40"
+                    >
+                      <div className="py-1 space-y-1">
+                        {item.children.map((child) => {
+                          const ChildIcon = child.icon;
+                          const childActive = isActive(child.to);
+                          return (
+                            <Link
+                              key={child.to}
+                              to={child.to}
+                              onClick={() => setSidebarOpen(false)}
+                              className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-librarian-primary bg-librarian-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                            >
+                              <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-librarian-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                              <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
         </nav>
 
         <div className="p-6 flex-shrink-0">
@@ -138,7 +227,7 @@ const LibrarianLayout = () => {
             <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >

@@ -20,38 +20,36 @@ import { logout } from '../../redux/slice/auth.slice';
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/accountant' },
   {
-    label: 'Fiscal Operations',
+    label: 'Fee & Accounts',
     icon: DollarSign,
     children: [
-      { path: '/accountant/fees', icon: Receipt, label: 'Fee Collection' },
-      { path: '/accountant/students', icon: Users, label: 'Student Census' },
+      { path: '/accountant/fees', icon: Receipt, label: 'Collect Fees' },
+      { path: '/accountant/students', icon: Users, label: 'Student List' },
       { path: '/accountant/fee-structures', icon: BookOpen, label: 'Fee Structures' },
-      { path: '/accountant/payroll', icon: Wallet, label: 'Payroll Center' },
+      { path: '/accountant/payroll', icon: Wallet, label: 'Staff Payroll' },
     ]
   },
   {
-    label: 'Governance Matrix',
+    label: 'Reports & Audit',
     icon: Shield,
     children: [
       { path: '/accountant/reports', icon: PieChart, label: 'Financial Reports' },
       { path: '/accountant/audit-logs', icon: Shield, label: 'Security Audit' },
-      // { path: '/accountant/notifications', icon: Bell, label: 'Neural Alerts' },
-      { path: '/accountant/holidays', icon: Calendar, label: 'Temporal protocol' },
+      { path: '/accountant/holidays', icon: Calendar, label: 'Holiday List' },
     ]
   },
   {
     label: 'Communication',
     icon: MessageSquare,
     children: [
-      // { path: '/accountant/messages', icon: MessageSquare, label: 'Direct Probe' },
       { path: '/accountant/announcements', icon: Bell, label: 'Announcements' },
     ]
   },
   {
-    label: 'Personal Matrix',
+    label: 'Profile Settings',
     icon: User,
     children: [
-      { path: '/accountant/profile', icon: User, label: 'Matrix Profile' },
+      { path: '/accountant/profile', icon: User, label: 'My Profile' },
     ]
   }
 ];
@@ -228,7 +226,7 @@ const AccountantLayout = () => {
             <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >
@@ -237,9 +235,9 @@ const AccountantLayout = () => {
                   <p className="text-[9px] font-black text-accountant-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">ID: 00{user?._id.toString().slice(-3)}</p>
                 </div>
                 <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border/60 overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-accountant-primary transition-all p-0.5">
-                   <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border/60 flex items-center justify-center">
+                  <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border/60 flex items-center justify-center">
                     {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
-                   </div>
+                  </div>
                 </div>
               </button>
 

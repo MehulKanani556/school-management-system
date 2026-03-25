@@ -6,7 +6,7 @@ import {
   LayoutDashboard, BookOpen, CalendarCheck, ClipboardList, Book,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked,
   Clock, Calendar, Bell, LogOut, ChevronDown, CalendarDays, Brain, Globe, CreditCard,
-  Award, Download, Megaphone,GraduationCap
+  Award, Download, Megaphone, GraduationCap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -15,48 +15,48 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/student', icon: LayoutDashboard, label: 'Portal Home', end: true },
+  { to: '/student', icon: LayoutDashboard, label: 'Dashboard', end: true },
   {
-    label: 'Academic Cluster',
+    label: 'Academic Records',
     icon: GraduationCap,
     children: [
-      { to: '/student/attendance', icon: ClipboardList, label: 'Attendance History' },
-      { to: '/student/results', icon: Award, label: 'Academic Results' },
-      { to: '/student/timetable', icon: Calendar, label: 'Timetable' },
-      { to: '/student/exams', icon: BookOpen, label: 'Evaluation Matrix' },
-      { to: '/student/assignments', icon: Download, label: 'Assignments' },
-      { to: '/student/e-learning', icon: Brain, label: 'E-Learning Matrix' },
+      { to: '/student/attendance', icon: ClipboardList, label: 'My Attendance' },
+      { to: '/student/results', icon: Award, label: 'Exams & Results' },
+      { to: '/student/timetable', icon: Calendar, label: 'Class Timetable' },
+      { to: '/student/exams', icon: BookOpen, label: 'Online Exams' },
+      { to: '/student/assignments', icon: Download, label: 'Homework/Assignments' },
+      { to: '/student/e-learning', icon: Brain, label: 'Study Materials' },
     ]
   },
   {
-    label: 'Institutional Hub',
+    label: 'Communication',
     icon: Globe,
     children: [
-      { to: '/student/notifications', icon: Bell, label: 'Pulse Feed' },
-      { to: '/student/announcements', icon: Megaphone, label: 'Bulletin Terminal' },
-      { to: '/student/messages', icon: MessageSquare, label: 'Neural Link' },
-      { to: '/student/holidays', icon: Clock, label: 'Holidays' },
+      { to: '/student/notifications', icon: Bell, label: 'Notifications' },
+      { to: '/student/announcements', icon: Megaphone, label: 'School Announcements' },
+      { to: '/student/messages', icon: MessageSquare, label: 'Chat & Messages' },
+      { to: '/student/holidays', icon: Clock, label: 'Holiday List' },
     ]
   },
   {
-    label: 'Financials',
+    label: 'Fee Management',
     icon: CreditCard,
     children: [
-      { to: '/student/fees', icon: CreditCard, label: 'Financial Ledger' },
+      { to: '/student/fees', icon: CreditCard, label: 'Fee Payment' },
     ]
   },
   {
-    label: 'Library Access',
+    label: 'Library',
     icon: Book,
     children: [
-      { to: '/student/library', icon: Book, label: 'Digital Library' },
+      { to: '/student/library', icon: Book, label: 'School Library' },
     ]
   },
   {
-    label: 'Personal Matrix',
+    label: 'Profile Settings',
     icon: User,
     children: [
-      { to: '/student/profile', icon: User, label: 'Student Profile' },
+      { to: '/student/profile', icon: User, label: 'My Profile' },
     ]
   }
 ];
@@ -232,7 +232,7 @@ const StudentLayout = () => {
             <div className="h-10 w-px bg-brand-border/60"></div>
 
             <div className="flex items-center gap-4 relative">
-              <button 
+              <button
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
                 className="flex items-center gap-4 hover:opacity-80 transition-opacity"
               >

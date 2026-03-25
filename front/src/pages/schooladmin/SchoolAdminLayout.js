@@ -23,98 +23,96 @@ import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
 const navItems = [
-  { to: '/school-admin', icon: LayoutDashboard, label: 'Control Center', end: true },
+  { to: '/school-admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
   {
-    label: 'Academic Node',
+    label: 'Academic Management',
     icon: GraduationCap,
     children: [
-      { to: '/school-admin/students', icon: Users, label: 'Student Registry' },
-      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Corps' },
-      { to: '/school-admin/classes', icon: BookOpen, label: 'Class Matrix' },
-      { to: '/school-admin/subjects', icon: BookMarked, label: 'Subject Nodes' },
-      { to: '/school-admin/timetable', icon: Clock, label: 'Temporal Grid' },
-      { to: '/school-admin/academic-years', icon: Calendar, label: 'Session Cycles' },
+      { to: '/school-admin/students', icon: Users, label: 'Student Directory' },
+      { to: '/school-admin/teachers', icon: GraduationCap, label: 'Teacher Directory' },
+      { to: '/school-admin/classes', icon: BookOpen, label: 'Manage Classes' },
+      { to: '/school-admin/subjects', icon: BookMarked, label: 'Manage Subjects' },
+      { to: '/school-admin/timetable', icon: Clock, label: 'Class Timetable' },
+      { to: '/school-admin/academic-years', icon: Calendar, label: 'Academic Sessions' },
     ]
   },
   {
-    label: 'Admissions',
+    label: 'Admission Portal',
     icon: PhoneIncoming,
     children: [
-       { to: '/school-admin/admissions', icon: UserPlus, label: 'Enrolment Pipeline' },
+      { to: '/school-admin/admissions', icon: UserPlus, label: 'Inquiry & Admission' },
     ]
   },
   {
-     label: 'Registry & Intel',
+    label: 'Student Records',
     icon: ClipboardList,
     children: [
-        { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Attendance Log' },
-      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Neural Analytics' },
-      { to: '/school-admin/exams', icon: ClipboardList, label: 'Evaluation Ledger' },
-      { to: '/school-admin/assignments', icon: FileText, label: 'Assignment Intel' },
-      { to: '/school-admin/holidays', icon: Calendar, label: 'Sector Breaks' },
-      
+      { to: '/school-admin/attendance', icon: CalendarCheck, label: 'Student Attendance' },
+      { to: '/school-admin/attendance-intelligence', icon: Brain, label: 'Attendance Reports' },
+      { to: '/school-admin/exams', icon: ClipboardList, label: 'Examination' },
+      { to: '/school-admin/assignments', icon: FileText, label: 'Student Assignments' },
+      { to: '/school-admin/holidays', icon: Calendar, label: 'Holiday Calendar' },
+
     ]
   },
   {
-    label: 'Fiscal Matrix',
+    label: 'Accounts & Payroll',
     icon: CreditCard,
     children: [
-      { to: '/school-admin/fees', icon: CreditCard, label: 'Revenue Streams' },
+      { to: '/school-admin/fees', icon: CreditCard, label: 'Fee Management' },
       { to: '/school-admin/payroll', icon: Banknote, label: 'Staff Payroll' },
     ]
   },
   {
-    label: 'Staff Core',
+    label: 'Staff Management',
     icon: Rocket,
     children: [
-        { to: '/school-admin/staff', icon: Users, label: 'Personnel List' },
-      // { to: '/school-admin/teachers', icon: GraduationCap, label: 'Personnel List' },
-      { to: '/school-admin/staff-attendance', icon: CalendarCheck, label: 'Attendance Registry' },
-      { to: '/school-admin/staff-attendance-report', icon: BarChart3, label: 'Workforce Reports' },
+      { to: '/school-admin/staff', icon: Users, label: 'Staff Directory' },
+      { to: '/school-admin/staff-attendance', icon: CalendarCheck, label: 'Staff Attendance' },
+      { to: '/school-admin/staff-attendance-report', icon: BarChart3, label: 'Attendance Reports' },
       { to: '/school-admin/leaves', icon: CalendarDays, label: 'Leave Requests' },
-      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Analytics' },
+      { to: '/school-admin/reviews', icon: Rocket, label: 'Performance Reviews' },
     ]
   },
   {
-    label: 'Logistics Hub',
+    label: 'Transport Management',
     icon: Truck,
     children: [
-      { to: '/school-admin/vehicles', icon: Bus, label: 'Fleet Inventory' },
-      { to: '/school-admin/transport-routes', icon: Map, label: 'Vector Networks' },
-      { to: '/school-admin/trip-logs', icon: Activity, label: 'Transit Sequences' },
-      { to: '/school-admin/drivers', icon: Users, label: 'Operator Registry' },
-      { to: '/school-admin/student-transport-assignment', icon: UserPlus, label: 'Entity Allocation' },
+      { to: '/school-admin/vehicles', icon: Bus, label: 'Vehicle Fleet' },
+      { to: '/school-admin/transport-routes', icon: Map, label: 'Route Management' },
+      { to: '/school-admin/trip-logs', icon: Activity, label: 'Transit Logs' },
+      { to: '/school-admin/drivers', icon: Users, label: 'Driver Registry' },
+      { to: '/school-admin/student-transport-assignment', icon: UserPlus, label: 'Student Allocation' },
     ]
   },
   {
-    label: 'Library Archive',
+    label: 'Library Management',
     icon: Library,
     children: [
-      { to: '/school-admin/library-inventory', icon: BookMarked, label: 'Asset Repository' },
-      { to: '/school-admin/library-records', icon: ClipboardList, label: 'Circulation Logs' },
-      { to: '/school-admin/library-history', icon: History, label: 'Historical Data' },
-      { to: '/school-admin/library-categories', icon: BookOpen, label: 'Taxonomy Matrix' },
+      { to: '/school-admin/library-inventory', icon: BookMarked, label: 'Book Inventory' },
+      { to: '/school-admin/library-records', icon: ClipboardList, label: 'Issue Records' },
+      { to: '/school-admin/library-history', icon: History, label: 'Circulation History' },
+      { to: '/school-admin/library-categories', icon: BookOpen, label: 'Book Categories' },
     ]
   },
   {
-    label: 'Credential Hub',
+    label: 'Certificates',
     icon: ShieldCheck,
     children: [
-      { to: '/school-admin/certificate-hub', icon: Award, label: 'Identity & Credits' },
+      { to: '/school-admin/certificate-hub', icon: Award, label: 'Generate Certificates' },
     ]
   },
   {
-    label: 'Communications',
+    label: 'Communication Hub',
     icon: MessageSquare,
     children: [
-      { to: '/school-admin/notifications', icon: Bell, label: 'Signal Inbox' },
-      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Pulse Broadcast' },
-      { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Probe' },
+      { to: '/school-admin/notifications', icon: Bell, label: 'System Notifications' },
+      { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Announcements' },
+      { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Messages' },
       { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
     ]
   },
-  { to: '/school-admin/holidays', icon: Calendar, label: 'Global Breaks' },
-  { to: '/school-admin/reports', icon: BarChart3, label: 'Global Analytics' },
+  { to: '/school-admin/reports', icon: BarChart3, label: 'Analytical Reports' },
 ];
 
 const SchoolAdminLayout = () => {
@@ -178,7 +176,7 @@ const SchoolAdminLayout = () => {
   // const isActive = (path) => location.pathname === path;
   const isActive = (path) => {
     if (path.includes('?')) {
-        return location.pathname + location.search === path;
+      return location.pathname + location.search === path;
     }
     return location.pathname === path;
   };

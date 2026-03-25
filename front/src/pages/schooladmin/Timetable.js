@@ -12,7 +12,7 @@ const AdminTimetable = () => {
     const dispatch = useDispatch();
     const [selectedClass, setSelectedClass] = useState('');
     const [activeDay, setActiveDay] = useState('Monday');
-    const [viewMode, setViewMode] = useState('editor'); // 'editor' | 'table'
+    const [viewMode, setViewMode] = useState('table'); // 'editor' | 'table'
     const [schedule, setSchedule] = useState({}); // { Monday: [periods], ... }
     
     // Template Management States
