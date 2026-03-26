@@ -28,6 +28,16 @@ export const fetchClassStudents = createAsyncThunk('teacher/fetchStudents', asyn
     }
 });
 
+export const generateRollNumbers = createAsyncThunk('teacher/generateRollNumbers', async (classId, { rejectWithValue, dispatch }) => {
+    try {
+        const response = await axiosInstance.post(`/teacher/generate-roll-numbers/${classId}`);
+        dispatch(fetchClassStudents(classId));
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 export const fetchStudentDetail = createAsyncThunk('teacher/fetchStudentDetail', async (studentId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/teacher/student-detail/${studentId}`);
@@ -399,6 +409,9 @@ const teacherSlice = createSlice({
             })
             .addCase(fetchClassStudents.fulfilled, (state, action) => {
                 state.students = action.payload;
+            })
+            .addCase(generateRollNumbers.fulfilled, (state, action) => {
+                state.message = action.payload.message || 'Roll sequence synchronized';
             })
             .addCase(fetchStudentDetail.fulfilled, (state, action) => {
                 state.studentDetail = action.payload;

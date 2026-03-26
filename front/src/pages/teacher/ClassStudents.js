@@ -3,8 +3,9 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Users, Info, ArrowLeft, Loader2, Calendar, Award, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
-import { fetchClassStudents, fetchStudentDetail } from '../../redux/slice/teacher.slice';
+import { Users, Info, ArrowLeft, Loader2, Calendar, Award, CheckCircle, XCircle, TrendingUp, RotateCcw } from 'lucide-react';
+import { fetchClassStudents, fetchStudentDetail, generateRollNumbers } from '../../redux/slice/teacher.slice';
+import toast from 'react-hot-toast';
 
 
 import Modal from '../../components/Modal';
@@ -16,6 +17,7 @@ const ClassStudents = () => {
     const { students, studentDetail, loading } = useSelector((state) => state.teacher);
 
     const [selectedStudent, setSelectedStudent] = useState(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         dispatch(fetchClassStudents(classId));
@@ -24,6 +26,20 @@ const ClassStudents = () => {
     const handleViewDetail = (studentId) => {
         dispatch(fetchStudentDetail(studentId));
         setSelectedStudent(studentId);
+    };
+
+    const handleGenerateRollNumbers = async () => {
+        if (window.confirm('Do you want to re-synchronize roll sequence based on gender (girls first) and name?')) {
+            setIsGenerating(true);
+            try {
+                const result = await dispatch(generateRollNumbers(classId)).unwrap();
+                toast.success(result.message || 'Roll numbers updated successfully');
+            } catch (error) {
+                toast.error(error || 'Failed to update roll numbers');
+            } finally {
+                setIsGenerating(false);
+            }
+        }
     };
 
     return (
@@ -38,6 +54,15 @@ const ClassStudents = () => {
                         <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px]">Active Academic Sector Population</p>
                     </div>
                 </div>
+
+                <button
+                    onClick={handleGenerateRollNumbers}
+                    disabled={isGenerating}
+                    className="px-8 py-4 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(37,99,235,0.3)] active:scale-95 border border-brand-primary/20"
+                >
+                    {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                    Sync Roll sequence
+                </button>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -58,14 +83,14 @@ const ClassStudents = () => {
                                 onClick={() => navigate(`/teacher/profile/${student._id}`)}
                             >
                                 <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1 group-hover/name:text-brand-primary transition-colors">{student.firstName} <br /> {student.lastName}</h4>
-                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId}</p>
+                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId || student.admissionNumber}</p>
                             </div>
                         </div>
 
                         <div className="space-y-4 mb-8">
                             <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-slate-500">
                                 <span>Roll Sequence</span>
-                                <span className="text-slate-300 italic">#{student.rollNo || 'N/A'}</span>
+                                <span className="text-slate-300 italic">#{student.rollNumber || 'N/A'}</span>
                             </div>
                         </div>
 

@@ -607,6 +607,38 @@ exports.promoteStudents = async (req, res) => {
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.generateRollNumbers = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const students = await Student.find({ classSection: classId, schoolId, deletedAt: null });
+    
+    // Sorting logic: Girls first, then Boys, then others
+    // Within each group, sort by name ascending
+    const sortedStudents = students.sort((a, b) => {
+        const genderOrder = { 'female': 1, 'male': 2, 'other': 3 };
+        const genderA = genderOrder[a.gender] || 4;
+        const genderB = genderOrder[b.gender] || 4;
+
+        if (genderA !== genderB) return genderA - genderB;
+
+        const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+        const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+        return nameA.localeCompare(nameB);
+    });
+
+    // Update each student with new roll number
+    const updates = sortedStudents.map((s, index) => {
+        return Student.findByIdAndUpdate(s._id, { rollNumber: (index + 1).toString() }, { new: true });
+    });
+
+    await Promise.all(updates);
+
+    res.json({ message: 'Roll sequence synchronized successfully' });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // ─── Teacher Validation ───────────────────────────────────────────────────────
 const validateTeacher = (body) => {
   const { firstName, lastName, email, phone, joiningDate } = body;

@@ -21,15 +21,15 @@ const studentSchema = new mongoose.Schema({
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
   scholarshipPercentage: { type: Number, default: 0 },
   password: { type: String },
-  transportStatus: { 
-    type: String, 
-    enum: ['None', 'Applied', 'Approved', 'Active'], 
-    default: 'None' 
+  transportStatus: {
+    type: String,
+    enum: ['None', 'Applied', 'Approved', 'Active'],
+    default: 'None'
   },
   transportRouteId: { type: mongoose.Schema.Types.ObjectId, ref: 'Route' },
   isActive: { type: Boolean, default: true },
   deletedAt: { type: Date, default: null },
-}, { 
+}, {
   timestamps: true,
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
@@ -38,31 +38,41 @@ const studentSchema = new mongoose.Schema({
 // Compound index for uniqueness per school
 studentSchema.index({ schoolId: 1, admissionNumber: 1 }, { unique: true });
 
-studentSchema.virtual('role').get(function() {
+studentSchema.virtual('role').get(function () {
   return 'Student';
 });
 
-// Auto-generate admissionNumber in format: ADM-2024-001
+// Auto-generate admissionNumber in format: ADM-SCHOOLNAME-2024-001
 studentSchema.pre('save', async function (next) {
   if (this.admissionNumber) return next();
 
-  const year = new Date().getFullYear();
-  const prefix = `ADM-${year}-`;
+  try {
+    const School = mongoose.model('School');
+    const school = await School.findById(this.schoolId);
+    
+    // Normalize school name: uppercase, alpha-numeric only, first 4 chars
+    const schoolNameStr = school ? school.name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4) : 'SCHL';
 
-  const last = await this.constructor
-    .findOne({ schoolId: this.schoolId, admissionNumber: new RegExp(`^${prefix}`) }, { admissionNumber: 1 })
-    .sort({ admissionNumber: -1 })
-    .lean();
+    const year = new Date().getFullYear();
+    const prefix = `ADM-${year}-${schoolNameStr}-`;
 
-  let nextNum = 1;
-  if (last?.admissionNumber) {
-    const parts = last.admissionNumber.split('-');
-    const lastNum = parseInt(parts[2], 10);
-    if (!isNaN(lastNum)) nextNum = lastNum + 1;
+    const last = await this.constructor
+      .findOne({ schoolId: this.schoolId, admissionNumber: new RegExp(`^${prefix}`) }, { admissionNumber: 1 })
+      .sort({ admissionNumber: -1 })
+      .lean();
+
+    let nextNum = 1;
+    if (last?.admissionNumber) {
+      const parts = last.admissionNumber.split('-');
+      const lastNum = parseInt(parts[parts.length - 1], 10);
+      if (!isNaN(lastNum)) nextNum = lastNum + 1;
+    }
+
+    this.admissionNumber = `${prefix}${String(nextNum).padStart(3, '0')}`;
+    next();
+  } catch (error) {
+    next(error);
   }
-
-  this.admissionNumber = `${prefix}${String(nextNum).padStart(3, '0')}`;
-  next();
 });
 
 module.exports = mongoose.model('Student', studentSchema);

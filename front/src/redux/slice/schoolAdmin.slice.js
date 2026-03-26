@@ -215,6 +215,14 @@ export const deleteTimetableTemplate = del('sa/deleteTimetableTemplate', '/timet
 export const importStudents = post('sa/importStudents', '/import-students');
 export const importTeachers = post('sa/importTeachers', '/import-teachers');
 export const promoteStudents = post('sa/promoteStudents', '/promote-students');
+export const generateRollNumbers = createAsyncThunk('sa/generateRollNumbers', async (classId, { rejectWithValue }) => {
+  try {
+    const res = await axiosInstance.post(`${BASE}/generate-roll-numbers/${classId}`);
+    return res.data;
+  } catch (e) {
+    return rejectWithValue(e.response?.data);
+  }
+});
 export const toggleExamPublishStatus = createAsyncThunk('sa/toggleExamPublishStatus', async (id, { rejectWithValue }) => {
   try { const res = await axiosInstance.patch(`/school-admin/exams/${id}/toggle-publish`); return { id, isPublished: res.data.isPublished, message: res.data.message }; }
   catch (e) { return rejectWithValue(e.response?.data); }
@@ -429,6 +437,7 @@ const schoolAdminSlice = createSlice({
       .addCase(importStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(importTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(promoteStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(generateRollNumbers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(fetchExamAnalytics.fulfilled, (state, a) => { state.examAnalytics = a.payload; state.loading = false; })
       .addCase(exportStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(exportTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
@@ -699,7 +708,7 @@ const schoolAdminSlice = createSlice({
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate, deleteTimetable,
       saveAttendance, saveStaffAttendance, toggleTeacherStatus, applyFeeStructure,
-      importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
+      importStudents, importTeachers, promoteStudents, generateRollNumbers, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,
       fetchFeeSummary, sendFeeReminders, generateBulkPayroll,
       fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,

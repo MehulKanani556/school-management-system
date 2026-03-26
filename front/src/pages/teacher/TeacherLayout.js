@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { resetUnreadCount } from '../../redux/slice/communication.slice';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
+import { fetchDashboard } from '../../redux/slice/teacher.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 
@@ -20,6 +21,7 @@ const TeacherLayout = () => {
     const location = useLocation();
     const navigate = useNavigate();
     const { user } = useSelector((state) => state.auth);
+    const { dashboard } = useSelector((state) => state.teacher);
     const { unreadCount } = useSelector((state) => state.communication);
     const { unreadCount: notifCount } = useSelector((state) => state.notifications);
     const { socket } = useSocket();
@@ -29,23 +31,36 @@ const TeacherLayout = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [showProfileMenu, setShowProfileMenu] = useState(false);
 
+    useEffect(() => {
+        if (!dashboard) {
+            dispatch(fetchDashboard());
+        }
+    }, [dispatch, dashboard]);
+
+    const academicChildren = [
+        { to: '/teacher/classes', icon: Layout, label: 'My Classes' },
+        ...(dashboard?.myClass ? [{ 
+            to: `/teacher/students/${dashboard.myClass.id}`, 
+            icon: Users, 
+            label: 'My Registry' 
+        }] : []),
+        { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planning' },
+        { to: '/teacher/attendance', icon: CalendarIcon, label: 'Attendance' },
+        { to: '/teacher/bulk-attendance', icon: Upload, label: 'Bulk Attendance' },
+        { to: '/teacher/marks', icon: Activity, label: 'Examination Marks' },
+        { to: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
+        { to: '/teacher/assignments', icon: Upload, label: 'Assignments' },
+        { to: '/teacher/quizzes', icon: Brain, label: 'Student Quizzes' },
+        { to: '/teacher/timetable', icon: Clock, label: 'My Timetable' },
+        { to: '/teacher/question-bank', icon: Database, label: 'Question Bank' },
+    ];
+
     const navItems = [
         { to: '/teacher', icon: LayoutDashboard, label: 'Dashboard', end: true },
         {
             label: 'Academic Records',
             icon: BookOpen,
-            children: [
-                { to: '/teacher/classes', icon: Layout, label: 'My Classes' },
-                { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planning' },
-                { to: '/teacher/attendance', icon: CalendarIcon, label: 'Attendance' },
-                { to: '/teacher/bulk-attendance', icon: Upload, label: 'Bulk Attendance' },
-                { to: '/teacher/marks', icon: Activity, label: 'Examination Marks' },
-                { to: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
-                { to: '/teacher/assignments', icon: Upload, label: 'Assignments' },
-                { to: '/teacher/quizzes', icon: Brain, label: 'Student Quizzes' },
-                { to: '/teacher/timetable', icon: Clock, label: 'My Timetable' },
-                { to: '/teacher/question-bank', icon: Database, label: 'Question Bank' },
-            ]
+            children: academicChildren
         },
         {
             label: 'Communication Hub',

@@ -66,6 +66,7 @@ router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
 router.get('/school-admin/export-students', ...schoolAdmin, sa.exportStudents);
 router.post('/school-admin/import-students', ...schoolAdmin, localUpload.single('file'), sa.importStudents);
 router.post('/school-admin/promote-students', ...schoolAdmin, sa.promoteStudents);
+router.post('/school-admin/generate-roll-numbers/:classId', ...schoolAdmin, sa.generateRollNumbers);
 router.get('/school-admin/students/:id', ...schoolAdmin, sa.getStudentDetail);
 router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generateReportCard);
 
@@ -256,6 +257,7 @@ router.get('/teacher/dashboard', ...teacher, tc.getTeacherDashboard);
 router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
 router.get('/teacher/context', ...teacher, tc.getTeacherContext);
 router.get('/teacher/assigned-students/:classId', ...teacher, tc.getAssignedClassStudents);
+router.post('/teacher/generate-roll-numbers/:classId', ...teacher, tc.generateRollNumbers);
 router.get('/teacher/student-detail/:id', ...teacher, tc.getStudentDetail);
 router.get('/teacher/exams/:classId', ...teacher, tc.getExamsByClass);
 router.get('/teacher/attendance', ...teacher, tc.getAttendanceByClassAndDate);

@@ -29,8 +29,8 @@ const schoolSchema = new mongoose.Schema(
     adminEmail: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     revenue: { // To track global revenue in stats
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0
     },
     settings: { type: settingsSchema, default: () => ({}) },
   },

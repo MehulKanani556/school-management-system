@@ -100,16 +100,23 @@ exports.getTeacherDashboard = async (req, res) => {
             dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
         });
 
+        const myClass = assignedClasses.find(c => c.classTeacher?.toString() === teacherProfile._id.toString());
+
         res.json({
+            profile: teacherProfile,
+            assignedClasses: classesGrid,
             stats: {
-                classes: assignedClasses.length,
-                students: studentsCount,
-                attendance: attendancePercentage,
-                assignments: assignmentCount,
-                upcomingDeadlines: deadlinesCount
+                studentsCount,
+                attendancePercentage,
+                assignmentCount,
+                deadlinesCount
             },
             recentAssignments,
-            classesGrid
+            myClass: myClass ? {
+                id: myClass._id,
+                section: myClass.sectionLabel,
+                standard: myClass.standardId?.level || 'N/A'
+            } : null
         });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -324,6 +331,46 @@ exports.getAssignedClassStudents = async (req, res) => {
 
         const students = await Student.find({ classSection: classId });
         res.json(students);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 6b. Generate Roll Numbers ───────────────────────────────────────────────—
+exports.generateRollNumbers = async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const teacher = await getTeacher(req.user._id);
+
+        const isAssigned = await ClassSection.findOne({
+            _id: classId,
+            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+        });
+
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this sectors population' });
+
+        const students = await Student.find({ classSection: classId, deletedAt: null });
+        
+        // Sorting logic: Girls first, then Boys, then others
+        // Within each group, sort by name ascending
+        const sortedStudents = students.sort((a, b) => {
+            const genderOrder = { 'female': 1, 'male': 2, 'other': 3 };
+            const genderA = genderOrder[a.gender] || 4;
+            const genderB = genderOrder[b.gender] || 4;
+
+            if (genderA !== genderB) return genderA - genderB;
+
+            const nameA = `${a.firstName} ${a.lastName}`.toLowerCase();
+            const nameB = `${b.firstName} ${b.lastName}`.toLowerCase();
+            return nameA.localeCompare(nameB);
+        });
+
+        // Update each student with new roll number
+        const updates = sortedStudents.map((s, index) => {
+            return Student.findByIdAndUpdate(s._id, { rollNumber: (index + 1).toString() }, { new: true });
+        });
+
+        await Promise.all(updates);
+
+        res.json({ message: 'Roll sequence synchronized successfully' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1224,6 +1271,7 @@ module.exports = {
     getAssignedClasses: exports.getAssignedClasses,
     getTeacherContext: exports.getTeacherContext,
     getAssignedClassStudents: exports.getAssignedClassStudents,
+    generateRollNumbers: exports.generateRollNumbers,
     getStudentDetail: exports.getStudentDetail,
     getExamsByClass: exports.getExamsByClass,
     getAttendanceByClassAndDate: exports.getAttendanceByClassAndDate,

@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard, generateRollNumbers } from '../../redux/slice/schoolAdmin.slice';
 
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft, Eye } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft, Eye, RotateCcw } from 'lucide-react';
+import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
 
@@ -184,6 +185,19 @@ const Students = () => {
     setViewMode('students');
   };
 
+  const handleSyncRollNumbers = async () => {
+    if (!selectedSection) return;
+    if (window.confirm(`Do you want to re-synchronize roll sequence for Section ${selectedSection.sectionLabel}? (Girls first, then Boys, then alphabetical)`)) {
+      try {
+        const result = await dispatch(generateRollNumbers(selectedSection._id)).unwrap();
+        toast.success(result.message || 'Roll sequence synchronized');
+        dispatch(fetchStudents());
+      } catch (err) {
+        toast.error(err.message || 'Failed to synchronize roll sequence');
+      }
+    }
+  };
+
   // Reset page when search changes
   useEffect(() => { setCurrentPage(1); }, [search]);
 
@@ -226,6 +240,15 @@ const Students = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
+          {viewMode === 'students' && selectedSection && (
+            <button 
+              onClick={handleSyncRollNumbers}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-3 bg-brand-primary/10 hover:bg-brand-primary/20 border border-brand-primary/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-brand-primary group disabled:opacity-50"
+            >
+              <RotateCcw size={14} className={loading ? 'animate-spin' : ''} /> Sync Roll sequence
+            </button>
+          )}
           <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-schooladmin-primary/10 hover:bg-schooladmin-primary/20 border border-schooladmin-primary/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-schooladmin-primary hover:text-schooladmin-primary group">
             <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Promote Students
           </button>
@@ -331,16 +354,16 @@ const Students = () => {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-brand-border/30">
-                    {['Student', 'Admission No.', 'Gender', 'Guardian', 'Class', 'DOB', 'Actions'].map(h => (
+                    {['Student', 'Roll No.', 'Admission No.', 'Gender', 'Guardian', 'Class', 'DOB', 'Actions'].map(h => (
                       <th key={h} className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {loading && filtered.length === 0 ? (
-                    <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-500">Loading...</td></tr>
                   ) : filtered.length === 0 ? (
-                    <tr><td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
+                    <tr><td colSpan={8} className="px-6 py-12 text-center text-slate-500 italic">No students found</td></tr>
                   ) : currentItems.map((s, i) => (
                     <motion.tr key={s._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
                       className="border-b border-brand-border/20 hover:bg-slate-800/20 transition-colors">
@@ -354,6 +377,7 @@ const Students = () => {
                           <div className="font-semibold group-hover/name:text-brand-primary transition-colors">{s.firstName} {s.lastName}</div>
                         </div>
                       </td>
+                      <td className="px-6 py-4 text-brand-primary font-black italic text-sm">#{s.rollNumber || '—'}</td>
                       <td className="px-6 py-4 text-slate-400 text-sm">{s.admissionNumber}</td>
                       <td className="px-6 py-4 text-slate-400 text-sm capitalize">{s.gender}</td>
                       <td className="px-6 py-4 text-slate-400 text-sm">{s.guardianName || '—'}</td>

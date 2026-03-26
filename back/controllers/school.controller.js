@@ -6,16 +6,16 @@ const { sendWelcomeMail } = require('../utils/mail');
 exports.createSchool = async (req, res) => {
     try {
         const { name, subdomain, adminEmail, address, contact } = req.body;
-        
+
         // Use uploaded logo if present
         const logo = req.file ? req.file.location : null;
 
         const checkSchool = await School.findOne({ subdomain });
         if (checkSchool) return res.status(400).json({ message: 'Subdomain already taken' });
 
-        const school = await School.create({ 
-            name, 
-            subdomain, 
+        const school = await School.create({
+            name,
+            subdomain,
             adminEmail,
             logo,
             address,
@@ -27,7 +27,7 @@ exports.createSchool = async (req, res) => {
         if (!checkUser) {
             const hashedPassword = await bcrypt.hash(adminEmail, 10);
             const userAvatar = logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}+Admin&background=2563eb&color=fff`;
-            
+
             const newUser = await User.create({
                 firstName: name,
                 lastName: 'Administrator',
@@ -74,15 +74,15 @@ exports.getSchoolStats = async (req, res) => {
     try {
         const totalSchools = await School.countDocuments();
         const activeSchools = await School.countDocuments({ isActive: true });
-        
+
         // Calculate Total Revenue from all schools
         const revenueResult = await School.aggregate([
             { $group: { _id: null, total: { $sum: "$revenue" } } }
         ]);
         const totalRevenue = revenueResult[0] ? revenueResult[0].total : 0;
 
-        res.status(200).json({ 
-            success: true, 
+        res.status(200).json({
+            success: true,
             stats: {
                 totalSchools,
                 activeSchools,
@@ -98,7 +98,7 @@ exports.updateSchool = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, isActive, address, contact } = req.body;
-        
+
         const updateData = { name, isActive, address, contact };
         if (req.file) {
             updateData.logo = req.file.location;
