@@ -23,7 +23,6 @@ const AddMarks = () => {
     const initialExamId = query.get('examId');
 
     const [isGlobalEditMode, setIsGlobalEditMode] = useState(true);
-    const hasInitializedInitialExam = useRef(false);
 
     const { classes, students, exams, marks, message, loading } = useSelector((state) => state.teacher);
     const [searchTerm, setSearchTerm] = useState('');
@@ -71,16 +70,29 @@ const AddMarks = () => {
             dispatch(fetchClassStudents(formik.values.selectedClass));
             dispatch(fetchExamSchedule(formik.values.selectedClass));
             
-            if (initialExamId && !hasInitializedInitialExam.current && formik.values.selectedClass === initialClassId) {
-                // Do not clear the exam on initial hydration from schedule routing
-                hasInitializedInitialExam.current = true;
+            // If the current class matches the URL context, prioritize the URL's exam ID
+            if (initialExamId && formik.values.selectedClass === initialClassId) {
+                if (formik.values.selectedExam !== initialExamId) {
+                    formik.setFieldValue('selectedExam', initialExamId);
+                }
             } else {
-                formik.setFieldValue('selectedExam', ''); // Reset exam on subsequent class changes
+                // Otherwise, clear the selection to allow the auto-select logic to pick the best fit for the new class
+                formik.setFieldValue('selectedExam', ''); 
             }
+            
             setIsGlobalEditMode(true);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formik.values.selectedClass, dispatch, initialExamId, initialClassId]);
+
+    // Auto-select first assessment when list loads
+    useEffect(() => {
+        if (exams.length > 0 && !formik.values.selectedExam && formik.values.selectedClass) {
+            // Priority: First non-evaluated exam, otherwise simply the first one
+            const firstUnEvaluated = exams.find(ex => !ex.isEvaluated);
+            formik.setFieldValue('selectedExam', firstUnEvaluated?._id || exams[0]._id);
+        }
+    }, [exams, formik.values.selectedExam, formik.values.selectedClass, formik.setFieldValue]);
 
     // Fetch existing marks when exam changes
     useEffect(() => {
@@ -176,7 +188,7 @@ const AddMarks = () => {
                             <option value="" className="bg-slate-950 text-slate-600">Select Assessment</option>
                             {exams.map(ex => (
                                 <option key={ex._id} value={ex._id} className="bg-slate-950 text-white italic uppercase tracking-tighter">
-                                    {ex.title} [{ex.type?.replace('_', ' ')}]
+                                    {ex.subject} - {ex.title} [{ex.type?.replace('_', ' ')}]
                                 </option>
                             ))}
                         </select>

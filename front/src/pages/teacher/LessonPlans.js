@@ -172,7 +172,12 @@ const LessonPlans = () => {
                                             required
                                             className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
                                             value={formData.classSection}
-                                            onChange={(e) => setFormData({ ...formData, classSection: e.target.value, subject: '' })}
+                                            onChange={(e) => {
+                                                const classId = e.target.value;
+                                                const selectedClassObj = classes?.find(c => c._id === classId);
+                                                const firstSubjectId = selectedClassObj?.subjects?.[0]?._id || '';
+                                                setFormData({ ...formData, classSection: classId, subject: firstSubjectId });
+                                            }}
                                         >
                                             <option value="">SELECT SECTOR</option>
                                             {classes?.map(c => <option key={c._id} value={c._id}>{c.standardId?.level} - {c.sectionLabel}</option>)}

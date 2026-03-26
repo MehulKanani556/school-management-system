@@ -140,7 +140,20 @@ const Assignments = () => {
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Academic Sector</p>
                                     <div className="relative group">
                                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
-                                        <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white">
+                                        <select 
+                                            value={selectedClass} 
+                                            onChange={(e) => {
+                                                const classId = e.target.value;
+                                                setSelectedClass(classId);
+                                                const selectedClassObj = classes.find(c => c._id === classId);
+                                                if (selectedClassObj?.subjects?.length > 0) {
+                                                    setFormData(prev => ({ ...prev, subject: selectedClassObj.subjects[0].name }));
+                                                } else {
+                                                    setFormData(prev => ({ ...prev, subject: '' }));
+                                                }
+                                            }} 
+                                            className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
+                                        >
                                             <option value="" className="bg-slate-900 text-slate-500">Select Section</option>
                                             {classes.map(cls => (
                                                 <option key={cls._id} value={cls._id} className="bg-slate-900 text-white">Grade {cls.standardId?.gradeLevel} - {cls.sectionLabel}</option>
