@@ -27,6 +27,10 @@ const AdminTimetable = () => {
         'Short Break': 10,
         'Long Break': 30
     });
+    
+    // Copy Management States
+    const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+    const [sourceDay, setSourceDay] = useState('');
     const { classes, subjects, teachers, timetable, timetables, timetableTemplates, loading, error } = useSelector((state) => state.schoolAdmin);
 
     useEffect(() => {
@@ -91,13 +95,19 @@ const AdminTimetable = () => {
             : null;
         
         const startTime = lastPeriod ? lastPeriod.endTime : '09:00';
+        const type = 'Lecture';
+        const duration = templateDurations[type] || 45;
+        
         let endTime = '10:00';
-        if (lastPeriod) {
-            const [h, m] = lastPeriod.endTime.split(':').map(Number);
-            endTime = `${String((h + 1) % 24).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        if (startTime) {
+            const [h, m] = startTime.split(':').map(Number);
+            const totalMinutes = h * 60 + m + duration;
+            const nh = Math.floor(totalMinutes / 60) % 24;
+            const nm = totalMinutes % 60;
+            endTime = `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
         }
 
-        const newPeriod = { startTime, endTime, subject: '', teacher: '', room: '', type: 'Lecture' };
+        const newPeriod = { startTime, endTime, subject: '', teacher: '', room: '', type };
         setSchedule({
             ...schedule,
             [activeDay]: [...(schedule[activeDay] || []), newPeriod]
@@ -156,7 +166,15 @@ const AdminTimetable = () => {
         } else {
             setCurrentTemplate(null);
             setTemplateName('');
-            setTemplatePeriods([{ startTime: '09:00', endTime: '10:00', type: 'Lecture' }]);
+            const startTime = '09:00';
+            const duration = templateDurations['Lecture'] || 45;
+            const [h, m] = startTime.split(':').map(Number);
+            const totalMinutes = h * 60 + m + duration;
+            const nh = Math.floor(totalMinutes / 60) % 24;
+            const nm = totalMinutes % 60;
+            const endTime = `${String(nh).padStart(2, '0')}:${String(nm).padStart(2, '0')}`;
+            
+            setTemplatePeriods([{ startTime, endTime, type: 'Lecture' }]);
         }
         setIsTemplateEditModalOpen(true);
     };
@@ -170,7 +188,7 @@ const AdminTimetable = () => {
             dispatch(updateTimetableTemplate({ id: currentTemplate._id, data }))
                 .unwrap()
                 .then(() => {
-                    toast.success('Template modified');
+                    toast.success('Template updated');
                     setIsTemplateEditModalOpen(false);
                 });
         } else {
@@ -186,7 +204,7 @@ const AdminTimetable = () => {
     const handleDeleteTemplate = (id) => {
         dispatch(deleteTimetableTemplate(id))
             .unwrap()
-            .then(() => toast.success('Template decommissioned'));
+            .then(() => toast.success('Template deleted'));
     };
 
     const addTemplatePeriod = () => {
@@ -218,29 +236,47 @@ const AdminTimetable = () => {
         setTemplatePeriods(newPeriods);
     };
 
+    const handleCopySchedule = () => {
+        if (!sourceDay) return toast.error('Select a day to copy from');
+        
+        const sourceSchedule = schedule[sourceDay] || [];
+        
+        setSchedule({
+            ...schedule,
+            [activeDay]: sourceSchedule.map(p => ({ ...p }))
+        });
+        
+        setIsCopyModalOpen(false);
+        setSourceDay('');
+        toast.success(`Schedule imported from ${sourceDay} to ${activeDay}`);
+    };
+
     const handleSave = async () => {
-        if (!selectedClass) return toast.error('Select a class sector to synchronize');
+        if (!selectedClass) return toast.error('Select a class to save');
 
         const scheduleArray = Object.keys(schedule).map(day => ({
             day,
-            periods: (schedule[day] || []).filter(p => p.subject && p.teacher)
+            periods: (schedule[day] || []).filter(p => 
+                (p.type === 'Lecture' && p.subject && p.teacher) || 
+                (p.type !== 'Lecture')
+            )
         }));
 
         dispatch(saveTimetable({ classSection: selectedClass, schedule: scheduleArray }))
             .unwrap()
             .then(() => {
-                toast.success('Institutional chronology synchronized');
+                toast.success('Timetable saved successfully');
                 dispatch(fetchAllTimetables());
             })
-            .catch((err) => toast.error(err.message || 'Synchronization failed'));
+            .catch((err) => toast.error(err.message || 'Saving failed'));
     };
 
     const handleDeleteTimetable = (id) => {
         if (window.confirm('Delete this entire class timetable? This cannot be undone.')) {
             dispatch(deleteTimetable(id))
                 .unwrap()
-                .then(() => toast.success('Timetable record purged from registry'))
-                .catch((err) => toast.error(err.message || 'Purge failed'));
+                .then(() => toast.success('Timetable deleted'))
+                .catch((err) => toast.error(err.message || 'Delete failed'));
         }
     };
 
@@ -259,21 +295,21 @@ const AdminTimetable = () => {
                     <div className="space-y-2 relative z-10">
                         <div className="flex items-center gap-2 mb-1">
                             <div className="w-1.5 h-1.5 rounded-md bg-brand-primary shadow-glow"></div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Sync System v2.0</span>
+                            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Timetable System v2.0</span>
                         </div>
                         <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit group-hover:scale-[1.01] transition-transform duration-700">
-                            Scheduling Center
+                            Timetable Management
                         </h1>
                         <p className="text-slate-500 font-bold text-[10px] tracking-[0.2em] uppercase italic flex items-center gap-2">
-                            Structural Synchronization across {classes.length} academic sectors
+                            Class schedules for {classes.length} school standards
                         </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 relative z-10">
                         <div className="flex bg-black/40 p-1 rounded-md border border-white/5 backdrop-blur-md">
                             {[
-                                { id: 'editor', icon: <Edit2 size={12} />, label: 'Node View' },
-                                { id: 'table', icon: <LayoutGrid size={12} />, label: 'Global Registry' }
+                                { id: 'editor', icon: <Edit2 size={12} />, label: 'Editor View' },
+                                { id: 'table', icon: <LayoutGrid size={12} />, label: 'All Timetables' }
                             ].map((mode) => (
                                 <button
                                     key={mode.id}
@@ -288,13 +324,13 @@ const AdminTimetable = () => {
                         <div className="h-10 w-[1px] bg-white/5 hidden xl:block"></div>
 
                         <div className="flex items-center gap-3">
-                            <button 
+                            {/* <button 
                                 onClick={() => setIsTemplateModalOpen(true)}
                                 className="flex items-center gap-2 px-6 h-12 rounded-md bg-slate-900/60 border border-white/5 text-slate-400 hover:border-brand-primary/40 hover:text-white hover:bg-slate-900 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group/btn shadow-inner"
                             >
                                 <Settings size={14} className="group-hover/btn:rotate-90 transition-transform duration-700 text-brand-primary/60 group-hover/btn:text-brand-primary" />
-                                Infrastructure
-                            </button>
+                                Templates
+                            </button> */}
 
                             <div className="relative group">
                                 <Layers size={14} className="absolute left-5 top-1/2 -translate-y-1/2 text-brand-primary/40 group-focus-within:text-brand-primary transition-colors pointer-events-none" />
@@ -303,7 +339,7 @@ const AdminTimetable = () => {
                                     onChange={(e) => setSelectedClass(e.target.value)}
                                     className="bg-slate-950 border border-white/5 h-12 pl-12 pr-10 rounded-md text-[9px] font-black uppercase tracking-widest outline-none focus:border-brand-primary/30 transition-all text-white appearance-none cursor-pointer hover:bg-black font-outfit shadow-inner"
                                 >
-                                    <option value="">Select Sector</option>
+                                    <option value="">Select Class</option>
                                     {classes.map(c => (
                                         <option key={c._id} value={c._id}>
                                             {c.standardId?.name || `STD-${c.standardId?.level}`} : {c.sectionLabel} {getExistingTimetable(c._id) ? '●' : '○'}
@@ -319,7 +355,7 @@ const AdminTimetable = () => {
                                 className="flex items-center gap-3 bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-20 text-white px-8 h-12 rounded-md text-[9px] font-black uppercase tracking-widest transition-all shadow-glow active:scale-95"
                             >
                                 {loading ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-md animate-spin" /> : <Save size={14} />}
-                                Sync Timeline
+                                Save Timetable
                             </button>
                         </div>
                     </div>
@@ -336,7 +372,7 @@ const AdminTimetable = () => {
                         className="space-y-8"
                     >
                         <div className="flex items-center justify-between px-4">
-                            <h2 className="text-xs font-black uppercase tracking-[0.5em] text-slate-500 font-outfit italic">Institutional Chronology Archive</h2>
+                            <h2 className="text-xs font-black uppercase tracking-[0.5em] text-slate-500 font-outfit italic">All Class Timetables</h2>
                             <span className="px-4 py-1.5 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[9px] font-black text-brand-primary uppercase tracking-widest italic">{timetables.length} Active Records</span>
                         </div>
 
@@ -344,9 +380,9 @@ const AdminTimetable = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-slate-800/60 bg-slate-900/40">
-                                        <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Academic Sector</th>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Class & Section</th>
                                         <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Status</th>
-                                        <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Node Density</th>
+                                        <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Periods</th>
                                         <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 font-outfit text-right">Actions</th>
                                     </tr>
                                 </thead>
@@ -366,7 +402,7 @@ const AdminTimetable = () => {
                                                             <div className="text-[13px] font-black text-white uppercase tracking-wider font-outfit italic">
                                                                 {cls.standardId?.name || `Standard ${cls.standardId?.level}`} - {cls.sectionLabel}
                                                             </div>
-                                                            <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Institutional Unit Path</div>
+                                                            <div className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">School Unit</div>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -384,14 +420,14 @@ const AdminTimetable = () => {
                                                     )}
                                                 </td>
                                                 <td className="px-10 py-8">
-                                                    <div className="text-[12px] font-black text-slate-300 font-outfit italic">{periodCount} <span className="text-slate-600 text-[10px] ml-1 uppercase">Sequences</span></div>
+                                                    <div className="text-[12px] font-black text-slate-300 font-outfit italic">{periodCount} <span className="text-slate-600 text-[10px] ml-1 uppercase">Periods</span></div>
                                                 </td>
                                                 <td className="px-10 py-8 text-right flex items-center justify-end gap-3">
                                                     {tt && (
                                                         <button 
                                                             onClick={() => handleDeleteTimetable(tt._id)}
                                                             className="p-3 rounded-md bg-rose-500/10 border border-rose-500/20 text-rose-500 hover:bg-rose-500 hover:text-white transition-all active:scale-95"
-                                                            title="Purge Record"
+                                                            title="Delete"
                                                         >
                                                             <Trash2 size={16} />
                                                         </button>
@@ -400,7 +436,7 @@ const AdminTimetable = () => {
                                                         onClick={() => { setSelectedClass(cls._id); setViewMode('editor'); }}
                                                         className="h-12 px-8 rounded-md border border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all flex items-center justify-center gap-3 group/btn"
                                                     >
-                                                        {tt ? 'Modify' : 'Initialize'}
+                                                        {tt ? 'Edit' : 'Create'}
                                                         <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
                                                     </button>
                                                 </td>
@@ -436,7 +472,7 @@ const AdminTimetable = () => {
                                             <span className={`text-[10px] font-black uppercase tracking-[0.2em] font-outfit ${activeDay === day ? 'text-white' : 'text-slate-400 group-hover/day:text-white'}`}>{day}</span>
                                             <div className="flex items-center gap-1 mt-1 opacity-40">
                                                 <div className={`w-1 h-1 rounded-md ${schedule[activeDay]?.length > 0 ? 'bg-current' : 'bg-transparent border border-current'}`}></div>
-                                                <span className="text-[7px] font-bold">{(schedule[day] || []).length} Nodes</span>
+                                                <span className="text-[7px] font-bold">{(schedule[day] || []).length} Periods</span>
                                             </div>
                                             {activeDay === day && (
                                                 <motion.div layoutId="dayTab" className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-6 h-[2px] bg-white rounded-md"></motion.div>
@@ -447,23 +483,30 @@ const AdminTimetable = () => {
                                 
                                 <div className="flex items-center justify-between px-2">
                                     <div className="flex items-center gap-4">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Node Sequence:</h3>
-                                        <span className="text-sm font-black text-white uppercase italic tracking-widest">{activeDay} Pulse</span>
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Schedule for:</h3>
+                                        <span className="text-sm font-black text-white uppercase italic tracking-widest">{activeDay}</span>
                                     </div>
                                     <div className="flex gap-3">
+                                        <button 
+                                            onClick={() => { setIsCopyModalOpen(true); setSourceDay(''); }}
+                                            className="flex items-center gap-2 px-6 h-10 rounded-md bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-brand-primary/30 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group shadow-inner"
+                                        >
+                                            <Calendar size={14} className="text-brand-primary/40 group-hover:text-brand-primary" />
+                                            Import from Day
+                                        </button>
                                         <button 
                                             onClick={() => setIsTemplateModalOpen(true)}
                                             className="flex items-center gap-2 px-6 h-10 rounded-md bg-slate-900 border border-white/5 text-slate-400 hover:text-white hover:border-brand-primary/30 transition-all text-[9px] font-black uppercase tracking-widest active:scale-95 group shadow-inner"
                                         >
                                             <Layers size={14} className="group-hover:rotate-12 transition-transform text-brand-primary/40 group-hover:text-brand-primary" />
-                                            Import Pattern
+                                            Use Template
                                         </button>
                                         <button 
                                             onClick={addPeriod}
                                             className="flex items-center gap-2 px-6 h-10 rounded-md bg-brand-primary text-white hover:bg-brand-primary/90 transition-all text-[9px] font-black uppercase tracking-widest shadow-glow active:scale-95 group"
                                         >
                                             <Plus size={14} className="group-hover:rotate-12 transition-transform" />
-                                            Add Node
+                                            Add Period
                                         </button>
                                     </div>
                                 </div>
@@ -523,7 +566,7 @@ const AdminTimetable = () => {
                                                                 <div className="relative group/break w-full py-3 bg-brand-primary/5 rounded-md border border-brand-primary/10 shadow-inner overflow-hidden flex items-center justify-center">
                                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-brand-primary/5 to-transparent -translate-x-full animate-[shimmer_3s_infinite]"></div>
                                                                     <span className="text-[10px] font-black uppercase tracking-[0.8em] text-brand-primary/60 italic font-outfit relative z-10">
-                                                                        {period.type} Node
+                                                                        {period.type}
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -556,7 +599,7 @@ const AdminTimetable = () => {
                                                                             onChange={(e) => updatePeriod(idx, 'teacher', e.target.value)}
                                                                             className="w-full bg-slate-900/60 border border-white/5 h-10 pl-10 pr-6 rounded-md text-[10px] font-black uppercase text-white outline-none focus:border-brand-primary/30 transition-all font-outfit appearance-none italic"
                                                                         >
-                                                                            <option value="">Educator</option>
+                                                                            <option value="">Teacher</option>
                                                                             {(() => {
                                                                                 const currentClass = classes.find(c => c._id === selectedClass);
                                                                                 const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === period.subject);
@@ -589,15 +632,26 @@ const AdminTimetable = () => {
                                         <div className="py-24 border-2 border-dashed border-white/5 rounded-md bg-[#030712]/40 text-center flex flex-col items-center justify-center space-y-6 backdrop-blur-sm group/empty">
                                             <Clock size={40} className="text-slate-800 opacity-20 group-hover/empty:scale-110 group-hover/empty:text-brand-primary/20 transition-all duration-1000" />
                                             <div>
-                                                <h4 className="text-slate-600 font-black uppercase tracking-[0.6em] text-[10px] italic font-outfit">Empty Temporal Node</h4>
-                                                <p className="text-slate-700 text-[9px] mt-2 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-6 py-2 rounded-md border border-white/5">Initialize pedagogical sequences for {activeDay}</p>
+                                                <h4 className="text-slate-600 font-black uppercase tracking-[0.6em] text-[10px] italic font-outfit">Empty Schedule</h4>
+                                                <p className="text-slate-700 text-[9px] mt-2 font-bold tracking-[0.3em] uppercase italic bg-slate-900/60 inline-block px-6 py-2 rounded-md border border-white/5">Create periods for {activeDay}</p>
                                             </div>
-                                            <button 
-                                                onClick={addPeriod}
-                                                className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-8 py-3 rounded-md text-[9px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20"
-                                            >
-                                                Apply First Pulse Points
-                                            </button>
+                                            <div className="flex gap-4">
+                                                {days.some(d => d !== activeDay && schedule[d]?.length > 0) ? (
+                                                    <button 
+                                                        onClick={() => { setIsCopyModalOpen(true); setSourceDay(''); }}
+                                                        className="bg-brand-primary text-white px-10 py-3 rounded-md text-[9px] font-black uppercase tracking-[0.3em] transition-all shadow-glow border border-brand-primary/20 flex items-center gap-3"
+                                                    >
+                                                        <Calendar size={14} /> Import from Day
+                                                    </button>
+                                                ) : (
+                                                    <button 
+                                                        onClick={addPeriod}
+                                                        className="bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary px-8 py-3 rounded-md text-[9px] font-black uppercase tracking-[0.3em] transition-all border border-brand-primary/20 flex items-center gap-3"
+                                                    >
+                                                        <Plus size={14} /> Add Your First Period
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     )}
                                 </div>
@@ -606,8 +660,8 @@ const AdminTimetable = () => {
                             <div className="py-48 flex flex-col items-center justify-center border border-white/5 rounded-md bg-[#030712]/20 backdrop-blur-md group relative overflow-hidden">
                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)] animate-pulse"></div>
                                 <LayoutGrid size={80} className="text-slate-800 mb-10 opacity-20 group-hover:scale-110 group-hover:text-brand-primary/10 transition-all duration-1000 relative z-10" />
-                                <h3 className="text-2xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Sector Link Required</h3>
-                                <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase italic mt-4 relative z-10">Select an academic sector to access institutional chronology</p>
+                                <h3 className="text-2xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Selection Required</h3>
+                                <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase italic mt-4 relative z-10">Select a class to view or edit its timetable</p>
                             </div>
                         )}
                     </motion.div>
@@ -618,17 +672,17 @@ const AdminTimetable = () => {
             <Modal
                 open={isTemplateModalOpen}
                 onClose={() => setIsTemplateModalOpen(false)}
-                title="Structural Templates"
+                title="Timetable Templates"
                 maxWidth="max-w-4xl"
             >
                 <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest italic">Institutional patterns</p>
+                        <p className="text-slate-500 text-[9px] font-bold uppercase tracking-widest italic">Manage your predefined patterns</p>
                         <button 
                             onClick={() => handleOpenEditTemplate()}
                             className="flex items-center gap-2 px-4 h-10 rounded-md bg-brand-primary text-white text-[9px] font-black uppercase tracking-widest"
                         >
-                            <Plus size={12} /> New Infrastructure
+                            <Plus size={12} /> Add New Template
                         </button>
                     </div>
 
@@ -656,7 +710,7 @@ const AdminTimetable = () => {
                                     onClick={() => handleApplyTemplate(template)}
                                     className="w-full h-10 rounded-md bg-schooladmin-primary/10 border border-schooladmin-primary/20 text-schooladmin-primary hover:bg-schooladmin-primary hover:text-white transition-all text-[8px] font-black uppercase tracking-widest"
                                 >
-                                    Apply Configuration
+                                    Apply Template
                                 </button>
                             </div>
                         ))}
@@ -668,12 +722,12 @@ const AdminTimetable = () => {
             <Modal
                 open={isTemplateEditModalOpen}
                 onClose={() => setIsTemplateEditModalOpen(false)}
-                title={currentTemplate ? "Modify Infrastructure" : "Initialize Infrastructure"}
+                title={currentTemplate ? "Edit Template" : "Create Template"}
                 maxWidth="max-w-2xl"
             >
                 <div className="space-y-6">
                     <div className="space-y-2">
-                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Pattern Identity</label>
+                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest ml-1">Template Name</label>
                         <input 
                             placeholder="e.g., Morning Shift"
                             value={templateName}
@@ -698,9 +752,9 @@ const AdminTimetable = () => {
 
                     <div className="space-y-3">
                         <div className="flex items-center justify-between px-1">
-                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Chronology Nodes</label>
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Periods in Template</label>
                             <button onClick={addTemplatePeriod} className="text-brand-primary flex items-center gap-1 text-[9px] font-black uppercase tracking-widest hover:scale-105 transition-transform">
-                                <Plus size={12} /> Add Node
+                                <Plus size={12} /> Add Period
                             </button>
                         </div>
                         <div className="space-y-2 max-h-[40vh] overflow-y-auto pr-1 scrollbar-compact">
@@ -741,7 +795,41 @@ const AdminTimetable = () => {
                         onClick={handleSaveTemplate}
                         className="w-full h-12 rounded-md bg-brand-primary text-white font-black uppercase tracking-widest shadow-glow active:scale-95 transition-all text-[11px]"
                     >
-                        Sync Global Configuration
+                        Save Template
+                    </button>
+                </div>
+            </Modal>
+
+            {/* Copy Day Modal */}
+            <Modal
+                open={isCopyModalOpen}
+                onClose={() => setIsCopyModalOpen(false)}
+                title={`Copy to ${activeDay} from...`}
+                maxWidth="max-w-md"
+            >
+                <div className="space-y-6">
+                    <div className="grid grid-cols-2 gap-3">
+                        {days.filter(d => d !== activeDay && schedule[d]?.length > 0).map(day => (
+                            <button 
+                                key={day}
+                                onClick={() => setSourceDay(day)}
+                                className={`h-12 rounded-md border text-[10px] font-black uppercase tracking-widest transition-all ${
+                                    sourceDay === day 
+                                    ? 'bg-brand-primary text-white border-brand-primary shadow-glow' 
+                                    : 'bg-slate-900 text-slate-400 border-white/5 hover:border-brand-primary/40'
+                                }`}
+                            >
+                                {day}
+                                <div className="text-[7px] opacity-40 lowercase tracking-normal">{(schedule[day] || []).length} periods</div>
+                            </button>
+                        ))}
+                    </div>
+
+                    <button 
+                        onClick={handleCopySchedule}
+                        className="w-full h-12 rounded-md bg-brand-primary text-white font-black uppercase tracking-widest shadow-glow active:scale-95 transition-all font-outfit"
+                    >
+                        Confirm Import
                     </button>
                 </div>
             </Modal>
@@ -750,13 +838,13 @@ const AdminTimetable = () => {
             <div className="print-only w-full p-8 text-black">
                 <div className="mb-12 border-b-2 border-slate-900 pb-8 flex justify-between items-end">
                     <div>
-                        <h1 className="text-3xl font-black uppercase tracking-tighter italic">Institutional Chronology</h1>
+                        <h1 className="text-3xl font-black uppercase tracking-tighter italic">Class Timetable</h1>
                         <p className="text-sm font-bold text-slate-600 uppercase tracking-widest mt-2 italic">
-                            Sector: {classes.find(c => c._id === selectedClass)?.standardId?.name || 'Standard X'} - {classes.find(c => c._id === selectedClass)?.sectionLabel || 'A'}
+                            Class: {classes.find(c => c._id === selectedClass)?.standardId?.name || 'Standard X'} - {classes.find(c => c._id === selectedClass)?.sectionLabel || 'A'}
                         </p>
                     </div>
                     <div className="text-right">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Temporal Dispatch Archive</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Official Schedule</p>
                         <p className="text-lg font-black italic">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                     </div>
                 </div>
@@ -777,14 +865,14 @@ const AdminTimetable = () => {
                                         <h4 className="text-[10px] font-black uppercase tracking-tighter italic leading-tight">
                                             {slot.type.includes('Break') 
                                                 ? slot.type 
-                                                : (subjects.find(s => s._id === slot.subject)?.name || 'Pedagogical Node')}
+                                                : (subjects.find(s => s._id === slot.subject)?.name || 'Period')}
                                         </h4>
                                         {!slot.type.includes('Break') && (
                                             <>
                                                 <p className="text-[8px] font-bold text-slate-500 uppercase tracking-widest italic truncate">
-                                                    {teachers.find(t => t._id === slot.teacher)?.firstName || 'Educator'}
+                                                    {teachers.find(t => t._id === slot.teacher)?.firstName || 'Teacher'}
                                                 </p>
-                                                <div className="text-[8px] font-black text-slate-400 uppercase italic">RM: {slot.room || 'Sector-A'}</div>
+                                                <div className="text-[8px] font-black text-slate-400 uppercase italic">RM: {slot.room || 'N/A'}</div>
                                             </>
                                         )}
                                     </div>
@@ -795,8 +883,8 @@ const AdminTimetable = () => {
                 </div>
 
                 <div className="mt-12 pt-8 border-t border-slate-200 flex justify-between">
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">© 2026 Admin Chronology Terminal</div>
-                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic">Institutional Authorization Required for Distribution</div>
+                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-400 italic">© 2026 School Management System</div>
+                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic">Unauthorized distribution prohibited</div>
                 </div>
             </div>
         </motion.div>
