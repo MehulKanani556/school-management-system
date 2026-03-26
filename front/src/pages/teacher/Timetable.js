@@ -69,13 +69,7 @@ const TeacherTimetable = () => {
                     </div>
 
                     <div className="flex flex-wrap items-center gap-3">
-                        <button
-                            onClick={() => window.print()}
-                            className="group flex items-center gap-2 bg-slate-900 border border-slate-800 hover:border-brand-primary/40 text-slate-400 hover:text-brand-primary px-4 h-9 rounded-md font-black tracking-[0.2em] uppercase text-[9px] transition-all active:scale-95 font-outfit italic"
-                        >
-                            <Printer size={14} />
-                            PRINT
-                        </button>
+                        
                         <div className="relative group">
                             <Layers size={12} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary" />
                             <select

@@ -170,7 +170,7 @@ const MarkAttendance = () => {
                             <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
                             {classes.map(cls => (
                                 <option key={cls._id} value={cls._id} className="bg-slate-950 text-white italic">
-                                    Grade {cls.gradeLevel} - {cls.sectionLabel}
+                                    Grade {cls.standardId?.level} - {cls.sectionLabel}
                                 </option>
                             ))}
                         </select>
