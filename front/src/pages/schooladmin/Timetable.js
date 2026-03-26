@@ -257,10 +257,17 @@ const AdminTimetable = () => {
 
         const scheduleArray = Object.keys(schedule).map(day => ({
             day,
-            periods: (schedule[day] || []).filter(p => 
-                (p.type === 'Lecture' && p.subject && p.teacher) || 
-                (p.type !== 'Lecture')
-            )
+            periods: (schedule[day] || [])
+                .filter(p => 
+                    (p.type === 'Lecture' && p.subject && p.teacher) || 
+                    (p.type !== 'Lecture')
+                )
+                .map(p => {
+                    const cleanP = { ...p };
+                    if (!p.subject || p.subject === "") delete cleanP.subject;
+                    if (!p.teacher || p.teacher === "") delete cleanP.teacher;
+                    return cleanP;
+                })
         }));
 
         dispatch(saveTimetable({ classSection: selectedClass, schedule: scheduleArray }))
