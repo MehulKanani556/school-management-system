@@ -308,8 +308,6 @@ router.put('/teacher/meetings/:id', ...teacher, tc.updateMeeting);
 router.delete('/teacher/meetings/:id', ...teacher, tc.deleteMeeting);
 router.get('/teacher/student-attendance/:studentId', ...teacher, tc.getStudentFullAttendance);
 router.post('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
-router.post('/teacher/send-message', ...teacher, tc.sendMessage);
-router.get('/my-messages', ...teacher, tc.fetchMyMessages);
 router.post('/teacher/bulk-attendance', ...teacher, tc.bulkAttendanceImport);
 router.get('/teacher/reviews', ...teacher, tc.getMyReviews);
 router.get('/teacher/unified-calendar', ...teacher, tc.getUnifiedCalendar);
