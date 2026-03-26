@@ -5,18 +5,18 @@ async function cleanup() {
   await mongoose.connect(process.env.MONGODB_PATH);
   console.log('Connected to DB');
 
-  try {
-    await mongoose.connection.db.collection('teachers').dropIndex('employeeId_1');
-    console.log('Dropped global employeeId index on teachers collection');
-  } catch (err) {
-    console.log('Index employeeId_1 not found on teachers (or already dropped)');
-  }
+  const collections = ['teachers', 'users', 'students'];
+  const indexesToDrop = ['employeeId_1', 'admissionNumber_1'];
 
-  try {
-    await mongoose.connection.db.collection('users').dropIndex('employeeId_1');
-    console.log('Dropped global employeeId index on users collection');
-  } catch (err) {
-    console.log('Index employeeId_1 not found on users (or already dropped)');
+  for (const col of collections) {
+    for (const idx of indexesToDrop) {
+      try {
+        await mongoose.connection.db.collection(col).dropIndex(idx);
+        console.log(`Dropped global index ${idx} on ${col} collection`);
+      } catch (err) {
+        // console.log(`Index ${idx} not found on ${col} (or already dropped)`);
+      }
+    }
   }
 
   await mongoose.disconnect();

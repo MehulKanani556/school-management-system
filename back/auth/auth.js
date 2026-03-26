@@ -95,16 +95,34 @@ exports.createUser = async (req, res) => {
 exports.studentLogin = async (req, res) => {
     try {
         const { admissionNumber, password } = req.body;
-        const student = await Student.findOne({ admissionNumber })
+        const normalizedID = (admissionNumber || "").trim().toUpperCase();
+
+        // Find ALL students matching this ID (case-normalized)
+        const students = await Student.find({ admissionNumber: normalizedID })
             .populate({ path: 'classSection', populate: { path: 'standardId' } })
             .populate('schoolId');
-        if (!student) return res.status(404).json({ message: "Student record not found" });
 
-        const isMatch = await bcrypt.compare(password, student.password);
-        if (!isMatch) return res.status(401).json({ message: "Invalid credentials" });
+        if (!students || students.length === 0) {
+            return res.status(404).json({ message: "Student record not found" });
+        }
 
-        const { accessToken, refreshToken } = await generateToken(student._id, 'Student');
-        const studentUser = { ...student._doc, role: 'Student', _id: student._id };
+        let authenticatedStudent = null;
+
+        // Verify password against each potential match across schools
+        for (const student of students) {
+            const isMatch = await bcrypt.compare(password, student.password);
+            if (isMatch) {
+                authenticatedStudent = student;
+                break;
+            }
+        }
+
+        if (!authenticatedStudent) {
+            return res.status(401).json({ message: "Invalid credentials" });
+        }
+
+        const { accessToken, refreshToken } = await generateToken(authenticatedStudent._id, 'Student');
+        const studentUser = { ...authenticatedStudent._doc, role: 'Student', _id: authenticatedStudent._id };
 
         return res
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
@@ -113,6 +131,7 @@ exports.studentLogin = async (req, res) => {
         return res.status(500).json({ message: error.message });
     }
 }
+
 
 exports.login = async (req, res) => {
     try {

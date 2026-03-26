@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const studentSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
-  admissionNumber: { type: String, unique: true },
+  admissionNumber: { type: String },
   rollNumber: { type: String },
   schoolAdminId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   firstName: { type: String, required: true },
@@ -34,6 +34,9 @@ const studentSchema = new mongoose.Schema({
   toJSON: { virtuals: true },
   toObject: { virtuals: true }
 });
+
+// Compound index for uniqueness per school
+studentSchema.index({ schoolId: 1, admissionNumber: 1 }, { unique: true });
 
 studentSchema.virtual('role').get(function() {
   return 'Student';
