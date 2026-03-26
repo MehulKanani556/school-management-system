@@ -1707,6 +1707,18 @@ exports.getAllPayroll = async (req, res) => {
 exports.createPayroll = async (req, res) => {
   try {
     const { teacherId, userId, month, year, basicSalary, bonus, deductions, status, paymentDate, remarks } = req.body;
+    const schoolId = getSchoolId(req);
+
+    // Check if payroll already exists for this member in the selected cycle
+    const query = { schoolId, month, year };
+    if (teacherId) query.teacherId = teacherId;
+    else if (userId) query.userId = userId;
+    else return res.status(400).json({ message: 'Teacher or Staff member must be specified' });
+
+    const existingPayroll = await Payroll.findOne(query);
+    if (existingPayroll) {
+      return res.status(400).json({ message: 'Payroll for this member already exists for the selected month and year' });
+    }
     
     let bSalary = Number(basicSalary) || 0;
     if (teacherId) {

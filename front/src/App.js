@@ -196,6 +196,7 @@ const TransporterHolidays = React.lazy(() => import('./pages/Transporter/Holiday
 const TransporterAnnouncements = React.lazy(() => import('./pages/Transporter/Announcements'));
 const Maintenancetransport = React.lazy(() => import('./pages/Transporter/Maintenance'));
 const Tracking = React.lazy(() => import('./pages/Transporter/Tracking'));
+const TransporterAnalytics = React.lazy(() => import('./pages/Transporter/Analytics'));
 
 const { store, persistor } = configureStore();
 
@@ -446,6 +447,7 @@ function AppRoutes() {
             <Route path="logs" element={<TripLogs />} />
             <Route path="Maintenancetransport" element={<Maintenancetransport />} />
             <Route path="tracking" element={<Tracking />} />
+            <Route path="analytics" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TransporterAnalytics /></Suspense>} />
             <Route path="notifications" element={<TransporterNotifications />} />
             <Route path="holidays" element={<TransporterHolidays />} />
             <Route path="announcements" element={<TransporterAnnouncements />} />

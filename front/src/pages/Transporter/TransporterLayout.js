@@ -30,6 +30,7 @@ const TransporterLayout = () => {
             { to: '/transporter/logs', icon: Activity, label: 'Trip Logs' },
             { to: '/transporter/tracking', icon: MapPin, label: 'Vehicle Tracking' },
             { to: '/transporter/Maintenancetransport', icon: Settings, label: 'Maintenance' },
+            { to: '/transporter/analytics', icon: Activity, label: 'Analytics' },
         ]
     },
     {

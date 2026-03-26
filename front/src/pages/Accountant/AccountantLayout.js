@@ -48,7 +48,9 @@ const AccountantLayout = () => {
       label: 'Communication',
       icon: MessageSquare,
       children: [
+        { path: '/accountant/messages', icon: MessageSquare, label: 'Messages' },
         { path: '/accountant/announcements', icon: Bell, label: 'Announcements' },
+        { path: '/accountant/notifications', icon: Bell, label: 'Notifications' },
       ]
     },
     {

@@ -278,6 +278,13 @@ exports.downloadChildFeeReceipt = async (req, res) => {
 
 // ─── Account Management ──────────────────────────────────────────────────────
 
+exports.getParentProfile = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).select('-password');
+        res.json({ user });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 exports.updateParentProfile = async (req, res) => {
     try {
         const { firstName, lastName, phone, address } = req.body;

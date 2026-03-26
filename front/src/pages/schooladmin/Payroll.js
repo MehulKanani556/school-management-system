@@ -35,8 +35,8 @@ const emptyValues = {
   basicSalary: '',
   bonus: 0, 
   deductions: 0, 
-  status: 'unpaid', 
-  paymentDate: '', 
+  status: 'paid', 
+  paymentDate: new Date().toISOString().split('T')[0], 
   remarks: '' 
 };
 

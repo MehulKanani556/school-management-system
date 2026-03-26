@@ -368,6 +368,7 @@ router.get('/parent/child/:studentId/report-card', ...parent, pc.downloadChildRe
 router.get('/parent/receipt/:feeId', ...parent, pc.downloadChildFeeReceipt);
 
 // Settings
+router.get('/parent/profile', ...parent, pc.getParentProfile);
 router.put('/parent/profile', ...parent, upload.single('photo'), pc.updateParentProfile);
 router.post('/parent/change-password', ...parent, pc.changeParentPassword);
 router.get('/parent/child/:studentId/transport', ...parent, pc.getChildTransport);

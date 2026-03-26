@@ -59,6 +59,16 @@ const TeacherLayout = () => {
             ]
         },
         {
+            label: 'Student Insights',
+            icon: Activity,
+            children: [
+                { to: '/teacher/analytics', icon: Activity, label: 'Attendance Analytics' },
+                { to: '/teacher/behavior-log', icon: Shield, label: 'Behavior Log' },
+                { to: '/teacher/fee-status', icon: DollarSign, label: 'Class Fee Status' },
+                { to: '/teacher/reviews', icon: Trophy, label: 'My Reviews' },
+            ]
+        },
+        {
             label: 'Staff Management',
             icon: Clock,
             children: [
@@ -72,6 +82,8 @@ const TeacherLayout = () => {
             icon: User,
             children: [
                 { to: '/teacher/profile', icon: User, label: 'My Profile' },
+                { to: '/teacher/noticeboard', icon: Layout, label: 'Class Noticeboard' },
+                { to: '/teacher/notifications', icon: Bell, label: 'Notifications' },
                 { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'Calendar' },
                 { to: '/teacher/holidays', icon: Calendar, label: 'Holidays' },
             ]
