@@ -255,3 +255,16 @@ exports.deleteMessage = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Toggle pin status on a notice
+exports.toggleNoticePin = async (req, res) => {
+    try {
+        const notice = await Message.findOne({ _id: req.params.id, schoolId: req.user.schoolId, type: 'Notice' });
+        if (!notice) return res.status(404).json({ message: 'Notice not found' });
+        notice.isPinned = !notice.isPinned;
+        await notice.save();
+        res.json({ message: `Notice ${notice.isPinned ? 'pinned' : 'unpinned'}`, data: notice });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};

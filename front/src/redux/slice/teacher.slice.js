@@ -322,6 +322,34 @@ export const fetchMeetings = createAsyncThunk('teacher/fetchMeetings', async (_,
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
+export const updateMeeting = createAsyncThunk('teacher/updateMeeting', async ({ id, data }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put(`/teacher/meetings/${id}`, data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const deleteMeeting = createAsyncThunk('teacher/deleteMeeting', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/teacher/meetings/${id}`);
+        return { id, ...response.data };
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const updateLessonPlan = createAsyncThunk('teacher/updateLessonPlan', async ({ id, data }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put(`/teacher/lesson-plans/${id}`, data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const deleteLessonPlan = createAsyncThunk('teacher/deleteLessonPlan', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/teacher/lesson-plans/${id}`);
+        return { id, ...response.data };
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -500,6 +528,24 @@ const teacherSlice = createSlice({
             .addCase(scheduleMeeting.fulfilled, (state, action) => {
                 state.message = action.payload.message;
                 state.meetings = [...state.meetings, action.payload.meeting].sort((a,b) => new Date(a.date) - new Date(b.date));
+            })
+            .addCase(updateMeeting.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload.message || 'Meeting updated';
+            })
+            .addCase(deleteMeeting.fulfilled, (state, action) => {
+                state.meetings = state.meetings.filter(m => m._id !== action.payload.id);
+                state.loading = false;
+                state.message = action.payload.message || 'Meeting deleted';
+            })
+            .addCase(updateLessonPlan.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload.message || 'Lesson plan updated';
+            })
+            .addCase(deleteLessonPlan.fulfilled, (state, action) => {
+                state.lessonPlans = state.lessonPlans.filter(p => p._id !== action.payload.id);
+                state.loading = false;
+                state.message = action.payload.message || 'Lesson plan deleted';
             })
             .addMatcher(
                 (action) => action.type.endsWith('/fulfilled'),

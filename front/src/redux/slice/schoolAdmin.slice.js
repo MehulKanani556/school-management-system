@@ -8,8 +8,8 @@ const asyncGet = (name, path) =>
     try {
       const res = await axiosInstance.get(`${BASE}${path}`, { params });
       return res.data;
-    } catch (e) { 
-      return rejectWithValue(e.response?.data); 
+    } catch (e) {
+      return rejectWithValue(e.response?.data);
     }
   });
 
@@ -94,29 +94,29 @@ export const fetchStaffAttendance = createAsyncThunk('sa/fetchStaffAttendance', 
   catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const saveStaffAttendance = createAsyncThunk('sa/saveStaffAttendance', async (data, { rejectWithValue }) => {
-    try { const res = await axiosInstance.post('/staff-attendance/bulk-mark', data); return res.data; }
-    catch (e) { return rejectWithValue(e.response?.data); }
+  try { const res = await axiosInstance.post('/staff-attendance/bulk-mark', data); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const fetchStaffForAttendance = createAsyncThunk('sa/fetchStaffForAttendance', async (params, { rejectWithValue }) => {
-    try { const res = await axiosInstance.get('/staff-attendance/list', { params }); return res.data; }
-    catch (e) { return rejectWithValue(e.response?.data); }
+  try { const res = await axiosInstance.get('/staff-attendance/list', { params }); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const fetchStaffMonthlySummary = createAsyncThunk('sa/fetchStaffMonthlySummary', async (params, { rejectWithValue }) => {
-    try { const res = await axiosInstance.get('/staff-attendance/monthly-summary', { params }); return res.data; }
-    catch (e) { return rejectWithValue(e.response?.data); }
+  try { const res = await axiosInstance.get('/staff-attendance/monthly-summary', { params }); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const exportStaffAttendance = createAsyncThunk('sa/exportStaffAttendance', async (params, { rejectWithValue }) => {
-    try {
-        const res = await axiosInstance.get('/staff-attendance/report', { params: { ...params, export: true }, responseType: 'blob' });
-        const url = window.URL.createObjectURL(new Blob([res.data]));
-        const link = document.createElement('a');
-        link.href = url;
-        link.setAttribute('download', `StaffAttendance_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        return { success: true };
-    } catch (e) { return rejectWithValue(e.response?.data); }
+  try {
+    const res = await axiosInstance.get('/staff-attendance/report', { params: { ...params, export: true }, responseType: 'blob' });
+    const url = window.URL.createObjectURL(new Blob([res.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `StaffAttendance_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    return { success: true };
+  } catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const fetchAssignmentsOverview = asyncGet('sa/fetchAssignmentsOverview', '/assignments');
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
@@ -227,10 +227,7 @@ export const updateAcademicYear = put('sa/updateAcademicYear', '/academic-years'
 export const deleteAcademicYear = del('sa/deleteAcademicYear', '/academic-years');
 
 // Announcements
-export const fetchAnnouncements = createAsyncThunk('sa/fetchAnnouncements', async (_, { rejectWithValue }) => {
-  try { const res = await axiosInstance.get('/school-admin/announcements/managed'); return res.data; }
-  catch (e) { return rejectWithValue(e.response?.data); }
-});
+export const fetchAnnouncements = asyncGet('sa/fetchAnnouncements', '/announcements');
 export const createAnnouncement = post('sa/createAnnouncement', '/announcements');
 export const updateAnnouncement = put('sa/updateAnnouncement', '/announcements');
 export const deleteAnnouncement = del('sa/deleteAnnouncement', '/announcements');
@@ -241,12 +238,12 @@ export const createEnquiry = post('sa/createEnquiry', '/admissions/enquiries');
 export const enrollCandidate = post('sa/enrollCandidate', '/admissions/enroll');
 
 // Notice Board
-export const fetchNotices = asyncGet('sa/notices', '/notice-board');
-export const createNotice = post('sa/createNotice', '/notice-board');
-export const updateNotice = put('sa/updateNotice', '/notice-board');
-export const deleteNotice = del('sa/deleteNotice', '/notice-board');
+export const fetchNotices = asyncGet('sa/notices', '/notices');
+export const createNotice = post('sa/createNotice', '/notices');
+export const updateNotice = put('sa/updateNotice', '/notices');
+export const deleteNotice = del('sa/deleteNotice', '/notices');
 export const toggleNoticePin = createAsyncThunk('sa/toggleNoticePin', async (id, { rejectWithValue }) => {
-  try { const res = await axiosInstance.patch(`/school-admin/notice-board/${id}/toggle-pin`); return res.data; }
+  try { const res = await axiosInstance.patch(`${BASE}/notices/${id}/toggle-pin`); return res.data; }
   catch (e) { return rejectWithValue(e.response?.data); }
 });
 
@@ -295,11 +292,11 @@ export const exportTeachers = createAsyncThunk('sa/exportTeachers', async (_, { 
 
 const initialState = {
   dashboard: null,
-  students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [], 
+  students: [], teachers: [], classes: [], standards: [], subjects: [], feeStructures: [], fees: [], exams: [],
   attendance: [], attendanceReport: [], attendanceAnalytics: [], attendanceAlerts: [],
   schoolPerformance: null, feeReport: null,
   holidays: [], timetable: null, timetables: [],
-  payroll: [], staffAttendance: [], assignments: [], leaves: [], reviews: [],timetableTemplates: [],
+  payroll: [], staffAttendance: [], assignments: [], leaves: [], reviews: [], timetableTemplates: [],
   examAnalytics: null,
   feeSummary: null,
   studentDetail: null,
@@ -322,11 +319,11 @@ const schoolAdminSlice = createSlice({
   },
   extraReducers: (builder) => {
     const pending = (state) => { state.loading = true; state.error = null; };
-    const rejected = (state, action) => { 
+    const rejected = (state, action) => {
       state.loading = false;
       const payload = action.payload;
       let errorMsg = 'Error';
-      
+
       if (typeof payload === 'string') {
         errorMsg = payload;
       } else if (payload && typeof payload.message === 'string') {
@@ -334,8 +331,8 @@ const schoolAdminSlice = createSlice({
       } else if (action.error && typeof action.error.message === 'string') {
         errorMsg = action.error.message;
       }
-      
-      state.error = errorMsg; 
+
+      state.error = errorMsg;
     };
 
 
@@ -525,13 +522,13 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchFeeSummary.fulfilled, (state, a) => { state.feeSummary = a.payload; state.loading = false; })
       .addCase(sendFeeReminders.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Reminders dispatched"; })
       .addCase(saveTimetable.fulfilled, (state, a) => { state.timetable = a.payload.data || a.payload; state.loading = false; state.message = a.payload.message || "Curriculum timetable published"; })
-      .addCase(deleteTimetable.fulfilled, (state, a) => { 
+      .addCase(deleteTimetable.fulfilled, (state, a) => {
         state.timetables = state.timetables.filter(t => t._id !== a.payload.id);
         if (state.timetable?._id === a.payload.id) state.timetable = null;
-        state.loading = false; 
-        state.message = a.payload.message || "Timetable purged"; 
+        state.loading = false;
+        state.message = a.payload.message || "Timetable purged";
       })
-      .addCase(toggleExamPublishStatus.fulfilled, (state, a) => { 
+      .addCase(toggleExamPublishStatus.fulfilled, (state, a) => {
         const exam = state.exams.find(e => e._id === a.payload.id);
         if (exam) exam.isPublished = a.payload.isPublished;
         state.loading = false;
@@ -606,7 +603,7 @@ const schoolAdminSlice = createSlice({
         state.loading = false;
         state.message = a.payload.message || "Password changed successfully";
       })
-      
+
       // Academic Years
       .addCase(fetchAcademicYears.fulfilled, handleList('academicYears'))
       .addCase(createAcademicYear.fulfilled, (state, a) => {
@@ -694,16 +691,16 @@ const schoolAdminSlice = createSlice({
 
     // pending/rejected for all
     [
-      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams, 
+      fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams,
       fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts, fetchStaffAttendance,
       fetchSchoolPerformance, fetchFeeReport, exportFeeReport, exportAttendanceReport,
       fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
-      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday,fetchTimetableTemplates,createTimetableTemplate,updateTimetableTemplate, deleteTimetableTemplate, deleteTimetable,
+      deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate, deleteTimetable,
       saveAttendance, saveStaffAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, exportStudents, exportTeachers,
-      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,       
+      fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,
       fetchFeeSummary, sendFeeReminders, generateBulkPayroll,
       fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,
       fetchAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear,

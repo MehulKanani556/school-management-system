@@ -386,6 +386,7 @@ router.delete('/school-admin/messages/:id', ...schoolAdmin, mc.deleteMessage);
 // Notice Board
 router.get('/school-admin/notices', ...schoolAdmin, mc.getNotices);
 router.post('/school-admin/notices', ...schoolAdmin, upload.single('file'), mc.createNotice);
+router.patch('/school-admin/notices/:id/toggle-pin', ...schoolAdmin, mc.toggleNoticePin);
 
 // Global (for teachers/students/parents to see)
 router.get('/announcements', auth, mc.getAnnouncements);
