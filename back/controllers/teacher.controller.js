@@ -887,19 +887,30 @@ exports.getUnifiedCalendar = async (req, res) => {
 // 19. Get exams for teacher's assigned classes ──────────────────────────────
 exports.getExamsByClass = async (req, res) => {
     try {
+        const { classId } = req.params;
+        const queryClassId = req.query.classId;
+        const targetClassId = classId || queryClassId;
+
         const teacher = await getTeacher(req.user._id);
         const assignedClasses = await ClassSection.find({
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const standardIds = assignedClasses.map(c => c.standardId);
 
-        const exams = await Exam.find({
-            $or: [
+        let query = { schoolId: teacher.schoolId._id };
+
+        if (targetClassId) {
+            // Strict filtering by specific class context
+            query.classSection = targetClassId;
+        } else {
+            // Fallback: Broad pedagogical reach across all assigned sectors
+            query.$or = [
                 { classSection: { $in: assignedClasses.map(c => c._id) } },
                 { standardId: { $in: standardIds }, classSection: null }
-            ],
-            schoolId: teacher.schoolId._id
-        })
+            ];
+        }
+
+        const exams = await Exam.find(query)
             .populate('subject', 'name')
             .sort({ date: 1 });
 
@@ -934,7 +945,11 @@ exports.createLessonPlan = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         const newPlan = new LessonPlan({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
         await newPlan.save();
-        res.status(201).json({ message: 'Pedagogical directive ARCHIVED successfully', plan: newPlan });
+        const populated = await newPlan.populate([
+            { path: 'classSection', select: 'sectionLabel' },
+            { path: 'subject', select: 'name' }
+        ]);
+        res.status(201).json({ message: 'Pedagogical directive ARCHIVED successfully', plan: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

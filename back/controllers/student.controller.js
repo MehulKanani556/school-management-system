@@ -65,7 +65,11 @@ exports.getAttendance = async (req, res) => {
 exports.getResults = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const marks = await Mark.find({ studentId: student._id }).populate('examId');
+        const marks = await Mark.find({ studentId: student._id })
+            .populate({
+                path: 'examId',
+                populate: { path: 'subject', select: 'name' }
+            });
         res.json(marks);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -203,8 +207,13 @@ exports.getExams = async (req, res) => {
         const student = await getStudent(req.user._id);
         const exams = await Exam.find({
             standardId: student.standard,
-            schoolId: student.schoolId._id
-        }).populate('subject');
+            schoolId: student.schoolId._id,
+            isPublished: true,
+            $or: [
+                { classSection: student.classSection._id },
+                { classSection: null }
+            ]
+        }).populate('subject').sort({ date: 1 });
         res.json(exams);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

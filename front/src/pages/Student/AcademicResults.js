@@ -34,7 +34,7 @@ const AcademicResults = () => {
     // Calculate aggregate metrics
     const aggregate = results.reduce((acc, curr) => {
         acc.totalObtained += curr.marksObtained || 0;
-        acc.totalPossible += curr.totalMarks || 100;
+        acc.totalPossible += curr.examId?.maxMarks || 100;
         return acc;
     }, { totalObtained: 0, totalPossible: 0 });
 
@@ -143,35 +143,36 @@ const AcademicResults = () => {
                     <div className="p-10 grid grid-cols-1 gap-8">
                         {results.length > 0 ? (
                             results.map((res, idx) => {
-                                const per = ((res.marksObtained / res.totalMarks) * 100).toFixed(0);
+                                const maxAllowed = res.examId?.maxMarks || 100;
+                                const per = ((res.marksObtained / maxAllowed) * 100).toFixed(0);
                                 return (
                                     <motion.div 
                                         key={res._id || idx}
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-slate-900/40 border border-slate-800/50 p-10 rounded-md hover:border-luxury-emerald/30 transition-all group relative overflow-hidden"
+                                        className="bg-slate-900/40 border border-slate-800/50 p-7 rounded-md hover:border-luxury-emerald/30 transition-all group relative overflow-hidden"
                                     >
-                                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:opacity-10 transition-opacity">
+                                        <div className="absolute top-0 right-0 p-7 opacity-5 group-hover:opacity-10 transition-opacity">
                                             <FileText size={80} />
                                         </div>
                                         
-                                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8 mb-10">
+                                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-7">
                                             <div>
                                                 <div className="flex items-center gap-3 mb-3">
                                                     <span className="px-3 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 rounded-md text-[9px] font-black uppercase tracking-[0.3em] italic">{(res.examId?.name || 'Standard Eval').toUpperCase()}</span>
                                                     <span className="w-1.5 h-1.5 rounded-md bg-slate-800"></span>
                                                     <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Node-ID: {res._id.slice(-6).toUpperCase()}</span>
                                                 </div>
-                                                <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase font-outfit group-hover:text-luxury-emerald transition-all">{res.subjectId?.name || 'Subject Terminal'}</h4>
+                                                <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase font-outfit group-hover:text-luxury-emerald transition-all">{res.examId?.subject?.name || 'Subject Terminal'}</h4>
                                             </div>
                                             <div className="text-left md:text-right bg-slate-950/40 px-6 py-4 rounded-md border border-slate-800/60">
-                                                <p className="text-4xl font-black text-white font-outfit leading-none tracking-tighter italic">{res.marksObtained}<span className="text-slate-600 text-lg ml-2">/ {res.totalMarks}</span></p>
+                                                <p className="text-4xl font-black text-white font-outfit leading-none tracking-tighter italic">{res.marksObtained}<span className="text-slate-600 text-lg ml-2">/ {maxAllowed}</span></p>
                                                 <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mt-3 italic">Precision Rating</p>
                                             </div>
                                         </div>
 
-                                        <div className="relative z-10 space-y-4 mb-10">
+                                        <div className="relative z-10 space-y-4 mb-7">
                                             <div className="flex justify-between items-end px-1">
                                                 <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 italic">Mastery Completion</span>
                                                 <span className="text-lg font-black text-luxury-emerald italic font-outfit">{per}%</span>
@@ -186,7 +187,7 @@ const AcademicResults = () => {
                                             </div>
                                         </div>
 
-                                        <div className="relative z-10 flex items-center justify-between pt-8 border-t border-slate-800/60">
+                                        <div className="relative z-10 flex items-center justify-between pt-5 border-t border-slate-800/60">
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-2 bg-slate-950/60 px-4 py-2 rounded-md border border-slate-800/40">
                                                     <div className="w-2 h-2 rounded-md bg-luxury-emerald animate-pulse"></div>

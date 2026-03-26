@@ -101,9 +101,9 @@ export const sendMessage = createAsyncThunk('teacher/sendMessage', async (formDa
         return rejectWithValue(error.response.data.message);
     }
 });
-export const fetchExamSchedule = createAsyncThunk('teacher/fetchExams', async (_, { rejectWithValue }) => {
+export const fetchExamSchedule = createAsyncThunk('teacher/fetchExams', async (classId, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get('/teacher/exam-schedule');
+        const response = await axiosInstance.get(`/teacher/exam-schedule?classId=${classId || ''}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
