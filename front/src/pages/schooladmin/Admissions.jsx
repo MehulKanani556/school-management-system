@@ -75,7 +75,7 @@ const Admissions = () => {
             classId: '',
             sectionId: '',
             academicYearId: '',
-            password: 'password123'
+            password: 'password'
         },
         validationSchema: Yup.object({
             admissionNumber: Yup.string().required('Security index required'),
