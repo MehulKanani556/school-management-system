@@ -84,7 +84,15 @@ const sendTeacherWelcomeMail = async ({ email, firstName, lastName, employeeId, 
             </table>
           </div>
           <p style="color:#f59e0b;font-size:13px;">⚠️ Please change your password after first login.</p>
-          <p style="color:#64748b;font-size:12px;margin-top:32px;">If you have any issues, contact your school administrator.</p>
+
+          <div style="text-align:center;margin-top:32px;">
+            <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" 
+               style="display:inline-block;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:14px 40px;border-radius:100px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-size:13px;box-shadow:0 10px 15px -3px rgba(37,99,235,0.4);">
+              LOGIN TO PORTAL
+            </a>
+          </div>
+
+          <p style="color:#64748b;font-size:12px;margin-top:48px;border-top:1px solid #1e293b;padding-top:24px;text-align:center;">If you have any issues, contact your school administrator.</p>
         </div>
       </div>
     `,
@@ -645,52 +653,67 @@ exports.getTeachers = async (req, res) => {
 };
 
 exports.createTeacher = async (req, res) => {
+  const session = await mongoose.startSession();
+  session.startTransaction();
   try {
     const errors = validateTeacher(req.body);
-    if (Object.keys(errors).length) return res.status(422).json({ message: 'Validation failed', errors });
+    if (Object.keys(errors).length) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(422).json({ message: 'Validation failed', errors });
+    }
 
     const { email, phone, firstName, lastName, qualifications, joiningDate } = req.body;
 
     // check duplicate email/phone across teachers
-    const duplicate = await Teacher.findOne({ $or: [{ email: email.trim() }, { phone: phone.trim() }] });
+    const duplicate = await Teacher.findOne({ 
+      $or: [{ email: email.trim() }, { phone: phone.trim() }] 
+    }).session(session);
     if (duplicate) {
       const field = duplicate.email === email.trim() ? 'Email' : 'Phone number';
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).json({ message: `${field} is already registered` });
     }
 
     // check if user with this email already exists
-    const existingUser = await User.findOne({ email: email.trim() });
-    if (existingUser) return res.status(400).json({ message: 'A user with this email already exists' });
+    const existingUser = await User.findOne({ email: email.trim() }).session(session);
+    if (existingUser) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).json({ message: 'A user with this email already exists' });
+    }
 
     // password = email (plain), hash for storage
     const plainPassword = email.trim();
     const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
-    console.log("asas", req.user);
     // create User record
-    const user = await User.create({
+    const [user] = await User.create([{
       firstName, lastName,
       email: email.trim(),
       password: hashedPassword,
       role: 'Teacher',
       schoolId: getSchoolId(req),
       photo: 'https://ui-avatars.com/api/?name=' + encodeURIComponent(`${firstName} ${lastName}`) + '&background=2563eb&color=fff',
-    });
+    }], { session });
 
     // create Teacher record linked to user
-    const teacher = await Teacher.create({
+    const [teacher] = await Teacher.create([{
       ...req.body,
       email: email.trim(),
       phone: phone.trim(),
       schoolId: getSchoolId(req),
-
       schoolAdminId: getSchoolAdminId(req),
       userId: user._id,
       qualifications,
       joiningDate
-    });
+    }], { session });
 
-    // send welcome email (non-blocking — don't fail if mail fails)
+    await session.commitTransaction();
+    session.endSession();
+
+    // send welcome email (non-blocking)
     sendTeacherWelcomeMail({
       email: email.trim(), firstName, lastName,
       employeeId: teacher.employeeId,
@@ -699,7 +722,16 @@ exports.createTeacher = async (req, res) => {
     }).catch(err => console.error('Mail error:', err));
 
     res.status(201).json({ message: 'Teacher node provisioned successfully', data: teacher });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+  } catch (err) { 
+    await session.abortTransaction();
+    session.endSession();
+    // Handle specific duplicate key errors
+    if (err.code === 11000) {
+      const field = err.message.includes('employeeId') ? 'Employee ID' : 'Record';
+      return res.status(400).json({ message: `Conflict: This ${field} is already in use.` });
+    }
+    res.status(500).json({ message: err.message }); 
+  }
 };
 
 exports.updateTeacher = async (req, res) => {

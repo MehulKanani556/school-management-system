@@ -57,8 +57,17 @@ exports.sendWelcomeMail = async (options) => {
           </table>
         </div>
         <p style="color:#f59e0b;font-size:13px;">⚠️ Please change your password after first login.</p>
-        <p style="color:#64748b;font-size:12px;margin-top:32px;">${footerNote}</p>
+        
+        <div style="text-align:center;margin-top:32px;">
+          <a href="${process.env.CLIENT_URL || 'http://localhost:3000'}" 
+             style="display:inline-block;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;padding:14px 40px;border-radius:100px;text-decoration:none;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-size:13px;box-shadow:0 10px 15px -3px rgba(37,99,235,0.4);">
+            LOGIN TO TERMINAL
+          </a>
+        </div>
+
+        <p style="color:#64748b;font-size:12px;margin-top:48px;border-top:1px solid #1e293b;padding-top:24px;text-align:center;">${footerNote}</p>
       </div>
+      
     </div>
   `;
 

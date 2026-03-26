@@ -12,7 +12,7 @@ const validationSchema = Yup.object({
     .required('Subject name is required')
     .min(2, 'Name too short'),
   code: Yup.string()
-    .max(10, 'Code too long'),
+    .max(20, 'Code too long (max 20)'),
   description: Yup.string(),
 });
 
@@ -137,8 +137,11 @@ const Subjects = () => {
               onChange={formik.handleChange}
               onBlur={formik.handleBlur}
               placeholder="e.g. MATH101"
-              className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all"
+              className={`mt-1.5 w-full bg-slate-800/40 border ${formik.touched.code && formik.errors.code ? 'border-red-500' : 'border-brand-border/40'} focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all`}
             />
+            {formik.touched.code && formik.errors.code && (
+              <p className="text-[10px] text-red-500 mt-1 font-bold italic">{formik.errors.code}</p>
+            )}
           </div>
 
           <div>

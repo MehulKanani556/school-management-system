@@ -371,61 +371,61 @@ const schoolAdminSlice = createSlice({
       // create
       .addCase(createStudent.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.students.push(item);
+        state.students.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Student node created";
       })
       .addCase(createTeacher.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.teachers.push(item);
+        state.teachers.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Teacher node created";
       })
       .addCase(createClass.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.classes.push(item);
+        state.classes.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Academic section created";
       })
       .addCase(createStandard.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.standards.push(item);
+        state.standards.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Standard node created";
       })
       .addCase(createFee.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.fees.push(item);
+        state.fees.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Fee node created";
       })
       .addCase(createExam.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.exams.push(item);
+        state.exams.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Examination node created";
       })
       .addCase(createSubject.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.subjects.push(item);
+        state.subjects.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Subject node created";
       })
       .addCase(createHoliday.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.holidays.push(item);
+        state.holidays.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Holiday terminal entry created";
       })
       .addCase(createFeeStructure.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.feeStructures.push(item);
+        state.feeStructures.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Fee structure node created";
       })
       .addCase(createTimetableTemplate.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
-        state.timetableTemplates.push(item);
+        state.timetableTemplates.unshift(item);
         state.loading = false;
         state.message = a.payload.message || "Timetable template created";
       })

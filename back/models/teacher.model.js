@@ -4,7 +4,7 @@ const teacherSchema = new mongoose.Schema({
   schoolId:       { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   schoolAdminId:  { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-  employeeId:     { type: String, unique: true },
+  employeeId:     { type: String },
   firstName:      { type: String, required: true },
   lastName:       { type: String, required: true },
   email:          { type: String, unique: true, sparse: true },
@@ -16,6 +16,9 @@ const teacherSchema = new mongoose.Schema({
   deletedAt:      { type: Date, default: null },
 }, { timestamps: true });
 
+// Compound index for uniqueness per school
+teacherSchema.index({ schoolId: 1, employeeId: 1 }, { unique: true });
+
 // Auto-generate employeeId in sequence: 0001, 0002, ...
 teacherSchema.pre('save', async function (next) {
   if (this.employeeId) return next(); // already set, skip
@@ -26,7 +29,7 @@ teacherSchema.pre('save', async function (next) {
     .lean();
 
   let nextNum = 1;
-  if (last?.employeeId) {
+  if (last && last.employeeId) {
     const parsed = parseInt(last.employeeId, 10);
     if (!isNaN(parsed)) nextNum = parsed + 1;
   }

@@ -37,7 +37,6 @@ const userSchema = new mongoose.Schema({
     },
     employeeId: {
         type: String,
-        unique: true,
         sparse: true,
         set: v => v === '' ? undefined : v
     },
@@ -73,6 +72,11 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now,
     },
+});
+
+userSchema.index({ schoolId: 1, employeeId: 1 }, { 
+    unique: true, 
+    partialFilterExpression: { employeeId: { $type: "string" } } 
 });
 
 userSchema.pre('save', function(next) {
