@@ -572,7 +572,7 @@ const ProfileDetail = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">
                                 <ProfileField icon={GraduationCap} label={role === 'Student' ? "Academic Standard" : "Expertise Domain"} value={role === 'Student' ? `Grade ${data.standard?.level || 'N/A'}-${data.classSection?.sectionLabel || 'N/A'}` : (data.qualification || 'Certified Instructor')} />
                                 <ProfileField icon={Calendar} label={role === 'Student' ? "Date of Birth" : "Engagement Date"} value={role === 'Student' ? moment(data.dateOfBirth).format('DD MMM YYYY') : moment(data.joiningDate).format('DD MMM YYYY')} />
-                                <ProfileField icon={Mail} label="Institutional Mail" value={data.email || 'No email synced'} />
+                                <ProfileField icon={Mail} label="Institutional Mail" value={data?.parentId?.email || 'No email synced'} />
                                 <ProfileField icon={Phone} label="Emergency Uplink" value={role === 'Student' ? data.guardianPhone : data.phone} />
                                 <div className="md:col-span-2">
                                     <ProfileField icon={MapPin} label="Localized Coordinates" value={data.address || 'Address encryption active'} />
