@@ -501,7 +501,7 @@ exports.submitQuiz = async (req, res) => {
         const percentage = totalPoints > 0 ? (score / totalPoints) * 100 : 0;
         const status = percentage >= quiz.passingScore ? 'Passed' : 'Failed';
 
-        const attempt = await QuizAttempt.create({
+        let attempt = await QuizAttempt.create({
             quizId,
             studentId: student._id,
             schoolId: student.schoolId._id,
@@ -509,6 +509,11 @@ exports.submitQuiz = async (req, res) => {
             score,
             totalPoints,
             status
+        });
+
+        attempt = await attempt.populate({
+            path: 'quizId',
+            populate: { path: 'subjectId', select: 'name' }
         });
 
         res.status(201).json({

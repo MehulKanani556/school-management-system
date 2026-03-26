@@ -31,7 +31,7 @@ const StudentLayout = () => {
         { to: '/student/timetable', icon: Calendar, label: 'Class Timetable' },
         { to: '/student/exams', icon: BookOpen, label: 'Online Exams' },
         { to: '/student/assignments', icon: Download, label: 'Homework/Assignments' },
-        { to: '/student/e-learning', icon: Brain, label: 'Study Materials' },
+        { to: '/student/e-learning', icon: Brain, label: 'Study Materials/Quizzes' },
       ]
     },
     {

@@ -14,7 +14,8 @@ import {
     Download,
     History,
     X,
-    Eye
+    Eye,
+    MinusCircle
 } from 'lucide-react';
 
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,13 +33,56 @@ const ELearning = () => {
     const [currentQuestion, setCurrentQuestion] = useState(0);
     const [score, setScore] = useState(0);
     const [quizComplete, setQuizComplete] = useState(false);
-    const [userAnswers, setUserAnswers] = useState([]);
+    const [userAnswers, setUserAnswers] = useState({});
+    const [timeLeft, setTimeLeft] = useState(null);
 
     React.useEffect(() => {
         dispatch(fetchStudentQuizzes());
         dispatch(fetchQuizHistory());
         dispatch(fetchStudentResources());
     }, [dispatch]);
+
+    const submitQuiz = React.useCallback(() => {
+        setQuizComplete(true);
+        const answersPayload = Object.keys(userAnswers).map(qIdx => {
+            const numIdx = parseInt(qIdx, 10);
+            return {
+                questionId: selectedQuiz.questions[numIdx]._id,
+                selectedOption: userAnswers[numIdx]
+            };
+        });
+
+        let localScore = 0;
+        answersPayload.forEach(ans => {
+            const q = selectedQuiz.questions.find(q => q._id === ans.questionId);
+            if (q && q.correctAnswer === ans.selectedOption) {
+                 localScore += (q.points || 10);
+            }
+        });
+        setScore(localScore);
+
+        dispatch(submitQuizAttempt({
+            quizId: selectedQuiz._id,
+            answers: answersPayload
+        })).then((res) => {
+            if (!res.error) toast.success("Academic evaluation saved");
+        });
+    }, [dispatch, selectedQuiz, userAnswers]);
+
+    const handleTimeUp = React.useCallback(() => {
+        submitQuiz();
+        toast.error("Time sequence expired! Evaluation auto-saved");
+    }, [submitQuiz]);
+
+    React.useEffect(() => {
+        let timer;
+        if (activeView === 'quiz' && !quizComplete && timeLeft > 0) {
+            timer = setInterval(() => setTimeLeft(prev => prev - 1), 1000);
+        } else if (activeView === 'quiz' && !quizComplete && timeLeft === 0) {
+            handleTimeUp();
+        }
+        return () => clearInterval(timer);
+    }, [activeView, quizComplete, timeLeft, handleTimeUp]);
 
 
     // Calculate dynamic stats from quiz history
@@ -87,7 +131,8 @@ const ELearning = () => {
         setCurrentQuestion(0);
         setScore(0);
         setQuizComplete(false);
-        setUserAnswers([]);
+        setUserAnswers({});
+        setTimeLeft((quiz.duration || 30) * 60);
     };
 
     const handleAccessStream = (url) => {
@@ -97,32 +142,22 @@ const ELearning = () => {
     };
 
 
-    const handleAnswer = (index) => {
-        const currentQ = selectedQuiz.questions[currentQuestion];
-        const isCorrect = index === currentQ.correctAnswer;
-        const pointsEarned = isCorrect ? (currentQ.points || 10) : 0;
-        
-        const newAnswers = [...userAnswers, { 
-            questionId: currentQ._id, 
-            selectedOption: index,
-            isCorrect: isCorrect
-        }];
-        setUserAnswers(newAnswers);
+    const handleAnswerSelect = (index) => {
+        setUserAnswers(prev => ({
+            ...prev,
+            [currentQuestion]: index
+        }));
+    };
 
-        if (isCorrect) {
-            setScore(prev => prev + pointsEarned);
+    const goToNext = () => {
+        if (currentQuestion < selectedQuiz.questions.length - 1) {
+            setCurrentQuestion(prev => prev + 1);
         }
+    };
 
-        if (currentQuestion + 1 < selectedQuiz.questions.length) {
-            setCurrentQuestion(currentQuestion + 1);
-        } else {
-            setQuizComplete(true);
-            dispatch(submitQuizAttempt({
-                quizId: selectedQuiz._id,
-                answers: newAnswers
-            })).then((res) => {
-                if (!res.error) toast.success("Academic evaluation saved");
-            });
+    const goToPrev = () => {
+        if (currentQuestion > 0) {
+            setCurrentQuestion(prev => prev - 1);
         }
     };
 
@@ -345,7 +380,7 @@ const ELearning = () => {
                         key="quiz"
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-[#0f0f12] border border-slate-800/60 rounded-md p-10 shadow-3xl max-w-4xl mx-auto relative overflow-hidden"
+                        className="bg-[#0f0f12] border border-slate-800/60 rounded-md p-10 shadow-3xl max-w-6xl mx-auto relative overflow-hidden"
                     >
                         <div className="absolute top-0 left-0 w-full h-1 bg-slate-800">
                             <motion.div 
@@ -356,46 +391,117 @@ const ELearning = () => {
                         </div>
 
                         {!quizComplete ? (
-                            <div className="space-y-12">
-                                    <div className="flex items-center justify-between border-b border-slate-800 pb-8">
-                                        <div className="flex items-center gap-6">
-                                            <div className="w-16 h-16 rounded-md bg-student-primary/10 border border-student-primary/30 flex items-center justify-center text-student-primary shadow-[0_0_30px_rgba(34,197,94,0.1)]">
-                                                <Brain size={32} />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black text-student-primary uppercase tracking-[0.4em] mb-1">Target Assessment</p>
-                                                <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">{selectedQuiz.title}</h3>
-                                            </div>
-                                        </div>
-                                        <div className="text-right">
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Vector Alignment</p>
-                                            <p className="text-xl font-black text-white uppercase">{currentQuestion + 1} <span className="text-slate-600">/ {selectedQuiz.questions.length}</span></p>
-                                        </div>
-                                    </div>
-
-                                    <div className="max-w-3xl mx-auto space-y-12 py-10">
-                                        <p className="text-2xl font-bold text-slate-100 text-center leading-relaxed">
-                                            "{selectedQuiz.questions[currentQuestion].text}"
-                                        </p>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            {selectedQuiz.questions[currentQuestion].options.map((option, i) => (
-                                                <motion.button
-                                                    key={i}
-                                                    whileHover={{ scale: 1.02, backgroundColor: 'rgba(34, 197, 94, 0.05)', borderColor: 'rgba(34, 197, 94, 0.3)' }}
-                                                    whileTap={{ scale: 0.98 }}
-                                                    onClick={() => handleAnswer(i)}
-                                                    className="p-6 rounded-md bg-slate-900 borders border-slate-800 text-left transition-all hover:shadow-[0_0_30px_rgba(34,197,94,0.05)]"
+                            <div className="flex flex-col md:flex-row gap-8 items-start">
+                                {/* Sidebar for Question Navigation */}
+                                <div className="w-full md:w-1/4 bg-[#0a0a0c] p-6 rounded-md border border-slate-800/60 sticky top-4">
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Question Matrix</p>
+                                    <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-4 gap-2">
+                                        {selectedQuiz.questions.map((_, idx) => {
+                                            const isAnswered = userAnswers[idx] !== undefined;
+                                            const isCurrent = currentQuestion === idx;
+                                            return (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => setCurrentQuestion(idx)}
+                                                    className={`w-10 h-10 flex flex-col items-center justify-center rounded-md text-[10px] font-black transition-all ${isCurrent ? 'bg-student-primary text-black scale-110 shadow-[0_0_15px_rgba(34,197,94,0.4)]' : isAnswered ? 'bg-student-primary/20 text-student-primary border border-student-primary/30' : 'bg-slate-900 text-slate-500 hover:bg-slate-800 border border-slate-800'}`}
                                                 >
-                                                    <div className="flex items-center gap-6">
-                                                        <span className="w-10 h-10 rounded-sm bg-slate-800 flex items-center justify-center text-[10px] font-black text-slate-400 uppercase">Option {String.fromCharCode(65 + i)}</span>
-                                                        <span className="text-sm font-black text-slate-300 uppercase tracking-widest">{option}</span>
-                                                    </div>
-                                                </motion.button>
-                                            ))}
-                                        </div>
+                                                    {idx + 1}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="mt-8 pt-6 border-t border-slate-800/60">
+                                        <button onClick={submitQuiz} className="w-full py-3 bg-indigo-500/20 text-indigo-400 hover:bg-indigo-500 hover:text-white rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-indigo-500/30">
+                                            Finalize Matrix
+                                        </button>
                                     </div>
                                 </div>
+
+                                {/* Main Question Area */}
+                                <div className="w-full md:w-3/4 space-y-10 bg-[#0f0f12] rounded-md border border-slate-800/60 p-8 shadow-2xl relative overflow-hidden">
+                                     <div className="flex items-center justify-between border-b border-slate-800 pb-8">
+                                         <div className="flex items-center gap-6">
+                                             <div className="w-16 h-16 rounded-md bg-student-primary/10 border border-student-primary/30 flex items-center justify-center text-student-primary shadow-[0_0_30px_rgba(34,197,94,0.1)]">
+                                                 <Brain size={32} />
+                                             </div>
+                                             <div>
+                                                 <p className="text-[10px] font-black text-student-primary uppercase tracking-[0.4em] mb-1">Target Assessment</p>
+                                                 <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">{selectedQuiz.title}</h3>
+                                             </div>
+                                         </div>
+                                         <div className="flex items-center justify-end gap-8">
+                                             {timeLeft !== null && (
+                                                 <div className="text-right border-r border-slate-800 pr-8">
+                                                     <p className="text-[10px] font-black text-student-primary uppercase tracking-widest mb-1">Time Remaining</p>
+                                                     <p className={`text-xl font-black uppercase tracking-widest ${timeLeft < 60 ? 'text-rose-500 animate-pulse' : 'text-white font-outfit'}`}>
+                                                         {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+                                                     </p>
+                                                 </div>
+                                             )}
+                                             <div className="text-right">
+                                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Vector Alignment</p>
+                                                 <p className="text-xl font-black text-white uppercase">{currentQuestion + 1} <span className="text-slate-600">/ {selectedQuiz.questions.length}</span></p>
+                                             </div>
+                                         </div>
+                                     </div>
+
+                                     <div className="max-w-3xl mx-auto space-y-12 py-6">
+                                         <p className="text-2xl font-bold text-slate-100 text-center leading-relaxed">
+                                             "{selectedQuiz.questions[currentQuestion].text}"
+                                         </p>
+
+                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                             {selectedQuiz.questions[currentQuestion].options.map((option, i) => {
+                                                 const isSelected = userAnswers[currentQuestion] === i;
+                                                 return (
+                                                     <motion.button
+                                                         key={i}
+                                                         whileHover={{ scale: 1.02, backgroundColor: isSelected ? '' : 'rgba(255, 255, 255, 0.02)', borderColor: isSelected ? '' : 'rgba(255, 255, 255, 0.1)' }}
+                                                         whileTap={{ scale: 0.98 }}
+                                                         onClick={() => handleAnswerSelect(i)}
+                                                         className={`p-6 rounded-md text-left transition-all border ${isSelected ? 'bg-student-primary/10 border-student-primary shadow-[0_0_20px_rgba(34,197,94,0.15)]' : 'bg-slate-900 border-slate-800 hover:border-slate-700'}`}
+                                                     >
+                                                         <div className="flex items-center gap-6">
+                                                             <span className={`w-10 h-10 rounded-sm flex items-center justify-center text-[10px] font-black uppercase ${isSelected ? 'bg-student-primary text-black' : 'bg-slate-800 text-slate-400'}`}>
+                                                                 Option {String.fromCharCode(65 + i)}
+                                                             </span>
+                                                             <span className={`text-sm font-black tracking-widest uppercase ${isSelected ? 'text-student-primary' : 'text-slate-300'}`}>{option}</span>
+                                                         </div>
+                                                     </motion.button>
+                                                 );
+                                             })}
+                                         </div>
+                                         
+                                         <div className="flex items-center justify-between pt-8 border-t border-slate-800/60 mt-8">
+                                             <button 
+                                                 onClick={goToPrev} 
+                                                 disabled={currentQuestion === 0}
+                                                 className={`px-6 py-3 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all border flex-shrink-0 ${currentQuestion === 0 ? 'bg-slate-900/10 text-slate-600 border-slate-800/50 cursor-not-allowed hidden' : 'bg-slate-900 text-slate-400 hover:bg-slate-800 hover:text-white border-slate-700'}`}
+                                             >
+                                                 Previous Question
+                                             </button>
+                                             <div className="flex-1 text-center">
+                                                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic flex items-center justify-center gap-2 relative"><Brain size={12}/> Analysis Subsystem Active</p>
+                                             </div>
+                                             {currentQuestion < selectedQuiz.questions.length - 1 ? (
+                                                 <button 
+                                                     onClick={goToNext} 
+                                                     className="px-8 py-3 bg-slate-800 text-white hover:bg-slate-700 hover:border-slate-500 rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-slate-600 flex-shrink-0"
+                                                 >
+                                                     Skip / Next Question
+                                                 </button>
+                                             ) : (
+                                                 <button 
+                                                     onClick={submitQuiz} 
+                                                     className="px-8 py-3 bg-student-primary hover:bg-emerald-400 text-black rounded-md text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-student-primary shadow-[0_0_15px_rgba(34,197,94,0.4)] flex-shrink-0"
+                                                 >
+                                                     Finalize & Submit
+                                                 </button>
+                                             )}
+                                         </div>
+                                     </div>
+                                 </div>
+                             </div>
                         ) : (
                             <div className="space-y-10">
                                 {/* Summary Header */}
@@ -443,8 +549,9 @@ const ELearning = () => {
                                     </h4>
 
                                     {selectedQuiz.questions.map((question, qIdx) => {
-                                        const userAnswer = userAnswers[qIdx];
-                                        const isCorrect = userAnswer?.isCorrect;
+                                        const selectedOption = userAnswers[qIdx];
+                                        const isAnswered = selectedOption !== undefined;
+                                        const isCorrect = isAnswered && selectedOption === question.correctAnswer;
                                         
                                         return (
                                             <motion.div
@@ -452,26 +559,26 @@ const ELearning = () => {
                                                 initial={{ opacity: 0, y: 10 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 transition={{ delay: qIdx * 0.05 }}
-                                                className={`p-6 rounded-md border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-student-primary/5 border-student-primary/20'}`}
+                                                className={`p-6 rounded-md border ${isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : !isAnswered ? 'bg-slate-800/10 border-slate-700/30' : 'bg-rose-500/5 border-rose-500/20'}`}
                                             >
                                                 {/* Question Header */}
                                                 <div className="flex items-start justify-between gap-4 mb-4">
                                                     <div className="flex items-start gap-4 flex-1">
-                                                        <div className={`w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-black uppercase flex-shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : 'bg-student-primary/20 text-student-primary border border-student-primary/30'}`}>
+                                                        <div className={`w-10 h-10 rounded-md flex items-center justify-center text-[10px] font-black uppercase flex-shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30' : !isAnswered ? 'bg-slate-800/50 text-slate-400 border border-slate-700/50' : 'bg-rose-500/20 text-rose-500 border border-rose-500/30'}`}>
                                                             Q{qIdx + 1}
                                                         </div>
                                                         <p className="text-sm font-bold text-slate-200 leading-relaxed pt-2">{question.text}</p>
                                                     </div>
-                                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-student-primary/20 text-student-primary'}`}>
-                                                        {isCorrect ? <CheckCircle size={12} /> : <X size={12} />}
-                                                        {isCorrect ? 'Correct' : 'Wrong'}
+                                                    <div className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : !isAnswered ? 'bg-slate-800/50 text-slate-400' : 'bg-rose-500/20 text-rose-500'}`}>
+                                                        {isCorrect ? <CheckCircle size={12} /> : !isAnswered ? <MinusCircle size={12} /> : <X size={12} />}
+                                                        {isCorrect ? 'Correct' : !isAnswered ? 'Not Attempted' : 'Wrong'}
                                                     </div>
                                                 </div>
 
                                                 {/* Options */}
                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 ml-14">
                                                     {question.options.map((option, oIdx) => {
-                                                        const isUserAnswer = userAnswer?.selectedOption === oIdx;
+                                                        const isUserAnswer = selectedOption === oIdx;
                                                         const isCorrectAnswer = question.correctAnswer === oIdx;
                                                         
                                                         let optionClass = "p-4 rounded-md border transition-all ";
@@ -479,7 +586,7 @@ const ELearning = () => {
                                                         if (isCorrectAnswer) {
                                                             optionClass += "bg-emerald-500/10 border-emerald-500/30 text-emerald-300";
                                                         } else if (isUserAnswer && !isCorrect) {
-                                                            optionClass += "bg-student-primary/10 border-student-primary/30 text-student-primary";
+                                                            optionClass += "bg-rose-500/10 border-rose-500/30 text-rose-500";
                                                         } else {
                                                             optionClass += "bg-slate-900/40 border-slate-800/60 text-slate-500";
                                                         }
@@ -495,7 +602,7 @@ const ELearning = () => {
                                                                         <CheckCircle size={14} className="text-emerald-400 flex-shrink-0" />
                                                                     )}
                                                                     {isUserAnswer && !isCorrect && (
-                                                                        <X size={14} className="text-student-primary flex-shrink-0" />
+                                                                        <X size={14} className="text-rose-500 flex-shrink-0" />
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -570,7 +677,7 @@ const ELearning = () => {
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex justify-center">
-                                                        <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-[.15em] border ${attempt.status === 'Passed' ? 'text-luxury-emerald border-emerald-500/20 bg-emerald-500/10' : 'text-luxury-rose border-student-primary/20 bg-student-primary/10'}`}>
+                                                        <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-[.15em] border ${attempt.status === 'Passed' ? 'text-luxury-emerald border-emerald-500/30 bg-emerald-500/10' : 'text-rose-500 border-rose-500/30 bg-rose-500/10'}`}>
                                                             {attempt.status}
                                                         </span>
                                                     </div>
