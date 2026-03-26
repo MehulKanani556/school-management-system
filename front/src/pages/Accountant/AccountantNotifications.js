@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const AccountantNotifications = () => {
     const dispatch = useDispatch();
-    const { notifications, loading } = useSelector(state => state.notifications);
+    const { items: notifications, loading } = useSelector(state => state.notifications);
 
     useEffect(() => {
         dispatch(fetchNotifications());
