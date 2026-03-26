@@ -1199,8 +1199,24 @@ exports.getMyQuizzes = async (req, res) => {
             .populate('subjectId', 'name')
             .populate('standardId', 'level')
             .populate('questions')
-            .sort({ createdAt: -1 });
-        res.json(quizzes);
+            .sort({ createdAt: -1 })
+            .lean();
+
+        // Calculate stats for each quiz
+        const quizzesWithStats = await Promise.all(quizzes.map(async (quiz) => {
+            const attempts = await QuizAttempt.find({ quizId: quiz._id });
+            const total = attempts.length;
+            const passed = attempts.filter(a => a.status === 'Passed').length;
+            const avgScore = total > 0 ? (attempts.reduce((acc, a) => acc + a.score, 0) / attempts.reduce((acc, a) => acc + a.totalPoints, 0)) * 100 : 0;
+            const passRate = total > 0 ? (passed / total) * 100 : 0;
+
+            return {
+                ...quiz,
+                stats: { total, passed, avgScore: Math.round(avgScore), passRate: Math.round(passRate) }
+            };
+        }));
+
+        res.json(quizzesWithStats);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

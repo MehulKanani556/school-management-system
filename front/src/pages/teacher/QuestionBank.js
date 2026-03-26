@@ -11,7 +11,6 @@ const QuestionBank = () => {
     const { classes } = useSelector(state => state.teacher);
     
     // Unique subjects from assigned classes
-    const subjects = Array.from(new Map(classes?.flatMap(c => c.subjects || []).filter(Boolean).map(s => [s._id, s])).values());
     const grades = Array.from(new Set(classes.map(c => `Grade ${c.gradeLevel || c.standardId?.level}`)));
 
     const [activeTab, setActiveTab] = useState('add'); // 'add', 'bank', 'generate'
@@ -88,8 +87,7 @@ const QuestionBank = () => {
         try {
             setLoading(true);
             const res = await axiosInstance.post('/teacher/generate-exam', {
-                ...examParams,
-                subject: subjects.find(s => s.name?.toLowerCase() === examParams.subject?.toLowerCase())?._id || examParams.subject 
+                ...examParams
             });
             setGeneratedExam(res.data.examPaper);
             toast.success(res.data.message);
@@ -127,17 +125,26 @@ const QuestionBank = () => {
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Academic Parameter (Subject ID/Name)</label>
-                                    <select required value={qData.subject} onChange={e => setQData({...qData, subject: e.target.value})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
-                                        <option value="">Select Parameter</option>
-                                        {subjects?.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Grade Index</label>
+                                    <select required value={qData.classLevel} onChange={e => setQData({...qData, classLevel: e.target.value, subject: ''})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
+                                        <option value="">Select Target Index</option>
+                                        {grades?.map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Grade Index</label>
-                                    <select required value={qData.classLevel} onChange={e => setQData({...qData, classLevel: e.target.value})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
-                                        <option value="">Select Target Index</option>
-                                        {grades?.map(g => <option key={g} value={g}>{g}</option>)}
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Academic Parameter (Subject ID/Name)</label>
+                                    <select required value={qData.subject} onChange={e => setQData({...qData, subject: e.target.value})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
+                                        <option value="">Select Parameter</option>
+                                        {(() => {
+                                            const filteredSubjs = Array.from(new Map(
+                                                classes
+                                                ?.filter(c => `Grade ${c.gradeLevel || c.standardId?.level}` === qData.classLevel)
+                                                .flatMap(c => c.subjects || [])
+                                                .filter(Boolean)
+                                                .map(s => [s._id, s])
+                                            ).values());
+                                            return filteredSubjs.map(s => <option key={s._id} value={s._id}>{s.name}</option>);
+                                        })()}
                                     </select>
                                 </div>
                             </div>
@@ -234,7 +241,7 @@ const QuestionBank = () => {
                             <form onSubmit={handleGenerateExam} className="space-y-6">
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Grade Index</label>
-                                    <select required value={examParams.classLevel} onChange={e => setExamParams({...examParams, classLevel: e.target.value})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
+                                    <select required value={examParams.classLevel} onChange={e => setExamParams({...examParams, classLevel: e.target.value, subject: ''})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
                                         <option value="">Select Target Index</option>
                                         {grades?.map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
@@ -243,7 +250,16 @@ const QuestionBank = () => {
                                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Academic Parameter</label>
                                     <select required value={examParams.subject} onChange={e => setExamParams({...examParams, subject: e.target.value})} className="w-full bg-slate-950 border border-slate-800 h-14 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none">
                                         <option value="">Select Parameter</option>
-                                        {subjects?.map(s => <option key={s._id} value={s._id}>{s.name}</option>)}
+                                        {(() => {
+                                            const filteredSubjs = Array.from(new Map(
+                                                classes
+                                                ?.filter(c => `Grade ${c.gradeLevel || c.standardId?.level}` === examParams.classLevel)
+                                                .flatMap(c => c.subjects || [])
+                                                .filter(Boolean)
+                                                .map(s => [s._id, s])
+                                            ).values());
+                                            return filteredSubjs.map(s => <option key={s._id} value={s._id}>{s.name}</option>);
+                                        })()}
                                     </select>
                                 </div>
                                 <div className="space-y-2">

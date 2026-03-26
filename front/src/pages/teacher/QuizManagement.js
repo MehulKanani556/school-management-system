@@ -265,8 +265,20 @@ const QuizManagement = () => {
                                     </div>
                                     <div>
                                         <h3 className="font-black text-white uppercase tracking-tight">{quiz.title}</h3>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1">
-                                            {quiz.subjectId?.name} • Grade {quiz.standardId?.level} • {quiz.questions?.length} Qs • {quiz.duration}m • Pass: {quiz.passingScore}%
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 flex items-center gap-2">
+                                            <span>{quiz.subjectId?.name}</span> • 
+                                            <span>Grade {quiz.standardId?.level}</span> • 
+                                            <span>{quiz.questions?.length} Qs</span> • 
+                                            <span>{quiz.duration}m</span> • 
+                                            <span>Pass: {quiz.passingScore}%</span>
+                                            {quiz.stats && (
+                                                <>
+                                                    <span className="text-slate-700">|</span>
+                                                    <span className="text-teacher-primary font-black">Success: {quiz.stats.passRate}%</span>
+                                                    <span className="text-slate-700">|</span>
+                                                    <span className="text-indigo-400 font-black">Avg: {quiz.stats.avgScore}%</span>
+                                                </>
+                                            )}
                                         </p>
                                     </div>
                                 </div>
@@ -319,7 +331,10 @@ const QuizManagement = () => {
                                                             {attempts[quiz._id].map((a) => (
                                                                 <tr key={a._id} className="hover:bg-white/[0.02] transition-colors">
                                                                     <td className="py-3 text-sm font-bold text-white">{a.studentId?.firstName} {a.studentId?.lastName}</td>
-                                                                    <td className="py-3 text-sm font-black text-white">{a.score} <span className="text-slate-600 text-xs">/ {a.totalPoints}</span></td>
+                                                                    <td className="py-3 text-sm font-black text-white">
+                                                                        {a.score} <span className="text-slate-600 text-xs">/ {a.totalPoints}</span>
+                                                                        <span className="ml-2 text-indigo-400 text-xs">({Math.round((a.score / a.totalPoints) * 100)}%)</span>
+                                                                    </td>
                                                                     <td className="py-3">
                                                                         <span className={`flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest w-fit ${a.status === 'Passed' ? 'text-emerald-400' : 'text-teacher-primary'}`}>
                                                                             {a.status === 'Passed' ? <CheckCircle size={12} /> : <AlertCircle size={12} />} {a.status}
