@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import { 
-    fetchAssignedClasses, 
-    fetchClassStudents, 
+import {
+    fetchAssignedClasses,
+    fetchClassStudents,
     fetchTeacherAttendance,
-    submitAttendance, 
+    submitAttendance,
     clearTeacherMessage,
     setTeacherError,
-    importAttendanceBulk 
+    importAttendanceBulk
 } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Check, X, Clock, Save, Search, ChevronDown, Activity, Calendar, Users, Upload, FileText } from 'lucide-react';
@@ -19,8 +19,11 @@ import Modal from '../../components/Modal';
 const MarkAttendance = () => {
     const dispatch = useDispatch();
     const location = useLocation();
+    const navigate = useNavigate();
+
     const [showBulkModal, setShowBulkModal] = useState(false);
     const [csvFile, setCsvFile] = useState(null);
+    const [isEditing, setIsEditing] = useState(true);
 
     const query = new URLSearchParams(location.search);
     const initialClassId = query.get('classId');
@@ -48,10 +51,10 @@ const MarkAttendance = () => {
                 return dispatch(setTeacherError("No student nodes detected for commitment"));
             }
 
-            dispatch(submitAttendance({ 
-                classSectionId: values.selectedClass, 
-                date: values.selectedDate, 
-                records: recordsArr 
+            dispatch(submitAttendance({
+                classSectionId: values.selectedClass,
+                date: values.selectedDate,
+                records: recordsArr
             }));
         }
     });
@@ -61,6 +64,13 @@ const MarkAttendance = () => {
     }, [dispatch]);
 
     useEffect(() => {
+        if (message && message.toLowerCase().includes('attendance')) {
+            setIsEditing(false);
+            dispatch(clearTeacherMessage());
+        }
+    }, [message, dispatch]);
+
+    useEffect(() => {
         if (formik.values.selectedClass) {
             dispatch(fetchClassStudents(formik.values.selectedClass));
         }
@@ -68,9 +78,9 @@ const MarkAttendance = () => {
 
     useEffect(() => {
         if (formik.values.selectedClass && formik.values.selectedDate) {
-            dispatch(fetchTeacherAttendance({ 
-                classId: formik.values.selectedClass, 
-                date: formik.values.selectedDate 
+            dispatch(fetchTeacherAttendance({
+                classId: formik.values.selectedClass,
+                date: formik.values.selectedDate
             }));
         }
     }, [formik.values.selectedClass, formik.values.selectedDate, dispatch]);
@@ -78,11 +88,14 @@ const MarkAttendance = () => {
     useEffect(() => {
         if (students.length > 0) {
             const newRecords = {};
-            students.forEach(s => { 
-                newRecords[s._id] = { status: 'Present', arrivalTime: '', departureTime: '', isLate: false, isEarlyLeave: false, remarks: '' }; 
+            students.forEach(s => {
+                newRecords[s._id] = { status: 'Present', arrivalTime: '', departureTime: '', isLate: false, isEarlyLeave: false, remarks: '' };
             });
 
-            if (attendance && attendance.length > 0 && attendance[0].records) {
+            const hasExistingAttendance = attendance && attendance.length > 0 && attendance[0].records;
+            setIsEditing(!hasExistingAttendance);
+
+            if (hasExistingAttendance) {
                 attendance[0].records.forEach(r => {
                     const id = r.studentId?._id || r.studentId;
                     if (id) {
@@ -101,7 +114,7 @@ const MarkAttendance = () => {
         }
     }, [students, attendance]);
 
-    const filteredStudents = students.filter(s => 
+    const filteredStudents = students.filter(s =>
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -136,9 +149,9 @@ const MarkAttendance = () => {
                     attendanceData: bulkData
                 }));
                 setShowBulkModal(false);
-                dispatch(fetchTeacherAttendance({ 
-                    classId: formik.values.selectedClass, 
-                    date: formik.values.selectedDate 
+                dispatch(fetchTeacherAttendance({
+                    classId: formik.values.selectedClass,
+                    date: formik.values.selectedDate
                 }));
             }
         };
@@ -161,7 +174,7 @@ const MarkAttendance = () => {
                     <div className="relative group min-w-[220px]">
                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none group-focus-within:text-brand-primary transition-colors" />
                         <Users size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <select 
+                        <select
                             name="selectedClass"
                             value={formik.values.selectedClass}
                             onChange={formik.handleChange}
@@ -178,8 +191,8 @@ const MarkAttendance = () => {
 
                     <div className="relative group">
                         <Calendar size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                        <input 
-                            type="date" 
+                        <input
+                            type="date"
                             name="selectedDate"
                             value={formik.values.selectedDate}
                             onChange={formik.handleChange}
@@ -194,40 +207,71 @@ const MarkAttendance = () => {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-4">
                         <div className="relative group flex-1 max-w-md">
                             <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
-                            <input 
-                                type="text" 
-                                placeholder="Identify student by nomenclature..." 
+                            <input
+                                type="text"
+                                placeholder="Identify student by nomenclature..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-md text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
                             />
                         </div>
                         <div className="flex gap-4">
-                            <button 
+                            {/* <button
                                 type="button"
                                 onClick={() => setShowBulkModal(true)}
-                                className="px-6 h-14 border border-slate-700 hover:bg-slate-800 text-slate-400 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic flex items-center gap-3 shadow-xl"
+                                disabled={!isEditing}
+                                className="px-6 h-14 border border-slate-700 hover:bg-slate-800 text-slate-400 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic flex items-center gap-3 shadow-xl disabled:opacity-20"
                             >
                                 <Upload size={16} /> Bulk Import
-                            </button>
-                            <button 
+                            </button> */}
+                            <button
                                 type="button"
+                                disabled={!isEditing}
                                 onClick={() => {
-                                    const newRecords = { ...formik.values.records };
-                                    filteredStudents.forEach(s => { newRecords[s._id] = { ...newRecords[s._id], status: 'Present' }; });
-                                    formik.setFieldValue('records', newRecords);
+                                    const updatedRecords = { ...formik.values.records };
+                                    const recordsArr = students.map(s => {
+                                        const r = {
+                                            ...(updatedRecords[s._id] || { arrivalTime: '', departureTime: '', isLate: false, isEarlyLeave: false, remarks: '' }),
+                                            status: 'Present',
+                                            studentId: s._id
+                                        };
+                                        // Update local form state too for visual feedback
+                                        updatedRecords[s._id] = r;
+                                        return r;
+                                    });
+
+                                    formik.setFieldValue('records', updatedRecords);
+                                    
+                                    // Direct institutional commit
+                                    dispatch(submitAttendance({
+                                        classSectionId: formik.values.selectedClass,
+                                        date: formik.values.selectedDate,
+                                        records: recordsArr
+                                    }));
                                 }}
-                                className="px-6 h-14 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic"
+                                className="px-6 h-14 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic disabled:opacity-20"
                             >
                                 Mass Presence
                             </button>
-                            <button 
-                                onClick={formik.handleSubmit}
-                                disabled={loading || students.length === 0}
-                                className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-teacher-primary text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
-                            >
-                                {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />} Commit Records
-                            </button>
+
+                            {!isEditing ? (
+                                <button
+                                    type="button"
+                                    onClick={() => setIsEditing(true)}
+                                    className="flex items-center justify-center gap-3 bg-slate-900 border border-slate-700 hover:border-brand-primary text-slate-300 px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-xl font-outfit italic"
+                                >
+                                    <Clock size={20} className="text-brand-primary" /> Unlock for Logic Sync
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={formik.handleSubmit}
+                                    disabled={loading || students.length === 0}
+                                    className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-teacher-primary text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
+                                >
+                                    {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
+                                    {attendance && attendance.length > 0 ? 'Synchronize Updates' : 'Commit Records'}
+                                </button>
+                            )}
                         </div>
                     </div>
 
@@ -252,7 +296,12 @@ const MarkAttendance = () => {
                                                                 {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover grayscale group-hover:grayscale-0" /> : <Activity size={20} />}
                                                             </div>
                                                             <div>
-                                                                <p className="text-base font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-2">{student.firstName} {student.lastName}</p>
+                                                                <p
+                                                                    onClick={() => navigate(`/teacher/profile/${student._id}`)}
+                                                                    className="text-base font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-2 cursor-pointer hover:text-brand-primary transition-colors"
+                                                                >
+                                                                    {student.firstName} {student.lastName}
+                                                                </p>
                                                                 <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Node Ref: {student.admissionNumber || '—'}</p>
                                                             </div>
                                                         </div>
@@ -260,7 +309,13 @@ const MarkAttendance = () => {
                                                     <td className="px-12 py-7">
                                                         <div className="flex items-center justify-center gap-2">
                                                             {statusOptions.map(status => (
-                                                                <button key={status.id} type="button" onClick={() => formik.setFieldValue(`records.${student._id}.status`, status.id)} className={`flex items-center gap-2 px-4 h-11 rounded-md border transition-all duration-500 font-outfit italic ${formik.values.records[student._id]?.status === status.id ? `bg-slate-900 border-slate-700 ${status.color} shadow-2xl scale-[1.05] ring-2 ring-slate-900/50` : `border-slate-800/30 text-slate-600 bg-transparent ${status.bg} hover:border-slate-700`}`}>
+                                                                <button
+                                                                    key={status.id}
+                                                                    type="button"
+                                                                    disabled={!isEditing}
+                                                                    onClick={() => formik.setFieldValue(`records.${student._id}.status`, status.id)}
+                                                                    className={`flex items-center gap-2 px-4 h-11 rounded-md border transition-all duration-500 font-outfit italic disabled:opacity-50 ${formik.values.records[student._id]?.status === status.id ? `bg-slate-900 border-slate-700 ${status.color} shadow-2xl scale-[1.05] ring-2 ring-slate-900/50` : `border-slate-800/30 text-slate-600 bg-transparent ${status.bg} hover:border-slate-700`}`}
+                                                                >
                                                                     <status.icon size={14} /> <span className="text-[10px] font-black uppercase tracking-widest">{status.id}</span>
                                                                 </button>
                                                             ))}
@@ -281,12 +336,24 @@ const MarkAttendance = () => {
                                                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Arrival Node</label>
                                                                         <div className="relative">
                                                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-                                                                            <input type="time" className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md h-11 pl-12 shadow-inner text-xs font-bold text-white font-outfit" value={formik.values.records[student._id]?.arrivalTime} onChange={(e) => formik.setFieldValue(`records.${student._id}.arrivalTime`, e.target.value)} />
+                                                                            <input
+                                                                                type="time"
+                                                                                disabled={!isEditing}
+                                                                                className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md h-11 pl-12 shadow-inner text-xs font-bold text-white font-outfit disabled:opacity-40"
+                                                                                value={formik.values.records[student._id]?.arrivalTime}
+                                                                                onChange={(e) => formik.setFieldValue(`records.${student._id}.arrivalTime`, e.target.value)}
+                                                                            />
                                                                         </div>
                                                                     </div>
                                                                     <div className="md:col-span-2 space-y-3">
                                                                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Administrative Remarks</label>
-                                                                        <textarea className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md p-4 text-xs font-bold text-white font-outfit min-h-[90px] resize-none italic" placeholder="Enter behavioral or logistical notes..." value={formik.values.records[student._id]?.remarks} onChange={(e) => formik.setFieldValue(`records.${student._id}.remarks`, e.target.value)}></textarea>
+                                                                        <textarea
+                                                                            disabled={!isEditing}
+                                                                            className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md p-4 text-xs font-bold text-white font-outfit min-h-[90px] resize-none italic disabled:opacity-40"
+                                                                            placeholder="Enter behavioral or logistical notes..."
+                                                                            value={formik.values.records[student._id]?.remarks}
+                                                                            onChange={(e) => formik.setFieldValue(`records.${student._id}.remarks`, e.target.value)}
+                                                                        ></textarea>
                                                                     </div>
                                                                 </div>
                                                             </td>

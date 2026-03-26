@@ -9,6 +9,7 @@ import { useNavigate } from 'react-router-dom';
 
 const StudentDetailedAttendance = () => {
     const { studentId } = useParams();
+    
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { detailedAttendance: history, studentDetail: student, loading } = useSelector((s) => s.teacher);
@@ -48,7 +49,14 @@ const StudentDetailedAttendance = () => {
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit shadow-text-glow">Attendance Archival</h1>
                     <p className="text-slate-500 font-medium text-sm tracking-wide flex items-center gap-2 italic">
                         <TrendingUp size={14} className="text-brand-primary" />
-                        Comprehensive telemetry log for {student ? `${student.firstName} ${student.lastName}` : 'Identity node'}.
+                        Comprehensive telemetry log for {student ? (
+                            <span 
+                                onClick={() => navigate(`/teacher/profile/${student._id}`)}
+                                className="text-brand-primary border-b border-brand-primary/20 hover:border-brand-primary cursor-pointer transition-all"
+                            >
+                                {student.firstName} {student.lastName}
+                            </span>
+                        ) : 'Identity node'}.
                     </p>
                 </div>
             </header>

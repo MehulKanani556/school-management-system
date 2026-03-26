@@ -90,7 +90,6 @@ const AttendanceHistory = () => {
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date Node</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Institutional Status</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Telemetry (Arrival / Departure)</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic text-right">Verification</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/40">
@@ -121,9 +120,7 @@ const AttendanceHistory = () => {
                                                         <span className="text-xs font-bold text-slate-400 font-outfit uppercase italic">{record.departureTime || '—'}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6 text-right">
-                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Node Sync Confirmed</span>
-                                                </td>
+                                                
                                             </tr>
                                         );
                                     })
