@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation } from 'react-router-dom';
 import { useFormik } from 'formik';
@@ -20,8 +20,10 @@ const AddMarks = () => {
     const location = useLocation();
     const query = new URLSearchParams(location.search);
     const initialClassId = query.get('classId');
+    const initialExamId = query.get('examId');
 
     const [isGlobalEditMode, setIsGlobalEditMode] = useState(true);
+    const hasInitializedInitialExam = useRef(false);
 
     const { classes, students, exams, marks, message, loading } = useSelector((state) => state.teacher);
     const [searchTerm, setSearchTerm] = useState('');
@@ -29,7 +31,7 @@ const AddMarks = () => {
     const formik = useFormik({
         initialValues: {
             selectedClass: initialClassId || '',
-            selectedExam: '',
+            selectedExam: initialExamId || '',
             marksData: {} // { studentId: { score: '', remarks: '' } }
         },
         validationSchema: Yup.object({
@@ -68,10 +70,17 @@ const AddMarks = () => {
         if (formik.values.selectedClass) {
             dispatch(fetchClassStudents(formik.values.selectedClass));
             dispatch(fetchExamSchedule(formik.values.selectedClass));
-            formik.setFieldValue('selectedExam', ''); // Reset exam on class change
+            
+            if (initialExamId && !hasInitializedInitialExam.current && formik.values.selectedClass === initialClassId) {
+                // Do not clear the exam on initial hydration from schedule routing
+                hasInitializedInitialExam.current = true;
+            } else {
+                formik.setFieldValue('selectedExam', ''); // Reset exam on subsequent class changes
+            }
             setIsGlobalEditMode(true);
         }
-    }, [formik.values.selectedClass, dispatch]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [formik.values.selectedClass, dispatch, initialExamId, initialClassId]);
 
     // Fetch existing marks when exam changes
     useEffect(() => {
@@ -167,7 +176,7 @@ const AddMarks = () => {
                             <option value="" className="bg-slate-950 text-slate-600">Select Assessment</option>
                             {exams.map(ex => (
                                 <option key={ex._id} value={ex._id} className="bg-slate-950 text-white italic uppercase tracking-tighter">
-                                    {ex.name} [{ex.type}]
+                                    {ex.title} [{ex.type?.replace('_', ' ')}]
                                 </option>
                             ))}
                         </select>

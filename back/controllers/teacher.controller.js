@@ -947,8 +947,16 @@ exports.getExamsByClass = async (req, res) => {
         let query = { schoolId: teacher.schoolId._id };
 
         if (targetClassId) {
-            // Strict filtering by specific class context
-            query.classSection = targetClassId;
+            // Strict filtering by specific class context or global standard allocation
+            const targetClass = await ClassSection.findById(targetClassId);
+            if (targetClass) {
+                query.$or = [
+                    { classSection: targetClassId },
+                    { standardId: targetClass.standardId, classSection: null }
+                ];
+            } else {
+                query.classSection = targetClassId;
+            }
         } else {
             // Fallback: Broad pedagogical reach across all assigned sectors
             query.$or = [
@@ -961,14 +969,28 @@ exports.getExamsByClass = async (req, res) => {
             .populate('subject', 'name')
             .sort({ date: 1 });
 
-        // Transform to match frontend expectations if necessary
-        const formatted = exams.map(e => ({
-            _id: e._id,
-            subject: e.subject?.name || 'Unknown',
-            title: e.name,
-            date: e.date,
-            maxMarks: e.maxMarks,
-            type: e.type
+        const formatted = await Promise.all(exams.map(async (e) => {
+            const hasMarks = await Mark.exists({ examId: e._id });
+            
+            // Contextual resolution for global standard assignments
+            let resolvedClassId = e.classSection;
+            if (!resolvedClassId && e.standardId) {
+                const fallbackClass = assignedClasses.find(c => c.standardId.toString() === e.standardId.toString());
+                if (fallbackClass) {
+                    resolvedClassId = fallbackClass._id;
+                }
+            }
+
+            return {
+                _id: e._id,
+                subject: e.subject?.name || 'Unknown',
+                title: e.name,
+                date: e.date,
+                maxMarks: e.maxMarks,
+                type: e.type,
+                classSectionId: targetClassId || resolvedClassId,
+                isEvaluated: !!hasMarks
+            };
         }));
 
         res.json(formatted);
@@ -1187,10 +1209,20 @@ exports.createQuiz = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         const { title, description, subjectId, standardId, duration, passingScore, questions } = req.body;
 
-        // Create questions first
+        const quiz = await Quiz.create({
+            title, description, subjectId, standardId,
+            schoolId: teacher.schoolId._id,
+            createdBy: req.user._id,
+            duration: duration || 30,
+            passingScore: passingScore || 40,
+            questions: [],
+            isPublished: false
+        });
+
+        // Create questions with quizId
         const createdQuestions = await Promise.all(
             (questions || []).map(q => Question.create({
-                quizId: null, // will update after quiz creation
+                quizId: quiz._id, 
                 text: q.text,
                 options: q.options,
                 correctAnswer: q.correctAnswer,
@@ -1198,21 +1230,9 @@ exports.createQuiz = async (req, res) => {
             }))
         );
 
-        const quiz = await Quiz.create({
-            title, description, subjectId, standardId,
-            schoolId: teacher.schoolId._id,
-            createdBy: req.user._id,
-            duration: duration || 30,
-            passingScore: passingScore || 40,
-            questions: createdQuestions.map(q => q._id),
-            isPublished: false
-        });
-
-        // Back-fill quizId on questions
-        await Question.updateMany(
-            { _id: { $in: createdQuestions.map(q => q._id) } },
-            { quizId: quiz._id }
-        );
+        // Update quiz with question references
+        quiz.questions = createdQuestions.map(q => q._id);
+        await quiz.save();
 
         res.status(201).json({ message: 'Quiz node created', quiz });
     } catch (err) { res.status(500).json({ message: err.message }); }

@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchExamSchedule } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -10,11 +11,13 @@ import {
     AlertCircle, 
     Activity,
     Award,
-    Hash
+    Hash,
+    CheckCircle
 } from 'lucide-react';
 
 const TeacherExams = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { exams, loading } = useSelector(state => state.teacher);
 
     useEffect(() => {
@@ -53,22 +56,27 @@ const TeacherExams = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 <AnimatePresence mode="popLayout">
-                    {exams.map((exam, idx) => (
+                    {exams.map((exam, idx) => {
+                        const isEval = exam.isEvaluated;
+                        return (
                         <motion.div
                             key={exam._id}
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: idx * 0.05 }}
-                            className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl shadow-2xl hover:border-luxury-rose/30 transition-all border-l-[3px] border-l-luxury-rose/40 group relative overflow-hidden"
+                            className={`bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl shadow-2xl hover:shadow-[0_0_30px_rgba(244,63,94,0.05)] transition-all group relative overflow-hidden ${isEval ? 'hover:border-luxury-emerald/30 border-l-[3px] border-l-luxury-emerald/40' : 'hover:border-luxury-rose/30 border-l-[3px] border-l-luxury-rose/40'}`}
                         >
-                            <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-rose/5 blur-[50px] -mr-16 -mt-16 group-hover:bg-luxury-rose/10 transition-all"></div>
+                            <div className={`absolute top-0 right-0 w-32 h-32 blur-[50px] -mr-16 -mt-16 transition-all ${isEval ? 'bg-luxury-emerald/5 group-hover:bg-luxury-emerald/10' : 'bg-luxury-rose/5 group-hover:bg-luxury-rose/10'}`}></div>
                             
                             <div className="relative z-10 space-y-6">
                                 <div className="flex items-center justify-between">
-                                    <div className="w-12 h-12 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center text-luxury-rose shadow-xl group-hover:scale-110 transition-transform">
+                                    <div className={`w-12 h-12 rounded-md bg-slate-800 border flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform ${isEval ? 'text-luxury-emerald border-luxury-emerald/20 bg-luxury-emerald/10' : 'text-luxury-rose border-slate-700/50'}`}>
                                         <Award size={20} />
                                     </div>
-                                    <span className="text-[8px] font-black uppercase px-3 py-1 bg-slate-950 border border-slate-800 text-slate-500 tracking-widest italic">Protocol ID: {exam._id.slice(-6).toUpperCase()}</span>
+                                    <div className="flex items-center gap-2">
+                                        {isEval && <span className="text-[8px] font-black uppercase px-3 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 tracking-widest italic rounded-md shadow-[0_0_10px_rgba(16,185,129,0.3)]">Evaluated</span>}
+                                        <span className="text-[8px] font-black uppercase px-3 py-1 bg-slate-950 border border-slate-800 text-slate-500 tracking-widest italic rounded-md">ID: {exam._id.slice(-6).toUpperCase()}</span>
+                                    </div>
                                 </div>
 
                                 <div>
@@ -77,28 +85,42 @@ const TeacherExams = () => {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60">
-                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Calendar size={10} /> Launch Date</p>
+                                    <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60 transition-colors hover:bg-slate-900">
+                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Calendar size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Launch Date</p>
                                         <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{new Date(exam.date).toLocaleDateString()}</p>
                                     </div>
-                                    <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60">
-                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Clock size={10} /> Temporal Unit</p>
-                                        <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{exam.startTime} - {exam.endTime}</p>
+                                    <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60 transition-colors hover:bg-slate-900">
+                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Clock size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Temporal Unit</p>
+                                        <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{exam.startTime || '09:00 AM'} - {exam.endTime || '12:00 PM'}</p>
                                     </div>
                                 </div>
 
-                                <div className="pt-6 border-t border-white/5 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Hash size={12} className="text-slate-600" />
-                                        <span className="text-xs font-black text-luxury-rose italic font-outfit tracking-tighter">{exam.maxMarks} <span className="text-[8px] text-slate-600 ml-1">Nodes Possible</span></span>
+                                <div className="pt-6 mt-4 border-t border-white/5 flex flex-col gap-5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Hash size={12} className="text-slate-600" />
+                                            <span className={`text-xs font-black italic font-outfit tracking-tighter ${isEval ? 'text-luxury-emerald' : 'text-luxury-rose'}`}>{exam.maxMarks} <span className="text-[8px] text-slate-600 ml-1">Nodes</span></span>
+                                        </div>
+                                        <div className={`flex items-center gap-2 text-[8px] font-black uppercase tracking-widest italic transition-colors ${isEval ? 'text-luxury-emerald/80 group-hover:text-luxury-emerald' : 'text-slate-700 group-hover:text-luxury-rose'}`}>
+                                            {isEval ? 'Completion Logged' : 'Pending Verification'} {isEval ? <CheckCircle size={10} /> : <AlertCircle size={10} />}
+                                        </div>
                                     </div>
-                                    <div className="flex items-center gap-2 text-[8px] font-black uppercase text-slate-700 tracking-widest italic group-hover:text-luxury-rose transition-colors">
-                                        Verified Directive <AlertCircle size={10} />
-                                    </div>
+                                    
+                                    <button 
+                                        onClick={() => navigate(`/teacher/marks?classId=${exam.classSectionId || ''}&examId=${exam._id}`)}
+                                        className={`w-full py-4 rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 shadow-[0_4px_20px_rgba(0,0,0,0.5)] ${
+                                            isEval 
+                                                ? 'bg-luxury-emerald/10 border border-luxury-emerald/20 text-luxury-emerald hover:bg-luxury-emerald/20 hover:border-luxury-emerald/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.25)] ring-1 ring-inset ring-luxury-emerald/10'
+                                                : 'bg-luxury-rose/5 border border-luxury-rose/20 text-luxury-rose hover:bg-luxury-rose/10 hover:border-luxury-rose/50 hover:text-white hover:shadow-[0_0_30px_rgba(244,63,94,0.25)] ring-1 ring-inset ring-luxury-rose/10'
+                                        }`}
+                                    >
+                                        {isEval ? 'Review Protocol Log' : 'Initiate Grade Upload'} <BookOpen size={14} className={isEval ? "opacity-80" : "opacity-60"} />
+                                    </button>
                                 </div>
                             </div>
                         </motion.div>
-                    ))}
+                        );
+                    })}
                 </AnimatePresence>
 
                 {exams.length === 0 && !loading && (
