@@ -121,7 +121,7 @@ exports.getAllTimetables = async (req, res) => {
     try {
         const schoolId = req.user.schoolId._id || req.user.schoolId;
         const timetables = await Timetable.find({ schoolId })
-            .populate('classSection')
+            .populate({ path: 'classSection', populate: { path: 'standardId' } })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');
         res.json(timetables);

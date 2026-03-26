@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, deleteTimetable, fetchAllTimetables, clearError, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings } from 'lucide-react';
+import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 
@@ -11,6 +11,7 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const AdminTimetable = () => {
     const dispatch = useDispatch();
     const [selectedClass, setSelectedClass] = useState('');
+    const [activeGrade, setActiveGrade] = useState('');
     const [activeDay, setActiveDay] = useState('Monday');
     const [viewMode, setViewMode] = useState('table'); // 'editor' | 'table'
     const [schedule, setSchedule] = useState({}); // { Monday: [periods], ... }
@@ -282,6 +283,32 @@ const AdminTimetable = () => {
 
     const getExistingTimetable = (classId) => {
         return timetables.find(t => t.classSection?._id === classId || t.classSection === classId);
+    };
+
+    const getTeacherConflict = (teacherId, day, startTime, endTime) => {
+        if (!teacherId || !day || !startTime || !endTime || !timetables) return null;
+        
+        for (const tt of timetables) {
+            if (tt.classSection?._id === selectedClass || tt.classSection === selectedClass) continue;
+
+            const daySchedule = tt.schedule.find(s => s.day === day);
+            if (!daySchedule) continue;
+
+            for (const p of daySchedule.periods) {
+                if (p.type.includes('Break') || !p.teacher) continue;
+                const pTeacherId = p.teacher?._id || p.teacher;
+                if (pTeacherId === teacherId) {
+                    if (startTime < p.endTime && p.startTime < endTime) {
+                        return {
+                            className: tt.classSection?.standardId?.name || 'Class',
+                            section: tt.classSection?.sectionLabel || '',
+                            room: p.room || 'N/A'
+                        };
+                    }
+                }
+            }
+        }
+        return null;
     };
 
     return (
@@ -603,9 +630,19 @@ const AdminTimetable = () => {
                                                                             {(() => {
                                                                                 const currentClass = classes.find(c => c._id === selectedClass);
                                                                                 const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === period.subject);
-                                                                                return assignment?.teachers?.map(t => (
-                                                                                    <option key={t._id} value={t._id}>{t.firstName} {t.lastName}</option>
-                                                                                )) || [];
+                                                                                return assignment?.teachers?.map(t => {
+                                                                                    const conflict = getTeacherConflict(t._id, activeDay, period.startTime, period.endTime);
+                                                                                    return (
+                                                                                        <option 
+                                                                                            key={t._id} 
+                                                                                            value={t._id}
+                                                                                            disabled={!!conflict}
+                                                                                            className={conflict ? 'bg-slate-900 text-slate-600' : 'text-white'}
+                                                                                        >
+                                                                                            {t.firstName} {t.lastName} {conflict ? `[BUSY: ${conflict.className}-${conflict.section} | RM:${conflict.room}]` : ''}
+                                                                                        </option>
+                                                                                    );
+                                                                                }) || [];
                                                                             })()}
                                                                         </select>
                                                                     </div>
@@ -657,11 +694,119 @@ const AdminTimetable = () => {
                                 </div>
                             </div>
                         ) : (
-                            <div className="py-48 flex flex-col items-center justify-center border border-white/5 rounded-md bg-[#030712]/20 backdrop-blur-md group relative overflow-hidden">
-                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(59,130,246,0.03)_0%,transparent_70%)] animate-pulse"></div>
-                                <LayoutGrid size={80} className="text-slate-800 mb-10 opacity-20 group-hover:scale-110 group-hover:text-brand-primary/10 transition-all duration-1000 relative z-10" />
-                                <h3 className="text-2xl font-black text-slate-700 uppercase tracking-[0.5em] font-outfit italic text-center relative z-10">Selection Required</h3>
-                                <p className="text-slate-500 text-[10px] font-black tracking-[0.3em] uppercase italic mt-4 relative z-10">Select a class to view or edit its timetable</p>
+                            <div className="space-y-6 py-6">
+                                {!activeGrade ? (
+                                    <div className="space-y-5">
+                                        {/* <div className="flex flex-col items-center text-center space-y-4 bg-slate-900/40 py-8 rounded-md border border-white/5 backdrop-blur-md">
+                                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-primary/10 border border-brand-primary/20 rounded-md">
+                                                <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse"></div>
+                                                <span className="text-[8px] font-black uppercase tracking-[0.3em] text-brand-primary italic">Initialization Phase 01</span>
+                                            </div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-[0.3em] font-outfit italic leading-none">Select Grade</h3>
+                                            <p className="text-slate-500 text-[9px] font-black tracking-[0.2em] uppercase italic max-w-md mx-auto">Choose a standard to begin crafting academic schedules</p>
+                                        </div> */}
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+                                            {Array.from(new Set(classes.map(c => c.standardId?._id))).map(stdId => {
+                                                const std = classes.find(c => c.standardId?._id === stdId)?.standardId;
+                                                const sectionCount = classes.filter(c => c.standardId?._id === stdId).length;
+                                                return (
+                                                    <motion.button
+                                                        key={stdId}
+                                                        whileHover={{ scale: 1.02, y: -2 }}
+                                                        onClick={() => setActiveGrade(stdId)}
+                                                        className="group relative h-44 bg-[#080c14] border border-white/5 rounded-md p-6 flex flex-col justify-between hover:border-brand-primary/40 transition-all duration-300 text-left overflow-hidden shadow-2xl"
+                                                    >
+                                                        {/* Icon Box */}
+                                                        <div className="w-10 h-10 rounded-md bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-inner relative z-10 transition-transform group-hover:scale-110">
+                                                            <GraduationCap size={20} />
+                                                        </div>
+
+                                                        {/* Badge */}
+                                                        <div className="absolute top-6 right-6 px-3 py-1 bg-slate-900/60 border border-white/10 rounded-md text-[8px] font-black text-slate-500 uppercase tracking-widest z-10">
+                                                            {sectionCount} Sections
+                                                        </div>
+
+                                                        {/* Title Section */}
+                                                        <div className="relative z-10">
+                                                            <h4 className="text-[17px] font-black text-white font-outfit leading-tight mb-1">{std?.name || `Grade ${std?.level}`}</h4>
+                                                            <p className="text-slate-600 text-[10px] font-bold tracking-tight">Click To View Classrooms</p>
+                                                        </div>
+
+                                                        {/* Watermark */}
+                                                        <GraduationCap 
+                                                            size={120} 
+                                                            className="absolute -bottom-6 -right-6 text-white/[0.03] -rotate-12 transition-transform duration-1000 group-hover:scale-110 group-hover:text-white/[0.05]" 
+                                                        />
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="mx-auto px-6">
+                                        <div className="flex items-center justify-between gap-6 bg-slate-900/40 p-6 rounded-md border border-white/5 backdrop-blur-xl">
+                                            <div className="flex items-center gap-6">
+                                                <button 
+                                                    onClick={() => setActiveGrade('')}
+                                                    className="w-10 h-10 rounded-md bg-slate-950 border border-white/5 flex items-center justify-center text-slate-500 hover:text-brand-primary hover:border-brand-primary/40 transition-all group"
+                                                >
+                                                    <ChevronDown size={14} className="rotate-90 group-hover:-translate-x-1 transition-transform" />
+                                                </button>
+                                                <div>
+                                                    <h3 className="text-lg font-black text-white uppercase tracking-[0.2em] font-outfit italic leading-none">Select Classroom</h3>
+                                                    <div className="flex items-center gap-2 mt-2">
+                                                        <span className="text-brand-primary text-[9px] font-black tracking-widest uppercase italic">Standard: {classes.find(c => c.standardId?._id === activeGrade)?.standardId?.name || 'Class'}</span>
+                                                        <div className="w-1 h-1 rounded-full bg-slate-700"></div>
+                                                        <span className="text-slate-500 text-[9px] font-black tracking-widest uppercase italic">Phase 02</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="px-5 py-3 bg-black/40 border border-white/5 rounded-md text-center min-w-[100px]">
+                                                <div className="text-lg font-black text-white font-outfit italic leading-none">{classes.filter(c => c.standardId?._id === activeGrade).length}</div>
+                                                <div className="text-[7px] font-black text-slate-500 uppercase tracking-[0.3em] mt-1">Sections</div>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-5">
+                                            {classes.filter(c => c.standardId?._id === activeGrade).map(cls => {
+                                                const tt = getExistingTimetable(cls._id);
+                                                return (
+                                                    <motion.button
+                                                        key={cls._id}
+                                                        whileHover={{ scale: 1.03 }}
+                                                        onClick={() => setSelectedClass(cls._id)}
+                                                        className="group p-12 bg-[#030712]/60 border border-white/5 rounded-md flex flex-col gap-8 hover:border-brand-primary/40 hover:bg-slate-900 transition-all duration-700 text-left shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+                                                    >
+                                                        <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 blur-3xl rounded-full translate-x-16 -translate-y-16 group-hover:bg-brand-primary/10 transition-all"></div>
+                                                        <div className="flex items-center justify-between relative z-10">
+                                                            <div className="w-16 h-16 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary/60 group-hover:text-brand-primary shadow-inner group-hover:scale-110 transition-transform duration-700">
+                                                                <Layers size={32} />
+                                                            </div>
+                                                            <div className={`px-5 py-2 rounded-md text-[9px] font-black uppercase tracking-widest border transition-all duration-700 ${tt ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.1)]' : 'bg-slate-800/40 text-slate-500 border-white/5'}`}>
+                                                                {tt ? 'System Sync Active' : 'Uninitialized'}
+                                                            </div>
+                                                        </div>
+                                                        <div className="relative z-10">
+                                                            <div className="text-3xl font-black text-white uppercase italic tracking-tighter font-outfit group-hover:tracking-widest transition-all duration-1000">Section {cls.sectionLabel}</div>
+                                                            <div className="flex items-center gap-3 mt-4">
+                                                                <div className="flex -space-x-2">
+                                                                    {[1,2,3].map(i => <div key={i} className="w-6 h-6 rounded-md bg-slate-800 border border-slate-950"></div>)}
+                                                                </div>
+                                                                <div className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] italic">Full Academic Unit</div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute bottom-6 right-6 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-700">
+                                                            <div className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-[0.3em]">
+                                                                Enter Session <ChevronRight size={14} />
+                                                            </div>
+                                                        </div>
+                                                    </motion.button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </motion.div>
