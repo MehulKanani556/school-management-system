@@ -79,9 +79,9 @@ export const deletePayroll = createAsyncThunk('accountant/deletePayroll', async 
 
 export const fetchFinancialReport = createAsyncThunk(
     'accountant/fetchReport',
-    async (_, { rejectWithValue }) => {
+    async (params, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('/accountant/reports');
+            const response = await axiosInstance.get('/accountant/reports', { params });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data.message);

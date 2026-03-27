@@ -17,7 +17,7 @@ import { BASE_URL } from '../../utils/BASE_URL';
 const AccountantDashboard = () => {
     const dispatch = useDispatch();
     const { report, loading, error } = useSelector((state) => state.accountant);
-    const [filterRange, setFilterRange] = useState({ start: '', end: '', year: '2026' });
+    const [filterRange, setFilterRange] = useState({ start: '', end: '', year: '' });
     const [showFilterModal, setShowFilterModal] = useState(false);
 
     useEffect(() => {
@@ -215,6 +215,7 @@ const AccountantDashboard = () => {
                                         onChange={(e) => setFilterRange({...filterRange, year: e.target.value})}
                                         className="w-full bg-slate-950/60 border border-slate-800 rounded-md p-3 text-xs font-bold text-slate-300 focus:outline-none focus:border-accountant-primary transition-colors"
                                     >
+                                        <option value="">All Sessions</option>
                                         <option value="2026">Session 2026</option>
                                         <option value="2025">Session 2025</option>
                                     </select>

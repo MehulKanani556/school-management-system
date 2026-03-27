@@ -427,7 +427,15 @@ exports.getFinancialReport = async (req, res) => {
             if (startDate) match.paidDate.$gte = new Date(startDate);
             if (endDate) match.paidDate.$lte = new Date(endDate);
         }
-        if (academicYear) match.academicYear = academicYear;
+        if (academicYear) {
+            match.$or = [
+                { academicYear: academicYear },
+                { academicYear: { $exists: false } },
+                { academicYear: null },
+                { academicYear: "" }
+            ];
+        }
+
 
         const feeIncome = await FeePayment.aggregate([
             { $match: { ...match, status: { $in: ['paid', 'partially_paid'] } } },
@@ -776,7 +784,14 @@ exports.downloadFinancialReport = async (req, res) => {
             if (startDate) match.paidDate.$gte = new Date(startDate);
             if (endDate) match.paidDate.$lte = new Date(endDate);
         }
-        if (academicYear) match.academicYear = academicYear;
+        if (academicYear) {
+            match.$or = [
+                { academicYear: academicYear },
+                { academicYear: { $exists: false } },
+                { academicYear: null },
+                { academicYear: "" }
+            ];
+        }
 
         const feeIncome = await FeePayment.aggregate([
             { $match: { ...match, status: { $in: ['paid', 'partially_paid'] } } },
