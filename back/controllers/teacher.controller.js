@@ -1226,8 +1226,29 @@ exports.addQuestion = async (req, res) => {
             teacherId: teacher._id,
             schoolId: teacher.schoolId._id
         });
+        if (req.file) {
+            question.fileUrl = req.file.location || req.file.path;
+        }
         await question.save();
         res.status(201).json({ message: 'Evaluation node recorded successfully', question });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.bulkAddQuestions = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const { questions } = req.body; 
+
+        if (!Array.isArray(questions)) return res.status(400).json({ message: 'Payload must be an array of nodes' });
+
+        const mapped = questions.map(q => ({
+            ...q,
+            teacherId: teacher._id,
+            schoolId: teacher.schoolId._id
+        }));
+
+        const saved = await QuestionBank.insertMany(mapped);
+        res.status(201).json({ message: `Successfully archived ${saved.length} nodes to vault`, count: saved.length });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1452,6 +1473,7 @@ module.exports = {
             res.status(201).json({ message: 'Evaluation node recorded successfully', question });
         } catch (err) { res.status(500).json({ message: err.message }); }
     },
+    bulkAddQuestions: exports.bulkAddQuestions,
     getQuestions: exports.getQuestions,
     generateExam: exports.generateExam,
     getMyQuizzes: exports.getMyQuizzes,
