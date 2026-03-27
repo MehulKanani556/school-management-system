@@ -96,7 +96,7 @@ const Tracking = () => {
 
         setWatchId(id);
         setIsTracking(true);
-        toast.success("Uplink sequence started. Transmitting coordinates.");
+        toast.success("Tracking started. Location is being shared.");
     };
 
     const stopTracking = () => {
@@ -105,7 +105,7 @@ const Tracking = () => {
             setWatchId(null);
         }
         setIsTracking(false);
-        toast.error("Uplink terminated. Transmission suspended.");
+        toast.error("Tracking stopped. Location sharing disabled.");
     };
 
     return (
@@ -118,14 +118,14 @@ const Tracking = () => {
                             <Radio size={20} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none">Fleet Radar</h1>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Real-time terminal uplink</p>
+                            <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none">Vehicle Tracking</h1>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Live GPS Monitoring</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl">
-                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Active Nodes</p>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Active Vehicles</p>
                             <span className="text-2xl font-black italic text-transporter-primary tracking-tighter">{vehicles.length}</span>
                         </div>
                         <div className="p-4 bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl">
@@ -138,7 +138,7 @@ const Tracking = () => {
                 </header>
 
                 <div className="flex-1 space-y-3">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none ml-1">Terminal Roster</p>
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none ml-1">Vehicle List</p>
                     {vehicles.map(vehicle => (
                         <div
                             key={vehicle._id}
@@ -155,7 +155,7 @@ const Tracking = () => {
                                         <div className="flex items-center gap-2">
                                             <span className={`w-1.5 h-1.5 rounded-full ${fleetLocations[vehicle._id] ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-700'}`}></span>
                                             <span className="text-[9px] font-black text-slate-500 uppercase italic">
-                                                {fleetLocations[vehicle._id] ? 'Uplink Active' : 'No Signal'}
+                                                {fleetLocations[vehicle._id] ? 'Tracking Active' : 'No Signal'}
                                             </span>
                                         </div>
                                     </div>
@@ -164,7 +164,7 @@ const Tracking = () => {
                                 {fleetLocations[vehicle._id] && (
                                     <div className="text-right">
                                         <p className="text-[10px] font-black italic text-white leading-none mb-1">{fleetLocations[vehicle._id].speed?.toFixed(0) || 0} <span className="text-slate-600">KM/H</span></p>
-                                        <p className="text-[8px] font-black text-slate-600 uppercase italic tracking-widest">Sector V{vehicle._id.slice(-2)}</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase italic tracking-widest">ID: {vehicle._id.slice(-4).toUpperCase()}</p>
                                     </div>
                                 )}
                             </div>
@@ -177,7 +177,7 @@ const Tracking = () => {
             <div className="flex-1 bg-neutral-900 border border-slate-800/60 rounded-md relative overflow-hidden shadow-2xl">
                 <LiveMap
                     vehicleLocation={selectedId ? fleetLocations[selectedId] : null}
-                    stops={[]} // Add stops if needed for the driver
+                    stops={[]} 
                     autoCenter={true}
                 />
 
@@ -197,18 +197,18 @@ const Tracking = () => {
                                 <div>
                                     <h3 className="text-lg font-black italic uppercase tracking-tighter text-white leading-none mb-1">{activeVehicle.registrationNumber}</h3>
                                     <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic opacity-80 leading-none">
-                                        {isTracking ? 'COORDINATE TRANSMISSION ACTIVE' : 'SYSTEM STANDBY'}
+                                        {isTracking ? 'LOCATION TRACKING ACTIVE' : 'SYSTEM READY'}
                                     </p>
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-6">
                                 <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Velocity Vector</p>
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Current Speed</p>
                                     <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.speed?.toFixed(1) || '0.0'} <span className="text-[10px] text-slate-500 tracking-normal">KM/H</span></p>
                                 </div>
                                 <div className="space-y-1 text-right">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Heading Alpha</p>
+                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Direction</p>
                                     <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.heading?.toFixed(0) || '0'}° <span className="text-[10px] text-slate-500 tracking-normal">DEG</span></p>
                                 </div>
                             </div>
@@ -217,20 +217,20 @@ const Tracking = () => {
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Activity size={12} className="text-transporter-primary" />
-                                        <span className="text-[10px] font-black text-slate-400 italic">ENGINE STATUS</span>
+                                        <span className="text-[10px] font-black text-slate-400 italic">STATUS</span>
                                     </div>
                                     <span className="text-[10px] font-black text-emerald-500 italic uppercase">OPTIMAL</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
                                         <Shield size={12} className="text-blue-500" />
-                                        <span className="text-[10px] font-black text-slate-400 italic">ENCRYPTION</span>
+                                        <span className="text-[10px] font-black text-slate-400 italic">DATA SECURITY</span>
                                     </div>
-                                    <span className="text-[10px] font-black text-slate-200 italic uppercase underline">AES-256V2</span>
+                                    <span className="text-[10px] font-black text-emerald-500 italic uppercase">SECURE</span>
                                 </div>
                             </div>
 
-                            <button className="w-full py-4 bg-transporter-primary/10 border border-transporter-primary/30 text-transporter-primary text-[10px] font-black uppercase tracking-[0.2em] italic rounded hover:bg-transporter-primary hover:text-white transition-all">ESTABLISH COM-LINK</button>
+                            <button className="w-full py-4 bg-transporter-primary/10 border border-transporter-primary/30 text-transporter-primary text-[10px] font-black uppercase tracking-[0.2em] italic rounded hover:bg-transporter-primary hover:text-white transition-all">CONTACT DRIVER</button>
                         </div>
                     </motion.div>
                 )}
@@ -240,27 +240,6 @@ const Tracking = () => {
                     <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Layers size={18} /></button>
                     <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Crosshair size={18} /></button>
                     <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Compass size={18} /></button>
-                </div>
-
-                {/* Live Feed Terminal */}
-                <div className="absolute bottom-8 right-8 z-[1001] hidden xl:block">
-                    {/* <div className="bg-neutral-950/80 backdrop-blur-xl border border-white/5 p-6 rounded shadow-2xl w-96 space-y-4 overflow-hidden">
-                        <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                            <span className="text-[9px] font-black text-transporter-primary uppercase tracking-widest italic">Terminal Logs</span>
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981]"></div>
-                        </div>
-                        <div className="space-y-2 h-32 overflow-y-auto pr-2 custom-scrollbar">
-                            <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] {isConnected ? 'UPLINK ESTABLISHED' : 'COMMAND LINK OFFLINE'}</p>
-                            {isTracking && fleetLocations[selectedId] && (
-                                <>
-                                    <p className="text-[9px] font-mono text-slate-300 leading-none">[{new Date().toLocaleTimeString()}] COORDS: {fleetLocations[selectedId].lat.toFixed(4)}N, {fleetLocations[selectedId].lng.toFixed(4)}E</p>
-                                    <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] BUFFER REPLENISHED (Active)</p>
-                                </>
-                            )}
-                            <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] BACKGROUND SCAN: NO ANOMALIES</p>
-                            <p className="text-[9px] font-mono text-slate-500 leading-none">[{new Date().toLocaleTimeString()}] ENCRYPTION KEY ROTATED</p>
-                        </div>
-                    </div> */}
                 </div>
             </div>
         </motion.div>

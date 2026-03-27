@@ -77,7 +77,7 @@ const Drivers = () => {
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Terminate driver profile? This action cannot be undone.')) {
+        if (window.confirm('Delete driver profile? This action cannot be undone.')) {
             dispatch(deleteDriverSlice(id));
         }
     }
@@ -99,8 +99,8 @@ const Drivers = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Personnel Roster</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Managing operator profiles and regulatory compliance.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Drivers & Helpers</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage transport staff and license validity.</p>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -108,7 +108,7 @@ const Drivers = () => {
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Identify Operator..."
+                            placeholder="Search Staff Name..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all w-full italic"
@@ -118,7 +118,7 @@ const Drivers = () => {
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
                         className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
                     >
-                        <Plus size={14} /> register operator
+                        <Plus size={14} /> add driver/helper
                     </button>
                 </div>
             </div>
@@ -148,7 +148,7 @@ const Drivers = () => {
 
                             <div className="space-y-3 pt-6 border-t border-slate-800/40">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">License Hash</span>
+                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">License No.</span>
                                     <div className="flex flex-col items-end">
                                         <span className="text-[11px] font-black text-slate-300 uppercase italic leading-none">{driver.licenseNumber}</span>
                                         {isExpiringSoon(driver.licenseExpiry) && (
@@ -157,7 +157,7 @@ const Drivers = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">Comms Sync</span>
+                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">Mobile Number</span>
                                     <div className="flex items-center gap-1.5 text-[11px] font-black text-violet-400 italic">
                                         <Phone size={10} />
                                         <span>{driver.contact}</span>
@@ -176,7 +176,7 @@ const Drivers = () => {
                                     <Star key={i} size={10} className={i < (driver.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
                                 ))}
                             </div>
-                            <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Efficiency Index</span>
+                            <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Performance Rating</span>
                         </div>
                     </div>
                 ))}
@@ -189,12 +189,12 @@ const Drivers = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-2xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={handleSubmit} className="p-10">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
-                                    {isEditOpen ? 'Edit Operator Profile' : 'Register New Operator'}
+                                    {isEditOpen ? 'Edit Staff Profile' : 'Add New Driver/Helper'}
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Full Operator Name</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Staff Full Name</label>
                                         <input
                                             type="text"
                                             required
@@ -204,7 +204,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Primary Comms (Contact)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Mobile Number</label>
                                         <input
                                             type="text"
                                             required
@@ -214,7 +214,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Regulatory Identifier (License)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Driving License (DL) No.</label>
                                         <input
                                             type="text"
                                             required
@@ -224,7 +224,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">License Expiry Vector</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">License Expiry Date</label>
                                         <input
                                             type="date"
                                             required
@@ -234,7 +234,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Emergency Comms Sync</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Emergency Contact No.</label>
                                         <input
                                             type="text"
                                             value={formData.emergencyContact}
@@ -243,7 +243,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Efficiency Rating (1-5)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Performance Rating</label>
                                         <select
                                             value={formData.performanceRating}
                                             onChange={(e) => setFormData({ ...formData, performanceRating: parseInt(e.target.value) })}
@@ -253,7 +253,7 @@ const Drivers = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operator Profile Status</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Work Status</label>
                                         <select
                                             value={formData.status}
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}
@@ -266,9 +266,9 @@ const Drivers = () => {
                                 </div>
 
                                 <div className="flex gap-4 mt-12">
-                                    <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort logic</button>
+                                    <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Cancel</button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-violet-700 transition-all shadow-xl shadow-violet-600/20 leading-none hover:translate-y-[-2px]">
-                                        {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Registration'}
+                                        {loading ? 'Saving...' : isEditOpen ? 'Update Staff Member' : 'Add Staff Member'}
                                     </button>
                                 </div>
                             </form>

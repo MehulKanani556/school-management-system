@@ -16,8 +16,8 @@ const Analytics = () => {
         return (
             <div className="flex items-center justify-center h-screen bg-black">
                 <div className="flex flex-col items-center gap-4">
-                    <Activity size={40} className="text-violet-500 animate-pulse" />
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 animate-pulse">Synthesizing Logistics Intelligence...</p>
+                    <Activity size={40} className="text-transporter-primary animate-pulse" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 animate-pulse">Loading Transport Analytics...</p>
                 </div>
             </div>
         );
@@ -31,25 +31,25 @@ const Analytics = () => {
     };
 
     const stats = [
-        { label: 'Cumulative Maintenance', value: `₹${fleet.totalMaintenanceCost.toLocaleString()}`, icon: Wallet, color: 'text-rose-500', trend: 'Finance Vector' },
-        { label: 'Fleet Utility', value: `${fleet.active}/${fleet.total}`, icon: Bus, color: 'text-violet-500', trend: 'Operational Ready' },
-        { label: 'Operator Index', value: `${operators.avgRating}/5`, icon: User, color: 'text-sky-500', trend: 'Performance Metric' },
-        { label: 'System Delay Rate', value: `${efficiency.delayRate}%`, icon: Timer, color: 'text-amber-500', trend: 'Efficiency Delta' }
+        { label: 'Total Maintenance', value: `₹${fleet.totalMaintenanceCost.toLocaleString()}`, icon: Wallet, color: 'text-rose-500', trend: 'Financial Status' },
+        { label: 'Active Fleet', value: `${fleet.active}/${fleet.total}`, icon: Bus, color: 'text-transporter-primary', trend: 'Vehicle Availability' },
+        { label: 'Driver Rating', value: `${operators.avgRating}/5`, icon: User, color: 'text-sky-500', trend: 'Rating Avg.' },
+        { label: 'Trip Delay Rate', value: `${efficiency.delayRate}%`, icon: Timer, color: 'text-amber-500', trend: 'Delay Percentage' }
     ];
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 pb-20 font-outfit">
             <div className="px-2">
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-violet-500">Logistics Analytics</h1>
-                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Intelligence dashboard for high-frequency transport operations.</p>
+                <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Transport Analytics</h1>
+                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Monitoring key metrics for school transport operations.</p>
             </div>
 
             {/* Summary Metrics */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat, i) => (
-                    <div key={i} className="bg-neutral-900 border border-slate-800/60 p-6 rounded-md shadow-2xl group hover:border-violet-600/30 transition-all">
+                    <div key={i} className="bg-neutral-900 border border-slate-800/60 p-6 rounded-md shadow-2xl group hover:border-transporter-primary/30 transition-all">
                         <div className="flex items-center justify-between mb-4">
-                            <div className={`p-2 rounded-md bg-neutral-950 border border-slate-800 ${stat.color} group-hover:border-violet-600/40 transition-all`}>
+                            <div className={`p-2 rounded-md bg-neutral-950 border border-slate-800 ${stat.color} group-hover:border-transporter-primary/40 transition-all`}>
                                 <stat.icon size={18} />
                             </div>
                             <span className="text-[8px] font-black uppercase tracking-widest text-slate-600 italic">{stat.trend}</span>
@@ -61,12 +61,12 @@ const Analytics = () => {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
-                {/* Fleet Health Matrix */}
+                {/* Fleet Status */}
                 <div className="bg-neutral-900 border border-slate-800/60 rounded-md overflow-hidden shadow-2xl">
                     <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950 flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-md bg-violet-600/10 text-violet-500"><Wrench size={16} /></div>
-                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Fleet Composition Matrix</h3>
+                            <div className="p-2 rounded-md bg-transporter-primary/10 text-transporter-primary"><Wrench size={16} /></div>
+                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Fleet Status Analysis</h3>
                         </div>
                         <ShieldCheck size={16} className="text-emerald-500" />
                     </div>
@@ -74,16 +74,16 @@ const Analytics = () => {
                         <div className="space-y-6">
                             <div className="space-y-2">
                                 <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-500">
-                                    <span>Active Deployment</span>
+                                    <span>Active Vehicles</span>
                                     <span>{((fleet.active / fleet.total) * 100 || 0).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-2 w-full bg-neutral-950 rounded-full overflow-hidden border border-slate-800">
-                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(fleet.active / fleet.total) * 100 || 0}%` }} className="h-full bg-violet-600 shadow-xl shadow-violet-600/20" />
+                                    <motion.div initial={{ width: 0 }} animate={{ width: `${(fleet.active / fleet.total) * 100 || 0}%` }} className="h-full bg-transporter-primary shadow-xl shadow-transporter-primary/20" />
                                 </div>
                             </div>
                             <div className="space-y-2">
                                 <div className="flex justify-between text-[10px] font-black uppercase italic text-slate-500">
-                                    <span>Maintenance Downtime</span>
+                                    <span>Vehicles in Maintenance</span>
                                     <span>{((fleet.maintenance / fleet.total) * 100 || 0).toFixed(0)}%</span>
                                 </div>
                                 <div className="h-2 w-full bg-neutral-950 rounded-full overflow-hidden border border-slate-800">
@@ -98,7 +98,7 @@ const Analytics = () => {
                                 <p className="text-xl font-black text-slate-100 italic">{fleet.active}</p>
                             </div>
                             <div className="p-4 rounded-md bg-neutral-950 border border-slate-800/60">
-                                <p className="text-[9px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">In Service Bay</p>
+                                <p className="text-[9px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">Under Repair</p>
                                 <p className="text-xl font-black text-slate-100 italic">{fleet.maintenance}</p>
                             </div>
                         </div>
@@ -110,7 +110,7 @@ const Analytics = () => {
                     <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-md bg-sky-600/10 text-sky-500"><Users size={16} /></div>
-                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Entity Displacement Analysis</h3>
+                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Student Assignment Coverage</h3>
                         </div>
                         <TrendingUp size={16} className="text-sky-500" />
                     </div>
@@ -140,14 +140,14 @@ const Analytics = () => {
                                     <div className="w-3 h-3 rounded-full bg-sky-500" />
                                     <div>
                                         <p className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Assigned</p>
-                                        <p className="text-lg font-black text-slate-100 italic">{logistics.assigned} Entities</p>
+                                        <p className="text-lg font-black text-slate-100 italic">{logistics.assigned} Students</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="w-3 h-3 rounded-full bg-slate-800" />
                                     <div>
-                                        <p className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Standby (Non-Transport)</p>
-                                        <p className="text-lg font-black text-slate-100 italic">{logistics.unassigned} Entities</p>
+                                        <p className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">No Transport</p>
+                                        <p className="text-lg font-black text-slate-100 italic">{logistics.unassigned} Students</p>
                                     </div>
                                 </div>
                             </div>
@@ -158,21 +158,21 @@ const Analytics = () => {
 
             <div className="bg-neutral-900 border border-slate-800/60 rounded-md p-8 shadow-2xl flex items-center justify-between">
                 <div className="flex items-center gap-6">
-                    <div className="w-16 h-16 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-amber-500">
+                    <div className="w-16 h-16 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-transporter-primary">
                         <Navigation size={32} />
                     </div>
                     <div>
-                        <h4 className="text-lg font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">Operational Sequence Report</h4>
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">Analysis of the last 10 finalized transit sequences across the Mobility Matrix.</p>
+                        <h4 className="text-lg font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">Latest Trip Performance</h4>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">Report based on the last 10 completed trips across all routes.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-10">
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Sequence Success</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Trip Completion Rate</p>
                         <p className="text-2xl font-black text-emerald-500 italic">100%</p>
                     </div>
                     <div className="text-right border-l border-slate-800/60 pl-10">
-                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Delay Delta</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Average Delay</p>
                         <p className="text-2xl font-black text-rose-500 italic">{efficiency.delayRate}%</p>
                     </div>
                 </div>

@@ -91,12 +91,12 @@ const Routes = () => {
 
     const handleAssign = (e) => {
         e.preventDefault();
-        if (!assignData.studentId || !selectedRouteForAssign) return toast.error('Selection metadata incomplete');
+        if (!assignData.studentId || !selectedRouteForAssign) return toast.error('Please select a student');
         dispatch(assignStudentSlice({ routeId: selectedRouteForAssign._id, data: assignData }));
     }
 
     const handleUnassign = (studentId) => {
-        if (window.confirm('Strike student from manifest? Billing protocols remain active.')) {
+        if (window.confirm('Remove student from this route?')) {
             dispatch(unassignStudentSlice({ routeId: selectedRouteForAssign._id, studentId }));
         }
     }
@@ -128,7 +128,7 @@ const Routes = () => {
     }
 
     const addStop = () => {
-        if (!newStop.name) return toast.error('Node identifier required');
+        if (!newStop.name) return toast.error('Stop name is required');
         if (!newStop.lat || !newStop.lng) return toast.error('Select location on map');
         
         const order = formData.stops.length + 1;
@@ -142,7 +142,7 @@ const Routes = () => {
     }
 
     const handleDelete = (id) => {
-        if (window.confirm('Delete this logical route matrix? This action is irreversible.')) {
+        if (window.confirm('Delete this route? This action cannot be undone.')) {
             dispatch(deleteRouteSlice(id));
         }
     }
@@ -151,14 +151,14 @@ const Routes = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2 font-outfit">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Route Architecture</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Mapping logical transit paths across the sector.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Route List</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage school bus routes and student stops.</p>
                 </div>
                 <button
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
                     className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group h-[42px] leading-none"
                 >
-                    <Plus size={14} className="group-hover:rotate-90 transition-transform" /> generate matrix
+                    <Plus size={14} className="group-hover:rotate-90 transition-transform" /> create new route
                 </button>
             </div>
 
@@ -176,21 +176,21 @@ const Routes = () => {
                                         </span>
                                     </div>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase italic opacity-60 tracking-widest mt-1.5">
-                                        Assigned Unit: {route.vehicleId?.registrationNumber || 'UNASSIGNED'}
+                                        Assigned Vehicle: {route.vehicleId?.registrationNumber || 'UNASSIGNED'}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button 
                                      onClick={() => openAssign(route)}
-                                     title="Manage Student Manifest"
+                                     title="Manage Students"
                                      className="p-2.5 text-blue-400 hover:text-blue-300 bg-blue-600/10 border border-blue-600/20 rounded-md transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase italic leading-none px-4"
                                  >
-                                     <Users size={16} /> manifest
+                                     <Users size={16} /> students
                                  </button>
                                  <button 
                                      onClick={() => toggleStatus(route)}
-                                     title={route.status === 'active' ? 'Deactivate Matrix' : 'Activate Matrix'}
+                                     title={route.status === 'active' ? 'Deactivate Route' : 'Activate Route'}
                                      className={`p-2.5 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
                                  >
                                      <Activity size={16} />
@@ -213,7 +213,7 @@ const Routes = () => {
                         <div className="flex items-center gap-6 mb-8 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
                             <div className="flex items-center gap-2">
                                 <Users size={14} />
-                                <span className="text-xs font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Entities</span>
+                                <span className="text-xs font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Students</span>
                             </div>
                             <div className="text-[10px] text-slate-600 uppercase font-black italic tracking-widest">
                                 Capacity: {route.vehicleId?.capacity || 0}
@@ -247,7 +247,7 @@ const Routes = () => {
                         )}
 
                         <div className="space-y-6">
-                            <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Logic Nodes (Stops)</h4>
+                            <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Bus Stops</h4>
                             <div className="grid grid-cols-1 gap-4">
                                 {[...route.stops].sort((a, b) => a.order - b.order).map((stop, idx) => (
                                     <div key={idx} className="flex items-center gap-4 group/stop">
@@ -259,24 +259,24 @@ const Routes = () => {
                                             <div>
                                                 <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none mb-1">{stop.name}</p>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">ORDER_POINT-0{stop.order}</p>
+                                                    <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">STOP NO. 0{stop.order}</p>
                                                     {stop.lat && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1"><MapPin size={8} /> GEO-SYNCED</span>}
                                                 </div>
                                             </div>
                                             <div className="text-right">
                                                 <p className="text-[10px] font-black italic opacity-80 leading-none">{stop.estimatedTime}</p>
-                                                <p className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mt-0.5">EST_WINDOW</p>
+                                                <p className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mt-0.5">TIME</p>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                {route.stops.length === 0 && <p className="text-[10px] font-black uppercase text-slate-700 italic border border-slate-800/40 border-dashed p-10 rounded-md text-center">No logic nodes mapped for this matrix.</p>}
+                                {route.stops.length === 0 && <p className="text-[10px] font-black uppercase text-slate-700 italic border border-slate-800/40 border-dashed p-10 rounded-md text-center">No stops added for this route.</p>}
                             </div>
                         </div>
                     </div>
                 )) : (
                     <div className="xl:col-span-2 p-20 border border-slate-800 border-dashed rounded-md text-center bg-neutral-900/40 shadow-2xl">
-                        <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No route matrices detected in sector memory.</p>
+                        <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No routes found.</p>
                     </div>
                 )}
             </div>
@@ -290,13 +290,13 @@ const Routes = () => {
                             {/* Left: Form */}
                             <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-auto">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
-                                    {isEditOpen ? 'Edit Route Matrix' : 'Generate Route Matrix'}
+                                    {isEditOpen ? 'Edit Route' : 'Create New Route'}
                                 </h3>
 
                                 <div className="space-y-4">
                                     <div className="grid grid-cols-3 gap-4">
                                          <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Matrix Name</label>
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Route Name</label>
                                              <input 
                                                  type="text" 
                                                  required
@@ -306,7 +306,7 @@ const Routes = () => {
                                              />
                                          </div>
                                          <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Vector Fee (Rs)</label>
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Monthly Fee (₹)</label>
                                              <input 
                                                  type="number" 
                                                  required
@@ -316,37 +316,37 @@ const Routes = () => {
                                              />
                                          </div>
                                          <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operational Status</label>
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Status</label>
                                              <select 
                                                  value={formData.status}
                                                  onChange={(e) => setFormData({...formData, status: e.target.value})}
                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
                                              >
-                                                 <option value="active">Active Sequence</option>
-                                                 <option value="inactive">Inactive Matrix</option>
+                                                 <option value="active">Active Route</option>
+                                                 <option value="inactive">Inactive Route</option>
                                              </select>
                                          </div>
                                      </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assigned Fleet Unit</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assign Vehicle</label>
                                         <select
                                             required
                                             value={formData.vehicleId}
                                             onChange={(e) => setFormData({ ...formData, vehicleId: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-blue-600/50 appearance-none h-[42px] leading-none"
                                         >
-                                            <option value="">Sync Unit...</option>
+                                            <option value="">Select vehicle...</option>
                                             {vehicles.map(v => <option key={v._id} value={v._id}>{v.registrationNumber} ({v.driverId?.name || 'NO DRIVER'})</option>)}
                                         </select>
                                     </div>
 
                                     <div className="pt-6 border-t border-slate-800/40">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic mb-6">Logic Node Mapping</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic mb-6">Bus Stops</h4>
                                         <div className="space-y-4 mb-6">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                                 <input 
                                                     type="text" 
-                                                    placeholder="Node Name"
+                                                    placeholder="Stop Name"
                                                     value={newStop.name}
                                                     onChange={(e) => setNewStop({...newStop, name: e.target.value})}
                                                     className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
@@ -362,7 +362,7 @@ const Routes = () => {
                                             <div className="flex items-center gap-4 bg-black/40 p-3 rounded-md border border-slate-800/40 flex-wrap">
                                                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic">
                                                     <Crosshair size={12} className={newStop.lat ? 'text-emerald-500' : ''} /> 
-                                                    {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'PICK LOCATION ON RADAR'}
+                                                    {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'PICK LOCATION ON MAP'}
                                                 </div>
                                                 <button 
                                                     type="button"
@@ -370,7 +370,7 @@ const Routes = () => {
                                                     disabled={!newStop.lat}
                                                     className="ml-auto bg-blue-600/10 text-blue-400 border border-blue-600/20 rounded-md text-[9px] font-black uppercase tracking-widest px-6 py-2 hover:bg-blue-600 hover:text-white transition-all italic leading-none h-[38px] disabled:opacity-30"
                                                 >
-                                                    register node
+                                                    add stop
                                                 </button>
                                             </div>
                                         </div>
@@ -407,19 +407,19 @@ const Routes = () => {
                                         onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }}
                                         className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]"
                                     >
-                                        abort
+                                        Cancel
                                     </button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 leading-none h-[42px] disabled:opacity-50">
-                                        {loading ? 'Synthesizing...' : (isEditOpen ? 'update matrix' : 'commit matrix')}
+                                        {loading ? 'Processing...' : (isEditOpen ? 'Update Route' : 'Create Route')}
                                     </button>
                                 </div>
                             </form>
 
-                            {/* Right: Radar for Picking */}
+                            {/* Right: Map for Picking */}
                             <div className="w-full xl:w-[450px] bg-neutral-950 border-l border-slate-800 flex flex-col">
                                 <div className="p-6 border-b border-slate-800/60">
-                                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Targeting Radar</h4>
-                                     <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to assign coordinate nodes</p>
+                                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Route Map</h4>
+                                     <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to add bus stops</p>
                                 </div>
                                 <div className="flex-1 min-h-[400px]">
                                     <MapContainer 
@@ -455,33 +455,33 @@ const Routes = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAssignOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-neutral-900 w-full max-w-5xl h-[85vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row">
                             
-                            {/* Left: Enrollment Form */}
+                            {/* Left: Assignment Form */}
                             <div className="w-full md:w-1/3 p-10 border-r border-slate-800/60 overflow-y-auto">
                                 <div className="flex items-center gap-3 mb-8">
                                     <UserPlus className="text-blue-500" size={24} />
-                                    <h3 className="text-xl font-black italic uppercase text-white leading-none">Enroll Entity</h3>
+                                    <h3 className="text-xl font-black italic uppercase text-white leading-none">Assign Student</h3>
                                 </div>
 
                                 <form onSubmit={handleAssign} className="space-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Select Applicant</label>
+                                        <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Select Student</label>
                                         <select 
                                             required
                                             value={assignData.studentId}
                                             onChange={(e) => setAssignData({...assignData, studentId: e.target.value})}
                                             className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[11px] font-black uppercase text-slate-300 italic focus:border-blue-500 transition-all appearance-none"
                                         >
-                                            <option value="">Awaiting Ingress...</option>
+                                            <option value="">Select Student...</option>
                                             {applicants.map(a => (
                                                 <option key={a._id} value={a._id}>{a.firstName} {a.lastName} ({a.standard?.name || 'N/A'})</option>
                                             ))}
                                         </select>
-                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic px-1">Note: Only students with active transport applications are indexed here.</p>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic px-1">Note: Only students with active transport applications are listed here.</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Extraction Pt</label>
+                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Pickup Stop</label>
                                             <select 
                                                 value={assignData.pickupStop}
                                                 onChange={(e) => setAssignData({...assignData, pickupStop: e.target.value})}
@@ -491,7 +491,7 @@ const Routes = () => {
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Ingress Pt</label>
+                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Drop Stop</label>
                                             <select 
                                                 value={assignData.dropoffStop}
                                                 onChange={(e) => setAssignData({...assignData, dropoffStop: e.target.value})}
@@ -506,7 +506,7 @@ const Routes = () => {
                                         <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Seat Assignment</label>
                                         <input 
                                             type="number"
-                                            placeholder="Unit Number"
+                                            placeholder="Seat Number"
                                             value={assignData.seatNumber}
                                             onChange={(e) => setAssignData({...assignData, seatNumber: e.target.value})}
                                             className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-xs font-bold text-slate-200"
@@ -517,18 +517,18 @@ const Routes = () => {
                                         type="submit"
                                         className="w-full py-4 bg-blue-600 text-[11px] font-black uppercase italic tracking-[.2em] text-white rounded-md shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all mt-4"
                                     >
-                                        Commit to Matrix
+                                        Assign to Route
                                     </button>
                                 </form>
                             </div>
 
-                            {/* Right: Current Manifest */}
+                            {/* Right: Current Students */}
                             <div className="flex-1 bg-black/20 overflow-y-auto custom-scrollbar">
                                  <div className="p-10">
                                     <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800/60">
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none">{selectedRouteForAssign?.name} Manifest</h3>
-                                            <p className="text-[10px] font-black italic uppercase text-slate-500 tracking-widest mt-2">{selectedRouteForAssign?.assignedStudents?.length || 0} Entities Currently Locked</p>
+                                            <h3 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none">{selectedRouteForAssign?.name} Students</h3>
+                                            <p className="text-[10px] font-black italic uppercase text-slate-500 tracking-widest mt-2">{selectedRouteForAssign?.assignedStudents?.length || 0} Students Assigned</p>
                                         </div>
                                         <button onClick={() => setIsAssignOpen(false)} className="p-2 text-slate-500 hover:text-white transition-all"><X size={20}/></button>
                                     </div>
@@ -550,11 +550,11 @@ const Routes = () => {
                                                 </div>
                                                 <div className="flex items-center gap-10 mt-4 md:mt-0 px-6 py-3 bg-neutral-900/40 rounded border border-slate-800/40">
                                                     <div>
-                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Vector Ingress</p>
+                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Pickup</p>
                                                         <p className="text-[10px] font-black text-blue-500 uppercase italic">{entry.pickupStop}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Vector Egress</p>
+                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Drop</p>
                                                         <p className="text-[10px] font-black text-rose-500 uppercase italic">{entry.dropoffStop}</p>
                                                     </div>
                                                 </div>
@@ -567,7 +567,7 @@ const Routes = () => {
                                             </div>
                                         )) : (
                                             <div className="p-20 border border-slate-800 border-dashed rounded-md text-center opacity-40">
-                                                <p className="text-[11px] font-black italic uppercase tracking-widest">No entities mapped to this logistical vector.</p>
+                                                <p className="text-[11px] font-black italic uppercase tracking-widest">No students assigned to this route.</p>
                                             </div>
                                         )}
                                     </div>

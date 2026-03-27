@@ -142,8 +142,8 @@ const Vehicles = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Fleet Inventory</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Mapping organizational mobility units.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Vehicle List</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your school buses and vans here.</p>
                 </div>
                 <button
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
@@ -155,12 +155,12 @@ const Vehicles = () => {
 
             <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group">
                 <div className="px-6 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none font-outfit">Unit Inventory</h2>
+                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none font-outfit">Vehicle Records</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Identify Unit Number..."
+                            placeholder="Search Vehicle Number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-950 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all w-full sm:w-64 italic"
@@ -172,10 +172,10 @@ const Vehicles = () => {
                     <table className="w-full text-left">
                         <thead className="bg-neutral-950/60 text-slate-500 border-b border-slate-800/60">
                             <tr>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Unit Core</th>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Node Custodian</th>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Specifications</th>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Status Logic</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Vehicle Details</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Assigned Driver</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Capacity & Service</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Status</th>
                                 <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest italic">Operations</th>
                             </tr>
                         </thead>
@@ -202,24 +202,24 @@ const Vehicles = () => {
                                     </td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-slate-200 tracking-tighter italic uppercase leading-none mb-1">{vehicle.driverId?.name || 'NODE NOT ASSIGNED'}</span>
-                                            <span className="text-[10px] font-bold text-slate-600 uppercase italic opacity-60 tracking-widest">{vehicle.driverId?.contact || 'PROTO-NONE'}</span>
+                                            <span className="text-sm font-black text-slate-200 tracking-tighter italic uppercase leading-none mb-1">{vehicle.driverId?.name || 'NOT ASSIGNED'}</span>
+                                            <span className="text-[10px] font-bold text-slate-600 uppercase italic opacity-60 tracking-widest">{vehicle.driverId?.contact || 'NO CONTACT'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col items-start gap-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs font-black text-slate-200 tracking-tighter">{vehicle.capacity}</span>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Max Load</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Capacity</span>
                                             </div>
                                             <div className="text-[9px] font-bold text-slate-500 italic opacity-60">
-                                                Last SVC: {vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toLocaleDateString() : 'N/A'}
+                                                Last Service: {vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toLocaleDateString() : 'N/A'}
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
                                         <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${getStatusStyles(vehicle.status || 'active')}`}>
-                                            {vehicle.status || 'Operational'}
+                                            {vehicle.status || 'Active'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-6 text-right">
@@ -248,7 +248,7 @@ const Vehicles = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic font-black uppercase text-xs tracking-[0.2em] opacity-40">Fleet inventory synchronization required... no units detected.</td>
+                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic font-black uppercase text-xs tracking-[0.2em] opacity-40">No vehicles found in records.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -264,16 +264,16 @@ const Vehicles = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-2xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="p-10">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
-                                    {isEditOpen ? 'Update mobility unit' : 'Provision new mobility unit'}
+                                    {isEditOpen ? 'Update Vehicle' : 'Add New Vehicle'}
                                 </h3>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Registration Identifier</label>
-                                        <input type="text" required value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Vehicle Registration No.</label>
+                                        <input type="text" required placeholder="e.g. GJ-01-XX-1234" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Propulsion Matrix (Fuel)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Fuel Type</label>
                                         <select value={formData.fuelType} onChange={(e) => setFormData({ ...formData, fuelType: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none appearance-none">
                                             <option value="Diesel">DIESEL</option>
                                             <option value="Petrol">PETROL</option>
@@ -282,11 +282,11 @@ const Vehicles = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Max Entity Capacity</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Student Capacity</label>
                                         <input type="number" required value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Unit Operational Status</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Vehicle Status</label>
                                         <select value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none appearance-none">
                                             <option value="active">ACTIVE</option>
                                             <option value="maintenance">MAINTENANCE</option>
@@ -294,13 +294,13 @@ const Vehicles = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Insurance Expiry Vector</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Insurance Expiry Date</label>
                                         <input type="date" value={formData.insuranceExpiry} onChange={(e) => setFormData({ ...formData, insuranceExpiry: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
-                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Node Custodian (Driver)</label>
+                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assign Driver</label>
                                          <select value={formData.driverId} onChange={(e) => setFormData({...formData, driverId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
-                                             <option value="">SELECT CUSTODIAN</option>
+                                             <option value="">SELECT DRIVER</option>
                                              {drivers.map(driver => (
                                                  <option key={driver._id} value={driver._id}>{driver.name.toUpperCase()}</option>
                                              ))}
@@ -309,23 +309,23 @@ const Vehicles = () => {
                                  </div>
 
                                  <div className="mt-8 pt-6 border-t border-slate-800/60">
-                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic mb-6">Hardware Integration (GPS Protocol)</h4>
+                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic mb-6">GPS Tracking Details</h4>
                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                          <div className="space-y-2">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">GPS Device Identifier (ID)</label>
-                                             <input type="text" placeholder="e.g. BUS-UNIT-01" value={formData.gpsDeviceId} onChange={(e) => setFormData({...formData, gpsDeviceId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none" />
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">GPS Device ID</label>
+                                             <input type="text" placeholder="e.g. GPS-V01" value={formData.gpsDeviceId} onChange={(e) => setFormData({...formData, gpsDeviceId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none" />
                                          </div>
                                          <div className="space-y-2">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Hardware API Key (Optional)</label>
+                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">API Key (if any)</label>
                                              <input type="password" placeholder="••••••••" value={formData.gpsApiKey} onChange={(e) => setFormData({...formData, gpsApiKey: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
                                          </div>
                                      </div>
                                  </div>
 
                                 <div className="flex gap-4 mt-12">
-                                    <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Abort Logic</button>
+                                    <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Cancel</button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none disabled:opacity-50">
-                                        {loading ? 'Synthesizing' : isEditOpen ? 'Update Protocol' : 'Finalize Provision'}
+                                        {loading ? 'Saving...' : isEditOpen ? 'Update Vehicle' : 'Add Vehicle'}
                                     </button>
                                 </div>
                             </form>
@@ -342,7 +342,7 @@ const Vehicles = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl max-h-[90vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col">
                             <div className="p-8 border-b border-slate-800/60 bg-neutral-950/40 flex justify-between items-center">
                                 <div>
-                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Maintenance Ledger</h3>
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Maintenance Record</h3>
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic mt-1">{selectedVehicle.registrationNumber}</p>
                                 </div>
                                 <button onClick={() => setIsMaintenanceOpen(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
@@ -374,7 +374,7 @@ const Vehicles = () => {
                                     </form>
                     
                                     <div className="lg:col-span-2 space-y-6">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><History size={12} /> Execution History</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><History size={12} /> Service History</h4>
                                         <div className="space-y-4">
                                             {selectedVehicle.maintenanceHistory?.length > 0 ? [...selectedVehicle.maintenanceHistory].reverse().map((log, idx) => (
                                                 <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 p-5 rounded-md flex justify-between items-start group">
@@ -389,12 +389,12 @@ const Vehicles = () => {
                                                         <p className="text-[10px] text-slate-500 italic px-1">{log.notes}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[12px] font-black text-slate-200">${log.cost}</p>
-                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mt-1">ALLOCATED</p>
+                                                        <p className="text-[12px] font-black text-slate-200">₹{log.cost}</p>
+                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mt-1">AMOUNT PAID</p>
                                                     </div>
                                                 </div>
                                             )) : (
-                                                <div className="text-center py-20 opacity-20 italic font-black uppercase text-[10px] tracking-widest grayscale">No protocol history detected in local buffers.</div>
+                                                <div className="text-center py-20 opacity-20 italic font-black uppercase text-[10px] tracking-widest grayscale">No service history found.</div>
                                             )}
                                         </div>
                                     </div>

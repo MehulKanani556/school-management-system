@@ -23,7 +23,7 @@ const Notifications = () => {
 
     const getTypeStyles = (type) => {
         switch (type) {
-            case 'Transport': return 'bg-orange-500/10 text-orange-500 border-orange-500/20';
+            case 'Transport': return 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20';
             case 'System': return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
             default: return 'bg-slate-800 text-slate-400 border-slate-700/50';
         }
@@ -33,19 +33,19 @@ const Notifications = () => {
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8 max-w-4xl mx-auto"
+            className="space-y-8 max-w-4xl mx-auto font-outfit"
         >
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
                 <div>
-                    <h1 className="text-4xl font-black text-transporter-primary italic uppercase tracking-tighter leading-none font-outfit">Transit Alerts</h1>
-                    <p className="text-slate-500 font-medium text-lg italic mt-2">Real-time terminal telemetry and logistics interrupts.</p>
+                    <h1 className="text-4xl font-black text-transporter-primary italic uppercase tracking-tighter leading-none">Notifications</h1>
+                    <p className="text-slate-500 font-medium text-lg italic mt-2">Stay updated with the latest transport and system alerts.</p>
                 </div>
 
                 <button
                     onClick={handleMarkAllRead}
-                    className="px-6 py-3 bg-slate-800 hover:bg-transporter-primary text-white rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/50 flex items-center gap-3"
+                    className="px-6 py-3 bg-neutral-900 hover:bg-transporter-primary text-white rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-800/60 flex items-center gap-3 shadow-xl"
                 >
-                    Clear All Alerts <CheckCircle size={14} />
+                    Mark All as Read <CheckCircle size={14} />
                 </button>
             </header>
 
@@ -59,7 +59,7 @@ const Notifications = () => {
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, scale: 0.95 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className={`bg-neutral-900 border ${notification.isRead ? 'border-slate-800/40 opacity-60' : 'border-orange-500/30 border-l-4 border-l-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.05)]'} p-8 rounded-md group hover:bg-neutral-800 transition-all cursor-pointer`}
+                                className={`bg-neutral-900 border ${notification.isRead ? 'border-slate-800/40 opacity-60' : 'border-transporter-primary/30 border-l-4 border-l-transporter-primary shadow-[0_0_30px_rgba(249,115,22,0.05)]'} p-8 rounded-md group hover:bg-neutral-800 transition-all cursor-pointer`}
                                 onClick={() => !notification.isRead && handleMarkRead(notification._id)}
                             >
                                 <div className="flex gap-6">
@@ -70,7 +70,7 @@ const Notifications = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${getTypeStyles(notification.type)}`}>
-                                                {notification.type || 'Logistics Node'}
+                                                {notification.type || 'Transport Alert'}
                                             </span>
                                             <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold italic">
                                                 <Clock size={12} />
@@ -78,12 +78,12 @@ const Notifications = () => {
                                             </div>
                                         </div>
 
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight font-outfit mb-2 leading-none italic">{notification.title}</h3>
+                                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2 leading-none italic">{notification.title}</h3>
                                         <p className="text-slate-400 text-sm leading-relaxed italic line-clamp-2">{notification.message}</p>
 
                                         {notification.link && (
                                             <div className="mt-4 pt-4 border-t border-slate-800/50">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-orange-500 group-hover:underline">Engage Matrix →</span>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary group-hover:underline">View Details →</span>
                                             </div>
                                         )}
                                     </div>
@@ -99,8 +99,8 @@ const Notifications = () => {
                     ) : (
                         <div className="py-40 text-center bg-neutral-900/40 rounded-md border border-slate-800/50 border-dashed">
                             <Inbox size={64} className="text-slate-800 mx-auto mb-8 opacity-20" />
-                            <h3 className="text-xl font-black text-slate-600 uppercase tracking-[0.3em] font-outfit mb-2">Static Silence</h3>
-                            <p className="text-slate-700 text-[10px] font-bold uppercase opacity-40">No terminal interrupts detected in history.</p>
+                            <h3 className="text-xl font-black text-slate-600 uppercase tracking-[0.3em] mb-2">No Notifications</h3>
+                            <p className="text-slate-700 text-[10px] font-bold uppercase opacity-40">You have no new notifications at this time.</p>
                         </div>
                     )}
                 </AnimatePresence>

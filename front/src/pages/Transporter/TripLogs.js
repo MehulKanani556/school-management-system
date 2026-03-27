@@ -107,7 +107,7 @@ const TripLogs = () => {
     }
 
     const handleCancelTrip = (id) => {
-        if (window.confirm('Nullify this transit sequence?')) {
+        if (window.confirm('Cancel this trip? This will stop the current trip schedule.')) {
             dispatch(updateTripStatusSlice({ id, status: 'Cancelled' }));
         }
     }
@@ -135,14 +135,14 @@ const TripLogs = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Transit Logs</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Recording spatial displacements and entity attendance.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Trip Logs</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage school bus trips and student attendance.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
                     <div className="flex bg-neutral-900 p-1 rounded-md border border-slate-800/60 h-[42px]">
-                        <button onClick={() => setFilterType('single')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'single' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Snapshot</button>
-                        <button onClick={() => setFilterType('range')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'range' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Archive</button>
+                        <button onClick={() => setFilterType('single')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'single' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Daily View</button>
+                        <button onClick={() => setFilterType('range')} className={`px-4 py-1.5 text-[9px] font-black uppercase italic tracking-widest rounded-md transition-all ${filterType === 'range' ? 'bg-transporter-primary/10 text-transporter-primary' : 'text-slate-500 hover:text-slate-300'}`}>Date Range</button>
                     </div>
 
                     {filterType === 'single' ? (
@@ -164,7 +164,7 @@ const TripLogs = () => {
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
                         className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px] sm:h-auto"
                     >
-                        <Plus size={14} /> record transit
+                        <Plus size={14} /> create trip
                     </button>
                 </div>
             </div>
@@ -175,7 +175,7 @@ const TripLogs = () => {
                         <div className="px-8 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                             <div className="flex items-center gap-6">
                                 <div className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase italic tracking-widest border ${log.type === 'Pickup' ? 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20' : 'bg-blue-600/10 text-blue-500 border-blue-600/20'}`}>
-                                    {log.type} SEQUENCE
+                                    {log.type.toUpperCase()} TRIP
                                 </div>
                                 <div className="flex flex-col">
                                     <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">{log.routeId?.name}</h3>
@@ -184,7 +184,7 @@ const TripLogs = () => {
                                             <Timer size={8} /> {log.status}
                                         </div>
                                         {log.status === 'Completed' && log.delayReason && (
-                                            <span className="text-[8px] font-black text-rose-400 uppercase italic flex items-center gap-1"><AlertTriangle size={8} /> Internal Delay: {log.delayReason}</span>
+                                            <span className="text-[8px] font-black text-rose-400 uppercase italic flex items-center gap-1"><AlertTriangle size={8} /> Delay Reason: {log.delayReason}</span>
                                         )}
                                     </div>
                                 </div>
@@ -195,14 +195,14 @@ const TripLogs = () => {
                                     <div className="w-8 h-8 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 shrink-0"><Bus size={14} /></div>
                                     <div className="text-right whitespace-nowrap">
                                         <p className="text-[10px] font-black text-slate-300 uppercase italic leading-none">{log.vehicleId?.registrationNumber || 'N/A'}</p>
-                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-0.5">Fleet Unit</p>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-0.5">Vehicle</p>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-md bg-neutral-950 border border-slate-800 flex items-center justify-center text-slate-600 shrink-0"><User size={14} /></div>
                                     <div className="text-right whitespace-nowrap">
                                         <p className="text-[10px] font-black text-slate-300 uppercase italic leading-none">{log.driverId?.name || 'N/A'}</p>
-                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-0.5">Operator</p>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-0.5">Driver</p>
                                     </div>
                                 </div>
                                 <div className="px-4 py-1.5 bg-neutral-950 border border-slate-800 rounded-md text-emerald-500 font-black italic text-[11px] tracking-tighter whitespace-nowrap">
@@ -216,9 +216,9 @@ const TripLogs = () => {
                                                 onClick={() => handleStatusTransition(log._id, log.status)}
                                                 className="px-4 py-2 bg-sky-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-sky-600/10 hover:bg-sky-700 transition-all flex items-center gap-2"
                                             >
-                                                <Play size={10} /> initiate trip
+                                                <Play size={10} /> start trip
                                             </button>
-                                            <button onClick={() => handleCancelTrip(log._id, log.status)} className="p-2 text-rose-500 hover:bg-rose-500/10 border border-slate-800 rounded-md transition-all"><X size={14} /></button>
+                                            <button onClick={() => handleCancelTrip(log._id)} className="p-2 text-rose-500 hover:bg-rose-500/10 border border-slate-800 rounded-md transition-all"><X size={14} /></button>
                                         </>
                                     )}
                                     {log.status === 'In-Progress' && (
@@ -226,7 +226,7 @@ const TripLogs = () => {
                                             onClick={() => handleStatusTransition(log._id, log.status)}
                                             className="px-4 py-2 bg-emerald-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 transition-all flex items-center gap-2"
                                         >
-                                            <CheckCircle2 size={10} /> terminate trip
+                                            <CheckCircle2 size={10} /> end trip
                                         </button>
                                     )}
                                 </div>
@@ -247,7 +247,7 @@ const TripLogs = () => {
                                             <div className="flex items-center gap-1.5 mt-1 opacity-60">
                                                 <Clock size={8} className="text-slate-600" />
                                                 <p className="text-[8px] font-bold uppercase italic truncate text-slate-600">
-                                                    {as.boardingTime ? new Date(as.boardingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Awaiting...'}
+                                                    {as.boardingTime ? new Date(as.boardingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Not Boarded'}
                                                 </p>
                                             </div>
                                         </div>
@@ -260,7 +260,7 @@ const TripLogs = () => {
                 )) : (
                     <div className="py-20 text-center border border-slate-800 border-dashed rounded-md bg-neutral-900/40">
                         <ClipboardList size={40} className="mx-auto text-slate-800 mb-4 opacity-20" />
-                        <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No transit logs archival detected for selected timestamp.</p>
+                        <p className="text-[11px] font-black italic uppercase text-slate-600 tracking-[0.2em] opacity-40">No trip logs found for the selected date.</p>
                     </div>
                 )}
             </div>
@@ -272,7 +272,7 @@ const TripLogs = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-2xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit max-h-[90vh] overflow-y-auto custom-scrollbar">
                             <form onSubmit={handleSubmit} className="space-y-6 p-10">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/60">
-                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Initialize Transit Sequence</h3>
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Create New Trip</h3>
                                     <div className="flex bg-neutral-950 p-1 rounded-md border border-slate-800">
                                         <button
                                             type="button"
@@ -294,28 +294,28 @@ const TripLogs = () => {
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Mobility Matrix (Route)</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Transport Route</label>
                                             <select
                                                 required
                                                 value={formData.routeId}
                                                 onChange={(e) => handleRouteChange(e.target.value)}
                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary/50 transition-all leading-none appearance-none"
                                             >
-                                                <option value="">Select Vector Matrix...</option>
+                                                <option value="">Select Route...</option>
                                                 {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
                                             </select>
                                         </div>
                                         <div className="space-y-2 opacity-60">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Unit / Operator (Auto-Sync)</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Vehicle / Driver (Auto-filled)</label>
                                             <div className="w-full bg-neutral-950/40 border border-slate-800/40 rounded-md py-3 px-4 text-[10px] font-black uppercase italic text-slate-500 truncate h-[42px] flex items-center">
-                                                {formData.routeId ? `${vehicles.find(v => v._id === formData.vehicleId)?.registrationNumber} / ${drivers.find(d => d._id === formData.driverId)?.name}` : 'Awaiting Matrix Selection...'}
+                                                {formData.routeId ? `${vehicles.find(v => v._id === formData.vehicleId)?.registrationNumber} / ${drivers.find(d => d._id === formData.driverId)?.name}` : 'Select a route to auto-fill details...'}
                                             </div>
                                         </div>
                                     </div>
 
                                     {formData.attendance.length > 0 && (
                                         <div className="pt-6 border-t border-slate-800/40">
-                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-6">Entity Attendance Matrix</h4>
+                                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-6">Student Attendance</h4>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
                                                 {formData.attendance.map((as) => {
                                                     const route = routes.find(r => r._id === formData.routeId);
@@ -332,7 +332,7 @@ const TripLogs = () => {
                                                         >
                                                             <div className="overflow-hidden">
                                                                 <p className="text-[10px] font-black uppercase italic tracking-tighter truncate">{name}</p>
-                                                                <p className="text-[8px] font-bold uppercase italic opacity-60 truncate">{stop || 'No Stop'}</p>
+                                                                <p className="text-[8px] font-bold uppercase italic opacity-60 truncate">{stop || 'N/A'}</p>
                                                             </div>
                                                             {as.boarded ? <Check size={12} /> : <X size={12} />}
                                                         </button>
@@ -344,13 +344,13 @@ const TripLogs = () => {
                                 </div>
 
                                 <div className="flex gap-4 pt-6">
-                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">abort sequence</button>
+                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none h-[42px]">Cancel</button>
                                     <button
                                         type="submit"
                                         disabled={!formData.routeId}
-                                        className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0"
+                                        className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0 h-[42px]"
                                     >
-                                        commit sequence log
+                                        Save Trip Log
                                     </button>
                                 </div>
                             </form>
@@ -364,21 +364,21 @@ const TripLogs = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsDelayOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-md rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit">
                             <form onSubmit={commitCompletion} className="p-8">
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-6 pb-4 border-b border-slate-800/60 leading-none">Terminate Sequence</h3>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-6 pb-4 border-b border-slate-800/60 leading-none">Complete Trip</h3>
                                 <div className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Delay Rationale (Optional)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Delay Reason (Optional)</label>
                                         <textarea
                                             value={delayReason}
                                             onChange={(e) => setDelayReason(e.target.value)}
-                                            placeholder="Specify reason for spatial delay if any..."
+                                            placeholder="Enter reason for delay, if any..."
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic min-h-[100px]"
                                         />
                                     </div>
                                 </div>
                                 <div className="flex gap-4 mt-8">
-                                    <button type="button" onClick={() => setIsDelayOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Discard</button>
-                                    <button type="submit" className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 leading-none">Finalize Archive</button>
+                                    <button type="button" onClick={() => setIsDelayOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none h-[42px]">Cancel</button>
+                                    <button type="submit" className="flex-1 px-6 py-4 bg-emerald-600 text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-600/20 leading-none h-[42px]">Complete Trip</button>
                                 </div>
                             </form>
                         </motion.div>

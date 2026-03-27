@@ -101,8 +101,8 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                     >
                         <Popup className="custom-popup">
                             <div className="font-outfit p-1">
-                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest">{stop.isTarget ? 'Your Stop' : 'Route Stop'}</p>
-                                <p className="text-sm font-bold text-slate-900">{stop.name}</p>
+                                <p className="text-[10px] font-black uppercase text-slate-500 tracking-widest leading-none mb-1">{stop.isTarget ? 'Your Stop' : 'Route Stop'}</p>
+                                <p className="text-sm font-bold text-slate-900 leading-none">{stop.name}</p>
                             </div>
                         </Popup>
                     </Marker>
@@ -124,11 +124,11 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                     >
                         <Popup className="custom-popup">
                             <div className="font-outfit p-1">
-                                <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Live Vehicle</p>
+                                <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Live Location</p>
                                 <p className="text-sm font-bold text-slate-900 leading-none">{vehicleLocation.vehicleNumber || 'School Bus'}</p>
                                 <div className="mt-2 flex items-center gap-2 pt-2 border-t border-slate-100">
                                     <Navigation size={12} className="text-emerald-500" />
-                                    <span className="text-[9px] font-black text-slate-500 uppercase">Uplink Stable</span>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase leading-none">Connection Active</span>
                                 </div>
                             </div>
                         </Popup>
@@ -140,7 +140,7 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
             <div className="absolute top-4 right-4 z-[1000] bg-black/60 backdrop-blur-md border border-white/10 p-3 rounded-md shadow-2xl pointer-events-none">
                 <div className="flex items-center gap-3">
                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]"></div>
-                    <span className="text-[9px] font-black text-white uppercase tracking-widest italic">Encrypted Satellite Feed</span>
+                    <span className="text-[9px] font-black text-white uppercase tracking-widest italic leading-none">Live GPS Feed</span>
                 </div>
             </div>
 

@@ -77,7 +77,7 @@ const TransporterLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
-      toast.success(`Transit Alert: ${notif.title}`, {
+      toast.success(`Notification: ${notif.title}`, {
         icon: '🚛',
         style: {
           borderRadius: '1.5rem',
@@ -118,18 +118,18 @@ const TransporterLayout = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="h-screen bg-brand-background text-slate-100 flex font-inter antialiased overflow-hidden">
+    <div className="h-screen bg-brand-background text-slate-100 flex font-outfit antialiased overflow-hidden">
       {/* Sidebar - Terminal Aesthetic with Transporter Theme (Orange) */}
-      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
+      <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full font-outfit`}>
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-transporter-primary to-transporter-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-transporter-primary/20 text-black">TK</div>
-            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Transit <span className="text-transporter-primary">Node</span></span>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-transporter-primary to-transporter-primary/80 flex items-center justify-center font-black text-xl italic shadow-lg shadow-transporter-primary/20 text-black">ST</div>
+            <span className="text-xl font-black tracking-tight uppercase text-white">School <span className="text-transporter-primary">Transport</span></span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Logistics Systems</p>
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Transport Management</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -141,23 +141,23 @@ const TransporterLayout = () => {
                   key={item.to}
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-black shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                 >
-                  <Icon size={18} className={isActive(item.to) ? 'text-black' : 'group-hover:text-transporter-primary transition-colors'} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit">{item.label}</span>
+                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-transporter-primary transition-colors'} />
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em]">{item.label}</span>
                   {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                 </Link>
               );
             }
 
             return (
-              <div key={item.label} className="space-y-1">
+              <div key={item.label} className="space-y-1 font-outfit">
                 <button
                   onClick={() => toggleSubmenu(item.label)}
                   className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
                   <Icon size={18} className={isExpanded ? 'text-transporter-primary' : 'group-hover:text-transporter-primary transition-colors'} />
-                  <span className="text-[11px] font-black uppercase tracking-[0.15em] font-outfit flex-1 text-left">{item.label}</span>
+                  <span className="text-[11px] font-black uppercase tracking-[0.15em] flex-1 text-left">{item.label}</span>
                   <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-transporter-primary' : 'opacity-40'}`} />
                 </button>
 
@@ -181,7 +181,7 @@ const TransporterLayout = () => {
                               className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-transporter-primary bg-transporter-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
                             >
                               <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-transporter-primary' : 'opacity-60 group-hover:opacity-100'}`} />
-                              <span className="font-black text-[10px] uppercase tracking-[0.15em] font-outfit">{child.label}</span>
+                              <span className="font-black text-[10px] uppercase tracking-[0.15em]">{child.label}</span>
                             </Link>
                           );
                         })}
@@ -195,33 +195,31 @@ const TransporterLayout = () => {
         </nav>
 
         <div className="p-6 flex-shrink-0">
-          <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-transporter-primary/10 hover:text-transporter-primary transition-all group font-outfit border border-transparent hover:border-transporter-primary/20 uppercase tracking-widest text-[11px] font-black">
+          <button onClick={handleLogout} className="w-full h-[42px] flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-transporter-primary/10 hover:text-transporter-primary transition-all group font-outfit border border-transparent hover:border-transporter-primary/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Shutdown</span>
+            <span className="italic">Sign Out</span>
           </button>
         </div>
       </aside>
 
-
-
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden font-outfit">
         {/* Header - Stays at top */}
-        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 z-10 w-full transition-all">
+        <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 z-10 w-full transition-all font-outfit">
           <div className="flex items-center gap-4 text-slate-500">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
               <Menu size={20} />
             </button>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Transit Operations</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Operations Dashboard</span>
             <ChevronRight size={14} className="hidden sm:block opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-transporter-primary italic">Transporter Terminal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-transporter-primary italic">Transport Admin</span>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="relative">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-transporter-primary text-black border-transporter-primary shadow-xl shadow-transporter-primary/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-transporter-primary hover:border-transporter-primary/40 shadow-inner'}`}
+                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-transporter-primary text-white border-transporter-primary shadow-xl shadow-transporter-primary/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-transporter-primary hover:border-transporter-primary/40 shadow-inner'}`}
               >
                 <Bell size={18} />
                 <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-transporter-primary rounded-md border-2 border-brand-surface animate-pulse"></span>
@@ -238,7 +236,7 @@ const TransporterLayout = () => {
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[9px] font-black text-transporter-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Institutional Transporter</p>
+                  <p className="text-[9px] font-black text-transporter-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Transport Administrator</p>
                 </div>
                 <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-transporter-primary transition-all p-0.5">
                   <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
@@ -270,7 +268,7 @@ const TransporterLayout = () => {
                       <div className="space-y-1">
                         <button
                           onClick={handleSettings}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic">
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic font-outfit">
                           <User size={18} className="text-transporter-primary" />
                           View Profile
                         </button>
@@ -280,10 +278,10 @@ const TransporterLayout = () => {
                         </div>
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-[10px] font-black uppercase tracking-widest group italic"
+                          className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-rose-500/10 text-rose-500 transition-all text-[10px] font-black uppercase tracking-widest group italic font-outfit"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                          Log Out Matrix
+                          Sign Out
                         </button>
                       </div>
                     </motion.div>

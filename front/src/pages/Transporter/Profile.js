@@ -82,8 +82,8 @@ const Profile = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex justify-between items-end px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Core Identity</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Managing administrative credentials and sector-wide protocols.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">User Profile</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your account details and notification preferences.</p>
                 </div>
             </div>
 
@@ -109,12 +109,12 @@ const Profile = () => {
                             </div>
 
                             <h2 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-2">{user.firstName} {user.lastName}</h2>
-                            <p className="text-[10px] font-black text-transporter-primary uppercase tracking-[0.2em] italic mb-6">{user.role?.replace('_', ' ')}</p>
+                            <p className="text-[10px] font-black text-transporter-primary uppercase tracking-[0.2em] italic mb-6"> {user.role?.replace('_', ' ')} </p>
 
                             <div className="grid grid-cols-2 gap-4 w-full pt-6 border-t border-slate-800/40">
                                 <div className="bg-neutral-950/60 p-3 rounded-md border border-slate-800/40">
                                     <p className="text-[9px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">ID</p>
-                                    <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none truncate">{user._id.slice(-6)}</p>
+                                    <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none truncate">{user._id.slice(-6).toUpperCase()}</p>
                                 </div>
                                 <div className="bg-neutral-950/60 p-3 rounded-md border border-slate-800/40">
                                     <p className="text-[9px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">Type</p>
@@ -137,60 +137,60 @@ const Profile = () => {
 
                     <button
                         onClick={handleLogout}
-                        className="w-full py-4 border border-transporter-primary/30 text-transporter-primary bg-transporter-primary/5 rounded-md text-[10px] font-black uppercase tracking-widest italic hover:bg-transporter-primary hover:text-white transition-all shadow-xl shadow-transporter-primary/10 flex items-center justify-center gap-3"
+                        className="w-full py-4 border border-transporter-primary/30 text-transporter-primary bg-transporter-primary/5 rounded-md text-[10px] font-black uppercase tracking-widest italic hover:bg-transporter-primary hover:text-white transition-all shadow-xl shadow-transporter-primary/10 flex items-center justify-center gap-3 h-[42px]"
                     >
-                        <LogOut size={14} /> decommission identity link
+                        <LogOut size={14} /> Logout
                     </button>
                 </div>
 
                 {/* Settings Panels */}
-                <form onSubmit={handleSave} className="lg:col-span-2 space-y-8">
+                <form onSubmit={handleSave} className="lg:col-span-2 space-y-8 font-outfit">
                     {/* General Settings */}
                     <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden">
                         <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center gap-3">
                             <Settings size={18} className="text-transporter-primary" />
-                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">Protocol Configuration</h3>
+                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">General Settings</h3>
                         </div>
                         <div className="p-8 space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">First Manifest (Name)</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">First Name</label>
                                     <input
                                         type="text"
                                         value={profileData.firstName}
                                         onChange={(e) => setProfileData({ ...profileData, firstName: e.target.value })}
-                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase"
+                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase h-[42px]"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Last Manifest (Name)</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Last Name</label>
                                     <input
                                         type="text"
                                         value={profileData.lastName}
                                         onChange={(e) => setProfileData({ ...profileData, lastName: e.target.value })}
-                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase"
+                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase h-[42px]"
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Comms Signal (Email)</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Email Address</label>
                                     <input
                                         type="email"
                                         value={profileData.email}
                                         onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
-                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase"
+                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none uppercase h-[42px]"
                                     />
                                 </div>
                             </div>
 
                             <div className="space-y-6">
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic opacity-80 flex items-center gap-2 mb-4">
-                                    <Bell size={10} /> Sync Logic (Notifications)
+                                    <Bell size={10} /> Notification Settings
                                 </h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {Object.entries(notifications).map(([key, value]) => (
                                         <div key={key} className="flex items-center justify-between p-4 bg-neutral-950/60 border border-slate-800/40 rounded-md">
                                             <span className="text-[10px] font-black uppercase text-slate-400 italic tracking-tighter">
-                                                {key.replace(/([A-Z])/g, ' $1').trim()} SEQUENCE UPDATE
+                                                {key.replace(/([A-Z])/g, ' $1').trim()} Notifications
                                             </span>
                                             <button
                                                 type="button"
@@ -208,9 +208,9 @@ const Profile = () => {
                                 <button
                                     type="submit"
                                     disabled={loading}
-                                    className="px-8 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none disabled:opacity-50"
+                                    className="px-8 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none disabled:opacity-50 h-[42px]"
                                 >
-                                    <Save size={14} /> {loading ? 'Committing...' : 'commit protocols'}
+                                    <Save size={14} /> {loading ? 'Saving...' : 'Save Settings'}
                                 </button>
                             </div>
                         </div>
@@ -220,7 +220,7 @@ const Profile = () => {
                     <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden">
                         <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center gap-3">
                             <Shield size={18} className="text-emerald-500" />
-                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">Encryption & Firewall Logic</h3>
+                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">Security & Access</h3>
                         </div>
                         <div className="p-8">
                             <div className="space-y-6">
@@ -228,21 +228,21 @@ const Profile = () => {
                                     <div className="flex items-center gap-4 text-emerald-500/80">
                                         <Lock size={20} />
                                         <div>
-                                            <p className="text-[11px] font-black uppercase italic tracking-tighter text-slate-200">Reset Access Cipher</p>
-                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Authentication Override</p>
+                                            <p className="text-[11px] font-black uppercase italic tracking-tighter text-slate-200">Change Password</p>
+                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Update security credentials</p>
                                         </div>
                                     </div>
-                                    <button type="button" className="px-4 py-2 border border-slate-800 text-[9px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md">Initialize Reset</button>
+                                    <button type="button" className="px-4 py-2 border border-slate-800 text-[9px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md h-[42px]">Reset</button>
                                 </div>
                                 <div className="flex items-center justify-between p-5 bg-neutral-950/60 border border-slate-800/40 rounded-md group hover:border-emerald-600/20 transition-all">
                                     <div className="flex items-center gap-4 text-emerald-500/80">
                                         <Layers size={20} />
                                         <div>
-                                            <p className="text-[11px] font-black uppercase italic tracking-tighter text-slate-200">Biometric Sync (2FA)</p>
-                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Status: Mandatory Uplink</p>
+                                            <p className="text-[11px] font-black uppercase italic tracking-tighter text-slate-200">Two-Factor Authentication</p>
+                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Status: Active</p>
                                         </div>
                                     </div>
-                                    <span className="px-4 py-2 bg-emerald-600/10 text-emerald-500 border border-emerald-600/20 rounded-md text-[9px] font-black italic tracking-widest">ENABLED</span>
+                                    <span className="px-4 py-2 bg-emerald-600/10 text-emerald-500 border border-emerald-600/20 rounded-md text-[9px] font-black italic tracking-widest h-[42px] flex items-center">ENABLED</span>
                                 </div>
                             </div>
                         </div>

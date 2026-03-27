@@ -49,7 +49,7 @@ const StudentAssignment = () => {
 
     const handleBulkAssign = (e) => {
         e.preventDefault();
-        if (selectedStudents.length === 0) return toast.error('No citizens selected for bulk link.');
+        if (selectedStudents.length === 0) return toast.error('No students selected for bulk assignment.');
         dispatch(bulkAssignStudentSlice({
             routeId: bulkData.routeId,
             studentIds: selectedStudents,
@@ -72,7 +72,7 @@ const StudentAssignment = () => {
     );
 
     const handleUnassign = (routeId, studentId) => {
-        if (window.confirm('Sever citizen-matrix link? This will remove the student from the route.')) {
+        if (window.confirm('Remove student from route? This will remove the student from the route assignment.')) {
             dispatch(unassignStudentSlice({ routeId, studentId }));
         }
     }
@@ -83,7 +83,7 @@ const StudentAssignment = () => {
         );
 
         if (unassignedStudents.length === 0) {
-            return toast.success('All nodes already synchronized with matrix sectors.');
+            return toast.success('All students already assigned to routes.');
         }
 
         let suggestionsCount = 0;
@@ -94,7 +94,6 @@ const StudentAssignment = () => {
 
             if (match) {
                 const stop = match.stops.find(s => student.address?.toLowerCase().includes(s.name.toLowerCase()));
-                // For now, we'll just open the modal with this student and route pre-filled
                 setFormData({
                     studentId: student._id,
                     routeId: match._id,
@@ -104,13 +103,13 @@ const StudentAssignment = () => {
                 });
                 setIsAddOpen(true);
                 suggestionsCount++;
-                toast.success(`Logic match found: ${student.firstName} -> ${match.name}`);
-                return; // just find one for now to keep it simple or we could bulk suggest
+                toast.success(`Route match found: ${student.firstName} -> ${match.name}`);
+                return;
             }
         });
 
         if (suggestionsCount === 0) {
-            toast.error('No address matches detected in the grid matrix.');
+            toast.error('No matching routes found for student addresses.');
         }
     }
 
@@ -128,10 +127,10 @@ const StudentAssignment = () => {
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 pb-10">
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2">
+            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2 font-outfit">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Node Allocation</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Linking citizen nodes to institutional mobility matrices.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Student Assignment</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Assign students to routes and manage transport inquiries.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
@@ -141,13 +140,13 @@ const StudentAssignment = () => {
                             onClick={() => setActiveTab('manifest')}
                             className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 ${activeTab === 'manifest' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
-                            <Users size={12} /> Manifest
+                            <Users size={12} /> Assigned Students
                         </button>
                         <button 
                             onClick={() => setActiveTab('inquiries')}
                             className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
-                            <Inbox size={12} /> Inquiries
+                            <Inbox size={12} /> Requests
                             {applicants.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] flex items-center justify-center rounded-full border border-black animate-bounce">{applicants.length}</span>}
                         </button>
                     </div>
@@ -156,7 +155,7 @@ const StudentAssignment = () => {
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Identify Citizen or Matrix..."
+                            placeholder="Search Student or Route..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all w-full italic h-[42px]"
@@ -167,19 +166,19 @@ const StudentAssignment = () => {
                             onClick={() => setIsAddOpen(true)}
                             className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none font-outfit whitespace-nowrap h-[42px]"
                         >
-                            <Plus size={14} /> assign citizen
+                            <Plus size={14} /> assign student
                         </button>
                         <button
                             onClick={() => setIsBulkOpen(true)}
                             className="px-6 py-4 bg-neutral-900 border border-slate-800 text-slate-300 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-slate-800 transition-all flex items-center gap-2 leading-none font-outfit h-[42px]"
                         >
-                            <Users size={14} /> bulk link
+                            <Users size={14} /> bulk assign
                         </button>
                         <button
                             onClick={runLogicEngine}
                             className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 leading-none font-outfit h-[42px] group"
                         >
-                            <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> logic engine
+                            <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> smart match
                         </button>
                         <label className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
                             <Plus size={14} /> Import CSV
@@ -196,10 +195,10 @@ const StudentAssignment = () => {
                                             const lines = text.split('\n');
                                             const studentIds = lines.slice(1).map(l => l.split(',')[0].trim()).filter(id => id);
                                             if (studentIds.length > 0) {
-                                                setBulkData({ ...bulkData }); // ensure we have some data
+                                                setBulkData({ ...bulkData });
                                                 setSelectedStudents(studentIds);
                                                 setIsBulkOpen(true);
-                                                toast.success(`${studentIds.length} nodes extracted from temporal file.`);
+                                                toast.success(`${studentIds.length} students extracted from CSV file.`);
                                             }
                                         };
                                         reader.readAsText(file);
@@ -212,16 +211,16 @@ const StudentAssignment = () => {
             </div>
 
             {activeTab === 'manifest' ? (
-                <div className="grid grid-cols-1 gap-6">
+                <div className="grid grid-cols-1 gap-6 font-outfit">
                     {filteredRoutes.map((route) => (
-                        <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-transporter-primary/20 transition-all font-outfit">
+                        <div key={route._id} className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group hover:border-transporter-primary/20 transition-all">
                             <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center justify-between">
                                 <div className="flex items-center gap-4">
                                     <Navigation size={18} className="text-transporter-primary" />
-                                    <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Matrix</h3>
+                                    <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Route</h3>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Citizens Linked</span>
-                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Unit: {route.vehicleId?.registrationNumber || 'NA'}</span>
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Students Assigned</span>
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Vehicle: {route.vehicleId?.registrationNumber || 'NA'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -241,7 +240,7 @@ const StudentAssignment = () => {
                                                 </Link>
                                                 <div className="flex items-center gap-2 mt-2">
                                                     <MapPin size={10} className="text-transporter-primary opacity-60 flex-shrink-0" />
-                                                    <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop} point</p>
+                                                    <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop}</p>
                                                     {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-transporter-primary/20 px-2 py-0.5 rounded text-transporter-primary">SEAT {as.seatNumber}</span>}
                                                 </div>
                                             </div>
@@ -254,7 +253,7 @@ const StudentAssignment = () => {
                                         </div>
                                     ))}
                                     {(!route.assignedStudents || route.assignedStudents.length === 0) && (
-                                        <div className="lg:col-span-3 py-10 text-center opacity-40 italic font-black uppercase text-[10px] tracking-widest text-slate-600">No citizens linked to this matrix sector.</div>
+                                        <div className="lg:col-span-3 py-10 text-center opacity-40 italic font-black uppercase text-[10px] tracking-widest text-slate-600">No students assigned to this route.</div>
                                     )}
                                 </div>
                             </div>
@@ -262,7 +261,7 @@ const StudentAssignment = () => {
                     ))}
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 font-outfit">
                     <AnimatePresence mode="popLayout">
                         {applicants.map((a) => (
                             <motion.div 
@@ -271,7 +270,7 @@ const StudentAssignment = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
                                 key={a._id} 
-                                className="bg-neutral-900 border border-slate-800/60 rounded-md p-6 font-outfit relative group shadow-2xl overflow-hidden"
+                                className="bg-neutral-900 border border-slate-800/60 rounded-md p-6 relative group shadow-2xl overflow-hidden"
                             >
                                 <div className="absolute top-0 left-0 w-1 h-full bg-transporter-primary"></div>
                                 <div className="flex items-start justify-between mb-6">
@@ -287,13 +286,13 @@ const StudentAssignment = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <p className="text-[9px] font-black text-transporter-primary uppercase italic tracking-tighter bg-transporter-primary/10 px-3 py-1 rounded border border-transporter-primary/20">Awaiting Lockdown</p>
+                                        <p className="text-[9px] font-black text-transporter-primary uppercase italic tracking-tighter bg-transporter-primary/10 px-3 py-1 rounded border border-transporter-primary/20">Pending Approval</p>
                                         <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">{new Date(a.updatedAt).toLocaleDateString()}</p>
                                     </div>
                                 </div>
 
                                 <div className="p-4 bg-neutral-950/40 border border-slate-800/40 rounded italic mb-6">
-                                     <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-tight">Citizen requests institutional mobilization. Priority ingress Required.</p>
+                                     <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-tight">Student has requested transport services. Review for approval.</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
@@ -304,17 +303,17 @@ const StudentAssignment = () => {
                                         }}
                                         className="py-3 bg-emerald-600/10 border border-emerald-600/30 text-emerald-500 text-[10px] font-black uppercase italic tracking-widest rounded hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
-                                        <CheckCircle size={14} /> Commit to Matrix
+                                        <CheckCircle size={14} /> Approve & Assign
                                     </button>
                                     <button 
                                         onClick={() => {
-                                            if(window.confirm('Strike inquiry from registry? This will decline the request.')) {
+                                            if(window.confirm('Reject this inquiry? This will decline the request.')) {
                                                 dispatch(rejectApplicantSlice(a._id));
                                             }
                                         }}
                                         className="py-3 bg-rose-600/10 border border-rose-600/30 text-rose-500 text-[10px] font-black uppercase italic tracking-widest rounded hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
-                                        <XCircle size={14} /> Expel Inquiry
+                                        <XCircle size={14} /> Reject Request
                                     </button>
                                 </div>
                             </motion.div>
@@ -323,7 +322,7 @@ const StudentAssignment = () => {
                     {applicants.length === 0 && (
                         <div className="col-span-full py-20 bg-neutral-900 border border-slate-800 border-dashed rounded-md text-center opacity-40">
                              <Inbox size={48} className="mx-auto mb-4 text-slate-500 opacity-20" />
-                             <p className="text-[11px] font-black italic uppercase tracking-[0.3em] text-slate-400">Registry Cleared. No pending inquiries detected.</p>
+                             <p className="text-[11px] font-black italic uppercase tracking-[0.3em] text-slate-400">No pending requests found.</p>
                         </div>
                     )}
                 </div>
@@ -335,16 +334,16 @@ const StudentAssignment = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAddOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-lg rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit">
                             <form onSubmit={handleAssign} className="space-y-6 p-10">
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">Citizen Linkage Protocol</h3>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">Assign Student to Route</h3>
 
                                 <div className="space-y-5">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Identity Node (Citizen)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Select Student</label>
                                         <div className="relative group/search">
                                             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within/search:text-transporter-primary transition-colors" size={14} />
                                             <input
                                                 type="text"
-                                                placeholder="SCAN CITIZEN HASH (NAME OR ADMISSION)..."
+                                                placeholder="Search Student..."
                                                 value={studentSearch}
                                                 onChange={(e) => setStudentSearch(e.target.value)}
                                                 className="w-full bg-neutral-950/50 border border-slate-800 h-10 pl-11 pr-6 rounded-md text-[9px] font-black uppercase tracking-widest text-white outline-none focus:border-transporter-primary/50 placeholder:text-slate-800 italic transition-all mb-2"
@@ -356,12 +355,12 @@ const StudentAssignment = () => {
                                             onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary/50 appearance-none h-12"
                                         >
-                                            <option value="">Select Citizen Hash...</option>
+                                            <option value="">Select Student...</option>
                                             {filteredStudents.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.admissionNumber || 'UNREGISTERED'})</option>)}
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Mobility Matrix (Route)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Transport Route</label>
                                         <select
                                             required
                                             value={formData.routeId}
@@ -370,7 +369,7 @@ const StudentAssignment = () => {
                                             }}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary/50 appearance-none"
                                         >
-                                            <option value="">Select Sector Matrix...</option>
+                                            <option value="">Select Route...</option>
                                             {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
                                         </select>
                                     </div>
@@ -378,36 +377,36 @@ const StudentAssignment = () => {
                                     {formData.routeId && (
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Point</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Stop</label>
                                                 <select
                                                     required
                                                     value={formData.pickupStop}
                                                     onChange={(e) => setFormData({ ...formData, pickupStop: e.target.value })}
                                                     className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                 >
-                                                    <option value="">Select Point...</option>
+                                                    <option value="">Select Stop...</option>
                                                     {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Dropoff Point</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Drop Stop</label>
                                                 <select
                                                     required
                                                     value={formData.dropoffStop}
                                                     onChange={(e) => setFormData({ ...formData, dropoffStop: e.target.value })}
                                                     className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                 >
-                                                    <option value="">Select Point...</option>
+                                                    <option value="">Select Stop...</option>
                                                     {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-2 col-span-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-transporter-primary italic ml-1">Assigned Transit Seat #</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-transporter-primary italic ml-1">Seat Number</label>
                                                 <input
                                                     type="number"
                                                     value={formData.seatNumber}
                                                     onChange={(e) => setFormData({ ...formData, seatNumber: e.target.value })}
-                                                    placeholder="Enter Seat ID (Optional)"
+                                                    placeholder="Enter Seat Number (Optional)"
                                                     className="w-full bg-neutral-950 border border-transporter-primary/20 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary"
                                                 />
                                             </div>
@@ -416,9 +415,9 @@ const StudentAssignment = () => {
                                 </div>
 
                                 <div className="flex gap-4 pt-4">
-                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
-                                    <button type="submit" className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all leading-none disabled:opacity-50">
-                                        {loading ? 'Synthesizing' : 'confirm link'}
+                                    <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]">Cancel</button>
+                                    <button type="submit" className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all leading-none disabled:opacity-50 h-[42px]">
+                                        {loading ? 'Processing...' : 'Assign Student'}
                                     </button>
                                 </div>
                             </form>
@@ -431,21 +430,21 @@ const StudentAssignment = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsBulkOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit max-h-[90vh] flex flex-col">
                             <div className="p-10 border-b border-slate-800/60 bg-neutral-950/40">
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Mass Node Re-Allocation</h3>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Bulk Student Assignment</h3>
                             </div>
 
                             <div className="overflow-y-auto p-10 flex-1 custom-scrollbar">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                                     <div className="space-y-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Target Mobility Matrix</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Select Route</label>
                                             <select
                                                 required
                                                 value={bulkData.routeId}
                                                 onChange={(e) => setBulkData({ ...bulkData, routeId: e.target.value, pickupStop: '', dropoffStop: '' })}
                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                             >
-                                                <option value="">Select Sector Matrix...</option>
+                                                <option value="">Select Route...</option>
                                                 {routes.map(r => <option key={r._id} value={r._id}>{r.name}</option>)}
                                             </select>
                                         </div>
@@ -453,26 +452,26 @@ const StudentAssignment = () => {
                                         {bulkData.routeId && (
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Point</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Stop</label>
                                                     <select
                                                         required
                                                         value={bulkData.pickupStop}
                                                         onChange={(e) => setBulkData({ ...bulkData, pickupStop: e.target.value })}
                                                         className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                     >
-                                                        <option value="">Select Point...</option>
+                                                        <option value="">Select Stop...</option>
                                                         {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                     </select>
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Dropoff Point</label>
+                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Drop Stop</label>
                                                     <select
                                                         required
                                                         value={bulkData.dropoffStop}
                                                         onChange={(e) => setBulkData({ ...bulkData, dropoffStop: e.target.value })}
                                                         className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                     >
-                                                        <option value="">Select Point...</option>
+                                                        <option value="">Select Stop...</option>
                                                         {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
                                                     </select>
                                                 </div>
@@ -480,7 +479,7 @@ const StudentAssignment = () => {
                                         )}
 
                                         <div className="pt-6 border-t border-slate-800/40">
-                                            <p className="text-[9px] font-black text-slate-600 uppercase italic mb-4">Selected Citizens: {selectedStudents.length}</p>
+                                            <p className="text-[9px] font-black text-slate-600 uppercase italic mb-4">Selected Students: {selectedStudents.length}</p>
                                             <div className="flex flex-wrap gap-2">
                                                 {selectedStudents.map(id => {
                                                     const s = studentList.find(std => std._id === id);
@@ -495,7 +494,7 @@ const StudentAssignment = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Citizen Roster (Select Multiple)</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Select Students</label>
                                         <div className="bg-neutral-950 border border-slate-800 rounded-md divide-y divide-slate-800/40 max-h-[300px] overflow-y-auto custom-scrollbar">
                                             {studentList.map(s => (
                                                 <div key={s._id} onClick={() => toggleStudentSelection(s._id)} className={`p-3 flex items-center justify-between cursor-pointer transition-all hover:bg-neutral-900 ${selectedStudents.includes(s._id) ? 'bg-transporter-primary/10' : ''}`}>
@@ -509,13 +508,13 @@ const StudentAssignment = () => {
                             </div>
 
                             <div className="p-10 border-t border-slate-800/60 bg-neutral-950/40 flex gap-4">
-                                <button type="button" onClick={() => setIsBulkOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
+                                <button type="button" onClick={() => setIsBulkOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]">Cancel</button>
                                 <button
                                     onClick={handleBulkAssign}
                                     disabled={loading || !bulkData.routeId || !bulkData.pickupStop || selectedStudents.length === 0}
-                                    className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/90 transition-all shadow-xl shadow-transporter-primary/20 leading-none disabled:opacity-50"
+                                    className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/90 transition-all shadow-xl shadow-transporter-primary/20 leading-none disabled:opacity-50 h-[42px]"
                                 >
-                                    {loading ? 'Synthesizing' : 'Finalize Mass Re-allocation'}
+                                    {loading ? 'Processing...' : 'Assign Students'}
                                 </button>
                             </div>
                         </motion.div>
