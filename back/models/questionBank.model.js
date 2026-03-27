@@ -12,7 +12,8 @@ const questionBankSchema = new mongoose.Schema({
     correctAnswer: { type: String },
     marks: { type: Number, default: 1 },
     difficulty: { type: String, enum: ['Easy', 'Medium', 'Hard'], default: 'Medium' },
-    type: { type: String, enum: ['MCQ', 'ShortAnswer', 'LongAnswer', 'TrueFalse'], default: 'ShortAnswer' }
+    type: { type: String, enum: ['MCQ', 'ShortAnswer', 'LongAnswer', 'TrueFalse'], default: 'ShortAnswer' },
+    fileUrl: { type: String }
 }, { timestamps: true });
 
 module.exports = mongoose.model('QuestionBank', questionBankSchema);

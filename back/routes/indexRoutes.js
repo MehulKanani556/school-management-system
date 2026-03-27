@@ -295,7 +295,7 @@ router.get('/teacher/resources', ...teacher, tc.getResources);
 router.delete('/teacher/resources/:id', ...teacher, tc.deleteResource);
 
 // Question Bank
-router.post('/teacher/questions', ...teacher, tc.addQuestion);
+router.post('/teacher/questions', ...teacher, upload.single('file'), tc.addQuestion);
 router.get('/teacher/questions', ...teacher, tc.getQuestions);
 router.post('/teacher/generate-exam', ...teacher, tc.generateExam);
 

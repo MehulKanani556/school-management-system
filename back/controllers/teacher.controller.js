@@ -1361,7 +1361,21 @@ module.exports = {
     uploadResource: exports.uploadResource,
     getResources: exports.getResources,
     deleteResource: exports.deleteResource,
-    addQuestion: exports.addQuestion,
+    addQuestion: async (req, res) => {
+        try {
+            const teacher = await getTeacher(req.user._id);
+            const question = new QuestionBank({
+                ...req.body,
+                teacherId: teacher._id,
+                schoolId: teacher.schoolId._id
+            });
+            if (req.file) {
+                question.fileUrl = req.file.location || req.file.path;
+            }
+            await question.save();
+            res.status(201).json({ message: 'Evaluation node recorded successfully', question });
+        } catch (err) { res.status(500).json({ message: err.message }); }
+    },
     getQuestions: exports.getQuestions,
     generateExam: exports.generateExam,
     getMyQuizzes: exports.getMyQuizzes,
