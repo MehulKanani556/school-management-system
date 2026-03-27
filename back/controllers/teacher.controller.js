@@ -102,16 +102,28 @@ exports.getTeacherDashboard = async (req, res) => {
 
         const myClass = assignedClasses.find(c => c.classTeacher?.toString() === teacherProfile._id.toString());
 
+        // Fetch actual alerts (upcoming assignments within 3 days)
+        const alerts = await Assignment.find({
+            createdBy: req.user._id,
+            dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
+        }).sort({ dueDate: 1 }).limit(3);
+
         res.json({
             profile: teacherProfile,
-            assignedClasses: classesGrid,
+            classesGrid: classesGrid,
             stats: {
-                studentsCount,
-                attendancePercentage,
-                assignmentCount,
-                deadlinesCount
+                classes: assignedClasses.length,
+                students: studentsCount,
+                attendance: attendancePercentage,
+                assignments: assignmentCount,
+                upcomingDeadlines: deadlinesCount
             },
             recentAssignments,
+            alerts: alerts.map(a => ({
+                id: a._id,
+                title: a.title,
+                due: a.dueDate
+            })),
             myClass: myClass ? {
                 id: myClass._id,
                 section: myClass.sectionLabel,

@@ -24,12 +24,11 @@ const TeacherDashboard = () => {
     }
 
     const stats = dashboard?.stats || { classes: 0, students: 0, attendance: 0, assignments: 0 };
-
     const quickStats = [
-        { label: 'Classes', value: stats.classes.toString().padStart(2, '0'), icon: BookOpen, color: 'text-brand-primary' },
-        { label: 'Students', value: stats.students.toString(), icon: Users, color: 'text-brand-secondary' },
-        { label: 'Attendance', value: `${stats.attendance}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
-        { label: 'Submissions', value: stats.assignments.toString(), icon: Activity, color: 'text-brand-accent' },
+        { label: 'Classes', value: stats.classes?.toString().padStart(2, '0') || '00', icon: BookOpen, color: 'text-brand-primary' },
+        { label: 'Students', value: stats.students?.toString() || '0', icon: Users, color: 'text-brand-secondary' },
+        { label: 'Attendance', value: `${stats.attendance || 0}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
+        { label: 'Submissions', value: stats.assignments?.toString() || '0', icon: Activity, color: 'text-brand-accent' },
         { label: 'Deadlines', value: stats.upcomingDeadlines?.toString().padStart(2, '0') || '00', icon: Clock, color: 'text-luxury-rose' },
     ];
 
@@ -39,7 +38,7 @@ const TeacherDashboard = () => {
                 <div>
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Operation Center, {user?.firstName}</h1>
                     <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-xl">
-                        Unified institutional terminal. Monitoring academic nodes across {stats.classes.toString().padStart(2, '0')} sectors.
+                        Unified institutional terminal. Monitoring academic nodes across {stats.classes?.toString().padStart(2, '0') || '00'} sectors.
                     </p>
                 </div>
                 <div className="flex gap-4">
