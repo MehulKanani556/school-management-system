@@ -254,6 +254,20 @@ export const fetchPerformanceAnalytics = createAsyncThunk('teacher/fetchPerforma
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
+export const fetchNotices = createAsyncThunk('teacher/fetchNotices', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/notices');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchContacts = createAsyncThunk('teacher/fetchContacts', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/contacts');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
 export const fetchDetailedAttendance = createAsyncThunk('teacher/fetchDetailedAttendance', async (studentId, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.get(`/teacher/student-attendance/${studentId}`);
@@ -384,6 +398,8 @@ const teacherSlice = createSlice({
         unifiedCalendar: null, // For unified view
         lessonPlans: [],
         behaviorLogs: [],
+        notices: [],
+        contacts: [],
         meetings: [],
         profile: null,
         loading: false,
@@ -394,7 +410,15 @@ const teacherSlice = createSlice({
         clearTeacherError: (state) => { state.error = null; },
         clearTeacherMessage: (state) => { state.message = null; },
         setTeacherError: (state, action) => { state.error = action.payload; },
-        setTeacherMessage: (state, action) => { state.message = action.payload; }
+        setTeacherMessage: (state, action) => { state.message = action.payload; },
+        updateTeacherMessages: (state, action) => { 
+            const msg = action.payload;
+            if (msg.type === 'Notice') {
+                state.notices = [msg, ...state.notices];
+            } else {
+                state.messages = [msg, ...state.messages];
+            }
+        }
     },
     extraReducers: (builder) => {
         builder
@@ -490,7 +514,15 @@ const teacherSlice = createSlice({
                 state.loading = false;
                 state.message = action.payload?.message || "Password updated";
             })
-            .addCase(sendMessage.fulfilled, (state, action) => { state.message = action.payload?.message || "Communication broadcasted successfully"; })
+            .addCase(sendMessage.fulfilled, (state, action) => { 
+                state.message = action.payload?.message || "Communication broadcasted successfully"; 
+                const msg = action.payload?.data || action.payload;
+                if (msg.type === 'Notice') {
+                    state.notices = [msg, ...state.notices];
+                } else {
+                    state.messages = [msg, ...state.messages];
+                }
+            })
             .addCase(fetchFeeStatus.fulfilled, (state, action) => {
                 state.feeStatus = action.payload;
             })
@@ -509,6 +541,14 @@ const teacherSlice = createSlice({
             })
             .addCase(fetchMyMessages.fulfilled, (state, action) => {
                 state.messages = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchNotices.fulfilled, (state, action) => {
+                state.notices = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchContacts.fulfilled, (state, action) => {
+                state.contacts = action.payload;
                 state.loading = false;
             })
             .addCase(fetchTeacherReviews.fulfilled, (state, action) => {
@@ -578,5 +618,5 @@ const teacherSlice = createSlice({
     }
 });
 
-export const { clearTeacherError, clearTeacherMessage, setTeacherError, setTeacherMessage } = teacherSlice.actions;
+export const { clearTeacherError, clearTeacherMessage, setTeacherError, setTeacherMessage, updateTeacherMessages } = teacherSlice.actions;
 export default teacherSlice.reducer;

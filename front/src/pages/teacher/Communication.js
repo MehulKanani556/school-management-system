@@ -24,7 +24,15 @@ import {
     XCircle
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { retractAnnouncement, fetchAssignedClasses } from '../../redux/slice/teacher.slice';
+import { 
+    retractAnnouncement, 
+    fetchAssignedClasses, 
+    fetchMyMessages, 
+    fetchNotices, 
+    fetchContacts, 
+    sendMessage,
+    updateTeacherMessages
+} from '../../redux/slice/teacher.slice';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
@@ -38,9 +46,6 @@ const Communication = () => {
     const location = useLocation();
     const [activeTab, setActiveTab] = useState('feed'); // 'feed', 'chat', 'notices'
     const [chatSubTab, setChatSubTab] = useState('Teachers'); // 'Teachers', 'Parents'
-    const [sentMessages, setSentMessages] = useState([]);
-    const [notices, setNotices] = useState([]);
-    const [contacts, setContacts] = useState([]);
     const [unreadCounts, setUnreadCounts] = useState({}); // { partnerId: count }
     const [fetching, setFetching] = useState(false);
     const [selectedChat, setSelectedChat] = useState(null);
@@ -53,7 +58,13 @@ const Communication = () => {
 
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
-    const { classes: assignedClasses, loading: teacherLoading } = useSelector(state => state.teacher);
+    const { 
+        classes: assignedClasses, 
+        messages: sentMessages,
+        notices,
+        contacts,
+        loading: teacherLoading 
+    } = useSelector(state => state.teacher);
     const [noticeInput, setNoticeInput] = useState({ subject: '', content: '', classSection: '' });
 
     // Paginated Chat History
@@ -69,6 +80,10 @@ const Communication = () => {
     useEffect(() => {
         selectedChatRef.current = selectedChat;
     }, [selectedChat]);
+
+    useEffect(() => {
+        dispatch(fetchAssignedClasses());
+    }, [dispatch]);
 
     useEffect(() => {
         if (tabParam && ['feed', 'chat', 'notices'].includes(tabParam)) {
@@ -89,39 +104,31 @@ const Communication = () => {
         if (!socket || typeof socket.on !== 'function') return;
 
         const handleNewMessage = (data) => {
-            if (data.type === 'Announcement') {
-                setSentMessages(prev => [data, ...prev]);
-                toast.success(`Broadcasting Alert: ${data.subject}`);
+            if (data.type === 'Announcement' || data.type === 'Notice') {
+                dispatch(updateTeacherMessages(data));
+                toast.success(`${data.type}: ${data.subject}`);
             } else if (data.type === 'DirectMessage') {
                 const senderId = (data.sender?._id || data.sender)?.toString();
                 const recipientId = (data.recipient?._id || data.recipient)?.toString();
                 const meId = currentUser?._id?.toString();
                 const partnerId = senderId === meId ? recipientId : senderId;
 
-                // If active chat, append using ref
+                // If active chat, append to local messages
                 if (partnerId === selectedChatRef.current) {
                     setChatMessages(prev => [...prev, data]);
                     setTimeout(() => {
                         if (chatContainerRef.current) chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
                     }, 100);
                 } else {
-                    // Update unread count if not selected
                     setUnreadCounts(prev => ({
                         ...prev,
                         [partnerId]: (prev[partnerId] || 0) + 1
                     }));
                 }
 
-                // Update contact preview
-                setSentMessages(prev => [data, ...prev.filter(m => {
-                    const mPartnerId = m.sender?._id === currentUser?._id ? m.recipient?._id || m.recipient : m.sender?._id;
-                    return m.type !== 'DirectMessage' || mPartnerId !== partnerId;
-                })]);
-
+                // Update Redux state as well for feedback lists
+                dispatch(updateTeacherMessages(data));
                 toast.success(`Direct Signal: ${data.sender?.firstName || 'User'}`);
-            } else if (data.type === 'Notice') {
-                setNotices(prev => [data, ...prev]);
-                toast.success(`Notice Updated: ${data.subject}`);
             }
         };
 
@@ -138,22 +145,10 @@ const Communication = () => {
         };
     }, [socket]);
 
-    const fetchData = async () => {
-        setFetching(true);
-        try {
-            const [msgRes, conRes, notRes] = await Promise.all([
-                axiosInstance.get('/my-messages'),
-                axiosInstance.get('/contacts'),
-                axiosInstance.get('/notices')
-            ]);
-            setSentMessages(msgRes.data);
-            setContacts(conRes.data);
-            setNotices(notRes.data);
-        } catch (err) {
-            toast.error('Signal Archive sync failed');
-        } finally {
-            setFetching(false);
-        }
+    const fetchData = () => {
+        dispatch(fetchMyMessages());
+        dispatch(fetchContacts());
+        dispatch(fetchNotices());
     };
 
     const fetchChatHistory = async (partnerId, page = 1, isLoadingMore = false) => {
@@ -665,7 +660,7 @@ const Communication = () => {
                                         >
                                             <option value="" className="text-slate-800">ALL SECTORS (GLOBAL)</option>
                                             {assignedClasses.map(c => (
-                                                <option key={c._id} value={c._id}>SEC: GRADE {c.gradeLevel} - {c.sectionLabel}</option>
+                                                <option key={c._id} value={c._id}>Grade {c.standardId?.level} ({c?.sectionLabel})</option>
                                             ))}
                                         </select>
                                     </div>

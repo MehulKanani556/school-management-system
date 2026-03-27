@@ -316,7 +316,12 @@ exports.getChildMeetings = async (req, res) => {
         const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
         if (!student) return res.status(403).json({ message: 'Child link unauthorized' });
 
-        const meetings = await Meeting.find({ studentId })
+        const meetings = await Meeting.find({
+            $or: [
+                { studentId },
+                { classSection: student.classSection, scope: 'Class' }
+            ]
+        })
             .populate('teacherId', 'firstName lastName')
             .sort({ date: 1, startTime: 1 })
             .lean();

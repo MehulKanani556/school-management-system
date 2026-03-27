@@ -302,12 +302,13 @@ exports.sendMessage = async (req, res) => {
         const fileUrl = req.file ? req.file.location : null;
 
         // Create institutional message
+        const finalType = recipient ? 'DirectMessage' : (req.body.type || 'Announcement');
         const message = await Message.create({
             schoolId: teacher.schoolId._id,
             sender: req.user._id,
             recipient: recipient || null,
-            targetRole: targetRole || 'Student',
-            type: recipient ? 'DirectMessage' : 'Announcement',
+            targetRole: classSection ? 'Specific' : (targetRole || 'Student'),
+            type: finalType,
             classSection: classSection || null,
             subject, content, fileUrl
         });
@@ -315,16 +316,22 @@ exports.sendMessage = async (req, res) => {
         const populated = await message.populate('sender', 'firstName lastName photo role');
 
         // Real-time notification
-        if (recipient) {
+        if (finalType === 'DirectMessage') {
             socketManager.sendToUser(recipient, 'NEW_MESSAGE', {
                 ...populated.toJSON(),
                 senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
             });
+        } else if (finalType === 'Notice') {
+            if (classSection) {
+                socketManager.sendToClass(classSection, 'NEW_NOTICE', populated);
+            } else {
+                socketManager.broadcastNotice('NEW_NOTICE', populated);
+            }
         } else {
             socketManager.broadcastToRole(targetRole || 'Student', 'NEW_ANNOUNCEMENT', populated);
         }
 
-        res.status(201).json({ message: 'Communication broadcasted successfully', data: populated });
+        res.status(201).json({ message: 'Communication dispatched successfully', data: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1076,10 +1083,20 @@ exports.getBehaviorLogs = async (req, res) => {
 exports.scheduleMeeting = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const meeting = new Meeting({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        const meetingData = { ...req.body };
+        if (!meetingData.studentId || meetingData.studentId === '') {
+            delete meetingData.studentId;
+        }
+        if (!meetingData.parentId || meetingData.parentId === '') {
+            delete meetingData.parentId;
+        }
+        const meeting = new Meeting({ ...meetingData, teacherId: teacher._id, schoolId: teacher.schoolId._id });
         await meeting.save();
-        const populated = await meeting.populate('studentId', 'firstName lastName');
-        res.status(201).json({ message: 'Temporal assessment protocol SYNCHRONIZED', meeting: populated });
+        const populated = await meeting.populate([
+            { path: 'studentId', select: 'firstName lastName' },
+            { path: 'classSection', select: 'sectionLabel' }
+        ]);
+        res.status(201).json({ message: 'Pedagogical protocol SYNCHRONIZED', meeting: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1087,7 +1104,10 @@ exports.getMeetings = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         const meetings = await Meeting.find({ teacherId: teacher._id })
-            .populate('studentId', 'firstName lastName')
+            .populate([
+                { path: 'studentId', select: 'firstName lastName' },
+                { path: 'classSection', select: 'sectionLabel gradeLevel standardId', populate: { path: 'standardId', select: 'level' } }
+            ])
             .sort({ date: 1, startTime: 1 });
         res.json(meetings);
     } catch (err) { res.status(500).json({ message: err.message }); }
