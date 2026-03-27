@@ -34,8 +34,8 @@ const AddMarks = () => {
             marksData: {} // { studentId: { score: '', remarks: '' } }
         },
         validationSchema: Yup.object({
-            selectedClass: Yup.string().required('Academic section required'),
-            selectedExam: Yup.string().required('Assessment node selection required'),
+            selectedClass: Yup.string().required('Class/Section selection required'),
+            selectedExam: Yup.string().required('Exam selection required'),
         }),
         onSubmit: async (values) => {
             const studentMarksArr = Object.entries(values.marksData).map(([studentId, data]) => ({
@@ -45,7 +45,7 @@ const AddMarks = () => {
             }));
 
             if (studentMarksArr.length === 0) {
-                return toast.error("No assessment data detected for submission");
+                return toast.error("No marks found for submission");
             }
 
             const result = await dispatch(submitMarks({ 
@@ -148,10 +148,10 @@ const AddMarks = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-brand-primary rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Evaluation HUB</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Exams & Assessments</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Performance Registry</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Digital archival of numerical & qualitative assessment results.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Exam Marks Entry</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Enter and manage student marks for terminal and internal exams.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -168,7 +168,7 @@ const AddMarks = () => {
                             <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
                             {classes.map(cls => (
                                 <option key={cls._id} value={cls._id} className="bg-slate-950 text-white italic">
-                                    Grade {cls.standardId?.level} - {cls.sectionLabel}
+                                    Std {cls.standardId?.level} - {cls.sectionLabel}
                                 </option>
                             ))}
                         </select>
@@ -185,7 +185,7 @@ const AddMarks = () => {
                             disabled={!formik.values.selectedClass}
                             className={`w-full bg-slate-900/80 border ${formik.touched.selectedExam && formik.errors.selectedExam ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic disabled:opacity-40`}
                         >
-                            <option value="" className="bg-slate-950 text-slate-600">Select Assessment</option>
+                            <option value="" className="bg-slate-950 text-slate-600">Select Exam</option>
                             {exams.map(ex => (
                                 <option key={ex._id} value={ex._id} className="bg-slate-950 text-white italic uppercase tracking-tighter">
                                     {ex.subject} - {ex.title} [{ex.type?.replace('_', ' ')}]
@@ -203,7 +203,7 @@ const AddMarks = () => {
                             <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="Identify student by name..." 
+                                placeholder="Search student by name..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-md text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
@@ -216,7 +216,7 @@ const AddMarks = () => {
                                     className="flex items-center justify-center gap-3 bg-slate-900 hover:bg-slate-800 text-slate-300 px-8 h-14 rounded-md font-black tracking-widest uppercase text-[10px] border border-slate-800 hover:border-brand-primary/40 transition-all shadow-xl active:scale-95 font-outfit italic"
                                 >
                                     <Pencil size={14} />
-                                    Modify Registry
+                                    Edit Marks
                                 </button>
                             )}
                             <button 
@@ -225,7 +225,7 @@ const AddMarks = () => {
                                 className={`flex items-center justify-center gap-3 ${isGlobalEditMode ? 'bg-brand-primary' : 'bg-luxury-emerald/20 border border-luxury-emerald/40 text-luxury-emerald'} hover:scale-[1.02] text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic`}
                             >
                                 {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
-                                {isGlobalEditMode ? 'Synchronize Grades' : 'Synchronized ✓'}
+                                {isGlobalEditMode ? 'Save Marks' : 'Saved ✓'}
                             </button>
                         </div>
                     </div>
@@ -235,14 +235,14 @@ const AddMarks = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-900/60 border-b border-slate-800/50">
-                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Student Identity</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Student Name</th>
                                         <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">
-                                            Quantitative Performance 
+                                            Marks Obtained 
                                             <span className="block text-brand-primary opacity-60 mt-2 tracking-widest leading-none">
                                                 [MAX: {exams.find(ex => ex._id === formik.values.selectedExam)?.maxMarks || 100}]
                                             </span>
                                         </th>
-                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Institutional Feedback</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Teacher Remarks</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/40">
@@ -262,7 +262,7 @@ const AddMarks = () => {
                                                             </div>
                                                             <div>
                                                                 <p className="text-base font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-2 group-hover:text-brand-primary transition-colors duration-500">{student.firstName} {student.lastName}</p>
-                                                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Seat: #{student.rollNumber || student.admissionNumber || '—'}</p>
+                                                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Roll No: {student.rollNumber || student.admissionNumber || '—'}</p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -276,7 +276,7 @@ const AddMarks = () => {
                                                                 <div className="relative w-32 animate-in zoom-in-95 duration-200">
                                                                     <input 
                                                                         type="number"
-                                                                        placeholder="Score..."
+                                                                        placeholder="Score"
                                                                         value={formik.values.marksData[student._id]?.score || ''}
                                                                         onChange={(e) => {
                                                                             const val = e.target.value;
@@ -320,7 +320,7 @@ const AddMarks = () => {
                                                     <td className="px-12 py-7">
                                                         <input 
                                                             type="text"
-                                                            placeholder="Nomenclature observation..."
+                                                            placeholder="Enter teacher remarks..."
                                                             value={formik.values.marksData[student._id]?.remarks || ''}
                                                             disabled={!isGlobalEditMode}
                                                             onChange={(e) => formik.setFieldValue(`marksData.${student._id}.remarks`, e.target.value)}
@@ -338,8 +338,8 @@ const AddMarks = () => {
             ) : (
                 <div className="flex flex-col items-center justify-center py-48 border-2 border-dashed border-slate-800/40 rounded-md bg-slate-900/20 backdrop-blur-sm group hover:border-brand-primary/20 transition-all duration-1000">
                     <Award size={60} className="text-slate-800 mb-8 opacity-20 group-hover:text-brand-primary/20 group-hover:scale-110 transition-all duration-1000 animate-pulse underline" />
-                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Assessment Synchronization</p>
-                    <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase">Select an academic sector and assessment node to initiate registry</p>
+                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] font-outfit italic group-hover:text-slate-500 transition-colors">Awaiting Exam Selection</p>
+                    <p className="text-slate-700 text-[9px] mt-4 font-bold tracking-widest uppercase">Select a class and exam to enter marks</p>
                 </div>
             )}
         </motion.div>

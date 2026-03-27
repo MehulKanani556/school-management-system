@@ -949,6 +949,17 @@ exports.getMyReviews = async (req, res) => {
 exports.getUnifiedCalendar = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
+        
+        // Find classes and standards assigned to the teacher
+        const assignedClasses = await ClassSection.find({
+            $or: [
+                { classTeacher: teacher._id },
+                { 'subjectAssignments.teachers': teacher._id }
+            ]
+        });
+        const classIds = assignedClasses.map(c => c._id);
+        const standardIds = assignedClasses.map(c => c.standardId);
+
         const [timetable, exams, assignments, leaves] = await Promise.all([
             Timetable.find({ 'schedule.periods.teacher': teacher._id })
                 .populate({
@@ -957,7 +968,13 @@ exports.getUnifiedCalendar = async (req, res) => {
                 })
                 .populate('schedule.periods.subject')
                 .populate('schedule.periods.teacher'),
-            Exam.find({ schoolId: teacher.schoolId._id }).populate('classSection'),
+            Exam.find({ 
+                $or: [
+                    { classSection: { $in: classIds } },
+                    { standardId: { $in: standardIds }, classSection: null }
+                ],
+                schoolId: teacher.schoolId._id 
+            }).populate('classSection').populate('subject'),
             Assignment.find({ createdBy: req.user._id }),
             Leave.find({ teacherId: teacher._id, status: 'approved' })
         ]);

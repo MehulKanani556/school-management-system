@@ -52,10 +52,10 @@ const ClassNoticeboard = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="h-[2px] w-12 bg-teacher-primary rounded-md"></div>
-                        <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.45em] italic">Sector Bulletin</span>
+                        <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.45em] italic">Notice Board</span>
                     </div>
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Class Noticeboard</h1>
-                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic leading-relaxed">Cluster-specific archival transmissions and academic directives.</p>
+                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic leading-relaxed">Class-specific notices and academic announcements.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -66,9 +66,9 @@ const ClassNoticeboard = () => {
                             onChange={(e) => setSelectedClass(e.target.value)}
                             className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-teacher-primary/40 transition-all text-white shadow-xl italic"
                         >
-                            <option value="">All Sectors</option>
+                            <option value="">All Classes</option>
                             {classes.map(c => (
-                                <option key={c._id} value={c._id}>Grade {c.standardId?.level || c.gradeLevel} - {c.sectionLabel}</option>
+                                <option key={c._id} value={c._id}>Std {c.standardId?.level || c.gradeLevel} - {c.sectionLabel}</option>
                             ))}
                         </select>
                     </div>
@@ -76,7 +76,7 @@ const ClassNoticeboard = () => {
                         onClick={() => setShowPostModal(true)}
                         className="h-14 bg-teacher-primary hover:bg-teacher-primary text-white px-8 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.3)] flex items-center gap-3 italic"
                     >
-                        <Plus size={18} /> Compose Protocol
+                        <Plus size={18} /> Add New Notice
                     </button>
                 </div>
             </header>
@@ -97,15 +97,15 @@ const ClassNoticeboard = () => {
                                     <Pin size={18} />
                                 </div>
                                 <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2 italic">
-                                    <Calendar size={12} /> {new Date(notice.createdAt).toLocaleDateString()}
+                                    <Calendar size={12} /> {new Date(notice.createdAt).toLocaleDateString('en-IN')}
                                 </span>
                             </div>
                             <h3 className="text-xl font-black text-white italic tracking-tighter leading-none mb-4 group-hover:text-teacher-primary transition-colors uppercase">{notice.subject}</h3>
-                            <p className="text-slate-400 text-sm font-bold leading-relaxed mb-10 h-[60px] overflow-hidden uppercase tracking-tight">{notice.content}</p>
+                            <p className="text-slate-400 text-sm font-bold leading-relaxed mb-10 h-[60px] overflow-hidden tracking-tight uppercase">{notice.content}</p>
 
                             <div className="pt-6 border-t border-white/5 flex items-center justify-between text-[8px] font-black uppercase tracking-widest text-slate-700">
-                                <span>Target: Academic Cluster</span>
-                                <span className="text-teacher-primary/40 italic">Active Directive</span>
+                                <span>Target: Students</span>
+                                <span className="text-teacher-primary/40 italic">Notice Type: Announcement</span>
                             </div>
                         </motion.div>
                     ))}
@@ -114,7 +114,7 @@ const ClassNoticeboard = () => {
                 {classNotices.length === 0 && (
                     <div className="col-span-full py-40 text-center opacity-30 italic">
                         <Activity className="w-16 h-16 mx-auto mb-8 animate-pulse text-slate-500" />
-                        <h3 className="text-xl font-black text-slate-500 uppercase tracking-[0.4em]">No Directives Transmitted</h3>
+                        <h3 className="text-xl font-black text-slate-500 uppercase tracking-[0.4em]">No Notices Found</h3>
                     </div>
                 )}
             </div>
@@ -124,31 +124,31 @@ const ClassNoticeboard = () => {
                     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-slate-800 p-12 rounded-md shadow-[0_50px_150px_rgba(0,0,0,0.8)] max-w-2xl w-full relative">
                         <button onClick={() => setShowPostModal(false)} className="absolute top-8 right-8 text-slate-600 hover:text-white transition-all"><Plus className="rotate-45" size={24} /></button>
                         <header className="mb-10">
-                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">Protocol Composition</h2>
-                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Awaiting sectoral parameters...</p>
+                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">Create New Notice</h2>
+                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Provide notice details below...</p>
                         </header>
                         <form onSubmit={handlePostNotice} className="space-y-8">
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Subject Header</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Subject</label>
                                 <input
                                     type="text"
-                                    placeholder="Enter directive nomenclature..."
+                                    placeholder="Enter subject here..."
                                     value={noticeInput.subject}
                                     onChange={(e) => setNoticeInput({ ...noticeInput, subject: e.target.value })}
                                     className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic uppercase"
                                 />
                             </div>
                             <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Transmitted Content</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Message</label>
                                 <textarea
-                                    placeholder="Compose institutional archival data..."
+                                    placeholder="Write your message here..."
                                     value={noticeInput.content}
                                     onChange={(e) => setNoticeInput({ ...noticeInput, content: e.target.value })}
                                     className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic resize-none h-[180px] uppercase"
                                 />
                             </div>
                             <button type="submit" className="w-full h-16 bg-teacher-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-xl italic">
-                                <Send size={20} /> Initiate Archival Signal
+                                <Send size={20} /> Post Notice
                             </button>
                         </form>
                     </motion.div>

@@ -171,7 +171,7 @@ const Communication = () => {
                 }, 100);
             }
         } catch (err) {
-            toast.error('Uplink history sync failed');
+            toast.error('Failed to load chat history');
         } finally {
             setFetchingChat(false);
         }
@@ -210,7 +210,7 @@ const Communication = () => {
                 ...announcementInput,
                 type: 'Announcement'
             });
-            toast.success('Broadcast Dispatched');
+            toast.success('Announcement Sent');
             setAnnouncementInput({ subject: '', content: '', targetRole: 'Student' });
             fetchData();
         } catch (err) {
@@ -220,13 +220,13 @@ const Communication = () => {
 
     const handleSendNotice = async (e) => {
         e.preventDefault();
-        if (!noticeInput.subject || !noticeInput.content) return toast.error('PROTOCOL VOID: Input required');
+        if (!noticeInput.subject || !noticeInput.content) return toast.error('Required fields are missing');
         try {
             await axiosInstance.post('/teacher/send-message', {
                 ...noticeInput,
                 type: 'Notice'
             });
-            toast.success('Bulletin Deployed');
+            toast.success('Notice Posted');
             setNoticeInput({ subject: '', content: '', classSection: '' });
             fetchData();
         } catch (err) {
@@ -235,10 +235,10 @@ const Communication = () => {
     };
 
     const handleDeleteAnnouncement = async (id) => {
-        if (!window.confirm('PROTOCOL ALERT: Retract institutional directive from archival memory?')) return;
+        if (!window.confirm('Delete this announcement?')) return;
         try {
             await dispatch(retractAnnouncement(id)).unwrap();
-            toast.success('Directive Decommissioned');
+            toast.success('Announcement Deleted');
             fetchData();
         } catch (err) {
             toast.error('Retraction failed');
@@ -268,7 +268,7 @@ const Communication = () => {
             setMessageInput('');
             // No fetchData() needed for direct messages as socket update handles it
         } catch (err) {
-            toast.error('Uplink failed');
+            toast.error('Failed to send message');
         }
     };
 
@@ -330,21 +330,21 @@ const Communication = () => {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <div className="h-[2px] w-6 bg-brand-primary rounded-md"></div>
-                            <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.4em] italic leading-none">Transmission Hub</span>
+                            <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.4em] italic leading-none">Communication Center</span>
                         </div>
                         <h1 className="text-2xl lg:text-3xl font-black text-white uppercase tracking-tighter italic leading-none">
                             {activeTab === 'feed' ? (
-                                <>SIGNAL <span className="text-brand-primary">RELAY</span></>
+                                <>SCHOOL <span className="text-brand-primary">ANNOUNCEMENTS</span></>
                             ) : activeTab === 'chat' ? (
-                                <>DIRECT <span className="text-brand-primary">PROBE</span></>
+                                <>DIRECT <span className="text-brand-primary">MESSAGES</span></>
                             ) : (
-                                <>NOTICE <span className="text-brand-primary">BOARD</span></>
+                                <>CLASS <span className="text-brand-primary">NOTICEBOARD</span></>
                             )}
                         </h1>
                         <p className="text-slate-500 font-bold text-[8px] tracking-wider uppercase">
-                            {activeTab === 'feed' ? 'Broadcasting authorized institutional directives.' :
-                                activeTab === 'chat' ? 'Secured point-to-point institutional messaging matrix.' :
-                                    'Public domain bulletin and regional academic advisory.'}
+                            {activeTab === 'feed' ? 'Post and manage announcements for students and parents.' :
+                                activeTab === 'chat' ? 'Private messaging with teachers, staff, and parents.' :
+                                    'Display important notices for specific class sections.'}
                         </p>
                     </div>
                 </div>
@@ -358,7 +358,7 @@ const Communication = () => {
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-[10px] font-black text-white uppercase tracking-widest italic flex items-center gap-2 leading-none">
                                         <Activity size={14} className="text-brand-primary" />
-                                        Comms Channels
+                                        Conversations
                                     </h2>
                                     <div className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center">
                                         <div className="w-1.5 h-1.5 rounded-md bg-brand-primary shadow-glow animate-pulse"></div>
@@ -367,7 +367,7 @@ const Communication = () => {
                                 <div className="relative group">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-brand-primary transition-colors" />
                                     <input
-                                        placeholder="SCAN ARCHIVE..."
+                                        placeholder="SEARCH MESSAGES..."
                                         className="w-full h-10 bg-slate-950/50 border border-slate-800 rounded-md pl-10 pr-4 text-[9px] font-black text-white italic tracking-widest outline-none focus:border-brand-primary transition-all placeholder:text-slate-800 uppercase"
                                     />
                                 </div>
@@ -408,7 +408,7 @@ const Communication = () => {
                                                 {conv.messages[0].content}
                                             </p>
                                         </div>
-                                        <div className="text-[8px] font-black text-slate-800 italic shrink-0">LOCKED</div>
+                                        <div className="text-[8px] font-black text-slate-800 italic shrink-0 uppercase">ACTIVE</div>
                                     </button>
                                 ))}
                                 {filteredConversations.length === 0 && (
@@ -457,7 +457,7 @@ const Communication = () => {
                                                     </h3>
                                                     <div className="flex items-center gap-2">
                                                         <div className="h-1 w-1 rounded-md bg-green-500 animate-pulse"></div>
-                                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic">Secure Link Active</span>
+                                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic">Secure Connection</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -519,7 +519,7 @@ const Communication = () => {
                                             <input
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
-                                                placeholder="PAYLOAD..."
+                                                placeholder="TYPE A MESSAGE..."
                                                 className="flex-1 bg-transparent border-none text-white text-[11px] font-black italic tracking-widest outline-none placeholder:text-slate-800 uppercase h-10"
                                             />
                                             <button
@@ -539,8 +539,8 @@ const Communication = () => {
                                             <Shield size={32} className="text-slate-800" />
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">SECURE STANDBY</h3>
-                                    <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest leading-relaxed max-w-[200px] mx-auto italic">Select terminal to initiate data relay.</p>
+                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">SELECT A CHAT</h3>
+                                    <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest leading-relaxed max-w-[200px] mx-auto italic">Choose a contact from the left to start messaging.</p>
                                 </div>
                             )}
                         </div>
@@ -553,7 +553,7 @@ const Communication = () => {
                                 <div className="relative z-10 space-y-6">
                                     <h2 className="text-base font-black text-white uppercase italic tracking-tight flex items-center gap-3 leading-none">
                                         <Megaphone className="text-brand-primary" size={20} />
-                                        New Dispatch
+                                        New Announcement
                                     </h2>
                                     <form onSubmit={handleSendAnnouncement} className="space-y-4">
                                         <div className="grid grid-cols-2 gap-2">
@@ -570,7 +570,7 @@ const Communication = () => {
                                         </div>
                                         <input
                                             required
-                                            placeholder="SIGNAL SUBJECT..."
+                                            placeholder="SUBJECT..."
                                             value={announcementInput.subject}
                                             onChange={(e) => setAnnouncementInput({ ...announcementInput, subject: e.target.value })}
                                             className="w-full h-11 bg-slate-950 border border-slate-800 rounded-md px-4 text-white text-[11px] font-black uppercase outline-none focus:border-brand-primary transition-all italic"
@@ -578,14 +578,14 @@ const Communication = () => {
                                         <textarea
                                             required
                                             rows={4}
-                                            placeholder="COMPOSE DIRECTIVE..."
+                                            placeholder="MESSAGE CONTENT..."
                                             value={announcementInput.content}
                                             onChange={(e) => setAnnouncementInput({ ...announcementInput, content: e.target.value })}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-brand-primary transition-all italic resize-none uppercase"
                                         />
                                         <button type="submit" className="w-full py-4 rounded-md bg-brand-primary text-white flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95">
                                             <Send size={16} />
-                                            INITIATE SIGNAL
+                                            POST ANNOUNCEMENT
                                         </button>
                                     </form>
                                 </div>
@@ -596,9 +596,9 @@ const Communication = () => {
                             <div className="flex items-center justify-between px-2 shrink-0">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
                                     <Filter size={14} className="text-brand-primary" />
-                                    TRANSMISSIONS
+                                    ANNOUNCEMENTS
                                 </h3>
-                                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{sentMessages.filter(m => m.type === 'Announcement').length} RECORDS</span>
+                                <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{sentMessages.filter(m => m.type === 'Announcement').length} SENT</span>
                             </div>
 
                             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
@@ -634,7 +634,7 @@ const Communication = () => {
                                         </motion.div>
                                     ))}
                                 </AnimatePresence>
-                                {fetching && <div className="text-center py-10 opacity-30 uppercase text-[8px] font-black tracking-widest italic animate-pulse">Decoding...</div>}
+                                {fetching && <div className="text-center py-10 opacity-30 uppercase text-[8px] font-black tracking-widest italic animate-pulse">Loading...</div>}
                             </div>
                         </div>
                     </>
@@ -645,20 +645,20 @@ const Communication = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <Shield size={14} className="text-teacher-primary" />
-                                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Issue Advisory</h3>
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Issue New Notice</h3>
                                     </div>
-                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">Targeted regional academic directive.</p>
+                                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">A specific notice for your assigned class sections.</p>
                                 </div>
 
                                 <form onSubmit={handleSendNotice} className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Target Cluster Sector</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Target Class / Section</label>
                                         <select 
                                             value={noticeInput.classSection} 
                                             onChange={(e) => setNoticeInput({...noticeInput, classSection: e.target.value})}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[10px] uppercase font-black tracking-widest outline-none focus:border-teacher-primary/50 transition-all italic h-12 appearance-none"
                                         >
-                                            <option value="" className="text-slate-800">ALL SECTORS (GLOBAL)</option>
+                                            <option value="" className="text-slate-800">ALL SECTIONS (PUBLIC)</option>
                                             {assignedClasses.map(c => (
                                                 <option key={c._id} value={c._id}>Grade {c.standardId?.level} ({c?.sectionLabel})</option>
                                             ))}
@@ -666,9 +666,9 @@ const Communication = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Directive Subject</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Notice Subject</label>
                                         <input 
-                                            placeholder="IDENTITY SUBJECT..."
+                                            placeholder="ENTER SUBJECT..."
                                             value={noticeInput.subject}
                                             onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[11px] font-bold outline-none focus:border-teacher-primary/50 transition-all italic h-12 uppercase tracking-tight"
@@ -676,10 +676,10 @@ const Communication = () => {
                                     </div>
 
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Body Protocol</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Notice Content</label>
                                         <textarea 
                                             rows={5}
-                                            placeholder="ARCHIVE BROADCAST CONTENT..."
+                                            placeholder="ENTER CONTENT..."
                                             value={noticeInput.content}
                                             onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-teacher-primary/50 transition-all italic resize-none uppercase tracking-tight"
@@ -688,7 +688,7 @@ const Communication = () => {
 
                                     <button type="submit" className="w-full py-4 rounded-md bg-teacher-primary text-slate-950 flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95 hover:bg-teacher-primary">
                                         <Layout size={16} />
-                                        DEPLOY BULLETIN
+                                        POST NOTICE
                                     </button>
                                 </form>
                             </div>
@@ -698,7 +698,7 @@ const Communication = () => {
                             <div className="flex items-center justify-between px-2 shrink-0">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
                                     <Layout size={16} className="text-teacher-primary" />
-                                    INSTITUTIONAL BULLETIN
+                                    CLASS NOTICEBOARD
                                 </h3>
                                 <div className="flex items-center gap-3">
                                     <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{notices.length} RECORDS RECEIVED</span>
@@ -738,8 +738,8 @@ const Communication = () => {
                                                 <p className="text-slate-500 text-[10px] font-bold italic leading-relaxed uppercase tracking-tighter line-clamp-4">{not.content}</p>
                                             </div>
                                             <div className="pt-4 border-t border-white/5 flex items-center justify-between text-[7px] font-black uppercase tracking-widest text-slate-800 mt-6">
-                                                <span>{not.classSection ? `SEC: ${not.classSection.gradeLevel}-${not.classSection.sectionLabel}` : 'GLOBAL PROTOCOL'}</span>
-                                                <span className="text-teacher-primary/30 font-black">SYSTEM RELAY</span>
+                                                <span>{not.classSection ? `SEC: ${not.classSection.gradeLevel}-${not.classSection.sectionLabel}` : 'ALL CLASSES'}</span>
+                                                <span className="text-teacher-primary/30 font-black">SENT VIA PORTAL</span>
                                             </div>
                                         </motion.div>
                                     ))}

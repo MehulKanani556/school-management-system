@@ -333,17 +333,17 @@ const QuestionBank = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-brand-primary rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Evaluation Synthesis</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Question Management</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Question Bank & Exam Generator</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Customizable assessment architecture and secure node vault.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Question Bank & Paper Generator</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Manage your question repository and generate customized exam papers.</p>
                 </div>
 
                 <div className="flex bg-slate-950 p-2 rounded-md border border-slate-800 shadow-inner">
-                    <button onClick={() => { setActiveTab('add'); setEditMode(false); setEditingId(null); }} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'add' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><PlusCircle size={14} /> {editMode ? 'Edit Node' : 'Add Node'}</button>
-                    <button onClick={() => setActiveTab('bank')} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'bank' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><Database size={14} /> View Vault</button>
+                    <button onClick={() => { setActiveTab('add'); setEditMode(false); setEditingId(null); }} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'add' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><PlusCircle size={14} /> {editMode ? 'Edit Question' : 'Add Question'}</button>
+                    <button onClick={() => setActiveTab('bank')} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'bank' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><Database size={14} /> Question Bank</button>
                     {paperSections.length > 0 && (
-                        <button onClick={() => setActiveTab('generate')} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'generate' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><Wand2 size={14} /> Active Paper</button>
+                        <button onClick={() => setActiveTab('generate')} className={`px-5 py-2.5 rounded-md text-[10px] font-black uppercase tracking-widest transition-all italic flex items-center gap-2 ${activeTab === 'generate' ? 'bg-brand-primary text-white shadow-xl' : 'text-slate-500 hover:text-white'}`}><Wand2 size={14} /> Current Paper</button>
                     )}
                 </div>
             </header>
@@ -411,7 +411,7 @@ const QuestionBank = () => {
                     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-slate-900/40 p-5 rounded-md border border-slate-800/60 shadow-2xl">
                         <form onSubmit={isBulk ? handleBulkSubmit : handleAddQuestion} className="max-w-4xl mx-auto space-y-4">
                             <div className="flex items-center justify-between border-b border-slate-800/50 pb-3">
-                                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-2"><FileQuestion className="text-brand-primary" size={20} /> {editMode ? `Update Node` : 'Record Evaluation Node'}</h2>
+                                <h2 className="text-xl font-black text-white italic uppercase tracking-tighter flex items-center gap-2"><FileQuestion className="text-brand-primary" size={20} /> {editMode ? `Update Question` : 'Add New Question'}</h2>
                                 {!editMode && (
                                     <button 
                                         type="button" 
@@ -425,16 +425,16 @@ const QuestionBank = () => {
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Standard Segment</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Class / Grade</label>
                                     <select required value={qData.classLevel} onChange={e => setQData({ ...qData, classLevel: e.target.value, subject: '' })} className="w-full bg-slate-950 border border-slate-800 h-10 px-4 rounded-md text-white font-bold outline-none focus:border-brand-primary text-xs">
-                                        <option value="">Select Target Index</option>
+                                        <option value="">Select Class</option>
                                         {grades?.map(g => <option key={g} value={g}>{g}</option>)}
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Academic Parameter</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Subject</label>
                                     <select required value={qData.subject} onChange={e => setQData({ ...qData, subject: e.target.value })} className="w-full bg-slate-950 border border-slate-800 h-10 px-4 rounded-md text-white font-bold outline-none focus:border-brand-primary text-xs">
-                                        <option value="">Select Parameter</option>
+                                        <option value="">Select Subject</option>
                                         {(() => {
                                             const filteredSubjs = Array.from(new Map(
                                                 classes
@@ -451,13 +451,13 @@ const QuestionBank = () => {
 
                             <div className="space-y-1">
                                 <div className="flex justify-between items-end">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">{isBulk ? 'Bulk Instructional Material' : 'Evaluation Directive (Question)'}</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">{isBulk ? 'Bulk Questions' : 'Question Text'}</label>
                                     {isBulk && <span className="text-[8px] text-slate-600 font-bold uppercase mb-1">Enter each question on a new line</span>}
                                 </div>
                                 {isBulk ? (
                                     <textarea required value={bulkContent} onChange={e => setBulkContent(e.target.value)} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white font-bold outline-none focus:border-brand-primary min-h-[160px] text-sm" placeholder="Question 1...&#10;Question 2...&#10;Question 3..." />
                                 ) : (
-                                    <textarea required value={qData.content} onChange={e => setQData({ ...qData, content: e.target.value })} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white font-bold outline-none focus:border-brand-primary min-h-[100px] text-sm" placeholder="Define the assessment criteria..." />
+                                    <textarea required value={qData.content} onChange={e => setQData({ ...qData, content: e.target.value })} className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white font-bold outline-none focus:border-brand-primary min-h-[100px] text-sm" placeholder="Enter the question text here..." />
                                 )}
                             </div>
 
@@ -473,12 +473,12 @@ const QuestionBank = () => {
                                     </div>
                                     <div className="flex items-center gap-2 p-3 bg-slate-950/40 border border-slate-800 rounded-md">
                                         <input 
-                                            placeholder="Persistent Format..." 
+                                            placeholder="Add Custom Format..." 
                                             value={newTypeName} 
                                             onChange={e => setNewTypeName(e.target.value)}
                                             className="flex-1 bg-transparent border-b border-slate-800 text-[10px] outline-none text-white focus:border-brand-primary"
                                         />
-                                        <button type="button" onClick={addCustomType} className="px-3 py-1 bg-slate-800 hover:bg-brand-primary text-[8px] font-black uppercase rounded transition-all">Add Type</button>
+                                        <button type="button" onClick={addCustomType} className="px-3 py-1 bg-slate-800 hover:bg-brand-primary text-[8px] font-black uppercase rounded transition-all">Add</button>
                                     </div>
                                 </div>
                                 <div className="space-y-1">
@@ -490,7 +490,7 @@ const QuestionBank = () => {
                                     </select>
                                 </div>
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Weightage</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Marks</label>
                                     <input type="number" min="1" max="100" value={qData.marks} onChange={e => setQData({ ...qData, marks: Number(e.target.value) })} className="w-full bg-slate-950 border border-slate-800 h-10 px-4 rounded-md text-white font-bold outline-none focus:border-brand-primary text-[10px]" />
                                 </div>
                             </div>
@@ -507,19 +507,19 @@ const QuestionBank = () => {
                                             }} className="w-full bg-slate-900 border border-slate-800 h-10 px-4 rounded-md text-white text-[10px] outline-none focus:border-brand-primary" />
                                         ))}
                                     </div>
-                                    <input type="text" placeholder="Designate Correct Answer (Exact Match)" value={qData.correctAnswer} onChange={e => setQData({ ...qData, correctAnswer: e.target.value })} className="w-full bg-slate-900 border-b border-emerald-500 h-10 px-4 rounded-md text-white text-[10px] outline-none" />
+                                    <input type="text" placeholder="Specify Correct Answer (Exact Match)" value={qData.correctAnswer} onChange={e => setQData({ ...qData, correctAnswer: e.target.value })} className="w-full bg-slate-900 border-b border-emerald-500 h-10 px-4 rounded-md text-white text-[10px] outline-none" />
                                 </div>
                             )}
 
                             {!isBulk && (
                                 <div className="space-y-1">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Vector Attachment</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Attachments</label>
                                     <div className="relative group">
                                         <input type="file" accept=".pdf,image/*" onChange={e => setFile(e.target.files[0])} className="hidden" id="node-file" />
                                         <label htmlFor="node-file" className="block w-full bg-slate-950/30 border border-dashed border-slate-800 p-4 rounded-md text-center cursor-pointer hover:border-brand-primary transition-all">
                                             <div className="flex items-center justify-center gap-3">
                                                 <FileText className={`${file ? 'text-emerald-500' : 'text-slate-600'}`} size={20} />
-                                                <span className="text-[10px] font-bold text-slate-500">{file ? file.name : 'Select Supplemental Resource (.pdf, .png, .jpg)'}</span>
+                                                <span className="text-[10px] font-bold text-slate-500">{file ? file.name : 'Select Supplementary File (.pdf, .png, .jpg)'}</span>
                                             </div>
                                         </label>
                                     </div>
@@ -527,7 +527,7 @@ const QuestionBank = () => {
                             )}
 
                             <button disabled={loading} type="submit" className="w-full h-12 bg-white hover:bg-brand-primary text-black hover:text-white rounded-md font-black text-[10px] uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 italic mt-2">
-                                {loading ? <AlertCircle className="animate-spin" /> : <Save size={16} />} {editMode ? 'UPDATE NODE' : isBulk ? `ARCHIVE ${bulkContent.split('\n').filter(Boolean).length} NODES TO VAULT` : 'ARCHIVE NODE TO VAULT'}
+                                {loading ? <AlertCircle className="animate-spin" /> : <Save size={16} />} {editMode ? 'UPDATE QUESTION' : isBulk ? `SAVE ${bulkContent.split('\n').filter(Boolean).length} QUESTIONS TO BANK` : 'SAVE QUESTION TO BANK'}
                             </button>
                         </form>
                     </motion.div>
@@ -537,7 +537,7 @@ const QuestionBank = () => {
                         <div className="bg-slate-900/20 p-6 rounded-md border border-slate-800/40 backdrop-blur-sm space-y-6">
                             <div className="space-y-3">
                                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary"></div> Standard Segments
+                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-primary"></div> Select Class
                                 </h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
                                     {Array.from(new Set(questions.map(q => q.classLevel))).sort().map(g => (
@@ -551,7 +551,7 @@ const QuestionBank = () => {
                                                     <BookOpen size={14} className={examParams.classLevel === g ? 'text-white' : 'text-brand-primary'} />
                                                 </div>
                                                 <span className={`text-[11px] font-black uppercase italic ${examParams.classLevel === g ? 'text-white' : 'text-slate-400'}`}>{g}</span>
-                                                <span className={`text-[8px] font-bold opacity-60 ${examParams.classLevel === g ? 'text-white' : 'text-slate-600'}`}>{questions.filter(q => q.classLevel === g).length} Nodes</span>
+                                                <span className={`text-[8px] font-bold opacity-60 ${examParams.classLevel === g ? 'text-white' : 'text-slate-600'}`}>{questions.filter(q => q.classLevel === g).length} Questions</span>
                                             </div>
                                             {/* Background Decoration */}
                                             <div className="absolute -right-2 -bottom-2 opacity-10 group-hover:opacity-20 transition-all">
@@ -565,7 +565,7 @@ const QuestionBank = () => {
                             {examParams.classLevel && (
                                 <motion.div initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="space-y-3 pt-4 border-t border-slate-800/30">
                                     <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic flex items-center gap-2">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Academic Parameters [{examParams.classLevel}]
+                                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Select Subject [{examParams.classLevel}]
                                     </h4>
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
                                         {Array.from(new Map(
@@ -604,7 +604,7 @@ const QuestionBank = () => {
                                         onClick={handleSelectAllMatches}
                                         className="h-9 px-4 bg-slate-900 hover:bg-slate-800 text-[10px] font-black uppercase text-slate-300 rounded border border-slate-800 transition-all"
                                     >
-                                        {selectedIds.length === matchingQuestions.length ? 'Unmark All' : 'Mark All Matches'}
+                                        {selectedIds.length === matchingQuestions.length ? 'Deselect All' : 'Select All Matches'}
                                     </button>
                                 </div>
 
@@ -614,7 +614,7 @@ const QuestionBank = () => {
                                         disabled={selectedIds.length === 0}
                                         className={`h-11 px-6 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all italic flex items-center gap-3 ${selectedIds.length > 0 ? 'bg-white text-black hover:bg-brand-primary hover:text-white shadow-xl' : 'bg-slate-900 text-slate-700 cursor-not-allowed opacity-50'}`}
                                     >
-                                        <Wand2 size={16} /> Mark to Matrix ({selectedIds.length})
+                                        <Wand2 size={16} /> Add to Paper ({selectedIds.length})
                                     </button>
                                 </div>
                             </div>
@@ -658,7 +658,7 @@ const QuestionBank = () => {
                                                                 <button onClick={(e) => { e.stopPropagation(); handleEditClick(q); }} className="p-1 text-slate-500 hover:text-white"><Edit2 size={12} /></button>
                                                                 <button onClick={async (e) => { 
                                                                     e.stopPropagation(); 
-                                                                    if(window.confirm('Erase node?')) {
+                                                                    if(window.confirm('Delete this question?')) {
                                                                         await axiosInstance.delete(`/teacher/questions/${q._id}`);
                                                                         fetchQuestions();
                                                                     }
@@ -683,10 +683,10 @@ const QuestionBank = () => {
                                     <Wand2 className="text-brand-primary" size={20} />
                                 </div>
                                 <div>
-                                    <h2 className="text-lg font-black text-white italic tracking-tighter uppercase">Synthesis Matrix [Assembler]</h2>
+                                    <h2 className="text-lg font-black text-white italic tracking-tighter uppercase">Exam Paper Builder</h2>
                                     <div className="flex items-center gap-4 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
-                                        <span>Nodes: {paperSections.reduce((acc, s) => acc + s.questions.length, 0)}</span>
-                                        <span className="text-brand-primary">Total Weight: {paperSections.reduce((acc, s) => acc + s.questions.reduce((qAcc, q) => qAcc + q.marks, 0), 0)} Pts</span>
+                                        <span>Questions: {paperSections.reduce((acc, s) => acc + s.questions.length, 0)}</span>
+                                        <span className="text-brand-primary">Total Marks: {paperSections.reduce((acc, s) => acc + s.questions.reduce((qAcc, q) => qAcc + q.marks, 0), 0)}</span>
                                     </div>
                                 </div>
                             </div>
@@ -701,8 +701,8 @@ const QuestionBank = () => {
                         {paperSections.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 bg-slate-950/30 rounded-md border border-dashed border-slate-800">
                                 <FileQuestion size={40} className="text-slate-800 mb-4" />
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] italic">No active nodes in synthesis buffer</p>
-                                <button onClick={() => setActiveTab('bank')} className="mt-4 px-6 py-2 bg-slate-900 hover:bg-slate-800 text-[9px] font-black uppercase text-brand-primary rounded-full transition-all tracking-widest">Open Vault</button>
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] italic">No questions added to the current paper</p>
+                                <button onClick={() => setActiveTab('bank')} className="mt-4 px-6 py-2 bg-slate-900 hover:bg-slate-800 text-[9px] font-black uppercase text-brand-primary rounded-full transition-all tracking-widest">Browse Question Bank</button>
                             </div>
                         ) : (
                             <Reorder.Group axis="y" values={paperSections} onReorder={reorderSections} className="space-y-4">
@@ -719,7 +719,7 @@ const QuestionBank = () => {
                                                 </div>
                                                 <div className="flex flex-col">
                                                     <span className="text-[10px] font-black text-white italic uppercase">{section.type.replace(/([A-Z])/g, ' $1')} [SEC {String.fromCharCode(65 + sIndex)}]</span>
-                                                    <span className="text-[7px] font-heavy text-slate-600 uppercase tracking-widest">{section.questions.length} Nodes • {section.questions.reduce((a, b) => a + b.marks, 0)} Points</span>
+                                                    <span className="text-[7px] font-heavy text-slate-600 uppercase tracking-widest">{section.questions.length} Questions • {section.questions.reduce((a, b) => a + b.marks, 0)} Marks</span>
                                                 </div>
                                             </div>
                                             <button 
@@ -753,7 +753,7 @@ const QuestionBank = () => {
                                                                     <p className="text-[11px] font-bold text-white/80 line-clamp-1 flex-1">{q.content}</p>
                                                                 </div>
                                                                 <div className="flex items-center gap-3 shrink-0">
-                                                                    <span className="text-[9px] font-black text-emerald-500/50 uppercase">{q.marks} Pts</span>
+                                                                    <span className="text-[9px] font-black text-emerald-500/50 uppercase">{q.marks} Marks</span>
                                                                     <button 
                                                                         onClick={() => removeQuestionFromPaper(sIndex, q._id)}
                                                                         className="p-1.5 text-rose-500/20 hover:text-rose-500 hover:bg-rose-500/10 rounded transition-all opacity-0 group-hover/item:opacity-100"
@@ -776,7 +776,7 @@ const QuestionBank = () => {
                                 onClick={() => setActiveTab('bank')}
                                 className="px-6 py-2 rounded-full border border-slate-800 text-[9px] font-black text-slate-500 hover:text-white uppercase transition-all flex items-center gap-2"
                             >
-                                <PlusCircle size={12} /> Add More Nodes from Vault
+                                <PlusCircle size={12} /> Add More Questions from Bank
                             </button>
                         </div>
                     </motion.div>

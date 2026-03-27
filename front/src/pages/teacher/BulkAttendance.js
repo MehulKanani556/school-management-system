@@ -27,9 +27,6 @@ const BulkAttendance = () => {
             const bulkData = lines.map((line, index) => {
                 if(index === 0 && line.toLowerCase().includes('admissionnumber')) return null; // skip header
                 const [admissionNumber, status] = line.split(',').map(s => s.trim());
-                // We send admissionNumber to backend or we need studentId. The existing backend `bulk-attendance` expects `studentId`.
-                // Wait, if it expects studentId, we might need to map admissionNumber -> studentId. 
-                // Alternatively, the backend route might expect `studentId`. Let's just send what we have and let the backend deal with it, or we fetch students first.
                 return { admissionNumber, status: status || 'Present' };
             }).filter(Boolean);
 
@@ -51,17 +48,17 @@ const BulkAttendance = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-brand-primary rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Teacher Terminal</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Teacher Panel</span>
                     </div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Bulk Attendance</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Mass Telemetry Import Utility</p>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Upload attendance from CSV file.</p>
                 </div>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl space-y-8">
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Sector</label>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Class/Section</label>
                         <div className="relative group">
                             <Users size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                             <select 
@@ -71,14 +68,14 @@ const BulkAttendance = () => {
                             >
                                 <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
                                 {classes.map(cls => (
-                                    <option key={cls._id} value={cls._id}>Grade {cls.gradeLevel || cls.standardId?.level} - {cls.sectionLabel}</option>
+                                    <option key={cls._id} value={cls._id}>Std {cls.gradeLevel || cls.standardId?.level} - {cls.sectionLabel}</option>
                                 ))}
                             </select>
                         </div>
                     </div>
 
                     <div className="space-y-4">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Temporal Node (Date)</label>
+                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Attendance Date</label>
                         <div className="relative group">
                             <Calendar size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
                             <input 
@@ -98,7 +95,7 @@ const BulkAttendance = () => {
                             <FileText size={40} />
                         </div>
                         <div className="text-center">
-                            <p className="text-sm font-black text-white italic uppercase">{csvFile ? csvFile.name : 'Select Institutional archival CSV'}</p>
+                            <p className="text-sm font-black text-white italic uppercase">{csvFile ? csvFile.name : 'Select Attendance CSV File'}</p>
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Format: admissionNumber,status</p>
                         </div>
                     </div>
@@ -108,11 +105,11 @@ const BulkAttendance = () => {
                         disabled={loading || !csvFile || !selectedClass || !selectedDate} 
                         className="w-full h-14 bg-brand-primary hover:bg-teacher-primary disabled:opacity-50 text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-3 italic"
                     >
-                        {loading ? <Activity size={18} className="animate-spin" /> : <Upload size={18} />} Initiate Mass Sync
+                        {loading ? <Activity size={18} className="animate-spin" /> : <Upload size={18} />} Upload Attendance
                     </button>
                     
                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight text-center leading-relaxed italic mt-2">
-                        Disclaimer: Bulk synchronization will override all existing temporal records for the selected academic cluster and date cycle.
+                        Note: Bulk upload will overwrite any existing attendance for the selected class and date.
                     </p>
                 </div>
             </div>

@@ -18,35 +18,35 @@ const TeacherDashboard = () => {
         return (
             <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
                 <Loader2 className="w-12 h-12 text-brand-primary animate-spin opacity-50" />
-                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Synchronizing Terminal Records</p>
+                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Loading Dashboard Data</p>
             </div>
         );
     }
 
     const stats = dashboard?.stats || { classes: 0, students: 0, attendance: 0, assignments: 0 };
     const quickStats = [
-        { label: 'Classes', value: stats.classes?.toString().padStart(2, '0') || '00', icon: BookOpen, color: 'text-brand-primary' },
-        { label: 'Students', value: stats.students?.toString() || '0', icon: Users, color: 'text-brand-secondary' },
-        { label: 'Attendance', value: `${stats.attendance || 0}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
-        { label: 'Submissions', value: stats.assignments?.toString() || '0', icon: Activity, color: 'text-brand-accent' },
-        { label: 'Deadlines', value: stats.upcomingDeadlines?.toString().padStart(2, '0') || '00', icon: Clock, color: 'text-luxury-rose' },
+        { label: 'Class Sections', value: stats.classes?.toString().padStart(2, '0') || '00', icon: BookOpen, color: 'text-brand-primary' },
+        { label: 'Total Students', value: stats.students?.toString() || '0', icon: Users, color: 'text-brand-secondary' },
+        { label: 'Avg Attendance', value: `${stats.attendance || 0}%`, icon: ClipboardList, color: 'text-luxury-emerald' },
+        { label: 'Homework Set', value: stats.assignments?.toString() || '0', icon: Activity, color: 'text-brand-accent' },
+        { label: 'Pending Tasks', value: stats.upcomingDeadlines?.toString().padStart(2, '0') || '00', icon: Clock, color: 'text-luxury-rose' },
     ];
 
     return (
         <div className="space-y-12">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Operation Center, {user?.firstName}</h1>
+                    <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Namaste, {user?.firstName}</h1>
                     <p className="text-slate-400 font-medium text-lg leading-relaxed max-w-xl">
-                        Unified institutional terminal. Monitoring academic nodes across {stats.classes?.toString().padStart(2, '0') || '00'} sectors.
+                        Overview of your Class Responsibilities & Academic Schedule.
                     </p>
                 </div>
                 <div className="flex gap-4">
                     <div className="bg-brand-surface/60 border border-brand-border/80 p-6 rounded-md min-w-[200px] shadow-2xl">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2">Institutional Pulse</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2">Academic Session</p>
                         <div className="flex items-center gap-3">
                             <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
-                            <span className="text-xl font-black uppercase text-white font-outfit tracking-wider">Operational</span>
+                            <span className="text-xl font-black uppercase text-white font-outfit tracking-wider">Session 2026-27</span>
                         </div>
                     </div>
                 </div>
@@ -72,8 +72,8 @@ const TeacherDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <div className="lg:col-span-2 space-y-8">
                     <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Assigned Academic Sectors</h3>
-                        <Link to="/teacher/classes" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 group italic hover:translate-x-1 transition-all">View Full Registry <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
+                        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Assigned Class Sections</h3>
+                        <Link to="/teacher/classes" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 group italic hover:translate-x-1 transition-all">View All Sections <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -91,19 +91,19 @@ const TeacherDashboard = () => {
                                         {item.section.charAt(0)}
                                     </div>
                                     <span className="text-[10px] bg-brand-primary/10 text-brand-primary px-4 py-1.5 rounded-full font-black uppercase tracking-widest border border-brand-primary/20 italic">
-                                        Active Cluster
+                                        Assigned
                                     </span>
                                 </div>
-                                <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3">Grade {item.standard}</h4>
+                                <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3">Class {item.standard}</h4>
                                 <div className="flex items-center gap-3 mb-10">
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
-                                    <p className="text-slate-400 text-xs font-black uppercase tracking-widest italic">{item.section}</p>
+                                    <p className="text-slate-400 text-xs font-black uppercase tracking-widest italic">Section {item.section}</p>
                                     <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
                                     <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{item.students} Students</p>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <Link to={`/teacher/attendance`} className="flex-1 py-4 text-center bg-brand-primary hover:bg-teacher-primary rounded-md text-[10px] font-black uppercase text-white tracking-[0.2em] transition-all shadow-xl active:scale-95">Attendance</Link>
-                                    <Link to={`/teacher/classes`} className="flex-1 py-4 text-center bg-brand-surface/80 hover:bg-brand-surface rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-brand-border/50 active:scale-95 text-slate-300">Marks</Link>
+                                    <Link to={`/teacher/attendance`} className="flex-1 py-4 text-center bg-brand-primary hover:bg-teacher-primary rounded-md text-[10px] font-black uppercase text-white tracking-[0.2em] transition-all shadow-xl active:scale-95">Daily Attendance</Link>
+                                    <Link to={`/teacher/classes`} className="flex-1 py-4 text-center bg-brand-surface/80 hover:bg-brand-surface rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-brand-border/50 active:scale-95 text-slate-300">Exam Marks</Link>
                                 </div>
                             </motion.div>
                         ))}
@@ -111,11 +111,11 @@ const TeacherDashboard = () => {
                 </div>
 
                 <div className="space-y-8">
-                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Institutional Alerts</h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Important Notifications</h3>
                     <div className="bg-brand-surface/60 backdrop-blur-xl border border-luxury-rose/20 p-8 rounded-md shadow-2xl space-y-6">
                         <div className="flex items-center gap-3 mb-4">
                             <div className="w-2 h-2 rounded-full bg-luxury-rose animate-pulse shadow-glow"></div>
-                            <span className="text-[11px] font-black uppercase text-luxury-rose tracking-[0.3em] italic font-outfit">Priority Deadlines</span>
+                            <span className="text-[11px] font-black uppercase text-luxury-rose tracking-[0.3em] italic font-outfit">Priority Matters</span>
                         </div>
                         {dashboard?.alerts?.length > 0 ? (
                             dashboard.alerts.map((alert) => (
@@ -124,19 +124,19 @@ const TeacherDashboard = () => {
                                         <AlertCircle size={14} className="text-luxury-rose" />
                                         <p className="text-[10px] font-black text-white uppercase tracking-tight">{alert.title}</p>
                                     </div>
-                                    <span className="text-[8px] font-black text-slate-500 uppercase italic">due {new Date(alert.due).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                                    <span className="text-[8px] font-black text-slate-500 uppercase italic">due {new Date(alert.due).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}</span>
                                 </div>
                             ))
                         ) : (
-                            <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest text-center py-6 italic">No immediate deadline protocols detected</p>
+                            <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest text-center py-6 italic">No pending alerts</p>
                         )}
                     </div>
 
-                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Pulse</h3>
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Tracking</h3>
                     <div className="bg-brand-surface/60 backdrop-blur-xl border border-brand-border/80 p-8 rounded-md shadow-2xl h-full flex flex-col">
                         <div className="flex items-center gap-3 mb-10">
                             <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping"></div>
-                            <span className="text-[11px] font-black uppercase text-slate-400 tracking-[0.3em] italic font-outfit">Real-time Submissions</span>
+                            <span className="text-[11px] font-black uppercase text-slate-400 tracking-[0.3em] italic font-outfit">Recent Submissions</span>
                         </div>
                         <div className="space-y-6 flex-1">
                             {dashboard?.recentAssignments?.length > 0 ? (
@@ -147,13 +147,13 @@ const TeacherDashboard = () => {
                                             <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest">{a.submissions} SUBMITTED</span>
                                         </div>
                                         <p className="text-sm font-black text-slate-100 mb-2 group-hover:text-white transition-colors tracking-tight uppercase leading-tight">{a.title}</p>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Due: {new Date(a.dueDate).toLocaleDateString()}</p>
+                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Due: {new Date(a.dueDate).toLocaleDateString('en-IN')}</p>
                                     </div>
                                 ))
                             ) : (
                                 <div className="text-center py-20 opacity-30 italic">
                                     <Activity className="w-12 h-12 mx-auto mb-4" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">No Active Submissions Tracked</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">No Recent Homework</p>
                                 </div>
                             )}
                         </div>

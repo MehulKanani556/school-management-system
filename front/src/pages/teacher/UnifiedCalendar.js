@@ -12,13 +12,18 @@ import {
     LogOut,
     Activity,
     Layers,
-    AlertCircle
+    AlertCircle,
+    X
 } from 'lucide-react';
 
 const TeacherUnifiedCalendar = () => {
     const dispatch = useDispatch();
-    const { unifiedCalendar, loading } = useSelector(state => state.teacher);
+    const { unifiedCalendar, loading, dashboard } = useSelector(state => state.teacher);
+    const teacherId = dashboard?.profile?._id;
     const [currentDate, setCurrentDate] = useState(new Date());
+    const [showDayModal, setShowDayModal] = useState(false);
+    const [selectedDayEvents, setSelectedDayEvents] = useState(null);
+    const [selectedDate, setSelectedDate] = useState(null);
 
     useEffect(() => {
         dispatch(fetchUnifiedCalendar());
@@ -67,19 +72,28 @@ const TeacherUnifiedCalendar = () => {
             unifiedCalendar.timetable?.forEach(tt => {
                 const daySchedule = tt.schedule?.find(s => s.day === dayName);
                 daySchedule?.periods?.forEach(p => {
-                    addEvent(cell.date, { 
-                        type: 'lecture', 
-                        title: `${p.subject?.name || 'Lecture'} (${tt.classSection?.sectionLabel})`, 
-                        time: p.startTime, 
-                        color: 'border-brand-primary' 
-                    });
+                    // Only show if it's this teacher's lecture
+                    if (p.teacher?._id === teacherId || p.teacher === teacherId) {
+                        addEvent(cell.date, { 
+                            type: 'lecture', 
+                            title: `${p.startTime || '??'} - ${p.subject?.name || 'Lecture'} (${tt.classSection?.sectionLabel})`, 
+                            time: p.startTime, 
+                            color: 'border-brand-primary' 
+                        });
+                    }
                 });
             });
         });
 
         // 2. Exams
         unifiedCalendar.exams?.forEach(ex => {
-            addEvent(ex.date, { type: 'exam', title: `Exam: ${ex.title}`, time: ex.startTime, color: 'border-luxury-rose' });
+            const subjectLabel = ex.subject?.name ? ` [${ex.subject.name}]` : '';
+            addEvent(ex.date, { 
+                type: 'exam', 
+                title: `${ex.name}${subjectLabel}`, 
+                time: ex.type?.replace('_', ' '), 
+                color: 'border-luxury-rose' 
+            });
         });
 
         // 3. Assignments
@@ -95,8 +109,8 @@ const TeacherUnifiedCalendar = () => {
             while (current <= end) {
                 addEvent(new Date(current), { 
                     type: 'leave', 
-                    title: 'Pedagogical Furlough', 
-                    time: 'Institutional Leave', 
+                    title: 'Personal Leave', 
+                    time: 'Approved Leave', 
                     color: 'border-emerald-500/50' 
                 });
                 current.setDate(current.getDate() + 1);
@@ -110,24 +124,31 @@ const TeacherUnifiedCalendar = () => {
         const nextMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + offset, 1);
         setCurrentDate(nextMonth);
     };
+    
+    const openDayModal = (date, events) => {
+        if (!date || !events || events.length === 0) return;
+        setSelectedDate(date);
+        setSelectedDayEvents(events);
+        setShowDayModal(true);
+    };
 
     if (loading && !unifiedCalendar) return (
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
             <Activity className="w-12 h-12 text-brand-primary animate-spin opacity-50" />
-            <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Synchronizing Professional Roadmap</p>
+            <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Loading Academic Calendar</p>
         </div>
     );
 
     return (
-        <div className="space-y-12">
+        <div className="">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-3xl">
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="h-[2px] w-12 bg-brand-primary rounded-md"></div>
-                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.5em] italic">Institutional Roadmap</span>
+                        <span className="text-[10px] font-black text-brand-primary uppercase tracking-[0.5em] italic">Academic Calendar</span>
                     </div>
-                    <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Unified Terminal View</h1>
-                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Synchronized stream of lectures, assessments, homework cycles, and approved leaves.</p>
+                    <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Timetable & Events</h1>
+                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Consolidated view of your lectures, exams, assignments, and approved leaves.</p>
                 </div>
 
                 <div className="flex items-center gap-6 bg-slate-950/80 p-2 rounded-md border border-slate-800/60 shadow-inner">
@@ -153,8 +174,12 @@ const TeacherUnifiedCalendar = () => {
                                 const dayEvents = cell.date ? eventsByDate[cell.date.toDateString()] : null;
                                 const isToday = cell.date?.toDateString() === new Date().toDateString();
 
-                                return (
-                                    <div key={idx} className={`min-h-[160px] border-r border-b border-slate-800/40 p-4 transition-all hover:bg-white/[0.02] group ${!cell.day ? 'bg-slate-950/20' : ''}`}>
+                                 return (
+                                    <div 
+                                        key={idx} 
+                                        onClick={() => openDayModal(cell.date, dayEvents)}
+                                        className={`min-h-[160px] border-r border-b border-slate-800/40 p-4 transition-all hover:bg-white/[0.02] group ${!cell.day ? 'bg-slate-950/20' : 'cursor-pointer'}`}
+                                    >
                                         <div className="flex items-center justify-between mb-4">
                                             <span className={`text-xs font-black italic font-outfit ${isToday ? 'bg-brand-primary text-white w-8 h-8 rounded-md flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.4)]' : 'text-slate-600 group-hover:text-slate-400'}`}>
                                                 {cell.day}
@@ -165,12 +190,12 @@ const TeacherUnifiedCalendar = () => {
                                         </div>
                                         <div className="space-y-2">
                                             {dayEvents?.slice(0, 3).map((ev, i) => (
-                                                <div key={i} className={`p-2 rounded-md bg-slate-900/80 border-l-2 ${ev.color} text-[8px] font-black text-white uppercase tracking-tight truncate shadow-xl hover:scale-[1.02] transition-transform cursor-pointer`}>
+                                                <div key={i} className={`p-2 rounded-md bg-slate-900/80 border-l-2 ${ev.color} text-[8px] font-black text-white uppercase tracking-tight truncate shadow-xl hover:scale-[1.02] transition-transform`}>
                                                     {ev.title}
                                                 </div>
                                             ))}
                                             {dayEvents?.length > 3 && (
-                                                <div className="text-[7px] font-black text-slate-600 uppercase tracking-widest text-center mt-2">+{dayEvents.length - 3} Protocols</div>
+                                                <div className="text-[7px] font-black text-slate-600 uppercase tracking-widest text-center mt-2">+{dayEvents.length - 3} More Events</div>
                                             )}
                                         </div>
                                     </div>
@@ -183,13 +208,13 @@ const TeacherUnifiedCalendar = () => {
                 <div className="space-y-8">
                     <div className="bg-slate-900/40 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl">
                         <h3 className="text-[10px] font-black text-white uppercase tracking-[0.35em] mb-8 italic flex items-center gap-3">
-                            <Layers size={14} className="text-brand-primary" /> Sector Legend
+                            <Layers size={14} className="text-brand-primary" /> Event Categories
                         </h3>
                         <div className="space-y-4">
                             {[
-                                { label: 'Lectures', color: 'bg-brand-primary', icon: Clock },
-                                { label: 'Assessments', color: 'bg-luxury-rose', icon: Trophy },
-                                { label: 'Homework', color: 'bg-luxury-amber', icon: FileText },
+                                { label: 'My Lectures', color: 'bg-brand-primary', icon: Clock },
+                                { label: 'Exams/Tests', color: 'bg-luxury-rose', icon: Trophy },
+                                { label: 'Assignments', color: 'bg-luxury-amber', icon: FileText },
                                 { label: 'Approved Leave', color: 'bg-emerald-500', icon: LogOut },
                             ].map((l, i) => (
                                 <div key={i} className="flex items-center gap-4 group cursor-pointer">
@@ -206,11 +231,66 @@ const TeacherUnifiedCalendar = () => {
                         <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
                             <AlertCircle size={80} className="text-brand-primary" />
                         </div>
-                        <h3 className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-4 italic">Proximity Alert</h3>
-                        <p className="text-white text-xs font-bold leading-relaxed uppercase italic">Automatic archival synchronization for the next academic cycle will commence in 24 hours.</p>
+                        <h3 className="text-[10px] font-black text-brand-primary uppercase tracking-widest mb-4 italic">Important Notice</h3>
+                        <p className="text-white text-xs font-bold leading-relaxed uppercase italic">Academic data synchronization for the next session will occur automatically within 24 hours.</p>
                     </div>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {showDayModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            onClick={() => setShowDayModal(false)}
+                            className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm"
+                        ></motion.div>
+                        <motion.div 
+                            initial={{ scale: 0.9, opacity: 0, y: 20 }} 
+                            animate={{ scale: 1, opacity: 1, y: 0 }} 
+                            exit={{ scale: 0.9, opacity: 0, y: 20 }} 
+                            className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-md shadow-2xl overflow-hidden"
+                        >
+                            <div className="p-6 border-b border-slate-800 flex items-center justify-between">
+                                <div className="space-y-1">
+                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none">{selectedDate?.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
+                                    <p className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] italic">{selectedDate?.toLocaleDateString('en-IN', { weekday: 'long' })} Schedule</p>
+                                </div>
+                                <button onClick={() => setShowDayModal(false)} className="w-10 h-10 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white transition-all">
+                                    <X size={20} />
+                                </button>
+                            </div>
+                            <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
+                                {selectedDayEvents?.map((ev, i) => (
+                                    <motion.div 
+                                        initial={{ x: -10, opacity: 0 }}
+                                        animate={{ x: 0, opacity: 1 }}
+                                        transition={{ delay: i * 0.05 }}
+                                        key={i} 
+                                        className={`p-4 rounded-md bg-slate-950 border-l-4 ${ev.color} shadow-xl flex items-center justify-between group`}
+                                    >
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-black text-white uppercase tracking-tight italic">{ev.title}</p>
+                                            <div className="flex items-center gap-2">
+                                                <Clock size={10} className="text-slate-600" />
+                                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{ev.time}</span>
+                                            </div>
+                                        </div>
+                                        <div className={`px-2 py-1 rounded bg-slate-900 text-[8px] font-black uppercase tracking-widest italic transition-colors ${ev.type === 'lecture' ? 'text-brand-primary' : ev.type === 'exam' ? 'text-rose-500' : ev.type === 'assignment' ? 'text-amber-500' : 'text-emerald-500'}`}>
+                                            {ev.type}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                            <div className="p-6 bg-slate-950/50 border-t border-slate-800">
+                                <p className="text-[8px] font-medium text-slate-600 uppercase tracking-[0.2em] italic">Electronic Schedule Verification Protocol Active</p>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

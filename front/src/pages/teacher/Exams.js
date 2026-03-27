@@ -27,7 +27,7 @@ const TeacherExams = () => {
     if (loading && exams.length === 0) return (
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
             <Activity className="w-12 h-12 text-brand-primary animate-spin opacity-50" />
-            <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Synchronizing Examination Archive</p>
+            <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Loading Exam Schedule...</p>
         </div>
     );
 
@@ -37,16 +37,16 @@ const TeacherExams = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-3">
                         <div className="h-[2px] w-12 bg-luxury-rose rounded-md"></div>
-                        <span className="text-[10px] font-black text-luxury-rose uppercase tracking-[0.5em] italic">Assessment Protocols</span>
+                        <span className="text-[10px] font-black text-luxury-rose uppercase tracking-[0.5em] italic">Exams & Assessments</span>
                     </div>
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit shadow-text-glow">Upcoming Examinations</h1>
-                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Institutional evaluation schedule for assigned academic cluster sectors.</p>
+                    <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Official exam schedule for your assigned classes.</p>
                 </div>
 
                 <div className="flex items-center gap-6 bg-slate-950/80 p-6 rounded-md border border-slate-800/60 shadow-inner">
                     <div className="text-right">
                         <p className="text-sm font-black text-white uppercase italic tracking-tighter font-outfit">{exams.length}</p>
-                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Active Assessments</p>
+                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest">Total Exams</p>
                     </div>
                     <div className="w-10 h-10 rounded-md bg-luxury-rose/10 flex items-center justify-center text-luxury-rose border border-luxury-rose/20">
                         <Trophy size={18} />
@@ -74,8 +74,8 @@ const TeacherExams = () => {
                                         <Award size={20} />
                                     </div>
                                     <div className="flex items-center gap-2">
-                                        {isEval && <span className="text-[8px] font-black uppercase px-3 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 tracking-widest italic rounded-md shadow-[0_0_10px_rgba(16,185,129,0.3)]">Evaluated</span>}
-                                        <span className="text-[8px] font-black uppercase px-3 py-1 bg-slate-950 border border-slate-800 text-slate-500 tracking-widest italic rounded-md">ID: {exam._id.slice(-6).toUpperCase()}</span>
+                                        {isEval && <span className="text-[8px] font-black uppercase px-3 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 tracking-widest italic rounded-md shadow-[0_0_10px_rgba(16,185,129,0.3)]">Completed</span>}
+                                        <span className="text-[8px] font-black uppercase px-3 py-1 bg-slate-950 border border-slate-800 text-slate-500 tracking-widest italic rounded-md">EXAM ID: {exam._id.slice(-6).toUpperCase()}</span>
                                     </div>
                                 </div>
 
@@ -86,11 +86,11 @@ const TeacherExams = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60 transition-colors hover:bg-slate-900">
-                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Calendar size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Launch Date</p>
-                                        <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{new Date(exam.date).toLocaleDateString()}</p>
+                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Calendar size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Exam Date</p>
+                                        <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{new Date(exam.date).toLocaleDateString('en-IN')}</p>
                                     </div>
                                     <div className="space-y-2 p-4 bg-slate-950/40 rounded-md border border-slate-800/60 transition-colors hover:bg-slate-900">
-                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Clock size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Temporal Unit</p>
+                                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic flex items-center gap-2"> <Clock size={10} className={isEval ? 'text-luxury-emerald/40' : 'text-luxury-rose/40'} /> Exam Time</p>
                                         <p className="text-xs font-black text-slate-300 uppercase italic font-outfit tracking-wider">{exam.startTime || '09:00 AM'} - {exam.endTime || '12:00 PM'}</p>
                                     </div>
                                 </div>
@@ -99,10 +99,10 @@ const TeacherExams = () => {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
                                             <Hash size={12} className="text-slate-600" />
-                                            <span className={`text-xs font-black italic font-outfit tracking-tighter ${isEval ? 'text-luxury-emerald' : 'text-luxury-rose'}`}>{exam.maxMarks} <span className="text-[8px] text-slate-600 ml-1">Nodes</span></span>
+                                            <span className={`text-xs font-black italic font-outfit tracking-tighter ${isEval ? 'text-luxury-emerald' : 'text-luxury-rose'}`}>{exam.maxMarks} <span className="text-[8px] text-slate-600 ml-1">Marks</span></span>
                                         </div>
                                         <div className={`flex items-center gap-2 text-[8px] font-black uppercase tracking-widest italic transition-colors ${isEval ? 'text-luxury-emerald/80 group-hover:text-luxury-emerald' : 'text-slate-700 group-hover:text-luxury-rose'}`}>
-                                            {isEval ? 'Completion Logged' : 'Pending Verification'} {isEval ? <CheckCircle size={10} /> : <AlertCircle size={10} />}
+                                            {isEval ? 'Marks Entered' : 'Pending Entries'} {isEval ? <CheckCircle size={10} /> : <AlertCircle size={10} />}
                                         </div>
                                     </div>
                                     
@@ -114,7 +114,7 @@ const TeacherExams = () => {
                                                 : 'bg-luxury-rose/5 border border-luxury-rose/20 text-luxury-rose hover:bg-luxury-rose/10 hover:border-luxury-rose/50 hover:text-white hover:shadow-[0_0_30px_rgba(244,63,94,0.25)] ring-1 ring-inset ring-luxury-rose/10'
                                         }`}
                                     >
-                                        {isEval ? 'Review Protocol Log' : 'Initiate Grade Upload'} <BookOpen size={14} className={isEval ? "opacity-80" : "opacity-60"} />
+                                        {isEval ? 'View/Edit Marks' : 'Enter Marks'} <BookOpen size={14} className={isEval ? "opacity-80" : "opacity-60"} />
                                     </button>
                                 </div>
                             </div>
@@ -126,8 +126,8 @@ const TeacherExams = () => {
                 {exams.length === 0 && !loading && (
                     <div className="col-span-full py-40 text-center space-y-6 opacity-30 italic">
                         <Trophy className="w-16 h-16 mx-auto mb-6 animate-pulse text-slate-800" />
-                        <h3 className="text-xl font-black text-white uppercase tracking-[0.4em]">Void Assessment Archive</h3>
-                        <p className="text-[10px] font-black uppercase tracking-widest max-w-sm mx-auto">No upcoming evaluative directives detected in this cluster sector.</p>
+                        <h3 className="text-xl font-black text-white uppercase tracking-[0.4em]">No Upcoming Exams</h3>
+                        <p className="text-[10px] font-black uppercase tracking-widest max-w-sm mx-auto">No upcoming evaluative exams detected for your assigned classes.</p>
                     </div>
                 )}
             </div>
@@ -138,9 +138,9 @@ const TeacherExams = () => {
                 </div>
                 <AlertCircle className="text-luxury-rose shrink-0" size={24} />
                 <div className="space-y-2 relative z-10">
-                    <p className="text-xs text-luxury-rose font-black uppercase tracking-widest">Procedural Note ST-77</p>
+                    <p className="text-xs text-luxury-rose font-black uppercase tracking-widest">IMPORTANT NOTE</p>
                     <p className="text-[12px] text-luxury-rose/80 leading-relaxed font-bold uppercase tracking-tight">
-                        Examination metrics are synchronized with the institutional main-frame. Any conflict in temporal launch windows or subject protocols must be reported to the administrative oversight node immediately.
+                        Exam schedules are synced with the central management system. Any discrepancy in exam dates or timings should be reported to the school office immediately.
                     </p>
                 </div>
             </div>

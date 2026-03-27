@@ -17,7 +17,7 @@ const TeacherAttendanceAnalytics = () => {
         return (
             <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
                 <Loader2 className="w-12 h-12 text-brand-primary animate-spin opacity-50" />
-                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Scanning Engagement Vectors</p>
+                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-xs animate-pulse">Loading Attendance Data...</p>
             </div>
         );
     }
@@ -27,15 +27,15 @@ const TeacherAttendanceAnalytics = () => {
     return (
         <div className="space-y-12 pb-20">
             <div className='text-left'>
-                <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Engagement  Intelligence</h1>
-                <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Sector Attendance Summary • Last 30 Cycles</p>
+                <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Attendance Analytics</h1>
+                <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-xs">Class Attendance Summary • Last 30 Days</p>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl backdrop-blur-sm">
                         <div className="flex items-center justify-between mb-10 px-2">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit">Temporal Trend Matrix</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit">Attendance Trends</h3>
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-brand-primary"></div>
                                 <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest italic">Attendance %</span>
@@ -55,7 +55,7 @@ const TeacherAttendanceAnalytics = () => {
                                         dataKey="date"
                                         stroke="#475569"
                                         fontSize={10}
-                                        tickFormatter={(str) => new Date(str).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}
+                                        tickFormatter={(str) => new Date(str).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
                                         axisLine={false}
                                         tickLine={false}
                                     />
@@ -80,7 +80,7 @@ const TeacherAttendanceAnalytics = () => {
 
                 <div className="space-y-8">
                     <div className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl">
-                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit mb-8 px-2">Sector Performance</h3>
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit mb-8 px-2">Class Performance</h3>
                         <div className="space-y-6">
                             {classWise.map((c, idx) => (
                                 <motion.div
@@ -111,9 +111,9 @@ const TeacherAttendanceAnalytics = () => {
 
                     <div className="bg-brand-primary/10 border border-brand-primary/20 rounded-md p-8 shadow-2xl relative overflow-hidden group">
                         <TrendingUp size={48} className="absolute -bottom-4 -right-4 text-brand-primary/10 group-hover:scale-110 transition-transform" />
-                        <h4 className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] mb-4">Insight Protocol</h4>
+                        <h4 className="text-[10px] font-black text-brand-primary uppercase tracking-[0.3em] mb-4">Attendance Insights</h4>
                         <p className="text-slate-300 font-medium text-xs leading-relaxed italic">
-                            Overall engagement is {timeline.length > 0 ? (timeline[timeline.length - 1].percentage >= 90 ? 'EXCEPTIONAL' : 'OPTIMAL') : 'STABLE'} across the last recorded cycle. No critical dips detected in assigned sectors.
+                            Overall attendance is {timeline.length > 0 ? (timeline[timeline.length - 1].percentage >= 90 ? 'EXCEPTIONAL' : 'OPTIMAL') : 'STABLE'} across the last recorded period. No critical dips detected in assigned classes.
                         </p>
                     </div>
                 </div>

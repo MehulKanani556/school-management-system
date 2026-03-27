@@ -38,7 +38,7 @@ const MarkAttendance = () => {
             records: {} // { studentId: { status, arrivalTime, departureTime, isLate, isEarlyLeave, remarks } }
         },
         validationSchema: Yup.object({
-            selectedClass: Yup.string().required('Section selection required'),
+            selectedClass: Yup.string().required('Class selection required'),
             selectedDate: Yup.date().required('Date selection required'),
         }),
         onSubmit: async (values) => {
@@ -48,7 +48,7 @@ const MarkAttendance = () => {
             }));
 
             if (recordsArr.length === 0) {
-                return dispatch(setTeacherError("No student nodes detected for commitment"));
+                return dispatch(setTeacherError("No student records found to save"));
             }
 
             dispatch(submitAttendance({
@@ -164,10 +164,10 @@ const MarkAttendance = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-brand-primary rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Teacher Terminal</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-primary font-outfit">Teacher Panel</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Attendance Registry</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Institutional node tracking for assigned academic sectors.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Mark Attendance</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Daily attendance registry for your assigned classes.</p>
                 </div>
 
                 <div className="flex flex-wrap gap-4">
@@ -180,10 +180,10 @@ const MarkAttendance = () => {
                             onChange={formik.handleChange}
                             className={`w-full bg-slate-900/80 border ${formik.touched.selectedClass && formik.errors.selectedClass ? 'border-luxury-rose' : 'border-slate-800'} h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white shadow-xl italic`}
                         >
-                            <option value="" className="bg-slate-950 text-slate-600">Select Section</option>
+                            <option value="" className="bg-slate-950 text-slate-600">Select Class</option>
                             {classes.map(cls => (
                                 <option key={cls._id} value={cls._id} className="bg-slate-950 text-white italic">
-                                    Grade {cls.standardId?.level} - {cls.sectionLabel}
+                                    Std {cls.standardId?.level || cls.gradeLevel} - {cls.sectionLabel}
                                 </option>
                             ))}
                         </select>
@@ -209,21 +209,13 @@ const MarkAttendance = () => {
                             <Search size={18} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
                             <input
                                 type="text"
-                                placeholder="Identify student by nomenclature..."
+                                placeholder="Search student by name..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 className="w-full bg-slate-950/80 border border-slate-800 focus:border-brand-primary/60 outline-none h-14 pl-16 pr-6 rounded-md text-[12px] font-bold text-slate-100 shadow-2xl transition-all font-outfit italic tracking-wide"
                             />
                         </div>
                         <div className="flex gap-4">
-                            {/* <button
-                                type="button"
-                                onClick={() => setShowBulkModal(true)}
-                                disabled={!isEditing}
-                                className="px-6 h-14 border border-slate-700 hover:bg-slate-800 text-slate-400 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic flex items-center gap-3 shadow-xl disabled:opacity-20"
-                            >
-                                <Upload size={16} /> Bulk Import
-                            </button> */}
                             <button
                                 type="button"
                                 disabled={!isEditing}
@@ -235,14 +227,12 @@ const MarkAttendance = () => {
                                             status: 'Present',
                                             studentId: s._id
                                         };
-                                        // Update local form state too for visual feedback
                                         updatedRecords[s._id] = r;
                                         return r;
                                     });
 
                                     formik.setFieldValue('records', updatedRecords);
                                     
-                                    // Direct institutional commit
                                     dispatch(submitAttendance({
                                         classSectionId: formik.values.selectedClass,
                                         date: formik.values.selectedDate,
@@ -251,7 +241,7 @@ const MarkAttendance = () => {
                                 }}
                                 className="px-6 h-14 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md font-black text-[11px] uppercase tracking-widest transition-all italic disabled:opacity-20"
                             >
-                                Mass Presence
+                                Mark All Present
                             </button>
 
                             {!isEditing ? (
@@ -260,7 +250,7 @@ const MarkAttendance = () => {
                                     onClick={() => setIsEditing(true)}
                                     className="flex items-center justify-center gap-3 bg-slate-900 border border-slate-700 hover:border-brand-primary text-slate-300 px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-xl font-outfit italic"
                                 >
-                                    <Clock size={20} className="text-brand-primary" /> Unlock for Logic Sync
+                                    <Clock size={20} className="text-brand-primary" /> Edit Attendance
                                 </button>
                             ) : (
                                 <button
@@ -269,7 +259,7 @@ const MarkAttendance = () => {
                                     className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-teacher-primary text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] active:scale-95 disabled:opacity-50 font-outfit italic"
                                 >
                                     {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />}
-                                    {attendance && attendance.length > 0 ? 'Synchronize Updates' : 'Commit Records'}
+                                    {attendance && attendance.length > 0 ? 'Update Attendance' : 'Save Attendance'}
                                 </button>
                             )}
                         </div>
@@ -280,9 +270,9 @@ const MarkAttendance = () => {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="bg-slate-900/60 border-b border-slate-800/50">
-                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Student Identity</th>
-                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">Verification Protocol</th>
-                                        <th className="px-8 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">Actions</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic font-outfit">Student Name</th>
+                                        <th className="px-12 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">Attendance Status</th>
+                                        <th className="px-8 py-8 text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic text-center font-outfit">More Details</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/40">
@@ -302,7 +292,7 @@ const MarkAttendance = () => {
                                                                 >
                                                                     {student.firstName} {student.lastName}
                                                                 </p>
-                                                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Node Ref: {student.admissionNumber || '—'}</p>
+                                                                <p className="text-[10px] font-bold text-slate-600 uppercase tracking-[0.2em] italic">Roll No/Adm No: {student.admissionNumber || '—'}</p>
                                                             </div>
                                                         </div>
                                                     </td>
@@ -333,7 +323,7 @@ const MarkAttendance = () => {
                                                             <td colSpan="3" className="px-12 py-8 border-b border-slate-800/30">
                                                                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                                                                     <div className="space-y-3">
-                                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Arrival Node</label>
+                                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Arrival Time</label>
                                                                         <div className="relative">
                                                                             <Clock size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
                                                                             <input
@@ -346,11 +336,11 @@ const MarkAttendance = () => {
                                                                         </div>
                                                                     </div>
                                                                     <div className="md:col-span-2 space-y-3">
-                                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Administrative Remarks</label>
+                                                                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Teacher Notes</label>
                                                                         <textarea
                                                                             disabled={!isEditing}
                                                                             className="w-full bg-slate-950/50 border border-slate-800/60 rounded-md p-4 text-xs font-bold text-white font-outfit min-h-[90px] resize-none italic disabled:opacity-40"
-                                                                            placeholder="Enter behavioral or logistical notes..."
+                                                                            placeholder="Add any remarks or notes here..."
                                                                             value={formik.values.records[student._id]?.remarks}
                                                                             onChange={(e) => formik.setFieldValue(`records.${student._id}.remarks`, e.target.value)}
                                                                         ></textarea>
@@ -371,11 +361,11 @@ const MarkAttendance = () => {
             ) : (
                 <div className="flex flex-col items-center justify-center py-40 border-2 border-dashed border-slate-800/40 rounded-md bg-slate-900/20 shadow-inner">
                     <Activity size={60} className="text-slate-800 mb-8 opacity-20" />
-                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] italic">Awaiting Sector Synchronization</p>
+                    <p className="text-slate-600 font-black uppercase tracking-[0.6em] text-[12px] italic">Please select a class to mark attendance</p>
                 </div>
             )}
 
-            <Modal open={showBulkModal} onClose={() => setShowBulkModal(false)} title="Mass Telemetry Import">
+            <Modal open={showBulkModal} onClose={() => setShowBulkModal(false)} title="Bulk Attendance Upload">
                 <div className="space-y-6 pt-4">
                     <div className="bg-slate-800/60 border border-slate-700/50 p-6 rounded-md group hover:border-brand-primary/40 transition-all cursor-pointer relative overflow-hidden">
                         <input type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files[0])} className="absolute inset-0 opacity-0 cursor-pointer z-10" />
@@ -384,16 +374,16 @@ const MarkAttendance = () => {
                                 <FileText size={40} />
                             </div>
                             <div className="text-center">
-                                <p className="text-sm font-black text-white italic uppercase">{csvFile ? csvFile.name : 'Select Institutional archival CSV'}</p>
+                                <p className="text-sm font-black text-white italic uppercase">{csvFile ? csvFile.name : 'Select Attendance CSV'}</p>
                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-2">Format: admissionNumber,status</p>
                             </div>
                         </div>
                     </div>
                     <button onClick={handleBulkUpload} disabled={!csvFile} className="w-full py-5 bg-brand-primary hover:bg-teacher-primary disabled:opacity-50 text-white rounded-md font-black text-[11px] uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-3 italic">
-                        <Upload size={18} /> Initiate Mass Sync
+                        <Upload size={18} /> Upload Attendance
                     </button>
                     <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight text-center leading-relaxed italic">
-                        Disclaimer: Bulk synchronization will override all existing temporal records for the selected academic cluster and date cycle.
+                        Note: Bulk upload will overwrite any existing attendance records for the selected class and date.
                     </p>
                 </div>
             </Modal>

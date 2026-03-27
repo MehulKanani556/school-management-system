@@ -38,69 +38,69 @@ const TeacherLayout = () => {
     }, [dispatch, dashboard]);
 
     const academicChildren = [
-        { to: '/teacher/classes', icon: Layout, label: 'My Classes' },
+        { to: '/teacher/classes', icon: Layout, label: 'Assigned Classes' },
         ...(dashboard?.myClass ? [{ 
             to: `/teacher/students/${dashboard.myClass.id}`, 
             icon: Users, 
-            label: 'My Registry' 
+            label: 'Student Register' 
         }] : []),
-        { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planning' },
-        { to: '/teacher/attendance', icon: CalendarIcon, label: 'Attendance' },
+        { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planner' },
+        { to: '/teacher/attendance', icon: CalendarIcon, label: 'Daily Attendance' },
         { to: '/teacher/bulk-attendance', icon: Upload, label: 'Bulk Attendance' },
-        { to: '/teacher/marks', icon: Activity, label: 'Examination Marks' },
-        { to: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Schedule' },
-        { to: '/teacher/assignments', icon: Upload, label: 'Assignments' },
-        { to: '/teacher/quizzes', icon: Brain, label: 'Student Quizzes' },
+        { to: '/teacher/marks', icon: Activity, label: 'Result Entry' },
+        { to: '/teacher/exam-schedule', icon: Trophy, label: 'Exam Timetable' },
+        { to: '/teacher/assignments', icon: Upload, label: 'Homework/Assignments' },
+        { to: '/teacher/quizzes', icon: Brain, label: 'Tests & Quizzes' },
         { to: '/teacher/timetable', icon: Clock, label: 'My Timetable' },
         { to: '/teacher/question-bank', icon: Database, label: 'Question Bank' },
     ];
 
     const navItems = [
-        { to: '/teacher', icon: LayoutDashboard, label: 'Dashboard', end: true },
+        { to: '/teacher', icon: LayoutDashboard, label: 'Overview', end: true },
         {
-            label: 'Academic Records',
+            label: 'Academic Management',
             icon: BookOpen,
             children: academicChildren
         },
         {
-            label: 'Communication Hub',
+            label: 'Communication Center',
             icon: MessageSquare,
             children: [
                 { to: '/teacher/announcements', icon: Megaphone, label: 'Announcements' },
-                { to: '/teacher/messages?tab=chat', icon: Shield, label: 'Chat & Messages' },
-                { to: '/teacher/messages?tab=notices', icon: Layout, label: 'Notice Board' },
+                { to: '/teacher/messages?tab=chat', icon: Shield, label: 'Staff & Parent Chat' },
+                { to: '/teacher/messages?tab=notices', icon: Layout, label: 'Circulars/Notices' },
                 { to: '/teacher/meetings', icon: Calendar, label: 'PTM Meetings' },
-                { to: '/teacher/resources', icon: HardDrive, label: 'Resource Library' },
+                { to: '/teacher/resources', icon: HardDrive, label: 'Study Material' },
             ]
         },
         {
-            label: 'Student Insights',
+            label: 'Student Administration',
             icon: Activity,
             children: [
-                { to: '/teacher/analytics', icon: Activity, label: 'Attendance Analytics' },
-                { to: '/teacher/behavior-log', icon: Shield, label: 'Behavior Log' },
-                { to: '/teacher/fee-status', icon: DollarSign, label: 'Class Fee Status' },
-                { to: '/teacher/reviews', icon: Trophy, label: 'My Reviews' },
+                { to: '/teacher/analytics', icon: Activity, label: 'Attendance Reports' },
+                { to: '/teacher/behavior-log', icon: Shield, label: 'Conduct Record' },
+                { to: '/teacher/fee-status', icon: DollarSign, label: 'Fee Defaulters' },
+                { to: '/teacher/reviews', icon: Trophy, label: 'Teacher Reviews' },
             ]
         },
         {
-            label: 'Staff Management',
+            label: 'Staff Self Service',
             icon: Clock,
             children: [
-                { to: '/teacher/payroll', icon: DollarSign, label: 'Salary/Payroll' },
-                { to: '/teacher/leaves', icon: CalendarDays, label: 'Leave Requests' },
-                { to: '/teacher/performance-report', icon: TrendingUp, label: 'My Performance' },
+                { to: '/teacher/payroll', icon: DollarSign, label: 'Payslips/Salary' },
+                { to: '/teacher/leaves', icon: CalendarDays, label: 'Leave Application' },
+                { to: '/teacher/performance-report', icon: TrendingUp, label: 'Performance Appraisal' },
             ]
         },
         {
-            label: 'Profile Settings',
+            label: 'Profile & Settings',
             icon: User,
             children: [
                 { to: '/teacher/profile', icon: User, label: 'My Profile' },
                 { to: '/teacher/noticeboard', icon: Layout, label: 'Class Noticeboard' },
-                { to: '/teacher/notifications', icon: Bell, label: 'Notifications' },
-                { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'Calendar' },
-                { to: '/teacher/holidays', icon: Calendar, label: 'Holidays' },
+                { to: '/teacher/notifications', icon: Bell, label: 'System Alerts' },
+                { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'School Calendar' },
+                { to: '/teacher/holidays', icon: Calendar, label: 'List of Holidays' },
             ]
         }
     ];
@@ -167,12 +167,12 @@ const TeacherLayout = () => {
                 <div className="p-8 flex-shrink-0">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-md bg-gradient-to-br from-teacher-primary to-teacher-secondary flex items-center justify-center font-black text-xl italic shadow-lg">TC</div>
-                        <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Teacher <span className="text-teacher-primary">Node</span></span>
+                        <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Teacher <span className="text-teacher-primary">Portal</span></span>
                     </div>
                 </div>
 
                 <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-                    <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Faculty Operations</p>
+                    <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Academic & Administration</p>
                     {navItems.map((item) => {
                         const hasChildren = !!item.children;
                         const isExpanded = expanded === item.label;
@@ -240,7 +240,7 @@ const TeacherLayout = () => {
                 <div className="p-6 flex-shrink-0">
                     <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-teacher-primary/10 hover:text-teacher-primary transition-all group font-outfit border border-transparent hover:border-teacher-primary/20 uppercase tracking-widest text-[11px] font-black">
                         <LogOut size={20} />
-                        <span className="italic">Log out</span>
+                        <span className="italic">Logout</span>
                     </button>
                 </div>
             </aside>
@@ -253,9 +253,9 @@ const TeacherLayout = () => {
                         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
                             <Menu size={20} />
                         </button>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Institutional Node</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">School Portal</span>
                         <ChevronRight size={14} className="hidden sm:block opacity-20" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-teacher-primary italic">Teacher Center Terminal</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-teacher-primary italic">Teacher Dashboard</span>
                     </div>
 
                     <div className="flex items-center gap-6">
@@ -324,7 +324,7 @@ const TeacherLayout = () => {
                                                     className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-teacher-primary/10 text-teacher-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                                                 >
                                                     <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                                                    Log Out Matrix
+                                                    Logout
                                                 </button>
                                             </div>
                                         </motion.div>

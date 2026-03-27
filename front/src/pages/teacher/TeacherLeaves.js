@@ -89,7 +89,7 @@ const TeacherLeaves = () => {
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl text-left font-black uppercase tracking-tighter font-outfit text-white">Leave Portal</h1>
-                    <p className="text-slate-500 text-sm mt-1">Manage your time-off applications and track status</p>
+                    <p className="text-slate-500 text-sm mt-1">Manage your leave applications and track status</p>
                 </div>
                 <button onClick={() => setModal(true)} className="flex items-center gap-2 px-6 py-4 bg-brand-primary hover:bg-teacher-primary rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-xl shadow-teacher-primary/20 active:scale-95">
                     <Plus size={18} /> Apply for Leave
@@ -101,11 +101,11 @@ const TeacherLeaves = () => {
                 <div className="lg:col-span-1 space-y-4">
                     <div className="bg-slate-800/40 border border-slate-700/50 p-6 rounded-md">
                         <div className="flex items-center justify-between mb-4">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Quota Usage (Days)</h3>
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Leave Summary (Days)</h3>
                             <div className="relative group">
                                 <Info size={14} className="text-slate-600" />
                                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 border border-slate-800 rounded text-[9px] font-bold text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                    Total approved days based on institutional calendar synchronization.
+                                    Total approved leave days for this academic year.
                                 </div>
                             </div>
                         </div>
@@ -127,18 +127,18 @@ const TeacherLeaves = () => {
                     <div className="bg-brand-primary/10 border border-brand-primary/20 p-6 rounded-md group hover:bg-brand-primary/20 transition-all cursor-pointer">
                         <CalendarDays size={24} className="text-brand-primary mb-3 group-hover:scale-110 transition-transform" />
                         <h4 className="text-sm font-bold text-white mb-2">Upcoming Holidays</h4>
-                        <p className="text-xs text-slate-400 leading-relaxed">Check the holiday calendar before applying for leave to optimize your time off.</p>
+                        <p className="text-xs text-slate-400 leading-relaxed">Check the holiday calendar before applying for leave.</p>
                         <button onClick={()=>{navigate('/teacher/holidays')}} className="mt-4 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:underline">View Calendar</button>
                     </div>
                 </div>
 
                 {/* History */}
                 <div className="lg:col-span-2 space-y-4">
-                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2 italic">Application History Registry</h3>
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2 italic">Leave Application History</h3>
                     {leaves.length === 0 ? (
                         <div className="bg-slate-800/20 border border-dashed border-slate-700/50 rounded-md py-20 text-center">
                             <Clock size={40} className="mx-auto text-slate-700 mb-4 opacity-40" />
-                            <p className="text-slate-500 font-medium whitespace-nowrap">No leave archives found in institutional memory</p>
+                            <p className="text-slate-500 font-medium whitespace-nowrap">No leave applications found.</p>
                         </div>
                     ) : (
                         leaves.map((l, i) => (
@@ -152,7 +152,7 @@ const TeacherLeaves = () => {
                                 <div className="absolute top-0 left-0 w-1 h-full bg-transparent group-hover:bg-brand-primary transition-all" />
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xl">
+                                        <div className="w-12 h-12 rounded-md bg-slate-900 border border-white/5 flex items-center justify-center text-brand-primary group-hover:bg-brand-primary group-hover:text-white transition-all shadow-xl font-mono italic">
                                             <CalendarDays size={20} />
                                         </div>
                                         <div>
@@ -177,41 +177,41 @@ const TeacherLeaves = () => {
                 <form onSubmit={formik.handleSubmit} className="space-y-6 pt-4">
                     <div className="bg-brand-primary/5 border border-brand-primary/10 p-4 rounded-md mb-2">
                         <p className="text-[10px] font-bold text-slate-400 leading-relaxed uppercase tracking-wider text-center">
-                            Please ensure your application details align with institutional pedagogical scheduling.
+                            Please ensure your leave dates are correct and do not conflict with important school events.
                         </p>
                     </div>
                     <div>
                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Leave Category</label>
                         <select {...formik.getFieldProps('type')} className={inputClass}>
-                            <option value="sick text-slate-400">Sick Leave (Medical Node Extraction)</option>
-                            <option value="casual">Casual Leave (Personal Time Retrieval)</option>
-                            <option value="maternity">Maternity Leave (Biological Cycle Support)</option>
-                            <option value="paternity">Paternity Leave (Biological Cycle Support)</option>
-                            <option value="other">Other (Miscellaneous Extraction)</option>
+                            <option value="sick text-slate-400">Sick Leave</option>
+                            <option value="casual">Casual Leave</option>
+                            <option value="maternity">Maternity Leave</option>
+                            <option value="paternity">Paternity Leave</option>
+                            <option value="other">Other</option>
                         </select>
                     </div>
 
                     <div className="grid grid-cols-2 gap-6">
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Trigger Date</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Start Date</label>
                             <input type="date" {...formik.getFieldProps('startDate')} className={inputClass} />
                             {formik.touched.startDate && formik.errors.startDate && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.startDate}</p>}
                         </div>
                         <div>
-                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Termination Date</label>
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">End Date</label>
                             <input type="date" {...formik.getFieldProps('endDate')} className={inputClass} />
                             {formik.touched.endDate && formik.errors.endDate && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.endDate}</p>}
                         </div>
                     </div>
 
                     <div>
-                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Application Justification</label>
-                        <textarea {...formik.getFieldProps('reason')} rows={4} className={`${inputClass} resize-none min-h-[120px]`} placeholder="Briefly describe the institutional alignment for your application..."></textarea>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2 block px-1">Reason for Leave</label>
+                        <textarea {...formik.getFieldProps('reason')} rows={4} className={`${inputClass} resize-none min-h-[120px]`} placeholder="Please provide a reason for your leave request..."></textarea>
                         {formik.touched.reason && formik.errors.reason && <p className="text-[10px] text-red-500 mt-1.5 pl-1 font-bold italic tracking-tight">{formik.errors.reason}</p>}
                     </div>
 
                     <button type="submit" disabled={loading} className="w-full mt-6 py-5 bg-gradient-to-r from-brand-primary to-teacher-primary hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand-primary/20 text-white">
-                        {loading ? 'Transmitting Data...' : 'Confirm Institutional Extraction'} <ChevronRight size={16} />
+                        {loading ? 'Submitting...' : 'Submit Leave Application'} <ChevronRight size={16} />
                     </button>
                 </form>
             </Modal>

@@ -38,7 +38,7 @@ const PerformanceAnalytics = () => {
     const chartData = useMemo(() => {
         if (!dataArray.length) return [];
         return dataArray.map(a => ({
-            name: String(a.subject || 'Unknown Sector'),
+            name: String(a.subject || 'Unknown Subject'),
             avg: Number(Number(a.averageScore || 0).toFixed(1)),
             max: Number(a.maxScore || 0),
             min: Number(a.minScore || 0),
@@ -63,7 +63,7 @@ const PerformanceAnalytics = () => {
     if (loading) return (
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6">
             <Activity className="w-12 h-12 text-teacher-primary animate-spin opacity-50" />
-            <p className="text-slate-500 font-black uppercase tracking-widest text-[10px] animate-pulse italic">Synchronizing Neural Grid</p>
+            <p className="text-slate-500 font-black uppercase tracking-widest text-[10px] animate-pulse italic">Analyzing Performance Data...</p>
         </div>
     );
 
@@ -71,10 +71,10 @@ const PerformanceAnalytics = () => {
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6 text-center">
             <Target size={48} className="text-slate-700 opacity-20" />
             <div className="space-y-3">
-                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-[10px] italic">No Analytic Pulse Detected</p>
+                <p className="text-slate-500 font-black uppercase tracking-[0.4em] text-[10px] italic">No Analytics Data Available</p>
                 <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest leading-relaxed max-w-sm">
-                    Ensure marks have been submitted for your assigned subjects.<br/>
-                    Visit the <Link to="/teacher/marks" className="text-teacher-primary hover:underline">Mark Entry Terminal</Link> to initialize data.
+                    Please ensure you have entered marks for your subjects.<br/>
+                    Visit the <Link to="/teacher/marks" className="text-teacher-primary hover:underline font-black">Marks Entry</Link> page to update.
                 </p>
             </div>
         </div>
@@ -85,17 +85,17 @@ const PerformanceAnalytics = () => {
             <header className="space-y-4">
                 <div className="flex items-center gap-3">
                     <div className="h-[2px] w-12 bg-teacher-primary rounded-md"></div>
-                    <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.5em] italic">Academic Intelligence Matrix</span>
+                    <span className="text-[10px] font-black text-teacher-primary uppercase tracking-[0.5em] italic">Results Analytics</span>
                 </div>
                 <h1 className="text-4xl text-left font-black text-white uppercase italic tracking-tighter leading-none font-outfit">Performance Insights</h1>
-                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Subject-wise scoring diagnostics across assigned sectors.</p>
+                <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic">Subject-wise performance breakdown for your classes.</p>
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Top Performance', value: stats.top, icon: Award, color: 'text-luxury-emerald' },
+                    { label: 'Top Subject', value: stats.top, icon: Award, color: 'text-luxury-emerald' },
                     { label: 'Overall Average', value: `${stats.overallAvg}%`, icon: TrendingUp, color: 'text-teacher-primary' },
-                    { label: 'Intervention Required', value: stats.lowest, icon: Target, color: 'text-luxury-rose' }
+                    { label: 'Lowest Subject', value: stats.lowest, icon: Target, color: 'text-luxury-rose' }
                 ].map((s, idx) => (
                     <motion.div
                         key={idx}
@@ -114,7 +114,7 @@ const PerformanceAnalytics = () => {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 <div className="bg-slate-900/40 border border-slate-800/60 p-10 rounded-md shadow-2xl backdrop-blur-3xl">
                     <h3 className="text-sm font-black text-white uppercase tracking-widest mb-10 italic flex items-center gap-3">
-                        <Activity size={18} className="text-brand-primary" /> Sector Scoring Variance
+                        <Activity size={18} className="text-brand-primary" /> Subject-wise Average Marks
                     </h3>
                     <div className="h-[400px] w-full">
                         <ResponsiveContainer width="100%" height="100%">
@@ -138,7 +138,7 @@ const PerformanceAnalytics = () => {
 
                 <div className="bg-slate-900/40 border border-slate-800/60 p-10 rounded-md shadow-2xl backdrop-blur-3xl">
                     <h3 className="text-sm font-black text-white uppercase tracking-widest mb-10 italic flex items-center gap-3">
-                        <Users size={18} className="text-brand-primary" /> Cluster Density Analytics
+                        <Users size={18} className="text-brand-primary" /> Performance Distribution
                     </h3>
                     <div className="h-[400px] w-full flex items-center justify-center">
                         <ResponsiveContainer width="100%" height="100%">
@@ -166,11 +166,11 @@ const PerformanceAnalytics = () => {
                 <table className="w-full text-left">
                     <thead>
                         <tr className="bg-slate-950/60 border-b border-white/5">
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Subject Protocol</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Avg Velocity</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Peak Value</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Min Threshold</th>
-                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Cohort Size</th>
+                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Subject Name</th>
+                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Avg Marks (%)</th>
+                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Highest Marks</th>
+                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Lowest Marks</th>
+                            <th className="px-10 py-8 text-[10px] font-black text-slate-500 uppercase tracking-widest italic text-center">Students</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -178,7 +178,7 @@ const PerformanceAnalytics = () => {
                             <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                                 <td className="px-10 py-6">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform shadow-xl">
+                                        <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center text-brand-primary group-hover:scale-110 transition-transform shadow-xl font-mono italic">
                                             <BookOpen size={16} />
                                         </div>
                                         <span className="text-sm font-black text-white uppercase italic tracking-tight">{row.name}</span>
@@ -191,7 +191,7 @@ const PerformanceAnalytics = () => {
                                 </td>
                                 <td className="px-10 py-6 text-center text-xs font-bold text-slate-400 font-outfit tracking-tighter italic">{row.max}</td>
                                 <td className="px-10 py-6 text-center text-xs font-bold text-slate-400 font-outfit tracking-tighter italic">{row.min}</td>
-                                <td className="px-10 py-6 text-center text-[10px] font-black text-slate-600 uppercase tracking-widest">{row.total} Nodes</td>
+                                <td className="px-10 py-6 text-center text-[10px] font-black text-slate-600 uppercase tracking-widest">{row.total} Students</td>
                             </tr>
                         ))}
                     </tbody>

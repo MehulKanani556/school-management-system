@@ -20,7 +20,7 @@ const PTMMeetings = () => {
         date: new Date().toISOString().split('T')[0],
         startTime: '10:00',
         endTime: '10:30',
-        meetingType: 'Physical',
+        meetingType: 'In-Person',
         meetingLink: '',
         scope: 'Individual',
         classSection: ''
@@ -44,16 +44,16 @@ const PTMMeetings = () => {
 
     const handleJoinLink = (url) => {
         if (url) window.open(url, '_blank');
-        else toast.error('PROTOCOL LINK NOT INITIALIZED');
+        else toast.error('Meeting link not available');
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const res = await dispatch(scheduleMeeting(formData));
         if (res.meta.requestStatus === 'fulfilled') {
-            toast.success('PTM PROTOCOL ARCHIVED');
+            toast.success('Meeting Scheduled Successfully');
             setIsModalOpen(false);
-            setFormData({ studentId: '', title: '', description: '', date: new Date().toISOString().split('T')[0], startTime: '10:00', endTime: '10:30', meetingType: 'Physical', meetingLink: '', scope: 'Individual', classSection: '' });
+            setFormData({ studentId: '', title: '', description: '', date: new Date().toISOString().split('T')[0], startTime: '10:00', endTime: '10:30', meetingType: 'In-Person', meetingLink: '', scope: 'Individual', classSection: '' });
             setSelectedClass('');
         }
     };
@@ -63,7 +63,7 @@ const PTMMeetings = () => {
 
     return (
         <div className="space-y-10 animate-in fade-in duration-1000">
-            {/* Header omitted for brevity in thought, but included in tool call */}
+            {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 bg-slate-900/60 p-10 rounded-md border border-slate-800/80 backdrop-blur-2xl shadow-2xl group relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-brand-primary/5 rounded-full -mr-32 -mt-32 blur-[100px] opacity-40 group-hover:opacity-60 transition-opacity"></div>
                 
@@ -73,8 +73,8 @@ const PTMMeetings = () => {
                             <Calendar className="text-white" size={28} />
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black uppercase tracking-tighter font-outfit leading-none mb-1">PTM <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">Protocols</span></h1>
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] ml-1">Coordinate Pedagogical Assessment Synchronizations</p>
+                            <h1 className="text-4xl font-black uppercase tracking-tighter font-outfit leading-none mb-1">PTM <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-primary to-brand-secondary">Meetings</span></h1>
+                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em] ml-1">Schedule and Manage Parent-Teacher Meetings</p>
                         </div>
                     </div>
                 </div>
@@ -85,7 +85,7 @@ const PTMMeetings = () => {
                         className="flex items-center gap-4 bg-brand-primary hover:bg-brand-primary/90 text-white px-10 py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-[0_0_50px_-10px_rgba(var(--brand-primary-rgb),0.4)] hover:-translate-y-1 active:scale-95"
                     >
                         <Plus size={20} />
-                        INITIATE PROTOCOL
+                        SCHEDULE MEETING
                     </button>
                 </div>
             </div>
@@ -95,7 +95,7 @@ const PTMMeetings = () => {
                 <div className="lg:col-span-8 space-y-8">
                     <div className="flex items-center gap-4 px-2">
                         <div className="h-0.5 flex-1 bg-gradient-to-r from-brand-primary/40 to-transparent"></div>
-                        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Scheduled Synchronizations</h2>
+                        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-400">Scheduled Meetings</h2>
                     </div>
 
                     <div className="grid gap-6">
@@ -111,7 +111,7 @@ const PTMMeetings = () => {
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
                                         <div className="flex items-center gap-6">
                                             <div className="w-16 h-16 rounded-md bg-slate-800 border-2 border-slate-700/50 flex flex-col items-center justify-center p-2 group-hover:border-brand-primary/30 transition-all">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">{new Date(m.date).toLocaleDateString('en-US', { month: 'short' })}</span>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">{new Date(m.date).toLocaleDateString('en-IN', { month: 'short' })}</span>
                                                 <span className="text-xl font-black text-white">{new Date(m.date).getDate()}</span>
                                             </div>
                                             <div>
@@ -119,15 +119,15 @@ const PTMMeetings = () => {
                                                 <div className="flex items-center gap-4">
                                                     <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary">{m.studentId?.firstName} {m.studentId?.lastName}</span>
                                                     <div className="h-1 w-1 rounded-full bg-slate-700"></div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{m.startTime} - {m.endTime}</span>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-mono italic">{m.startTime} - {m.endTime}</span>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className={`px-6 py-2.5 rounded-md border text-[9px] font-black uppercase tracking-widest shadow-inner ${
-                                            m.meetingType === 'Virtual' ? 'bg-teacher-primary/10 border-teacher-primary/30 text-teacher-primary' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
+                                            m.meetingType === 'Online' ? 'bg-teacher-primary/10 border-teacher-primary/30 text-teacher-primary' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
                                         }`}>
-                                            {m.meetingType === 'Virtual' ? <Video size={10} className="inline mr-2" /> : <MapPin size={10} className="inline mr-2" />}
-                                            {m.meetingType} SECTOR
+                                            {m.meetingType === 'Online' ? <Video size={10} className="inline mr-2" /> : <MapPin size={10} className="inline mr-2" />}
+                                            {m.meetingType} 
                                         </div>
                                     </div>
 
@@ -147,15 +147,15 @@ const PTMMeetings = () => {
                                                 )}
                                             </div>
                                             <span className="text-[8px] font-black uppercase tracking-tighter text-slate-600">
-                                                {m.scope === 'Class' ? 'COHORT SYNC' : 'INDIVIDUAL SYNC'}
+                                                {m.scope === 'Class' ? 'CLASS MEETING' : 'INDIVIDUAL MEETING'}
                                             </span>
                                         </div>
-                                        {m.meetingType === 'Virtual' ? (
+                                        {m.meetingType === 'Online' ? (
                                             <button 
                                                 onClick={() => handleJoinLink(m.meetingLink)}
                                                 className="flex items-center gap-3 text-teacher-primary hover:text-teacher-primary text-[10px] font-black uppercase tracking-widest bg-cyan-900/10 hover:bg-cyan-900/20 px-6 py-2.5 rounded-md transition-all border border-teacher-primary/20"
                                             >
-                                                Initialize Link
+                                                Join Meeting
                                                 <ChevronRight size={14} />
                                             </button>
                                         ) : (
@@ -163,7 +163,7 @@ const PTMMeetings = () => {
                                                 onClick={() => handleDetail(m)}
                                                 className="flex items-center gap-3 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md transition-all border border-slate-800 hover:border-slate-700"
                                             >
-                                                Protocol Detail
+                                                Meeting Details
                                                 <ChevronRight size={14} />
                                             </button>
                                         )}
@@ -174,7 +174,7 @@ const PTMMeetings = () => {
                         {upcomingMeetings?.length === 0 && (
                             <div className="py-24 border-2 border-dashed border-slate-800/60 rounded-md text-center group hover:border-brand-primary/30 transition-all">
                                 <Users size={40} className="mx-auto text-slate-800 group-hover:text-brand-primary/30 transition-all mb-4" />
-                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-600 group-hover:text-slate-400 transition-all italic">No Upcoming Synchronizations Scheduled</p>
+                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-600 group-hover:text-slate-400 transition-all italic">No Upcoming Meetings Scheduled</p>
                             </div>
                         )}
                     </div>
@@ -185,16 +185,16 @@ const PTMMeetings = () => {
                     <div className="bg-slate-950/40 p-1 rounded-md border border-slate-800/60">
                         <div className="p-8 space-y-6">
                             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-500 border-b border-white/5 pb-4 flex items-center justify-between">
-                                Temporal Summary
+                                Meeting Summary
                                 <CheckCircle2 size={14} className="text-brand-primary" />
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-slate-900 p-6 rounded-md border border-slate-800 group/s">
-                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 group-hover/s:text-brand-primary transition-colors">Pending</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 group-hover/s:text-brand-primary transition-colors">Scheduled</p>
                                     <p className="text-3xl font-black font-outfit text-white group-hover/s:scale-110 transition-transform origin-left">{upcomingMeetings?.length || 0}</p>
                                 </div>
                                 <div className="bg-slate-900 p-6 rounded-md border border-slate-800 group/s">
-                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 group-hover/s:text-emerald-400 transition-colors">Archived</p>
+                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2 group-hover/s:text-emerald-400 transition-colors">Completed</p>
                                     <p className="text-3xl font-black font-outfit text-white opacity-40 group-hover/s:opacity-100 transition-opacity origin-left">{pastMeetings?.length || 0}</p>
                                 </div>
                             </div>
@@ -202,14 +202,14 @@ const PTMMeetings = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 px-2 italic">Historical Archives (Recent Past)</h2>
+                        <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-600 px-2 italic">Past Meetings</h2>
                         {pastMeetings?.slice(0, 3).map((m, i) => (
                             <div 
                                 key={m._id} 
                                 onClick={() => handleDetail(m)}
                                 className="bg-brand-surface/40 border border-brand-border rounded-md p-6 border-l-2 opacity-60 hover:opacity-100 transition-all group cursor-pointer"
                             >
-                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">{new Date(m.date).toLocaleDateString()}</p>
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2">{new Date(m.date).toLocaleDateString('en-IN')}</p>
                                 <h4 className="text-[11px] font-black uppercase tracking-wider mb-2 group-hover:text-teacher-primary transition-all">{m.title}</h4>
                                 <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">{m.studentId?.firstName} {m.studentId?.lastName}</p>
                             </div>
@@ -241,8 +241,8 @@ const PTMMeetings = () => {
                                         <Plus className="text-brand-primary" size={24} />
                                     </div>
                                     <div>
-                                        <h2 className="text-xl font-black uppercase font-outfit tracking-tighter">Schedule PTM Protocol</h2>
-                                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Configure Synchronization Manifest</p>
+                                        <h2 className="text-xl font-black uppercase font-outfit tracking-tighter">Schedule PTM Meeting</h2>
+                                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Enter Meeting Details</p>
                                     </div>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
@@ -260,14 +260,14 @@ const PTMMeetings = () => {
                                                     formData.scope === s ? 'bg-brand-primary border-brand-primary text-white' : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
                                                 }`}
                                             >
-                                                {s} Protocol
+                                                {s} Meeting
                                             </button>
                                         ))}
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-3">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Academic Sector (Grade)</label>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Class/Section</label>
                                             <select 
                                                 required
                                                 className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white transition-all appearance-none"
@@ -277,16 +277,16 @@ const PTMMeetings = () => {
                                                     setFormData({...formData, classSection: e.target.value});
                                                 }}
                                             >
-                                                <option value="">SELECT SECTOR</option>
+                                                <option value="">SELECT CLASS</option>
                                                 {classes?.map(c => (
                                                     <option key={c._id} value={c._id}>
-                                                        Grade {c.standardId?.level || c.gradeLevel} ({c.sectionLabel})
+                                                        Std {c.standardId?.level || c.gradeLevel} ({c.sectionLabel})
                                                     </option>
                                                 ))}
                                             </select>
                                         </div>
                                         <div className="space-y-3">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Target Student</label>
+                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Student Name</label>
                                             <select 
                                                 required={formData.scope === 'Individual'}
                                                 disabled={formData.scope === 'Class'}
@@ -302,12 +302,12 @@ const PTMMeetings = () => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Identifier</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Title</label>
                                     <input 
                                         required
                                         type="text" 
                                         className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-700 transition-all hover:bg-slate-900"
-                                        placeholder="E.G. SEMESTER II ACADEMIC PERFORMANCE REVIEW"
+                                        placeholder="E.G. SEMESTER II PERFORMANCE REVIEW"
                                         value={formData.title}
                                         onChange={(e) => setFormData({...formData, title: e.target.value})}
                                     />
@@ -315,7 +315,7 @@ const PTMMeetings = () => {
 
                                 <div className="grid grid-cols-3 gap-6">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Protocol Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Date</label>
                                         <input 
                                             required
                                             type="date" 
@@ -325,7 +325,7 @@ const PTMMeetings = () => {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Initiation Time</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Start Time</label>
                                         <input 
                                             required
                                             type="time" 
@@ -335,7 +335,7 @@ const PTMMeetings = () => {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Conclusion Time</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">End Time</label>
                                         <input 
                                             required
                                             type="time" 
@@ -348,9 +348,9 @@ const PTMMeetings = () => {
 
                                 <div className="space-y-6 bg-slate-950/50 p-6 rounded-md border border-slate-800/80">
                                     <div className="flex items-center justify-between mb-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 italic">Synchronization Channel</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 italic">Meeting Mode</label>
                                         <div className="flex bg-slate-900 p-1 rounded-md border border-slate-800">
-                                            {['Physical', 'Virtual'].map(t => (
+                                            {['In-Person', 'Online'].map(t => (
                                                 <button 
                                                     key={t}
                                                     type="button"
@@ -362,15 +362,15 @@ const PTMMeetings = () => {
                                             ))}
                                         </div>
                                     </div>
-                                    {formData.meetingType === 'Virtual' && (
+                                    {formData.meetingType === 'Online' && (
                                         <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-2">
                                                 <Video size={12} className="text-teacher-primary" />
-                                                Video Protocol Link
+                                                Meeting Link
                                             </label>
                                             <input 
                                                 type="url" 
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-teacher-primary outline-none focus:border-teacher-primary/50 transition-all"
+                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-teacher-primary outline-none focus:border-teacher-primary/50 transition-all font-mono"
                                                 placeholder="https://meet.google.com/xxx-xxxx-xxx"
                                                 value={formData.meetingLink}
                                                 onChange={(e) => setFormData({...formData, meetingLink: e.target.value})}
@@ -380,11 +380,11 @@ const PTMMeetings = () => {
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Internal Description / Memo</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Description / Notes</label>
                                     <textarea 
                                         rows={4}
                                         className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-medium tracking-tight outline-none focus:border-brand-primary text-white placeholder-slate-700 italic"
-                                        placeholder="Outline the protocol objectives or concerns for this synchronization..."
+                                        placeholder="Outline the meeting agenda or points for discussion..."
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     />
@@ -394,7 +394,7 @@ const PTMMeetings = () => {
                                     type="submit"
                                     className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 text-white py-6 rounded-md font-black uppercase text-[12px] tracking-[0.3em] transition-all shadow-[0_20px_40px_-15px_rgba(var(--brand-primary-rgb),0.3)] hover:-translate-y-1 active:scale-95"
                                 >
-                                    ARCHIVE PROTOCOL
+                                    SAVE MEETING
                                 </button>
                             </form>
                         </motion.div>
@@ -423,42 +423,42 @@ const PTMMeetings = () => {
                                     <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center">
                                         <Clock className="text-brand-primary" size={20} />
                                     </div>
-                                    <h2 className="text-lg font-black uppercase font-outfit tracking-tighter">Synchronization Detail</h2>
+                                    <h2 className="text-lg font-black uppercase font-outfit tracking-tighter">Meeting Details</h2>
                                 </div>
                                 <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
                             </div>
                             
                             <div className="p-8 space-y-8">
                                 <div className="space-y-2">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Identifier</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Title</p>
                                     <h3 className="text-xl font-black text-white font-outfit uppercase">{currentMeeting.title}</h3>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Target Participant</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Student Name</p>
                                         <p className="text-sm font-black text-brand-primary uppercase">{currentMeeting.studentId?.firstName} {currentMeeting.studentId?.lastName}</p>
                                     </div>
                                     <div className="space-y-2">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Temporal Slot</p>
-                                        <p className="text-sm font-black text-white uppercase">{new Date(currentMeeting.date).toLocaleDateString()} | {currentMeeting.startTime} - {currentMeeting.endTime}</p>
+                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Time Slot</p>
+                                        <p className="text-sm font-black text-white uppercase font-mono italic">{new Date(currentMeeting.date).toLocaleDateString('en-IN')} | {currentMeeting.startTime} - {currentMeeting.endTime}</p>
                                     </div>
                                 </div>
 
                                 <div className="space-y-2">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Internal Description / Memo</p>
+                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Description / Notes</p>
                                     <div className="bg-slate-950 p-6 rounded-md border border-slate-800 italic text-[11px] text-slate-400 font-medium tracking-tight leading-relaxed">
-                                        {currentMeeting.description || 'No internal memo recorded for this synchronization.'}
+                                        {currentMeeting.description || 'No notes available for this meeting.'}
                                     </div>
                                 </div>
 
-                                {currentMeeting.meetingType === 'Virtual' && (
+                                {currentMeeting.meetingType === 'Online' && (
                                     <button 
                                         onClick={() => handleJoinLink(currentMeeting.meetingLink)}
                                         className="w-full bg-teacher-primary/10 hover:bg-teacher-primary/20 text-teacher-primary py-4 rounded-md font-black uppercase text-[10px] tracking-widest border border-teacher-primary/20 transition-all flex items-center justify-center gap-3"
                                     >
                                         <Video size={16} />
-                                        Initialize Virtual Link
+                                        Join Online Meeting
                                     </button>
                                 )}
                             </div>
