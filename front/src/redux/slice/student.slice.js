@@ -135,6 +135,22 @@ export const fetchStudentResources = createAsyncThunk('student/fetchResources', 
     }
 });
 
+export const fetchStudentNotices = createAsyncThunk('student/fetchNotices', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/notices');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+export const fetchStudentAnnouncements = createAsyncThunk('student/fetchAnnouncements', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/announcements');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
 
 const studentSlice = createSlice({
     name: 'student',
@@ -150,6 +166,8 @@ const studentSlice = createSlice({
         quizzes: [],
         quizHistory: [],
         resources: [],
+        notices: [],
+        announcements: [],
         loading: false,
         error: null,
         message: null
@@ -211,6 +229,12 @@ const studentSlice = createSlice({
             })
             .addCase(fetchStudentResources.fulfilled, (state, action) => {
                 state.resources = action.payload;
+            })
+            .addCase(fetchStudentNotices.fulfilled, (state, action) => {
+                state.notices = action.payload;
+            })
+            .addCase(fetchStudentAnnouncements.fulfilled, (state, action) => {
+                state.announcements = action.payload;
             })
 
             .addMatcher(

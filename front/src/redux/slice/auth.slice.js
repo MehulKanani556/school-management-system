@@ -279,6 +279,14 @@ export const authSlice = createSlice({
                     state.user = { ...state.user, ...updatedUser };
                     localStorage.setItem('user', JSON.stringify(state.user));
                 }
+            })
+            // Listen to Student Profile Updates
+            .addCase('student/updateProfile/fulfilled', (state, action) => {
+                const updatedStudent = action.payload.student;
+                if (updatedStudent && state.user && (state.user._id === updatedStudent._id || state.user._id === updatedStudent.id)) {
+                    state.user = { ...state.user, ...updatedStudent };
+                    localStorage.setItem('user', JSON.stringify(state.user));
+                }
             });
     }
 });

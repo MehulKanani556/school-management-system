@@ -5,10 +5,13 @@ import {
     fetchStudentAttendance, 
     fetchStudentResults, 
     fetchStudentAssignments,
-    fetchStudentTimetable
+    fetchStudentTimetable,
+    fetchStudentNotices,
+    fetchStudentAnnouncements,
+    fetchMySubmissions
 } from '../../redux/slice/student.slice';
 import { motion } from 'framer-motion';
-import { Award, ClipboardList, Calendar, BookOpen, Clock, ArrowRight, CheckCircle, XCircle, Activity, Globe } from 'lucide-react';
+import { Award, ClipboardList, Calendar, BookOpen, Clock, ArrowRight, Activity, Globe } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const StatCard = ({ label, value, icon: Icon, color, delay }) => (
@@ -28,7 +31,7 @@ const StatCard = ({ label, value, icon: Icon, color, delay }) => (
 const StudentDashboard = () => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
-    const { profile, attendance, results, loading } = useSelector((state) => state.student);
+    const { profile, attendance, results, assignments, submissions, notices, announcements, loading } = useSelector((state) => state.student);
 
     useEffect(() => {
         dispatch(fetchStudentProfile());
@@ -36,6 +39,9 @@ const StudentDashboard = () => {
         dispatch(fetchStudentResults());
         dispatch(fetchStudentAssignments());
         dispatch(fetchStudentTimetable());
+        dispatch(fetchStudentNotices());
+        dispatch(fetchStudentAnnouncements());
+        dispatch(fetchMySubmissions());
     }, [dispatch]);
 
     // Derived Stats
@@ -44,13 +50,30 @@ const StudentDashboard = () => {
         : '0';
 
     const gpa = results.length > 0
-        ? ((results.reduce((s, r) => s + (r.marksObtained / r.totalMarks), 0) / results.length) * 4.0).toFixed(1)
+        ? ((results.reduce((s, r) => s + (r.marksObtained / (r.examId?.maxMarks || 100)), 0) / results.length) * 4.0).toFixed(1)
         : '0.0';
+
+    const subjectsCount = profile?.classSection?.subjectAssignments?.length || 0;
+    
+    // Logic: Find the next pending assignment. If all done, show the most recent submitted one.
+    const pendingAssignments = assignments?.filter(a => {
+        const isSubmitted = submissions?.some(s => (s.assignmentId?._id || s.assignmentId) === a._id);
+        return !isSubmitted && new Date(a.dueDate) > new Date();
+    })?.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+
+    const nextAssignment = pendingAssignments?.length > 0 
+        ? pendingAssignments[0] 
+        : assignments?.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate))[0];
+
+    const isSubmitted = submissions?.some(s => (s.assignmentId?._id || s.assignmentId) === nextAssignment?._id);
+
+    const unifiedNotices = [...(notices || []), ...(announcements || [])]
+        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     const stats = [
         { label: 'Attendance', value: `${attPercent}%`, icon: ClipboardList, color: 'text-luxury-emerald', delay: 0 },
         { label: 'GPA', value: gpa, icon: Award, color: 'text-brand-primary', delay: 0.05 },
-        { label: 'Subjects', value: `0${results.length || 0}`, icon: BookOpen, color: 'text-brand-secondary', delay: 0.1 },
+        { label: 'Subjects', value: subjectsCount < 10 ? `0${subjectsCount}` : subjectsCount, icon: BookOpen, color: 'text-brand-secondary', delay: 0.1 },
         { label: 'Enrollment Status', value: 'Active', icon: Globe, color: 'text-brand-accent', delay: 0.15 },
     ];
 
@@ -91,8 +114,8 @@ const StudentDashboard = () => {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-800/30">
-                                {attendance?.slice(0, 5).map((log) => (
-                                    <tr key={log._id} className="hover:bg-white/[0.02] transition-colors group">
+                                {attendance?.slice(0, 5).map((log, idx) => (
+                                    <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
                                         <td className="px-10 py-6 text-sm font-black text-slate-300 italic">
                                             {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </td>
@@ -123,22 +146,43 @@ const StudentDashboard = () => {
                     </div>
                 </div>
 
-                <div className="space-y-6">
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">School Announcements</h3>
-                    <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl h-full relative group hover:border-brand-primary/20 transition-all duration-700 overflow-hidden font-outfit">
-                        <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/5 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                        <div className="space-y-6 relative z-10">
-                            {[1, 2, 3].map(alert => (
-                                <div key={alert} className="p-6 bg-slate-900/30 rounded-md border border-slate-800/40 hover:border-brand-primary/30 transition-all group/msg cursor-pointer backdrop-blur-3xl overflow-hidden relative">
-                                    <div className="absolute top-0 left-0 w-1 h-full bg-brand-primary opacity-30"></div>
-                                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.4em] mb-3 bold italic">School Notice</p>
-                                    <p className="text-[12px] font-bold text-slate-100 mb-2 leading-tight">Academic parameters updated for the current Semester.</p>
-                                    <div className="flex items-center justify-between mt-4">
-                                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest italic">Administration</p>
-                                        <Clock size={12} className="text-slate-600" />
+                <div className="space-y-4">
+                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Institutional Feed</h3>
+                    <div className="bg-[#0f0f12]/40 border border-slate-800/40 p-4 rounded-md shadow-2xl h-full relative group hover:border-brand-primary/20 transition-all duration-700 overflow-hidden font-outfit backdrop-blur-xl">
+                        <div className="space-y-3 relative z-10">
+                            {unifiedNotices?.slice(0, 4).map((note, idx) => (
+                                <div key={idx} className="p-4 bg-slate-900/20 rounded-md border border-slate-800/20 hover:border-brand-primary/20 transition-all group/msg cursor-pointer overflow-hidden relative flex flex-col gap-2">
+                                    <div className="absolute top-0 left-0 w-0.5 h-full bg-brand-primary opacity-0 group-hover:opacity-100 transition-all"></div>
+                                    <div className="flex items-center justify-between">
+                                        <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border italic ${
+                                            note.type === 'Notice' 
+                                            ? 'bg-brand-primary/10 text-brand-primary border-brand-primary/20' 
+                                            : 'bg-luxury-emerald/10 text-luxury-emerald border-luxury-emerald/20'
+                                        }`}>
+                                            {note.type || 'Notice'}
+                                        </span>
+                                        <div className="flex items-center gap-1.5 opacity-40 group-hover:opacity-100 transition-opacity">
+                                            <Clock size={10} className="text-slate-500" />
+                                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{new Date(note.createdAt).toLocaleDateString()}</span>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <p className="text-[11px] font-black text-slate-100 mb-0.5 uppercase tracking-wide group-hover:text-brand-primary transition-colors">{note.subject}</p>
+                                        <p className="text-[10px] text-slate-500 line-clamp-1 italic font-medium leading-tight">{note.content}</p>
+                                    </div>
+                                    <div className="pt-2 border-t border-slate-800/30 flex items-center gap-2">
+                                        <div className="w-1.5 h-1.5 rounded-md bg-slate-700"></div>
+                                        <p className="text-[8px] text-slate-600 font-black uppercase tracking-[0.2em] italic truncate">
+                                            {note.sender?.firstName} {note.sender?.lastName} • {note.sender?.role?.replace('_', ' ')}
+                                        </p>
                                     </div>
                                 </div>
                             ))}
+                            {(!unifiedNotices || unifiedNotices.length === 0) && (
+                                <div className="py-12 text-center">
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-700 italic">No Feed Data</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -155,11 +199,26 @@ const StudentDashboard = () => {
                 <div className="bg-[#0f0f12] p-10 rounded-md border border-slate-800/80 shadow-2xl relative overflow-hidden group font-outfit">
                     <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/10 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                     <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-3 text-shadow-glow">Next Submission</h4>
-                    <p className="text-luxury-rose text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">Submission Deadline Imminent</p>
-                    <div className="p-6 bg-slate-900/40 rounded-md border border-slate-800/40 mb-10 backdrop-blur-xl font-outfit">
-                        <p className="text-slate-100 text-sm font-bold mb-1 group-hover:text-brand-primary transition-colors italic">Physics Assignment: Lab Analysis</p>
-                        <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] italic">Online Submission Portal</p>
-                    </div>
+                    {nextAssignment ? (
+                        <>
+                            <p className={`${isSubmitted ? 'text-luxury-emerald' : 'text-luxury-rose'} text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic`}>
+                                {isSubmitted ? 'Assignment Finalized' : 'Submission Deadline Imminent'}
+                            </p>
+                            <div className="p-6 bg-slate-900/40 rounded-md border border-slate-800/40 mb-10 backdrop-blur-xl font-outfit">
+                                <p className="text-slate-100 text-sm font-bold mb-1 group-hover:text-brand-primary transition-colors italic">{nextAssignment.title}</p>
+                                <div className="flex items-center justify-between">
+                                    <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] italic">Due: {new Date(nextAssignment.dueDate).toLocaleDateString()}</p>
+                                    {isSubmitted && (
+                                        <span className="px-2 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 rounded-sm text-[8px] font-black uppercase tracking-widest italic">Submitted</span>
+                                    )}
+                                </div>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="mb-10 text-slate-500 text-[10px] font-black uppercase tracking-widest italic py-8 border border-dashed border-slate-800/50 rounded-md text-center">
+                            No Pending Academic <br/> Submissions Detected
+                        </div>
+                    )}
                     <Link to="/student/assignments" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-3 italic hover:tracking-[0.3em] transition-all">Go to Assignments <ArrowRight size={16} /> </Link>
                 </div>
             </div>

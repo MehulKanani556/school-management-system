@@ -7,6 +7,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 
 const AcademicResults = () => {
+    const [searchTerm, setSearchTerm] = React.useState('');
     const dispatch = useDispatch();
     const { results, profile, loading } = useSelector((state) => state.student);
     const { user } = useSelector(state => state.auth);
@@ -41,6 +42,11 @@ const AcademicResults = () => {
     const overallPercentage = aggregate.totalPossible > 0 
         ? ((aggregate.totalObtained / aggregate.totalPossible) * 100).toFixed(1) 
         : '0.0';
+
+    const filteredResults = results.filter(res => 
+        res.examId?.subject?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        res.examId?.name?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <motion.div 
@@ -87,9 +93,9 @@ const AcademicResults = () => {
                             >
                                 Download Report Card <Download size={16} className="group-hover:translate-y-1 transition-transform" />
                             </button>
-                            <button className="w-full py-5 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-md flex items-center justify-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/40 italic">
+                            {/* <button className="w-full py-5 bg-slate-800/40 hover:bg-slate-800 text-slate-400 hover:text-white rounded-md flex items-center justify-center gap-4 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/40 italic">
                                 Verify Credentials <TrendingUp size={16} />
-                            </button>
+                            </button> */}
                         </div>
 
                         <div className="pt-10 border-t border-slate-800/40 space-y-6 font-outfit">
@@ -135,14 +141,16 @@ const AcademicResults = () => {
                             <input 
                                 type="text" 
                                 placeholder="SEARCH BY SUBJECT..." 
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
                                 className="bg-slate-950/60 border border-slate-800 rounded-md py-3 pl-12 pr-6 text-[10px] font-black text-white italic w-56 outline-none focus:border-luxury-emerald placeholder:text-slate-900 uppercase tracking-widest transition-all" 
                             />
                         </div>
                     </div>
 
                     <div className="p-10 grid grid-cols-1 gap-8">
-                        {results.length > 0 ? (
-                            results.map((res, idx) => {
+                        {filteredResults.length > 0 ? (
+                            filteredResults.map((res, idx) => {
                                 const maxAllowed = res.examId?.maxMarks || 100;
                                 const per = ((res.marksObtained / maxAllowed) * 100).toFixed(0);
                                 return (

@@ -168,9 +168,9 @@ exports.getFees = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         const studentId = req.user._id;
-        const { firstName, lastName, gender, dateOfBirth, address, guardianName, guardianContact } = req.body;
+        const { firstName, lastName, email, gender, dateOfBirth, address, guardianName, guardianContact } = req.body;
 
-        let updateData = { firstName, lastName, gender, dateOfBirth, address, guardianName, guardianContact };
+        let updateData = { firstName, lastName, email, gender, dateOfBirth, address, guardianName, guardianContact };
         if (req.file) {
             updateData.photo = req.file.location || req.file.path;
         }

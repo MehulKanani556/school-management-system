@@ -53,50 +53,77 @@ const Notifications = () => {
             <div className="space-y-4 font-outfit">
                 <AnimatePresence mode='popLayout'>
                     {items.length > 0 ? (
-                        items.map((notification, idx) => (
-                            <motion.div 
-                                key={notification._id}
-                                initial={{ opacity: 0, x: -20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ delay: idx * 0.05 }}
-                                className={`bg-[#0f0f12] border ${notification.isRead ? 'border-slate-800/40 opacity-60' : 'border-luxury-emerald/30 border-l-4 border-l-luxury-emerald shadow-[0_0_30px_rgba(16,185,129,0.05)]'} p-8 rounded-md group hover:bg-slate-800/20 transition-all cursor-pointer font-outfit`}
-                                onClick={() => !notification.isRead && handleMarkRead(notification._id)}
-                            >
-                                <div className="flex gap-6 font-outfit">
-                                    <div className={`p-4 rounded-md border shrink-0 h-fit font-outfit ${getTypeStyles(notification.type)}`}>
-                                        <Bell size={24} className="font-outfit" />
+                        items.map((notification, idx) => {
+                            // Deep-clean legacy malformed data (case-insensitive)
+                            let cleanTitle = notification.title || 'Institutional Alert';
+                            let cleanMessage = notification.message || '';
+
+                            // 1. Repair broken titles (case-insensitive handle for 'undefined' or 'null')
+                            cleanTitle = cleanTitle.replace(/:\s*(undefined|null)/gi, ': Performance Results');
+
+                            // 2. Repair broken messages containing raw Mongo IDs or '[object Object]'
+                            // Detects 24-character hex strings (MongoDB IDs)
+                            const idRegex = /[0-9a-fA-F]{24}/g;
+                            cleanMessage = cleanMessage
+                                .replace(/Grade secured for \[object Object\]/gi, 'Academic assessment finalized')
+                                .replace(/Grade Secured For ([0-9a-fA-F]{24})/gi, (match, id) => `Grade secured for Assessment`);
+                            
+                            // 3. Fallback for mixed up casing or broken IDs in general
+                            if (cleanMessage.match(idRegex)) {
+                                cleanMessage = cleanMessage.replace(idRegex, 'Active Module');
+                            }
+
+                            return (
+                                <motion.div 
+                                    key={notification._id}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.98 }}
+                                    transition={{ delay: idx * 0.03 }}
+                                    className={`bg-[#0f0f12]/60 border p-5 rounded-md group hover:bg-slate-800/20 transition-all cursor-pointer relative overflow-hidden flex gap-5 ${notification.isRead ? 'border-slate-800/40 opacity-80' : 'border-luxury-emerald/20 border-l-2 border-l-luxury-emerald shadow-2xl backdrop-blur-3xl'}`}
+                                    onClick={() => !notification.isRead && handleMarkRead(notification._id)}
+                                >
+                                    <div className={`p-3 rounded-md border shrink-0 h-fit ${getTypeStyles(notification.type)}`}>
+                                        <Bell size={18} />
                                     </div>
                                     
-                                    <div className="flex-1 min-w-0 font-outfit">
-                                        <div className="flex items-center justify-between mb-2 font-outfit">
-                                            <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded border italic font-outfit ${getTypeStyles(notification.type)}`}>
-                                                {notification.type || 'School Alert'}
-                                            </span>
-                                            <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold italic font-outfit">
-                                                <Clock size={12} className="font-outfit" />
-                                                <span className="font-outfit">{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}</span>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between mb-1.5">
+                                            <div className="flex items-center gap-3">
+                                                <span className={`text-[8px] font-black uppercase tracking-widest px-2 py-0.5 rounded border italic ${getTypeStyles(notification.type)}`}>
+                                                    {notification.type || 'Alert'}
+                                                </span>
+                                                {!notification.isRead && (
+                                                    <span className="flex items-center gap-1.5 text-[8px] font-black text-luxury-emerald uppercase tracking-widest animate-pulse italic">
+                                                        <div className="w-1 h-1 rounded-md bg-luxury-emerald"></div> New Update
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-1.5 text-slate-500 text-[9px] font-black italic uppercase tracking-widest">
+                                                <Clock size={10} />
+                                                <span>{formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}</span>
                                             </div>
                                         </div>
                                         
-                                        <h3 className="text-xl font-black text-white uppercase tracking-tight font-outfit mb-2 italic font-outfit">{notification.title}</h3>
-                                        <p className="text-slate-400 text-sm leading-relaxed italic line-clamp-2 font-outfit">{notification.message}</p>
+                                        <h3 className="text-sm font-black text-white uppercase tracking-tight mb-1 group-hover:text-luxury-emerald transition-colors">{cleanTitle}</h3>
+                                        <p className="text-slate-500 text-[11px] font-medium leading-relaxed italic line-clamp-1">{cleanMessage}</p>
                                         
                                         {notification.link && (
-                                            <div className="mt-4 pt-4 border-t border-slate-800/50 font-outfit font-outfit">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-luxury-emerald group-hover:underline italic font-outfit">View Details →</span>
+                                            <div className="mt-4 pt-3 border-t border-slate-800/40 flex items-center justify-between">
+                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] text-luxury-emerald group-hover:tracking-[0.3em] transition-all flex items-center gap-2 italic">Follow Lifecycle →</span>
+                                                {!notification.isRead && <div className="w-1.5 h-1.5 rounded-md bg-luxury-emerald"></div>}
                                             </div>
                                         )}
                                     </div>
 
-                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity font-outfit">
-                                        <button className="p-3 text-slate-600 hover:text-luxury-rose transition-colors font-outfit">
-                                            <Trash2 size={18} />
+                                    <div className="opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-center px-2">
+                                        <button className="p-2 text-slate-700 hover:text-luxury-rose transition-colors">
+                                            <Trash2 size={16} />
                                         </button>
                                     </div>
-                                </div>
-                            </motion.div>
-                        ))
+                                </motion.div>
+                            );
+                        })
                     ) : (
                         <div className="py-40 text-center bg-[#0f0f12]/40 rounded-md border border-slate-800/50 border-dashed font-outfit">
                             <Inbox size={64} className="text-slate-800 mx-auto mb-8 opacity-20 font-outfit" />

@@ -98,14 +98,14 @@ const Fees = () => {
                                 </div>
                             </div>
 
-                            <div className="py-6 border-t border-slate-800/50 mt-8 font-outfit">
+                            {/* <div className="py-6 border-t border-slate-800/50 mt-8 font-outfit">
                                 <button className="w-full py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.2)] h-[52px] italic">
                                     Pay Online <CreditCard size={14} />
                                 </button>
                                 <p className="text-[9px] text-center text-slate-600 mt-4 uppercase font-bold tracking-widest italic leading-loose font-outfit">
                                     Secure online payments are enabled via our integrated payment gateway.
                                 </p>
-                            </div>
+                            </div> */}
                         </div>
                     </div>
                 </div>
@@ -118,7 +118,7 @@ const Fees = () => {
                         </div>
 
                         <div className="overflow-x-auto font-outfit">
-                            <table className="w-full text-left font-outfit font-outfit">
+                            <table className="w-full text-left font-outfit">
                                 <thead className="bg-[#0a0a0c] font-outfit">
                                     <tr className="border-b border-slate-800/60 font-outfit">
                                         <th className="px-8 py-5 text-[10px] font-black uppercase tracking-widest text-slate-500 italic">Fee Month/Year</th>

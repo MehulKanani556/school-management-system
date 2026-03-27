@@ -87,66 +87,66 @@ const Assignments = () => {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: idx * 0.1 }}
-                                    className={`bg-[#0f0f12] border p-10 rounded-md shadow-2xl group hover:border-luxury-emerald/30 transition-all relative overflow-hidden font-outfit ${sub ? 'border-luxury-emerald/20' : 'border-slate-800/60'}`}
+                                    className={`bg-[#0f0f12] border p-7 rounded-md shadow-2xl group hover:border-luxury-emerald/30 transition-all relative overflow-hidden font-outfit ${sub ? 'border-luxury-emerald/20' : 'border-slate-800/60'}`}
                                 >
-                                    <div className="absolute top-0 right-0 p-8 text-slate-800 group-hover:text-luxury-emerald/10 transition-colors">
-                                        <Bookmark size={40} />
+                                    <div className="absolute top-0 right-0 p-6 text-slate-800 group-hover:text-luxury-emerald/10 transition-colors">
+                                        <Bookmark size={32} />
                                     </div>
 
                                     <div className="relative z-10 flex flex-col h-full">
-                                        <div className="flex items-center gap-3 mb-6">
+                                        <div className="flex items-center gap-3 mb-4">
                                             {sub ? (
-                                                <span className="px-3 py-1 bg-luxury-emerald/10 rounded-md text-[9px] font-black uppercase tracking-widest text-luxury-emerald border border-luxury-emerald/20 flex items-center gap-2 italic">
-                                                    <CheckCircle size={10} /> Submitted {sub.status}
+                                                <span className="px-2 py-0.5 bg-luxury-emerald/10 rounded-md text-[8px] font-black uppercase tracking-widest text-luxury-emerald border border-luxury-emerald/20 flex items-center gap-1.5 italic">
+                                                    <CheckCircle size={9} /> {sub.status}
                                                 </span>
                                             ) : (
-                                                <span className="px-3 py-1 bg-slate-800 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50 italic">Mandatory Assignment</span>
+                                                <span className="px-2 py-0.5 bg-slate-800 rounded-md text-[8px] font-black uppercase tracking-widest text-slate-400 border border-slate-700/50 italic">Mandatory</span>
                                             )}
-                                            <div className={`w-2 h-2 rounded-md ${new Date(assignment.dueDate) < new Date() && !sub ? 'bg-luxury-rose' : 'bg-luxury-emerald'}`}></div>
+                                            <div className={`w-1.5 h-1.5 rounded-md ${new Date(assignment.dueDate) < new Date() && !sub ? 'bg-luxury-rose' : 'bg-luxury-emerald'}`}></div>
                                         </div>
 
-                                        <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-4 group-hover:text-luxury-emerald transition-colors">{assignment.title}</h3>
-                                        <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 italic line-clamp-3">{assignment.description || 'No detailed instructions provided for this assignment.'}</p>
+                                        <h3 className="text-xl font-black text-white italic tracking-tighter uppercase font-outfit mb-2 group-hover:text-luxury-emerald transition-colors">{assignment.title}</h3>
+                                        <p className="text-slate-500 text-[12px] font-medium leading-relaxed mb-6 italic line-clamp-2">{assignment.description || 'No detailed instructions provided.'}</p>
                                         
-                                        <div className="mt-auto grid grid-cols-2 gap-6 pt-8 border-t border-slate-800/50 font-outfit">
-                                            <div className="space-y-1">
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Teacher</p>
-                                                <div className="flex items-center gap-2 text-slate-300">
-                                                    <User size={14} className="text-luxury-emerald" />
-                                                    <span className="text-[11px] font-bold">Class Teacher</span>
+                                        <div className="mt-auto grid grid-cols-2 gap-4 flex-shrink-0 pt-6 border-t border-slate-800/50 font-outfit">
+                                            <div className="space-y-0.5">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-600">Teacher</p>
+                                                <div className="flex items-center gap-1.5 text-slate-300">
+                                                    <User size={12} className="text-luxury-emerald" />
+                                                    <span className="text-[10px] font-bold">Class Teacher</span>
                                                 </div>
                                             </div>
-                                            <div className="space-y-1 text-right">
-                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-600">Submission Due</p>
-                                                <div className="flex items-center justify-end gap-2 text-slate-300">
-                                                    <Clock size={14} className="text-luxury-rose" />
-                                                    <span className="text-[11px] font-bold">{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'TBD'}</span>
+                                            <div className="space-y-0.5 text-right">
+                                                <p className="text-[8px] font-black uppercase tracking-widest text-slate-600">Due Date</p>
+                                                <div className="flex items-center justify-end gap-1.5 text-slate-300">
+                                                    <Clock size={12} className="text-luxury-rose" />
+                                                    <span className="text-[10px] font-bold">{assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'TBD'}</span>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div className="mt-10 flex gap-4 font-outfit">
+                                        <div className="mt-8 flex gap-3 font-outfit">
                                             {assignment.fileUrl && (
                                                 <a 
                                                     href={assignment.fileUrl} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer"
-                                                    className="flex-1 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/30 font-outfit h-[42px]"
+                                                    className="flex-1 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/30 font-outfit h-[38px]"
                                                 >
-                                                    Download File <Download size={14} />
+                                                    View <Download size={12} />
                                                 </a>
                                             )}
                                             
                                             {!sub ? (
                                                 <button 
                                                     onClick={() => setSelectedAssignment(assignment)}
-                                                    className="flex-[2] py-4 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] h-[42px]"
+                                                    className="flex-[2] py-3 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_15px_rgba(16,185,129,0.15)] h-[38px]"
                                                 >
-                                                    Submit Now <Send size={14} />
+                                                    Submit <Send size={12} />
                                                 </button>
                                             ) : (
-                                                <div className="flex-[2] py-4 bg-slate-900 border border-luxury-emerald/30 text-luxury-emerald rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.2em] h-[42px]">
-                                                    Submitted Successfully <CheckCircle size={14} />
+                                                <div className="flex-[2] py-3 bg-slate-900 border border-luxury-emerald/30 text-luxury-emerald rounded-md flex items-center justify-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] h-[38px]">
+                                                    Done <CheckCircle size={12} />
                                                 </div>
                                             )}
                                         </div>

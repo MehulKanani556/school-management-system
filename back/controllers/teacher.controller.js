@@ -219,7 +219,7 @@ exports.addMarks = async (req, res) => {
         const { examId, studentMarks } = req.body; // studentMarks: [{ studentId: ID, score: Number, remarks: String }]
         const teacher = await getTeacher(req.user._id);
 
-        const exam = await Exam.findById(examId);
+        const exam = await Exam.findById(examId).populate('subject');
         if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
 
         // Verify teacher is assigned to the exam's class
@@ -238,14 +238,15 @@ exports.addMarks = async (req, res) => {
             )
         ));
 
-        // Trigger Notifications for students
+        // Trigger Notifications for students (Lazy populate for message body)
+        const subLabel = exam.subject?.name || exam.subject || 'Institutional Subject';
         Promise.all(studentMarks.map(m => nc.sendNotification({
             schoolId: teacher.schoolId._id,
             recipient: m.studentId,
             sender: req.user._id,
             type: 'Mark',
-            title: `Performance Assessment: ${exam.title}`,
-            message: `Grade secured for ${exam.subject}: ${m.score}/${exam.maxMarks}`,
+            title: `Performance Assessment: ${exam.name}`,
+            message: `Grade secured for ${subLabel}: ${m.score}/${exam.maxMarks}`,
             link: '/student/results'
         })));
 
