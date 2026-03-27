@@ -40,65 +40,65 @@ const AttendanceHistory = () => {
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8"
+            className="space-y-8 font-outfit"
         >
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl group">
-                <div className="space-y-2">
-                    <div className="flex items-center gap-3 mb-2">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl group font-outfit">
+                <div className="space-y-2 font-outfit">
+                    <div className="flex items-center gap-3 mb-2 font-outfit">
                         <span className="w-12 h-[2px] bg-luxury-emerald rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald font-outfit">Presence Node</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald">Attendance Status</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit text-shadow-glow">Attendance Analytics</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Secure discovery of institutional participation telemetry.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none text-shadow-glow">Attendance Records</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic leading-none">View your daily school attendance and punctuality records.</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-md shadow-inner backdrop-blur-sm">
+                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-md shadow-inner backdrop-blur-sm font-outfit">
                     {[
-                        { label: 'Success Rate', val: `${percentage}%`, color: 'text-luxury-emerald' },
+                        { label: 'Attendance %', val: `${percentage}%`, color: 'text-luxury-emerald' },
                         { label: 'Present', val: stats.present, color: 'text-luxury-emerald' },
-                        { label: 'Late Logs', val: stats.late, color: 'text-luxury-amber' },
+                        { label: 'Late Arrivals', val: stats.late, color: 'text-luxury-amber' },
                         { label: 'Absent', val: stats.absent, color: 'text-luxury-rose' },
                     ].map((st, i) => (
-                        <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px]">
+                        <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px] font-outfit">
                             <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>
-                            <p className={`text-2xl font-black ${st.color} font-outfit italic`}>{st.val}</p>
+                            <p className={`text-2xl font-black ${st.color} italic`}>{st.val}</p>
                         </div>
                     ))}
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 gap-6">
-                <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl">
-                    <div className="p-8 border-b border-slate-800/50 flex items-center justify-between bg-black/20">
-                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Historical Logs</h3>
-                        <div className="relative group">
+            <div className="grid grid-cols-1 gap-6 font-outfit">
+                <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl font-outfit">
+                    <div className="p-8 border-b border-slate-800/50 flex items-center justify-between bg-black/20 font-outfit">
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Attendance History</h3>
+                        <div className="relative group font-outfit">
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-luxury-emerald transition-colors" />
                             <input 
                                 type="text" 
-                                placeholder="Filter by date or status..." 
+                                placeholder="Search by date or status..." 
                                 value={search}
                                 onChange={e => setSearch(e.target.value)}
-                                className="bg-slate-900/50 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48"
+                                className="bg-slate-900/50 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48 h-[36px] italic"
                             />
                         </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                    <div className="overflow-x-auto font-outfit">
+                        <table className="w-full text-left border-collapse font-outfit">
                             <thead>
                                 <tr className="bg-slate-900/30">
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date Node</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Institutional Status</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Telemetry (Arrival / Departure)</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Status</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Timing (In / Out)</th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-800/40">
+                            <tbody className="divide-y divide-slate-800/40 font-outfit">
                                 {filtered.length > 0 ? (
                                     filtered.map((record, idx) => {
                                         const config = statusConfig[record.status] || statusConfig['Absent'];
                                         const Icon = config.icon;
                                         return (
-                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group">
+                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group font-outfit">
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-4">
                                                         <div className="p-3 bg-slate-900 rounded-md group-hover:bg-slate-800 transition-colors">
@@ -108,16 +108,16 @@ const AttendanceHistory = () => {
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
-                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest ${config.bg} ${config.color} border ${config.border}`}>
+                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest italic ${config.bg} ${config.color} border ${config.border}`}>
                                                         <Icon size={14} />
                                                         {record.status}
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-6">
                                                     <div className="flex items-center gap-3">
-                                                        <span className="text-xs font-bold text-slate-400 font-outfit uppercase italic">{record.arrivalTime || '—'}</span>
+                                                        <span className="text-xs font-bold text-slate-400 uppercase italic leading-none">{record.arrivalTime || '—'}</span>
                                                         <ChevronRight size={10} className="text-slate-700" />
-                                                        <span className="text-xs font-bold text-slate-400 font-outfit uppercase italic">{record.departureTime || '—'}</span>
+                                                        <span className="text-xs font-bold text-slate-400 uppercase italic leading-none">{record.departureTime || '—'}</span>
                                                     </div>
                                                 </td>
                                                 
@@ -126,10 +126,10 @@ const AttendanceHistory = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="4" className="px-8 py-20 text-center">
-                                            <div className="opacity-20 mb-4 inline-block"><Calendar size={48} /></div>
+                                        <td colSpan="4" className="px-8 py-20 text-center font-outfit">
+                                            <div className="opacity-20 mb-4 inline-block font-outfit"><Calendar size={48} /></div>
                                             <p className="text-slate-500 font-bold italic uppercase tracking-widest text-[10px]">
-                                                {search ? 'No records match your filter' : 'No Attendance Records Found in this Sector'}
+                                                {search ? 'No records match your filter' : 'No attendance records found for this period.'}
                                             </p>
                                         </td>
                                     </tr>

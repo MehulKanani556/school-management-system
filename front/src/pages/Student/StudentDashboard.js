@@ -49,23 +49,23 @@ const StudentDashboard = () => {
 
     const stats = [
         { label: 'Attendance', value: `${attPercent}%`, icon: ClipboardList, color: 'text-luxury-emerald', delay: 0 },
-        { label: 'GPA Node', value: gpa, icon: Award, color: 'text-brand-primary', delay: 0.05 },
-        { label: 'Academic Sectors', value: `0${results.length || 0}`, icon: BookOpen, color: 'text-brand-secondary', delay: 0.1 },
-        { label: 'Current Signal', value: 'Active', icon: Globe, color: 'text-brand-accent', delay: 0.15 },
+        { label: 'GPA', value: gpa, icon: Award, color: 'text-brand-primary', delay: 0.05 },
+        { label: 'Subjects', value: `0${results.length || 0}`, icon: BookOpen, color: 'text-brand-secondary', delay: 0.1 },
+        { label: 'Enrollment Status', value: 'Active', icon: Globe, color: 'text-brand-accent', delay: 0.15 },
     ];
 
     return (
         <div className="space-y-12">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit text-shadow-glow">Student Terminal, <br/> {user?.firstName}</h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Unified academic node access. Monitoring performance and schedules.</p>
+                <div className="font-outfit">
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 text-shadow-glow">Student Dashboard, <br/> {user?.firstName}</h1>
+                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Access your academic records, subject performance, and daily schedules.</p>
                 </div>
                 <div className="bg-slate-800/20 border border-slate-800/50 p-6 rounded-md min-w-[220px] backdrop-blur-xl group hover:border-luxury-emerald/30 transition-all duration-700">
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2">Institutional Node</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2">Institution</p>
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-md bg-luxury-emerald animate-pulse"></div>
-                        <span className="text-xl font-black uppercase text-white font-outfit truncate italic">{profile?.schoolId?.name || 'Sector-01 Admin'}</span>
+                        <span className="text-xl font-black uppercase text-white font-outfit truncate italic">{profile?.schoolId?.name || 'School Campus'}</span>
                     </div>
                 </div>
             </header>
@@ -77,15 +77,15 @@ const StudentDashboard = () => {
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
                 <div className="xl:col-span-2 space-y-6">
                     <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit italic">Presence Archives (Recent)</h3>
-                        <Link to="/student/attendance" className="text-[10px] font-black uppercase tracking-widest text-luxury-emerald flex items-center gap-2 group italic transition-all hover:tracking-[0.4em]">Full Discovery <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit italic">Recent Attendance</h3>
+                        <Link to="/student/attendance" className="text-[10px] font-black uppercase tracking-widest text-luxury-emerald flex items-center gap-2 group italic transition-all hover:tracking-[0.4em]">View Full History <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
                     </div>
 
-                    <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl backdrop-blur-3xl group hover:border-luxury-emerald/20 transition-all duration-700">
+                    <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl backdrop-blur-3xl group hover:border-luxury-emerald/20 transition-all duration-700 font-outfit">
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-900/40">
-                                    {['Temporal Date', 'Verification Result', 'System Node'].map(h => (
+                                    {['Date', 'Attendance Status', 'Source'].map(h => (
                                         <th key={h} className="px-10 py-7 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">{h}</th>
                                     ))}
                                 </tr>
@@ -93,20 +93,20 @@ const StudentDashboard = () => {
                             <tbody className="divide-y divide-slate-800/30">
                                 {attendance?.slice(0, 5).map((log) => (
                                     <tr key={log._id} className="hover:bg-white/[0.02] transition-colors group">
-                                        <td className="px-10 py-6 text-sm font-black text-slate-300 italic font-outfit">
+                                        <td className="px-10 py-6 text-sm font-black text-slate-300 italic">
                                             {new Date(log.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
                                         </td>
                                         <td className="px-10 py-6">
-                                            <span className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border font-outfit italic shadow-lg ${
+                                            <span className={`px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest border italic shadow-lg ${
                                                 log.status === 'Present' 
                                                 ? 'bg-luxury-emerald/10 text-luxury-emerald border-luxury-emerald/20' 
                                                 : 'bg-luxury-rose/10 text-luxury-rose border-luxury-rose/20'
                                             }`}>
-                                                {log.status === 'Present' ? 'Verified Node' : 'Absent Node'}
+                                                {log.status === 'Present' ? 'Present' : 'Absent'}
                                             </span>
                                         </td>
                                         <td className="px-10 py-6 text-[10px] font-black text-slate-500 tracking-[0.2em] uppercase italic">
-                                            Pedagogical Archive
+                                            School Attendance Registry
                                         </td>
                                     </tr>
                                 ))}
@@ -114,7 +114,7 @@ const StudentDashboard = () => {
                                     <tr>
                                         <td colSpan="3" className="px-10 py-24 text-center">
                                             <Activity size={48} className="text-slate-800 mx-auto mb-6 opacity-20 animate-pulse" />
-                                            <p className="text-slate-600 font-black uppercase tracking-[0.5em] text-[10px] italic font-outfit">No Presence Signals Detected</p>
+                                            <p className="text-slate-600 font-black uppercase tracking-[0.5em] text-[10px] italic">No Attendance Records Found</p>
                                         </td>
                                     </tr>
                                 )}
@@ -124,17 +124,17 @@ const StudentDashboard = () => {
                 </div>
 
                 <div className="space-y-6">
-                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">Institutional Broadcasts</h3>
-                    <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl h-full relative group hover:border-brand-primary/20 transition-all duration-700 overflow-hidden">
+                    <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-500 font-outfit px-2 italic">School Announcements</h3>
+                    <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl h-full relative group hover:border-brand-primary/20 transition-all duration-700 overflow-hidden font-outfit">
                         <div className="absolute top-0 right-0 w-48 h-48 bg-brand-primary/5 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
                         <div className="space-y-6 relative z-10">
                             {[1, 2, 3].map(alert => (
                                 <div key={alert} className="p-6 bg-slate-900/30 rounded-md border border-slate-800/40 hover:border-brand-primary/30 transition-all group/msg cursor-pointer backdrop-blur-3xl overflow-hidden relative">
                                     <div className="absolute top-0 left-0 w-1 h-full bg-brand-primary opacity-30"></div>
-                                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.4em] mb-3 font-outfit italic">Institutional Alert</p>
-                                    <p className="text-[12px] font-bold text-slate-100 mb-2 font-outfit leading-tight">Advanced academic parameters updated for Semester 02.</p>
+                                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.4em] mb-3 bold italic">School Notice</p>
+                                    <p className="text-[12px] font-bold text-slate-100 mb-2 leading-tight">Academic parameters updated for the current Semester.</p>
                                     <div className="flex items-center justify-between mt-4">
-                                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest italic font-outfit">Admin Cluster</p>
+                                        <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest italic">Administration</p>
                                         <Clock size={12} className="text-slate-600" />
                                     </div>
                                 </div>
@@ -144,23 +144,23 @@ const StudentDashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-outfit">
                 <div className="bg-gradient-to-br from-[#0f0f12] to-luxury-emerald/5 p-10 rounded-md border border-slate-800/80 shadow-2xl relative group overflow-hidden">
                     <div className="absolute -top-10 -right-10 w-48 h-48 bg-luxury-emerald/10 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3">Academic Sector</h4>
-                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-10 italic">Verifying node coordinates for <br/> Grade {profile?.classSection?.standardId?.level || 'N/A'} - Section {profile?.classSection?.sectionLabel || 'A'}</p>
-                    <Link to="/student/timetable" className="inline-flex items-center gap-4 py-4 px-10 bg-slate-800 hover:bg-slate-700 rounded-md text-[10px] font-black uppercase tracking-[0.3em] transition-all text-slate-300 shadow-xl active:scale-95 italic">Synchronize Schedule <Calendar size={16}/></Link>
+                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-3">Class Details</h4>
+                    <p className="text-slate-500 text-sm font-medium leading-relaxed mb-10 italic">Official registration for <br/> Class {profile?.classSection?.standardId?.level || 'N/A'} - Section {profile?.classSection?.sectionLabel || 'A'}</p>
+                    <Link to="/student/timetable" className="inline-flex items-center gap-4 py-4 px-10 bg-slate-800 hover:bg-slate-700 rounded-md text-[10px] font-black uppercase tracking-[0.3em] transition-all text-slate-300 shadow-xl active:scale-95 italic">View Timetable <Calendar size={16}/></Link>
                 </div>
 
-                <div className="bg-[#0f0f12] p-10 rounded-md border border-slate-800/80 shadow-2xl relative overflow-hidden group">
+                <div className="bg-[#0f0f12] p-10 rounded-md border border-slate-800/80 shadow-2xl relative overflow-hidden group font-outfit">
                     <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-brand-primary/10 rounded-md blur-[80px] opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3 text-shadow-glow">Next Submission</h4>
-                    <p className="text-luxury-rose text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">Pedagogical Deadline Imminent</p>
-                    <div className="p-6 bg-slate-900/40 rounded-md border border-slate-800/40 mb-10 backdrop-blur-xl">
-                        <p className="text-slate-100 text-sm font-bold mb-1 font-outfit group-hover:text-brand-primary transition-colors italic">Advanced Physics: Lab-04 Analysis</p>
-                        <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] italic">Digital Repository Node</p>
+                    <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase mb-3 text-shadow-glow">Next Submission</h4>
+                    <p className="text-luxury-rose text-[10px] font-black uppercase tracking-[0.4em] mb-8 italic">Submission Deadline Imminent</p>
+                    <div className="p-6 bg-slate-900/40 rounded-md border border-slate-800/40 mb-10 backdrop-blur-xl font-outfit">
+                        <p className="text-slate-100 text-sm font-bold mb-1 group-hover:text-brand-primary transition-colors italic">Physics Assignment: Lab Analysis</p>
+                        <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] italic">Online Submission Portal</p>
                     </div>
-                    <Link to="/student/assignments" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-3 italic hover:tracking-[0.3em] transition-all">Pedagogical Repository <ArrowRight size={16} /> </Link>
+                    <Link to="/student/assignments" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-3 italic hover:tracking-[0.3em] transition-all">Go to Assignments <ArrowRight size={16} /> </Link>
                 </div>
             </div>
         </div>
