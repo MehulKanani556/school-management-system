@@ -45,7 +45,7 @@ const Payroll = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-brand-primary/5 rounded-bl-[4rem] blur-2xl group-hover:bg-brand-primary/10 transition-colors" />
                     <DollarSign className="text-brand-primary mb-6" size={32} />
                     <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Total Retribution</h3>
-                    <p className="text-3xl font-black text-white font-outfit leading-none">₹{payroll.filter(p => p.status === 'paid').reduce((acc, current) => acc + (current.totalAmount || 0), 0).toLocaleString()}</p>
+                    <p className="text-3xl font-black text-white font-outfit leading-none">₹{payroll?.filter(p => p.status === 'paid').reduce((acc, current) => acc + (current.netSalary || 0), 0).toLocaleString()}</p>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-emerald-500 uppercase tracking-widest">
                         <TrendingUp size={12} /> Institutional Loyalty Accrual
                     </div>
@@ -65,7 +65,7 @@ const Payroll = () => {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-luxury-rose/5 rounded-bl-[4rem] blur-2xl group-hover:bg-luxury-rose/10 transition-colors" />
                     <TrendingDown className="text-luxury-rose mb-6" size={32} />
                     <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em] mb-2">Pending Synchronization</h3>
-                    <p className="text-3xl font-black text-white font-outfit leading-none">₹{payroll.filter(p => p.status === 'unpaid').reduce((acc, current) => acc + (current.totalAmount || 0), 0).toLocaleString()}</p>
+                    <p className="text-3xl font-black text-white font-outfit leading-none">₹{payroll?.filter(p => p.status === 'unpaid').reduce((acc, current) => acc + (current.netSalary || 0), 0).toLocaleString()}</p>
                     <div className="mt-4 flex items-center gap-2 text-[10px] font-bold text-luxury-rose uppercase tracking-widest">
                         <Activity size={12} /> Awaiting Fiscal Clearance
                     </div>
@@ -110,11 +110,11 @@ const Payroll = () => {
                                         </div>
                                     </div>
                                 </td>
-                                <td className="p-6 text-xs font-bold text-slate-300">₹{item.baseSalary.toLocaleString()}</td>
-                                <td className="p-6 text-xs font-bold text-emerald-500">+{item.bonus.toLocaleString()}</td>
-                                <td className="p-6 text-xs font-bold text-luxury-rose">-{item.deductions.toLocaleString()}</td>
+                                <td className="p-6 text-xs font-bold text-slate-300">₹{item.basicSalary?.toLocaleString() || 0}</td>
+                                <td className="p-6 text-xs font-bold text-emerald-500">+{item.bonus?.toLocaleString() || 0}</td>
+                                <td className="p-6 text-xs font-bold text-luxury-rose">-{item.deductions?.toLocaleString() || 0}</td>
                                 <td className="p-6">
-                                    <span className="text-sm font-black text-white italic uppercase tracking-tighter">₹{item.totalAmount.toLocaleString()}</span>
+                                    <span className="text-sm font-black text-white italic uppercase tracking-tighter">₹{item.netSalary?.toLocaleString() || 0}</span>
                                 </td>
                                 <td className="p-6">
                                     <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest ${item.status === 'paid' ? 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20' : 'bg-slate-800 text-slate-500 border border-slate-700'}`}>
@@ -204,23 +204,23 @@ const Payroll = () => {
                                             <tr>
                                                 <td className="px-6 py-4 text-xs font-bold text-slate-700">Base Professional Retribution</td>
                                                 <td className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase">Primary</td>
-                                                <td className="px-6 py-4 text-right text-xs font-black text-slate-900">₹{selectedPayroll.baseSalary.toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right text-xs font-black text-slate-900">₹{selectedPayroll.basicSalary?.toLocaleString() || 0}</td>
                                             </tr>
                                             <tr>
                                                 <td className="px-6 py-4 text-xs font-bold text-slate-700">Performance Loyalty Bonus</td>
                                                 <td className="px-6 py-4 text-right text-[10px] font-black text-emerald-500 uppercase italic">Incentive</td>
-                                                <td className="px-6 py-4 text-right text-xs font-black text-emerald-600">+₹{selectedPayroll.bonus.toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right text-xs font-black text-emerald-600">+₹{selectedPayroll.bonus?.toLocaleString() || 0}</td>
                                             </tr>
                                             <tr>
                                                 <td className="px-6 py-4 text-xs font-bold text-slate-700">Institutional Deductions</td>
                                                 <td className="px-6 py-4 text-right text-[10px] font-black text-luxury-rose uppercase italic">Reduction</td>
-                                                <td className="px-6 py-4 text-right text-xs font-black text-luxury-rose">-₹{selectedPayroll.deductions.toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right text-xs font-black text-luxury-rose">-₹{selectedPayroll.deductions?.toLocaleString() || 0}</td>
                                             </tr>
                                         </tbody>
                                         <tfoot>
                                             <tr className="bg-slate-900 text-white">
                                                 <td colSpan="2" className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Net Institutional Disbursement</td>
-                                                <td className="px-6 py-4 text-right text-lg font-black italic tracking-tighter">₹{selectedPayroll.totalAmount.toLocaleString()}</td>
+                                                <td className="px-6 py-4 text-right text-lg font-black italic tracking-tighter">₹{selectedPayroll.netSalary?.toLocaleString() || 0}</td>
                                             </tr>
                                         </tfoot>
                                     </table>

@@ -8,6 +8,7 @@ import { Plus, CalendarDays, Clock, CheckCircle2, XCircle, ChevronRight, Info } 
 import Modal from '../../components/Modal';
 import { format, parseISO } from 'date-fns';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 const validationSchema = Yup.object({
     type: Yup.string().oneOf(['sick', 'casual', 'maternity', 'paternity', 'other']).required('Leave type is required'),
@@ -34,6 +35,7 @@ const StatusBadge = ({ status }) => {
 
 const TeacherLeaves = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const { leaves, loading, message } = useSelector((s) => s.teacher);
     const [modal, setModal] = useState(false);
 
@@ -126,7 +128,7 @@ const TeacherLeaves = () => {
                         <CalendarDays size={24} className="text-brand-primary mb-3 group-hover:scale-110 transition-transform" />
                         <h4 className="text-sm font-bold text-white mb-2">Upcoming Holidays</h4>
                         <p className="text-xs text-slate-400 leading-relaxed">Check the holiday calendar before applying for leave to optimize your time off.</p>
-                        <button className="mt-4 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:underline">View Calendar</button>
+                        <button onClick={()=>{navigate('/teacher/holidays')}} className="mt-4 text-[10px] font-black uppercase tracking-widest text-brand-primary hover:underline">View Calendar</button>
                     </div>
                 </div>
 

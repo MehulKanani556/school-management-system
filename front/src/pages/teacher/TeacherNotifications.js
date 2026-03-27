@@ -7,7 +7,7 @@ import toast from 'react-hot-toast';
 
 const TeacherNotifications = () => {
     const dispatch = useDispatch();
-    const { notifications, loading } = useSelector(state => state.notifications);
+    const { items: notifications, loading } = useSelector(state => state.notifications);
 
     useEffect(() => {
         dispatch(fetchNotifications());
@@ -51,9 +51,9 @@ const TeacherNotifications = () => {
                     <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Notifications</h1>
                     <p className="text-slate-500 font-bold text-xs uppercase tracking-widest italic leading-relaxed">Direct institutional signals.</p>
                 </div>
-                
+
                 {notifications.some(n => !n.isRead) && (
-                    <button 
+                    <button
                         onClick={handleMarkAllRead}
                         className="h-14 bg-teacher-primary hover:bg-teacher-primary/80 text-white px-8 rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-xl flex items-center gap-3 italic"
                     >
@@ -76,11 +76,10 @@ const TeacherNotifications = () => {
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ delay: idx * 0.05 }}
-                                className={`flex items-start md:items-center justify-between gap-6 p-6 rounded-md border transition-all ${
-                                    notification.isRead 
-                                        ? 'bg-slate-900/40 border-slate-800/60 opacity-60' 
+                                className={`flex items-start md:items-center justify-between gap-6 p-6 rounded-md border transition-all ${notification.isRead
+                                        ? 'bg-slate-900/40 border-slate-800/60 opacity-60'
                                         : 'bg-brand-surface border-teacher-primary/30 shadow-lg'
-                                }`}
+                                    }`}
                             >
                                 <div className="flex items-start gap-6 flex-1">
                                     <div className={`p-4 rounded-md flex-shrink-0 ${notification.isRead ? 'bg-slate-800/50 text-slate-500' : 'bg-teacher-primary/10 text-teacher-primary'}`}>
@@ -94,10 +93,10 @@ const TeacherNotifications = () => {
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <div className="flex items-center gap-3 flex-shrink-0">
                                     {!notification.isRead && (
-                                        <button 
+                                        <button
                                             onClick={() => handleMarkAsRead(notification._id)}
                                             className="p-3 bg-teacher-primary/10 hover:bg-teacher-primary text-teacher-primary hover:text-white rounded-md transition-all shadow-xl"
                                             title="Mark as Read"
@@ -105,7 +104,7 @@ const TeacherNotifications = () => {
                                             <CheckCircle2 size={18} />
                                         </button>
                                     )}
-                                    <button 
+                                    <button
                                         onClick={() => handleDelete(notification._id)}
                                         className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-md transition-all shadow-xl"
                                         title="Delete"
