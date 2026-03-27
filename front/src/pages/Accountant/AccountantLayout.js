@@ -126,13 +126,13 @@ const AccountantLayout = () => {
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full shadow-2xl shadow-accountant-primary/5`}>
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-accountant-primary to-accountant-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-accountant-primary/20 text-black">LC</div>
-            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Ledger <span className="text-accountant-primary">Command</span></span>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-accountant-primary to-accountant-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-accountant-primary/20 text-black">FM</div>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Finance <span className="text-accountant-primary">Management</span></span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbarThin text-white">
-          <p className="px-4 mb-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Financial Matrix</p>
+          <p className="px-4 mb-3 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Accounts Menu</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expandedMenu === item.label;
@@ -195,7 +195,7 @@ const AccountantLayout = () => {
         <div className="p-6 flex-shrink-0">
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-accountant-primary/10 hover:text-accountant-primary transition-all group font-outfit border border-transparent hover:border-accountant-primary/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Shutdown</span>
+            <span className="italic">Logout</span>
           </button>
         </div>
       </aside>
@@ -210,7 +210,7 @@ const AccountantLayout = () => {
             </button>
             <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border/60 hidden sm:block leading-none italic shadow-inner">Institutional Node</span>
             <ChevronRight size={14} className="hidden sm:block opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accountant-primary italic">Ledger Command Center</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-accountant-primary italic">Finance Management Center</span>
           </div>
 
           <div className="flex items-center gap-6">
@@ -279,7 +279,7 @@ const AccountantLayout = () => {
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-accountant-primary/10 text-accountant-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                          Shutdown Matrix
+                          Logout Session
                         </button>
                       </div>
                     </motion.div>

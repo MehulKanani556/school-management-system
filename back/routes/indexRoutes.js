@@ -426,6 +426,7 @@ router.put('/accountant/payroll/:id', ...accountant, ac.updatePayroll);
 router.delete('/accountant/payroll/:id', ...accountant, ac.deletePayroll);
 router.get('/accountant/payroll/:id/payslip', ...accountant, ac.downloadPayslip);
 router.get('/accountant/reports', ...accountant, ac.getFinancialReport);
+router.get('/accountant/reports/download', ...accountant, ac.downloadFinancialReport);
 router.get('/accountant/teachers', ...accountant, sa.getTeachers);
 router.get('/accountant/fee-structures', ...accountant, ac.getFeeStructures);
 router.post('/accountant/fee-structures', ...accountant, ac.createFeeStructure);

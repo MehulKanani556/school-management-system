@@ -4,12 +4,15 @@ const Student = require('../models/student.model');
 
 exports.auth = async (req, res, next) => {
     try {
-        const authHeader = req.header("Authorization")
-        if (!authHeader) {
-            return res.status(401).json({ status: 401, message: "Token Is Required" })
+        let authHeader = req.header("Authorization");
+        let token;
+        
+        if (authHeader) {
+            token = authHeader.split(' ')[1];
+        } else if (req.query.token) {
+            token = req.query.token;
         }
 
-        let token = authHeader.split(' ')[1];
         if (!token) {
             return res.status(401).json({ status: 401, message: "Token Is Required" })
         }

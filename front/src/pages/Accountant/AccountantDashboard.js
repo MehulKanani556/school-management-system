@@ -12,6 +12,7 @@ import {
     ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell 
 } from 'recharts';
 import moment from 'moment';
+import { BASE_URL } from '../../utils/BASE_URL';
 
 const AccountantDashboard = () => {
     const dispatch = useDispatch();
@@ -30,101 +31,41 @@ const AccountantDashboard = () => {
     const COLORS = ['#38bdf8', '#f43f5e', '#fbbf24', '#10b981'];
 
     const exportVisualReport = () => {
-        const printWindow = window.open('', '_blank');
-        const content = `
-            <html>
-            <head>
-                <title>Fiscal Report - ${moment().format('YYYY-MM-DD')}</title>
-                <style>
-                    body { font-family: 'Inter', sans-serif; padding: 50px; color: #1e293b; background: white; }
-                    .header { display: flex; justify-content: space-between; align-items: flex-end; border-bottom: 3px solid #1e293b; padding-bottom: 20px; margin-bottom: 40px; }
-                    .title { font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: -0.05em; font-style: italic; }
-                    .meta { font-size: 10px; font-weight: 800; text-transform: uppercase; color: #64748b; letter-spacing: 0.1em; }
-                    .stat-grid { display: grid; grid-template-cols: repeat(4, 1fr); gap: 20px; margin-bottom: 50px; }
-                    .stat-card { border: 1px solid #e2e8f0; padding: 20px; border-radius: 8px; }
-                    .stat-label { font-size: 9px; font-weight: 900; text-transform: uppercase; color: #94a3b8; margin-bottom: 5px; }
-                    .stat-value { font-size: 20px; font-weight: 900; italic; }
-                    .table-section { margin-top: 40px; }
-                    table { width: 100%; border-collapse: collapse; }
-                    th { text-align: left; font-size: 10px; text-transform: uppercase; color: #94a3b8; padding: 12px; border-bottom: 2px solid #f1f5f9; }
-                    td { padding: 15px 12px; border-bottom: 1px solid #f1f5f9; font-size: 13px; font-weight: 600; }
-                    .total-row { background: #f8fafc; font-weight: 900; }
-                    .footer { margin-top: 100px; padding-top: 20px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; }
-                </style>
-            </head>
-            <body>
-                <div class="header">
-                    <div>
-                        <div class="title">Fiscal Performance Audit</div>
-                        <div class="meta">Report Generation Hash: ${Math.random().toString(36).substring(2, 15).toUpperCase()}</div>
-                    </div>
-                    <div class="meta">Generated: ${moment().format('LLLL')}</div>
-                </div>
-                
-                <div class="stat-grid">
-                    <div class="stat-card"><div class="stat-label">Capital Inflow</div><div class="stat-value">$${report?.income?.toLocaleString()}</div></div>
-                    <div class="stat-card"><div class="stat-label">Capital Outflow</div><div class="stat-value">$${report?.expenses?.toLocaleString()}</div></div>
-                    <div class="stat-card"><div class="stat-label">Asset Liquidity</div><div class="stat-value">${report?.health?.liquidity}%</div></div>
-                    <div class="stat-card"><div class="stat-label">Fiscal Grade</div><div class="stat-value">${report?.health?.grade}</div></div>
-                </div>
-
-                <div class="table-section text-left">
-                    <div class="meta" style="margin-bottom: 20px;">Monthly Trend Analysis</div>
-                    <table>
-                        <thead>
-                            <tr><th>Period</th><th>Inflow (Income)</th><th>Outflow (Payroll)</th><th>Net Variance</th></tr>
-                        </thead>
-                        <tbody>
-                            ${report?.trends.map(t => `
-                                <tr>
-                                    <td>${t.name}</td>
-                                    <td>$${t.income.toLocaleString()}</td>
-                                    <td>$${t.expenses.toLocaleString()}</td>
-                                    <td style="color: ${t.income - t.expenses >= 0 ? '#10b981' : '#f43f5e'}">$${(t.income - t.expenses).toLocaleString()}</td>
-                                </tr>
-                            `).join('')}
-                            <tr class="total-row">
-                                <td>Aggregated Nodes</td>
-                                <td>$${report?.income.toLocaleString()}</td>
-                                <td>$${report?.expenses.toLocaleString()}</td>
-                                <td>$${(report?.income - report?.expenses).toLocaleString()}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div class="footer">
-                    <div>Fiscal Terminal Protocol v4.2</div>
-                    <div>Confidential Registry Record</div>
-                </div>
-            </body>
-            </html>
-        `;
-        printWindow.document.write(content);
-        printWindow.document.close();
-        printWindow.print();
+        const token = localStorage.getItem('token');
+        const queryParams = new URLSearchParams({
+            startDate: filterRange.start,
+            endDate: filterRange.end,
+            academicYear: filterRange.year,
+            token: token
+        }).toString();
+        
+        const link = document.createElement('a');
+        link.href = `${BASE_URL}/accountant/reports/download?${queryParams}`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     };
 
-    if (!report) return <div className="p-20 text-center uppercase font-black italic text-slate-600 animate-pulse tracking-widest text-[10px]">Synchronizing Fiscal Data Matrix...</div>;
+    if (!report) return <div className="p-20 text-center uppercase font-black italic text-slate-600 animate-pulse tracking-widest text-[10px]">Synchronizing Financial Data...</div>;
 
     const cards = [
-        { title: 'Capital Inflow', val: `$${report.income?.toLocaleString()}`, change: '+12.5%', icon: TrendingUp, color: 'text-accountant-primary' },
-        { title: 'Pending Assets', val: `$${report.pending?.toLocaleString()}`, change: 'Current Cycle', icon: Layers, color: 'text-accountant-primary' },
-        { title: 'Capital Outflow', val: `$${report.expenses?.toLocaleString()}`, change: '-2.1%', icon: TrendingDown, color: 'text-luxury-rose' },
-        { title: 'Asset Liquidity', val: `${report.health?.liquidity}%`, change: report.health?.status, icon: Activity, color: 'text-luxury-emerald' },
+        { title: 'Total Collection', val: `₹${report.income?.toLocaleString()}`, change: '+12.5%', icon: TrendingUp, color: 'text-accountant-primary' },
+        { title: 'Pending Fees', val: `₹${report.pending?.toLocaleString()}`, change: 'Current Cycle', icon: Layers, color: 'text-accountant-primary' },
+        { title: 'Total Expenses', val: `₹${report.expenses?.toLocaleString()}`, change: '-2.1%', icon: TrendingDown, color: 'text-luxury-rose' },
+        { title: 'Fund Liquidity', val: `${report.health?.liquidity}%`, change: report.health?.status, icon: Activity, color: 'text-luxury-emerald' },
     ];
 
     const summaryItems = [
-        { label: 'Citizen Density', val: report.summary?.totalStudents || 0, icon: GraduationCap, sub: 'Enrolled Students' },
-        { label: 'Human Assets', val: report.summary?.totalEmployees || 0, icon: Briefcase, sub: 'Active Faculty' },
+        { label: 'Student Strength', val: report.summary?.totalStudents || 0, icon: GraduationCap, sub: 'Enrolled Students' },
+        { label: 'Staff Strength', val: report.summary?.totalEmployees || 0, icon: Briefcase, sub: 'Active Members' },
     ];
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 font-outfit">Fiscal Command Node</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Real-time mapping of capital movement & asset liquidity.</p>
+                    <h1 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 font-outfit">Finance Command Node</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Real-time mapping of fund movement & liquidity.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
@@ -132,14 +73,14 @@ const AccountantDashboard = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-accountant-primary hover:border-accountant-primary/30 transition-all shadow-xl"
                     >
                         <Filter size={14} />
-                        Current Q1 Cycle
+                        Current Cycle
                     </button>
                     <button 
                         onClick={exportVisualReport}
                         className="flex items-center gap-2 px-4 py-2 bg-accountant-primary/10 border border-accountant-primary/20 rounded-md text-[10px] font-black text-accountant-primary uppercase tracking-widest italic hover:bg-accountant-primary/20 transition-all shadow-xl"
                     >
-                        <Printer size={14} />
-                        Generate Audit Report
+                        <Download size={14} />
+                        Download Report
                     </button>
                 </div>
             </div>
@@ -205,7 +146,7 @@ const AccountantDashboard = () => {
                         <div className="absolute top-0 right-0 p-4">
                            <div className={`text-3xl font-black italic ${report.health?.grade === 'A+' ? 'text-luxury-emerald' : 'text-accountant-primary'}`}>{report.health?.grade}</div>
                         </div>
-                        <h2 className="text-sm font-black italic uppercase tracking-widest text-white mb-6 font-outfit">Fiscal Health Metric</h2>
+                        <h2 className="text-sm font-black italic uppercase tracking-widest text-white mb-6 font-outfit">Financial Health Metric</h2>
                         <div className="flex items-center justify-center mb-6">
                             <div className="relative w-32 h-32">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -223,7 +164,7 @@ const AccountantDashboard = () => {
                             </div>
                         </div>
                         <p className="text-[10px] font-medium text-slate-500 italic uppercase leading-relaxed text-center">
-                            Aggregated score based on current liquidity, pending receivables, and mandatory disbursement obligations.
+                            Aggregated score based on fund availability, pending receivables, and mandatory disbursement obligations.
                         </p>
                     </div>
 
@@ -249,9 +190,9 @@ const AccountantDashboard = () => {
             <div className="bg-slate-900 border border-slate-800/60 border-dashed p-4 rounded-md flex items-center justify-between text-[10px] font-black text-slate-500 uppercase italic tracking-widest overflow-hidden">
                 <div className="flex items-center gap-3">
                     <ShieldCheck className="text-accountant-primary" size={14} />
-                    Official Fiscal Audit Hash: 0X-RE-882-FT-AC-2026-SCHOOL-PROT-321
+                    Official Financial Audit Hash: 0X-RE-882-FT-AC-2026-SCHOOL-PROT-321
                 </div>
-                <div className="opacity-40">Verified via Blockchain Registry</div>
+                <div className="opacity-40">Verified via Secure Registry</div>
             </div>
 
             {/* Filter Selection Modal */}

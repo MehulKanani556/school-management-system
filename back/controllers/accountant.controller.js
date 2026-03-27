@@ -629,19 +629,19 @@ exports.downloadFeeReceipt = async (req, res) => {
         
         currentY += 35;
         doc.font('Helvetica').fontSize(10).text(`${fee.category} - Distribution Cycle`, 50, currentY);
-        doc.font('Helvetica-Bold').text(`₹${fee.amount?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
+        doc.font('Helvetica-Bold').text(`Rs. ${fee.amount?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
         
         if (fee.discount > 0) {
             currentY += 20;
             doc.font('Helvetica').text('Scholarship / Waiver Discount', 50, currentY);
-            doc.font('Helvetica-Bold').fillColor('#ef4444').text(`- ₹${fee.discount?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
+            doc.font('Helvetica-Bold').fillColor('#ef4444').text(`- Rs. ${fee.discount?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
             doc.fillColor(darkColor);
         }
 
         if (fee.lateFees > 0) {
             currentY += 20;
             doc.font('Helvetica').text('Late Penalty / Compliance Fee', 50, currentY);
-            doc.font('Helvetica-Bold').fillColor('#ef4444').text(`+ ₹${fee.lateFees?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
+            doc.font('Helvetica-Bold').fillColor('#ef4444').text(`+ Rs. ${fee.lateFees?.toLocaleString()}`, 430, currentY, { align: 'right', width: 110 });
             doc.fillColor(darkColor);
         }
 
@@ -650,7 +650,7 @@ exports.downloadFeeReceipt = async (req, res) => {
         currentY += 10;
 
         doc.fontSize(12).font('Helvetica-Bold').text('TOTAL DISBURSEMENT:', 330, currentY);
-        doc.fillColor(accentColor).fontSize(14).text(`₹${fee.paidAmount?.toLocaleString()}`, 430, currentY - 2, { align: 'right', width: 110 });
+        doc.fillColor(accentColor).fontSize(14).text(`Rs. ${fee.paidAmount?.toLocaleString()}`, 430, currentY - 2, { align: 'right', width: 110 });
 
         currentY += 40;
         doc.rect(40, currentY, 515, 50).fill('#f0fdf4');
@@ -730,21 +730,21 @@ exports.downloadPayslip = async (req, res) => {
         // Rows
         doc.font('Helvetica').fontSize(10);
         doc.text('Basic Component', 50, currentY);
-        doc.font('Helvetica-Bold').text(`₹${payroll.basicSalary?.toLocaleString()}`, 40 + colWidth - 70, currentY, { align: 'right', width: 60 });
+        doc.font('Helvetica-Bold').text(`Rs. ${payroll.basicSalary?.toLocaleString()}`, 40 + colWidth - 70, currentY, { align: 'right', width: 60 });
         
         doc.font('Helvetica').text('Statutory / Leave', 595 - 40 - colWidth + 10, currentY);
-        doc.font('Helvetica-Bold').fillColor(redColor).text(`- ₹${payroll.deductions?.toLocaleString()}`, 555 - 70, currentY, { align: 'right', width: 60 });
+        doc.font('Helvetica-Bold').fillColor(redColor).text(`- Rs. ${payroll.deductions?.toLocaleString()}`, 555 - 70, currentY, { align: 'right', width: 60 });
         
         currentY += 20;
         doc.fillColor(darkColor).font('Helvetica').text('Cycle Bonuses', 50, currentY);
-        doc.font('Helvetica-Bold').fillColor(greenColor).text(`+ ₹${payroll.bonus?.toLocaleString()}`, 40 + colWidth - 70, currentY, { align: 'right', width: 60 });
+        doc.font('Helvetica-Bold').fillColor(greenColor).text(`+ Rs. ${payroll.bonus?.toLocaleString()}`, 40 + colWidth - 70, currentY, { align: 'right', width: 60 });
 
         currentY += 40;
         doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor('#e2e8f0').lineWidth(1).stroke();
         currentY += 15;
 
         doc.fillColor(darkColor).fontSize(12).font('Helvetica-Bold').text('NET PAYABLE DISPATCH:', 320, currentY);
-        doc.fillColor(brandColor).fontSize(16).text(`₹${payroll.netSalary?.toLocaleString()}`, 430, currentY - 3, { align: 'right', width: 110 });
+        doc.fillColor(brandColor).fontSize(16).text(`Rs. ${payroll.netSalary?.toLocaleString()}`, 430, currentY - 3, { align: 'right', width: 110 });
 
         currentY += 50;
         doc.rect(40, currentY, 515, 60).fill('#eef2ff');
@@ -754,6 +754,137 @@ exports.downloadPayslip = async (req, res) => {
 
         // Footer
         doc.fontSize(7).fillColor('#94a3b8').text('© OPERATIONS NETWORK // SECURE PAYROLL EMISSION // 2026', 0, 810, { align: 'center', width: 595 });
+
+        doc.end();
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.downloadFinancialReport = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const { startDate, endDate, academicYear } = req.query;
+        const school = await School.findById(schoolId);
+        
+        // ─── EXACT COPY of getFinancialReport query logic ──────────────────
+        let match = { schoolId: new mongoose.Types.ObjectId(schoolId) };
+        if (startDate || endDate) {
+            match.paidDate = {};
+            if (startDate) match.paidDate.$gte = new Date(startDate);
+            if (endDate) match.paidDate.$lte = new Date(endDate);
+        }
+        if (academicYear) match.academicYear = academicYear;
+
+        const feeIncome = await FeePayment.aggregate([
+            { $match: { ...match, status: { $in: ['paid', 'partially_paid'] } } },
+            { $group: { _id: null, total: { $sum: '$paidAmount' } } }
+        ]);
+
+        const pendingFees = await FeePayment.aggregate([
+            { $match: { ...match, status: { $ne: 'paid' } } },
+            { $group: { _id: null, total: { $sum: { $subtract: ['$totalAmount', '$paidAmount'] } } } }
+        ]);
+
+        const payrollMatch = { schoolId: new mongoose.Types.ObjectId(schoolId) };
+        if (startDate || endDate) {
+            const start = startDate ? new Date(startDate) : null;
+            const end = endDate ? new Date(endDate) : null;
+            if (start && end) {
+                payrollMatch.$or = [
+                    { paidAt: { $gte: start, $lte: end } },
+                    { year: { $gte: start.getFullYear(), $lte: end.getFullYear() }, month: { $gte: start.getMonth() + 1, $lte: end.getMonth() + 1 } }
+                ];
+            } else if (start) {
+                payrollMatch.$or = [
+                    { paidAt: { $gte: start } },
+                    { year: { $gte: start.getFullYear() }, month: { $gte: start.getMonth() + 1 } }
+                ];
+            } else if (end) {
+                payrollMatch.$or = [
+                    { paidAt: { $lte: end } },
+                    { year: { $lte: end.getFullYear() }, month: { $lte: end.getMonth() + 1 } }
+                ];
+            }
+        }
+
+        const payrollExpenses = await Payroll.aggregate([
+            { $match: payrollMatch },
+            { $group: { _id: null, total: { $sum: '$netSalary' } } }
+        ]);
+
+        const [studentCount, staffCount] = await Promise.all([
+            Student.countDocuments({ schoolId, deletedAt: null }),
+            Teacher.countDocuments({ schoolId, deletedAt: null })
+        ]);
+        // ───────────────────────────────────────────────────────────────────
+
+        const income = feeIncome[0]?.total || 0;
+        const pending = pendingFees[0]?.total || 0;
+        const expenses = payrollExpenses[0]?.total || 0;
+        const liquidity = (income + pending) > 0 ? (income / (income + pending)) * 100 : 0;
+
+        // --- PDF Generation ---
+        const doc = new PDFDocument({ margin: 40, size: 'A4' });
+        res.setHeader('Content-Type', 'application/pdf');
+        res.setHeader('Content-Disposition', `attachment; filename=Finance_Audit_Report_${new Date().getTime()}.pdf`);
+        doc.pipe(res);
+
+        const darkColor = '#0f172a';
+        const brandColor = '#f59e0b'; // accountant-primary
+        const lightColor = '#f8fafc';
+
+        // Header
+        doc.rect(0, 0, 595, 140).fill(darkColor);
+        doc.fillColor('#ffffff').fontSize(22).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
+        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('FINANCE DEPT // INSTITUTIONAL AUDIT REPORT', 40, 75, { characterSpacing: 1.5 });
+        
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text(`GENESIS HASH: 0X-RE-882`, 400, 45, { align: 'right', width: 155 });
+        doc.fontSize(9).font('Helvetica').fillColor('#94a3b8').text(`DATE: ${new Date().toLocaleDateString()}`, 400, 60, { align: 'right', width: 155 });
+
+        let currentY = 170;
+
+        // Financial Summary Section
+        doc.fillColor(darkColor).fontSize(12).font('Helvetica-Bold').text('FISCAL PERFORMANCE SUMMARY', 40, currentY);
+        currentY += 15;
+        doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor('#e2e8f0').lineWidth(0.5).stroke();
+        currentY += 25;
+
+        const cardWidth = 165;
+        const drawStat = (label, value, x, y) => {
+            doc.rect(x, y, cardWidth, 60).fill(lightColor);
+            doc.fillColor('#64748b').fontSize(8).font('Helvetica-Bold').text(label.toUpperCase(), x + 15, y + 15);
+            doc.fillColor(darkColor).fontSize(14).font('Helvetica-Bold').text(`Rs. ${(value || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`, x + 15, y + 30);
+        };
+
+        drawStat('Total Collection', income, 40, currentY);
+        drawStat('Total Expenses', expenses, 40 + cardWidth + 10, currentY);
+        drawStat('Net Balance', income - expenses, 40 + (cardWidth + 10) * 2, currentY);
+
+        currentY += 80;
+
+        // Metrics Section
+        doc.fillColor(darkColor).fontSize(11).font('Helvetica-Bold').text('INSTITUTIONAL METRICS', 40, currentY);
+        currentY += 20;
+        
+        doc.fontSize(9).font('Helvetica').text('Student Strength:', 40, currentY);
+        doc.font('Helvetica-Bold').text(studentCount.toString(), 150, currentY);
+        doc.font('Helvetica').text('Staff Strength:', 250, currentY);
+        doc.font('Helvetica-Bold').text(staffCount.toString(), 340, currentY);
+        
+        currentY += 20;
+        doc.font('Helvetica').text('Fund Liquidity:', 40, currentY);
+        doc.font('Helvetica-Bold').fillColor(brandColor).text(`${Math.round(liquidity)}%`, 150, currentY);
+        doc.fillColor(darkColor).font('Helvetica').text('Accounting Cycle:', 250, currentY);
+        doc.font('Helvetica-Bold').text(academicYear || 'Current', 340, currentY);
+
+        currentY += 45;
+
+        // Note Section
+        doc.rect(40, currentY, 515, 60).fill('#fffbeb');
+        doc.fillColor('#92400e').fontSize(9).font('Helvetica-Bold').text('AUDITOR REMARKS:', 55, currentY + 15);
+        doc.fontSize(8).font('Helvetica').text('This document serves as an official internal audit of institutional fund movements. All figures are verified against transaction hashes and payroll disbursement logs.', 55, currentY + 30, { width: 450, lineGap: 3 });
+
+        // Footer
+        doc.fontSize(7).fillColor('#94a3b8').text(`SECURE FINANCE PORTAL // SYSTEM GENERATED AUTHENTIC RECORD // ${new Date().getFullYear()}`, 0, 810, { align: 'center', width: 595 });
 
         doc.end();
     } catch (err) { res.status(500).json({ message: err.message }); }

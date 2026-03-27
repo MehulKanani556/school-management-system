@@ -105,15 +105,16 @@ exports.getDashboardStats = async (req, res) => {
     const schoolId = getSchoolId(req);
 
     // 1. Basic Stats
+    const schoolIdObj = new mongoose.Types.ObjectId(schoolId);
     const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount, accountantCount, librarianCount, transportCount] = await Promise.all([
-      Student.countDocuments({ schoolId, isActive: true, deletedAt: null }),
-      Teacher.countDocuments({ schoolId, isActive: true, deletedAt: null }),
-      ClassSection.countDocuments({ schoolId }),
-      FeePayment.countDocuments({ schoolId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
-      Exam.countDocuments({ schoolId }),
-      User.countDocuments({ schoolId, role: 'Accountant', isActive: true }),
-      User.countDocuments({ schoolId, role: 'Librarian', isActive: true }),
-      User.countDocuments({ schoolId, role: 'Transport_Manager', isActive: true }),
+      Student.countDocuments({ schoolId: schoolIdObj, deletedAt: null }),
+      Teacher.countDocuments({ schoolId: schoolIdObj, deletedAt: null }),
+      ClassSection.countDocuments({ schoolId: schoolIdObj }),
+      FeePayment.countDocuments({ schoolId: schoolIdObj, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
+      Exam.countDocuments({ schoolId: schoolIdObj }),
+      User.countDocuments({ schoolId: schoolIdObj, role: 'Accountant' }),
+      User.countDocuments({ schoolId: schoolIdObj, role: 'Librarian' }),
+      User.countDocuments({ schoolId: schoolIdObj, role: 'Transport_Manager' }),
     ]);
 
     // 2. Recent Activity (Latest additions)

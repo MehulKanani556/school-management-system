@@ -17,6 +17,7 @@ const PersonnelRegistry = () => {
     // Selectors
     const { users, loading: userLoading, message: userMsg, error: userErr } = useSelector((state) => state.user);
     const { drivers, loading: driverLoading, message: driverMsg, error: driverErr } = useSelector((state) => state.transport);
+    const { user: loggedInUser } = useSelector((state) => state.auth);
     
     // UI State
     const [activeTab, setActiveTab] = useState('institutional'); // 'institutional' or 'fleet'
@@ -68,13 +69,26 @@ const PersonnelRegistry = () => {
         const matchesRole = selectedRole === 'All' ? managementRoles.includes(user.role) : user.role === selectedRole;
         const matchesSearch = (user.firstName + ' ' + user.lastName).toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email?.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesRole && matchesSearch;
+        
+        // Filter by school if not Super Admin
+        const userSchoolId = user.schoolId?._id || user.schoolId;
+        const loggedInSchoolId = loggedInUser?.schoolId?._id || loggedInUser?.schoolId;
+        const matchesSchool = !loggedInUser || loggedInUser.role === 'Super_Admin' || (userSchoolId && userSchoolId.toString() === loggedInSchoolId?.toString());
+            
+        return matchesRole && matchesSearch && matchesSchool;
     });
 
-    const filteredDrivers = drivers.filter(d => 
-        d.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-        d.licenseNumber?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredDrivers = drivers.filter(d => {
+        const matchesSearch = d.name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+            d.licenseNumber?.toLowerCase().includes(searchTerm.toLowerCase());
+            
+        // Filter by school if not Super Admin
+        const driverSchoolId = d.schoolId?._id || d.schoolId;
+        const loggedInSchoolId = loggedInUser?.schoolId?._id || loggedInUser?.schoolId;
+        const matchesSchool = !loggedInUser || loggedInUser.role === 'Super_Admin' || (driverSchoolId && driverSchoolId.toString() === loggedInSchoolId?.toString());
+
+        return matchesSearch && matchesSchool;
+    });
 
     const handleProvision = (e) => {
         e.preventDefault();
@@ -269,7 +283,7 @@ const PersonnelRegistry = () => {
             <AnimatePresence>
                 {(isAddOpen || isEditOpen) && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="absolute inset-0 bg-neutral-950/90 backdrop-blur-xl"></motion.div>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="absolute inset-0 bg-neutral-950/40 backdrop-blur-xl"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 30 }} className="bg-brand-surface w-full max-w-2xl rounded-2xl border border-brand-border shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={isEditOpen ? handleUpdate : handleProvision} className="p-12 space-y-8">
                                 <div className="flex justify-between items-center pb-6 border-b border-brand-border/40">
