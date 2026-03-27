@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion } from 'framer-motion';
 import { User, Phone, Mail, Award, Calendar, ShieldCheck, Camera, Loader2, Key } from 'lucide-react';
-import { fetchProfile, updateProfile, changeTeacherPassword } from '../../redux/slice/teacher.slice';
 import Modal from '../../components/Modal';
+import toast from 'react-hot-toast';
+import { fetchProfile, updateProfile, changeTeacherPassword, clearTeacherMessage, clearTeacherError } from '../../redux/slice/teacher.slice';
 
 const TeacherProfile = () => {
     const dispatch = useDispatch();
-    const { profile, loading, message } = useSelector((state) => state.teacher);
+    const { profile, loading, message, error } = useSelector((state) => state.teacher);
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -24,6 +25,21 @@ const TeacherProfile = () => {
     useEffect(() => {
         dispatch(fetchProfile());
     }, [dispatch]);
+
+    useEffect(() => {
+        if (message) {
+            toast.success(message, {
+                style: { borderRadius: '10px', background: '#0f172a', color: '#fff', border: '1px solid #22c55e' }
+            });
+            dispatch(clearTeacherMessage());
+        }
+        if (error) {
+            toast.error(error, {
+                style: { borderRadius: '10px', background: '#0f172a', color: '#fff', border: '1px solid #ef4444' }
+            });
+            dispatch(clearTeacherError());
+        }
+    }, [message, error, dispatch]);
 
     useEffect(() => {
         if (profile) {

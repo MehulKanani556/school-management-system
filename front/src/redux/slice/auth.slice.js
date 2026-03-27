@@ -271,6 +271,14 @@ export const authSlice = createSlice({
             .addCase(updateProfile.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload?.message || 'Profile update failed';
+            })
+            // Extra: Listen to Teacher Profile Updates to sync Sidebar/Header
+            .addCase('teacher/updateProfile/fulfilled', (state, action) => {
+                const updatedUser = action.payload.teacher?.userId;
+                if (updatedUser && state.user && state.user._id === updatedUser._id) {
+                    state.user = { ...state.user, ...updatedUser };
+                    localStorage.setItem('user', JSON.stringify(state.user));
+                }
             });
     }
 });

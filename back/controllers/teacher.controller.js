@@ -714,7 +714,8 @@ exports.updateProfile = async (req, res) => {
         if (req.file) userUpdate.photo = req.file.location;
         await User.findByIdAndUpdate(req.user._id, userUpdate);
 
-        res.json({ message: 'Professional profile synchronized successfully', teacher });
+        const populatedTeacher = await Teacher.findById(teacher._id).populate('userId', 'photo email role');
+        res.json({ message: 'Professional profile synchronized successfully', teacher: populatedTeacher });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
