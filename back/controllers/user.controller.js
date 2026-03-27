@@ -42,7 +42,9 @@ exports.getUniversalProfile = async (req, res) => {
         if (studentProfile) {
             let studentDetails = {};
             // If viewer is Admin or self or Parent of child
-            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === id || (viewerRole === 'Parent' && studentProfile.parentId?._id.toString() === viewerId.toString())) {
+            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === id || 
+                viewerRole === 'Accountant' || viewerRole === 'Teacher' ||
+                (viewerRole === 'Parent' && studentProfile.parentId?._id.toString() === viewerId.toString())) {
                 const results = await Mark.find({ studentId: id })
                     .populate({
                         path: 'examId',
@@ -122,7 +124,7 @@ exports.getUniversalProfile = async (req, res) => {
             
             let teacherMetrics = {};
             // If viewer is Admin or self
-            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === activeId.toString() || (teacherRecord && viewerId.toString() === teacherRecord._id.toString())) {
+            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerRole === 'Accountant' || viewerId.toString() === activeId.toString() || (teacherRecord && viewerId.toString() === teacherRecord._id.toString())) {
                 const salary = teacherRecord ? await Payroll.find({ teacherId: teacherRecord._id }).sort({ paidAt: -1 }).limit(12) : [];
 
                 const attendance = await StaffAttendance.find({ userId: activeId }).sort({ date: -1 }).limit(30);

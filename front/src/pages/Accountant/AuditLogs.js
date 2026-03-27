@@ -38,9 +38,9 @@ const AuditLogs = () => {
                 <div>
                     <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-2">Security Audit Ledger</h1>
                     <div className="flex items-center gap-3">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Immutable record of platform administrative actions.</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Official ledger of school administrative actions.</p>
                         <span className="h-px w-8 bg-brand-primary/30"></span>
-                        <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest italic">{logs.length} Operations Synchronized</p>
+                        <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest italic">{logs.length} Actions Logged</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -55,7 +55,7 @@ const AuditLogs = () => {
                     <Search className="absolute left-3.5 top-3.5 text-slate-600" size={14} />
                     <input 
                         type="text" 
-                        placeholder="Search operation hashes or identities..." 
+                        placeholder="Search audit descriptions or operator names..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-brand-background border border-brand-border rounded-lg py-3 pl-10 pr-4 text-[11px] font-black text-slate-200 outline-none focus:border-brand-primary transition-all uppercase tracking-tighter" 
@@ -66,10 +66,10 @@ const AuditLogs = () => {
                     onChange={(e) => setModuleFilter(e.target.value)}
                     className="bg-brand-background border border-brand-border rounded-lg py-3 px-4 text-[10px] font-black text-slate-400 uppercase tracking-widest italic outline-none focus:border-brand-primary appearance-none"
                 >
-                    <option value="">All Module Sectors</option>
-                    <option value="Finance">Finance Protocol</option>
-                    <option value="Admin">Admin Node</option>
-                    <option value="Academic">Academic Layer</option>
+                    <option value="">All Categories</option>
+                    <option value="Finance">Financial Logs</option>
+                    <option value="Admin">Admin Actions</option>
+                    <option value="Academic">Academic Records</option>
                 </select>
             </div>
 
@@ -79,16 +79,16 @@ const AuditLogs = () => {
                         <thead>
                             <tr className="bg-brand-background/50">
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Timestamp</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Operator Identity</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Protocol Action</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Operational Details</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-center">Module</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Operator Name</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Action Performed</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Activity Details</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-center">Section</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-border/10">
                             {loading ? (
-                                <tr>
-                                    <td colSpan="5" className="px-6 py-20 text-center"><div className="flex flex-col items-center gap-3"><Clock className="animate-spin text-brand-primary" size={24} /><span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] animate-pulse">Synchronizing Ledger...</span></div></td>
+                                <tr className="group hover:bg-white/5 transition-all">
+                                    <td colSpan="5" className="px-6 py-20 text-center"><div className="flex flex-col items-center gap-3"><Clock className="animate-spin text-brand-primary" size={24} /><span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] animate-pulse">Loading Audit Records...</span></div></td>
                                 </tr>
                             ) : filteredLogs.length > 0 ? filteredLogs.map((log, i) => (
                                 <tr key={i} className="group hover:bg-white/5 transition-all">

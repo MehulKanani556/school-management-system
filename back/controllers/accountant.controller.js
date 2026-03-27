@@ -103,10 +103,11 @@ exports.collectFee = async (req, res) => {
 
         await fee.save();
 
-        // Revenue is auto-synced by the FeePayment post-save hook (aggregate recalculation)
-        // Removed manual inc to avoid double-counting under concurrent saves
+        // Populate student info for a descriptive audit log
+        await fee.populate('studentId', 'firstName lastName');
+        const studentName = `${fee.studentId.firstName} ${fee.studentId.lastName}`;
 
-        await logAudit(req, 'FEE_COLLECTION', 'Finance', `Collected $${paidAmount} for student ${fee.studentId}`);
+        await logAudit(req, 'FEE_COLLECTION', 'Finance', `Collected ₹${paidAmount} for student ${studentName}`);
 
         res.json({ message: 'Fee Synchronized successfully', data: fee });
 
@@ -126,7 +127,7 @@ exports.createFeeStructure = async (req, res) => {
         const structure = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
         const populated = await structure.populate('standardId', 'level name');
 
-        await logAudit(req, 'CREATE_FEE_STRUCTURE', 'Finance', `Created new fee structure for Standard ${req.body.standardId}`);
+        await logAudit(req, 'CREATE_FEE_STRUCTURE', 'Finance', `Created new fee structure for Standard ${populated.standardId.name || `Grade ${populated.standardId.level}`}`);
 
         res.status(201).json({ message: 'Fee structure created successfully', data: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -189,7 +190,10 @@ exports.applyFeeStructure = async (req, res) => {
         if (!payments.length) return res.status(400).json({ message: 'Fees already applied for this selection' });
 
         await FeePayment.insertMany(payments);
-        await logAudit(req, 'APPLY_FEE_STRUCTURE', 'Finance', `Applied fee structure for Standard ${standardId} for year ${academicYear}`);
+        
+        const standard = await Standard.findById(standardId);
+        const standardName = standard ? (standard.name || `Grade ${standard.level}`) : standardId;
+        await logAudit(req, 'APPLY_FEE_STRUCTURE', 'Finance', `Applied fee structure for Standard ${standardName} for year ${academicYear}`);
 
         res.json({ message: `Fee Inflow Cycle Triggered for ${students.length} students.` });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -405,7 +409,7 @@ exports.processPayroll = async (req, res) => {
             ? `${payroll.teacherId.firstName} ${payroll.teacherId.lastName}` 
             : `${payroll.userId?.firstName} ${payroll.userId?.lastName}`;
             
-        await logAudit(req, 'PROCESS_PAYROLL', 'Finance', `Processed payroll of ${payroll.netSalary} for ${staffName}`);
+        await logAudit(req, 'PROCESS_PAYROLL', 'Finance', `Processed payroll of ₹${payroll.netSalary.toLocaleString()} for ${staffName}`);
 
         res.json({ message: 'Payroll processed successfully', data: payroll });
     } catch (err) { res.status(500).json({ message: err.message }); }

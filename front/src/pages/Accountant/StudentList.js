@@ -44,7 +44,7 @@ const StudentList = () => {
         transactionId: '',
         lateFees: 0,
         discount: 0,
-        note: 'Fiscal Synchronization via Citizen Registry'
+        note: 'Fee Collection'
     });
 
     useEffect(() => {
@@ -74,7 +74,7 @@ const StudentList = () => {
     }, [dispatch]);
 
     const filtered = students.filter(s => {
-        const searchString = `${s.firstName} ${s.lastName} ${s.admissionNumber} Grade ${s.standard?.level} ${s.classSection?.sectionLabel}`.toLowerCase();
+        const searchString = `${s.firstName} ${s.lastName} ${s.admissionNumber} Class ${s.standard?.level} ${s.classSection?.sectionLabel}`.toLowerCase();
         const matchesSearch = searchString.includes(search.toLowerCase());
 
         if (viewMode === 'students' && selectedSection) {
@@ -178,14 +178,14 @@ const StudentList = () => {
             initialMap[f._id] = (f.totalAmount || f.amount) - (f.paidAmount || 0);
         });
         setPayingMap(initialMap);
-        setCollectionData(prev => ({ ...prev, note: `Institutional Record Sync for ${student.firstName}` }));
+        setCollectionData(prev => ({ ...prev, note: `Fee payment for ${student.firstName}` }));
     };
 
     const handleCollectSubmit = async () => {
         const activeIds = Object.keys(payingMap).filter(id => Number(payingMap[id]) > 0);
         
         if (activeIds.length === 0 && !isAddingNew) {
-            toast.error('No fiscal update data detected');
+            toast.error('Please enter an amount to collect');
             return;
         }
 
@@ -231,12 +231,12 @@ const StudentList = () => {
                         <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">
                             <div className="flex items-center gap-3 mr-4">
                                 <div className="h-[2px] w-8 bg-accountant-primary rounded-md"></div>
-                                <span className={viewMode === 'standards' ? 'text-accountant-primary' : 'cursor-pointer hover:text-slate-300'} onClick={resetSelection}>Matrix Index</span>
+                                <span className={viewMode === 'standards' ? 'text-accountant-primary' : 'cursor-pointer hover:text-slate-300'} onClick={resetSelection}>All Standards</span>
                             </div>
                             {selectedStandard && (
                                 <>
                                     <ChevronRight size={10} className="opacity-20" />
-                                    <span className={viewMode === 'sections' ? 'text-accountant-primary' : 'cursor-pointer hover:text-slate-300'} onClick={() => setViewMode('sections')}>Grade {selectedStandard.level}</span>
+                                    <span className={viewMode === 'sections' ? 'text-accountant-primary' : 'cursor-pointer hover:text-slate-300'} onClick={() => setViewMode('sections')}>Class {selectedStandard.level}</span>
                                 </>
                             )}
                             {selectedSection && viewMode === 'students' && (
@@ -247,9 +247,9 @@ const StudentList = () => {
                             )}
                         </div>
                         <h1 className="text-4xl text-left font-black text-white italic uppercase tracking-tighter leading-none font-outfit">
-                            {viewMode === 'standards' && 'Student Matrix'}
-                            {viewMode === 'sections' && `Grade ${selectedStandard?.level} Units`}
-                            {viewMode === 'students' && `Identities: ${selectedSection?.sectionLabel}`}
+                            {viewMode === 'standards' && 'Student Directory'}
+                            {viewMode === 'sections' && `Class ${selectedStandard?.level} Sections`}
+                            {viewMode === 'students' && `Students: Section ${selectedSection?.sectionLabel}`}
                         </h1>
                     </div>
                 </div>
@@ -279,14 +279,14 @@ const StudentList = () => {
                                         <GraduationCap size={28} />
                                     </div>
                                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-900 px-3 py-1.5 rounded-md border border-slate-800">
-                                        {getStudentCount('standard', std._id)} Units
+                                        {getStudentCount('standard', std._id)} Students
                                     </div>
                                 </div>
                                 <h3 className="text-2xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-accountant-primary transition-colors italic">
-                                    Level {std.level}
+                                    Class {std.level}
                                 </h3>
                                 <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-2 italic flex items-center gap-2">
-                                    <UserCheck size={12} className="text-accountant-primary" /> Audit Identities
+                                    <UserCheck size={12} className="text-accountant-primary" /> View Students
                                 </p>
                             </button>
                         ))}
@@ -318,14 +318,14 @@ const StudentList = () => {
                                             <SchoolIcon size={28} />
                                         </div>
                                         <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 bg-slate-900 px-3 py-1.5 rounded-md border border-slate-800 shadow-inner">
-                                            {getStudentCount('section', sec._id)} Units
+                                            {getStudentCount('section', sec._id)} Students
                                         </div>
                                     </div>
                                     <h3 className="text-2xl font-black font-outfit uppercase tracking-tight text-white group-hover:text-accountant-primary transition-colors italic leading-none">
                                         Section {sec.sectionLabel}
                                     </h3>
                                     <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-2 italic flex items-center gap-2">
-                                        <Users size={12} className="text-accountant-primary" /> Direct Probe
+                                        <Users size={12} className="text-accountant-primary" /> View Students
                                     </p>
                                 </button>
                             ))}
@@ -343,16 +343,16 @@ const StudentList = () => {
                         {/* Section Matrix Stats */}
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                             {[
-                                { label: 'Section Net', val: totalInvoiced, ic: PieChart, col: 'accountant-primary shadow-accountant-primary/10' },
+                                { label: 'Total Invoiced', val: totalInvoiced, ic: PieChart, col: 'accountant-primary shadow-accountant-primary/10' },
                                 { label: 'Collected', val: totalCollected, ic: CheckCircle2, col: 'emerald-500 shadow-emerald-500/10' },
-                                { label: 'Internal Debt', val: totalPending, ic: Info, col: 'rose-500 shadow-rose-500/10' }
+                                { label: 'Pending Dues', val: totalPending, ic: Info, col: 'rose-500 shadow-rose-500/10' }
                             ].map(s => (
                                 <div key={s.label} className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-7 transition-all hover:border-accountant-primary/20 group shadow-lg">
                                     <div className={`w-10 h-10 rounded-md bg-${s.col.split(' ')[0]}/10 flex items-center justify-center text-${s.col.split(' ')[0]} mb-4 group-hover:scale-110 transition-transform`}>
                                         <s.ic size={20} />
                                     </div>
                                     <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit italic">{s.label}</p>
-                                    <p className="text-3xl font-black font-outfit mt-2 text-white italic tracking-tighter">${s.val.toLocaleString()}</p>
+                                    <p className="text-3xl font-black font-outfit mt-2 text-white italic tracking-tighter">₹{s.val.toLocaleString()}</p>
                                 </div>
                             ))}
                         </div>
@@ -375,7 +375,7 @@ const StudentList = () => {
                                 <input
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
-                                    placeholder={`Probing Grade Archive: ${selectedSection?.sectionLabel}...`}
+                                    placeholder={`Search students in Section ${selectedSection?.sectionLabel}...`}
                                     className="w-full bg-slate-950/40 border border-slate-800/60 rounded-md py-3.5 pl-11 pr-5 text-white placeholder-slate-600 outline-none focus:border-accountant-primary transition-all font-outfit text-[11px] font-black italic tracking-wider shadow-inner"
                                 />
                             </div>
@@ -394,9 +394,9 @@ const StudentList = () => {
 
                                     <tbody className="divide-y divide-slate-800/40">
                                         {loading && sectionData.length === 0 ? (
-                                            <tr><td colSpan={8} className="px-8 py-20 text-center text-slate-500 text-[10px] font-black uppercase tracking-widest italic animate-pulse">Synchronizing Node Data...</td></tr>
+                                            <tr><td colSpan={8} className="px-8 py-20 text-center text-slate-500 text-[10px] font-black uppercase tracking-widest italic animate-pulse">Loading student records...</td></tr>
                                         ) : sectionData.length === 0 ? (
-                                            <tr><td colSpan={8} className="px-8 py-24 text-center text-slate-400 font-black uppercase text-xs italic opacity-40 tracking-[0.5em]">Identity Archive Empty</td></tr>
+                                            <tr><td colSpan={8} className="px-8 py-24 text-center text-slate-400 font-black uppercase text-xs italic opacity-40 tracking-[0.5em]">No students found</td></tr>
 
                                         ) : sectionData.slice((currentPage-1)*itemsPerPage, currentPage*itemsPerPage).map((d, i) => (
                                             <motion.tr key={d.student._id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.03 }}
@@ -416,19 +416,19 @@ const StudentList = () => {
                                                         >
 
                                                             <div className="font-black text-white italic uppercase tracking-tighter text-sm group-hover/name:text-accountant-primary transition-colors leading-none">{d.student.firstName} {d.student.lastName}</div>
-                                                            <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5 opacity-60">ADM-{d.student.admissionNumber} • GRADE {selectedStandard?.level}</div>
+                                                            <div className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5 opacity-60">Roll No: {d.student.admissionNumber} • CLASS {selectedStandard?.level}</div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 border-b border-slate-800/20">
                                                     <div className="flex flex-col">
                                                         <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic">{d.category}</span>
-                                                        {d._raw.length > 1 && <span className="text-[8px] font-black text-accountant-primary uppercase mt-1">{d._raw.length} Records Combined</span>}
+                                                        {d._raw.length > 1 && <span className="text-[8px] font-black text-accountant-primary uppercase mt-1">{d._raw.length} Fees Combined</span>}
                                                     </div>
                                                 </td>
                                                 <td className="px-8 py-5 border-b border-slate-800/20">
                                                     <span className="font-black text-white italic tracking-tighter text-lg font-outfit">
-                                                        ${(d.total || 0).toLocaleString()}
+                                                        ₹{(d.total || 0).toLocaleString()}
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-5 border-b border-slate-800/20">
@@ -440,7 +440,7 @@ const StudentList = () => {
                                                 </td>
                                                 <td className="px-8 py-5 border-b border-slate-800/20">
                                                     <span className="font-black text-emerald-400 italic tracking-tighter text-lg font-outfit">
-                                                        ${(d.paid || 0).toLocaleString()}
+                                                        ₹{(d.paid || 0).toLocaleString()}
                                                     </span>
                                                 </td>
                                                 <td className="px-8 py-5 border-b border-slate-800/20 text-left">
@@ -472,13 +472,13 @@ const StudentList = () => {
                                                         <button 
                                                             onClick={() => handleOpenFeeModal(d.student)}
                                                             className="p-2 rounded-md bg-slate-900 border border-slate-800 text-slate-500 hover:text-emerald-500 hover:border-emerald-500 transition-all shadow-xl group/btn opacity-40 hover:opacity-100"
-                                                            title="Synchronize Dues"
+                                                            title="Collect Fees"
                                                         >
                                                             <Wallet2 size={12} className="group-hover/btn:scale-110 transition-transform" />
                                                         </button>
                                                         <button 
                                                             className="p-2 rounded-md bg-slate-900 border border-slate-800 text-slate-500 hover:text-blue-500 hover:border-blue-500 transition-all shadow-xl group/btn opacity-40 hover:opacity-100"
-                                                            title="Config Records"
+                                                            title="Settings"
                                                         >
                                                             <Settings2 size={12} className="group-hover/btn:scale-110 transition-transform" />
                                                         </button>
@@ -518,8 +518,8 @@ const StudentList = () => {
                             
                             <div className="flex items-start justify-between mb-8">
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fiscal Synchronization</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Updating node status for {selectedStudent.firstName}.</p>
+                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fee Collection</h3>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Entering payment details for {selectedStudent.firstName}.</p>
                                 </div>
                                 <button onClick={() => setSelectedStudent(null)} className="p-1 hover:text-accountant-primary transition-all text-slate-600"><X size={20} /></button>
                             </div>
@@ -532,7 +532,7 @@ const StudentList = () => {
                                     </div>
                                     <div>
                                         <p className="text-sm font-black text-white italic uppercase tracking-tight">{selectedStudent.firstName} {selectedStudent.lastName}</p>
-                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mt-1">{selectedStudent.admissionNumber} • GRADE {selectedStudent.standard?.level}</p>
+                                        <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest leading-none mt-1">{selectedStudent.admissionNumber} • CLASS {selectedStudent.standard?.level}</p>
                                     </div>
                                 </div>
 
@@ -550,13 +550,13 @@ const StudentList = () => {
                                                     </div>
                                                     <div className="relative z-10 flex items-center justify-between">
                                                         <div>
-                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1 italic">Outstanding Node Debt</p>
-                                                            <p className="text-4xl font-black font-outfit text-accountant-primary italic tracking-tighter">${totalUnpaid.toLocaleString()}</p>
+                                                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1 italic">Total Pending Amount</p>
+                                                            <p className="text-4xl font-black font-outfit text-accountant-primary italic tracking-tighter">₹{totalUnpaid.toLocaleString()}</p>
                                                         </div>
                                                         {bulkPayingTotal > 0 && (
                                                             <div className="text-right">
-                                                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 italic">Session Payload</p>
-                                                                <p className="text-2xl font-black font-outfit text-white italic">-${bulkPayingTotal.toLocaleString()}</p>
+                                                                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1 italic">Paying Now</p>
+                                                                <p className="text-2xl font-black font-outfit text-white italic">-₹{bulkPayingTotal.toLocaleString()}</p>
                                                             </div>
                                                         )}
                                                     </div>
@@ -564,25 +564,25 @@ const StudentList = () => {
                                             )}
 
                                             <div className="space-y-3">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2 italic">Active Debt Clusters</p>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 px-2 italic">Pending Fee Items</p>
                                                 <div className="space-y-2 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                                                     {unpaidFees.map(uf => (
                                                         <div key={uf._id} className="p-4 bg-slate-900/40 rounded-md border border-slate-800/40 hover:border-accountant-primary/20 transition-all group/item shadow-inner">
                                                             <div className="flex items-center justify-between mb-3">
                                                                 <div>
                                                                     <h5 className="text-sm font-black text-white italic uppercase tracking-tight group-hover/item:text-accountant-primary transition-colors">{uf.category}</h5>
-                                                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-0.5">CYCLE DUE: {moment(uf.dueDate).format('L')}</p>
+                                                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest mt-0.5">DUE DATE: {moment(uf.dueDate).format('L')}</p>
                                                                 </div>
                                                                 <div className="text-right">
-                                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none mb-1">Cap Remaining</p>
-                                                                    <p className="text-sm font-black text-white italic font-outfit uppercase tracking-tighter">${((uf.totalAmount || uf.amount) - (uf.paidAmount || 0)).toLocaleString()}</p>
+                                                                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none mb-1">Remaining</p>
+                                                                    <p className="text-sm font-black text-white italic font-outfit uppercase tracking-tighter">₹{((uf.totalAmount || uf.amount) - (uf.paidAmount || 0)).toLocaleString()}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="relative group/input">
-                                                                <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs transition-colors ${payingMap[uf._id] > 0 ? 'text-accountant-primary' : 'text-slate-700'}`}>$</span>
+                                                                <span className={`absolute left-4 top-1/2 -translate-y-1/2 font-black text-xs transition-colors ${payingMap[uf._id] > 0 ? 'text-accountant-primary' : 'text-slate-700'}`}>₹</span>
                                                                 <input 
                                                                     type="number" 
-                                                                    placeholder="Inject fiscal capital..."
+                                                                    placeholder="Enter amount..."
                                                                     value={payingMap[uf._id] || ''}
                                                                     onChange={(e) => {
                                                                         const max = (uf.totalAmount || uf.amount) - (uf.paidAmount || 0);
@@ -597,30 +597,30 @@ const StudentList = () => {
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    {unpaidFees.length === 0 && <p className="p-10 text-center text-slate-600 italic text-[10px] font-black uppercase tracking-[0.2em] opacity-40">No pending fiscal items node</p>}
+                                                    {unpaidFees.length === 0 && <p className="p-10 text-center text-slate-600 italic text-[10px] font-black uppercase tracking-[0.2em] opacity-40">No pending fee items</p>}
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4 pt-2">
                                                 <div>
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1 italic mb-2 block">Method Matrix</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1 italic mb-2 block">Payment Mode</label>
                                                     <select 
                                                         value={collectionData.paymentMethod}
                                                         onChange={(e) => setCollectionData(prev => ({ ...prev, paymentMethod: e.target.value }))}
                                                         className="w-full bg-slate-950 border border-slate-800 focus:border-accountant-primary/50 rounded-md py-3.5 px-4 text-slate-400 text-[10px] font-black outline-none tracking-widest uppercase italic appearance-none transition-all"
                                                     >
-                                                        <option value="cash">CASH DISPATCH</option>
+                                                        <option value="cash">CASH</option>
                                                         <option value="bank_transfer">BANK TRANSFER</option>
-                                                        <option value="card">CARD TERMINAL</option>
-                                                        <option value="upi">DIGITAL UPi</option>
+                                                        <option value="card">CARD</option>
+                                                        <option value="upi">UPI</option>
                                                     </select>
                                                 </div>
                                                 <div>
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1 italic mb-2 block">Reference Hash</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 px-1 italic mb-2 block">Transaction ID / Ref</label>
                                                     <input 
                                                         value={collectionData.transactionId}
                                                         onChange={(e) => setCollectionData(prev => ({ ...prev, transactionId: e.target.value }))}
-                                                        placeholder="TXN-HASH-992..." 
+                                                        placeholder="TXN-ID..." 
                                                         className="w-full bg-slate-950 border border-slate-800 focus:border-accountant-primary/50  rounded-md py-3.5 px-4 text-white text-[10px] font-black outline-none italic tracking-wider placeholder-slate-800 transition-all" 
                                                     />
                                                 </div>
@@ -630,11 +630,11 @@ const StudentList = () => {
                                                 <div className="flex items-center justify-between p-6 bg-accountant-primary text-slate-900 rounded-md shadow-2xl relative overflow-hidden group shadow-accountant-primary/10">
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                                     <div className="relative z-10">
-                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 italic">Collation Sum</p>
-                                                        <p className="text-[10px] font-black opacity-80 mt-1 uppercase italic tracking-widest">Targeting {Object.keys(payingMap).filter(k=>payingMap[k]>0).length} Fiscal Nodes</p>
+                                                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-60 italic">Total Collection</p>
+                                                        <p className="text-[10px] font-black opacity-80 mt-1 uppercase italic tracking-widest">Paying {Object.keys(payingMap).filter(k=>payingMap[k]>0).length} Fee Items</p>
                                                     </div>
                                                     <p className="text-4xl font-black font-outfit italic tracking-tighter relative z-10">
-                                                        ${bulkPayingTotal.toLocaleString()}
+                                                        ₹{bulkPayingTotal.toLocaleString()}
                                                     </p>
                                                 </div>
 
@@ -645,7 +645,7 @@ const StudentList = () => {
                                                 >
                                                     {feeLoading ? <Loader2 size={18} className="animate-spin" /> : (
                                                         <>
-                                                            Finalize Synchronization
+                                                            Confirm Collection
                                                             <ChevronRight size={16} />
                                                         </>
                                                     )}
@@ -665,4 +665,3 @@ const StudentList = () => {
 
 
 export default StudentList;
-

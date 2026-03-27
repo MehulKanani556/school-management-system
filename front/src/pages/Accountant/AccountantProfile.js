@@ -48,11 +48,11 @@ const AccountantProfile = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             dispatch(updateUser(response.data.user));
-            toast.success("Profile Synchronized: Matrix credentials updated.");
+            toast.success("Profile updated successfully.");
             setEditMode(false);
             setPhoto(null);
         } catch (err) {
-            toast.error(err.response?.data?.message || "Synchronization failed");
+            toast.error(err.response?.data?.message || "Update failed");
         } finally {
             setLoading(false);
         }
@@ -61,7 +61,7 @@ const AccountantProfile = () => {
     const handlePasswordChange = async (e) => {
         e.preventDefault();
         if (passData.newPassword !== passData.confirmPassword) {
-            return toast.error("Credentials Mismatch: Cipher verification failed.");
+            return toast.error("Passwords do not match.");
         }
         setLoading(true);
         try {
@@ -69,7 +69,7 @@ const AccountantProfile = () => {
                 oldPassword: passData.oldPassword,
                 newPassword: passData.newPassword
             });
-            toast.success("Security Uplink: Encryption sequence updated.");
+            toast.success("Password changed successfully.");
             setPasswordModal(false);
             setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
         } catch (err) {
@@ -88,8 +88,8 @@ const AccountantProfile = () => {
         >
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Fiscal Identity</h1>
-                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Auditor credentials & security protocols.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none mb-4 font-outfit">Accountant Profile</h1>
+                    <p className="text-slate-500 font-medium text-lg leading-relaxed max-w-xl italic">Manage your profile and security settings.</p>
                 </div>
                 
                 <div className="flex gap-4">
@@ -97,14 +97,14 @@ const AccountantProfile = () => {
                         onClick={() => setPasswordModal(true)}
                         className="px-6 py-4 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-slate-700/50 flex items-center gap-3"
                     >
-                        Security Protocol <Lock size={14} />
+                        Change Password <Lock size={14} />
                     </button>
                     {!editMode ? (
                         <button 
                                 onClick={() => setEditMode(true)}
                                 className="px-8 py-4 bg-accountant-primary hover:bg-amber-500 text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(245,158,11,0.2)] flex items-center gap-3"
                             >
-                                Modify Record <Edit3 size={14} />
+                                Edit Profile <Edit3 size={14} />
                         </button>
                     ) : (
                         <div className="flex gap-3">
@@ -120,7 +120,7 @@ const AccountantProfile = () => {
                         className="px-8 py-4 bg-accountant-primary text-black rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(245,158,11,0.3)] flex items-center gap-3 disabled:opacity-50"
                     >
                         {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
-                        Synchronize
+                        Save Changes
                     </button>
 
                         </div>
@@ -156,7 +156,7 @@ const AccountantProfile = () => {
 
                             
                             <h2 className="text-2xl font-black text-white uppercase tracking-tight font-outfit mb-1">{user?.firstName} {user?.lastName}</h2>
-                            <p className="text-accountant-primary text-[10px] font-black uppercase tracking-[0.4em] font-outfit italic mb-6">Institutional Auditor</p>
+                            <p className="text-accountant-primary text-[10px] font-black uppercase tracking-[0.4em] font-outfit italic mb-6">School Accountant</p>
                             
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-3 bg-slate-950/60 px-5 py-3 rounded-md border border-slate-800/60 shadow-inner">
@@ -165,7 +165,7 @@ const AccountantProfile = () => {
                                 </div>
                                 <div className="flex items-center gap-3 bg-slate-950/60 px-5 py-3 rounded-md border border-slate-800/60 shadow-inner">
                                     <Shield size={14} className="text-slate-600" />
-                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">{user?.role} Node</span>
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-400">{user?.role} Portal</span>
                                 </div>
                             </div>
                         </div>
@@ -175,11 +175,11 @@ const AccountantProfile = () => {
                 {/* Details Grid */}
                 <div className="lg:col-span-2 space-y-8">
                     <div className="bg-slate-900 border border-slate-800/60 p-10 rounded-md shadow-2xl">
-                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accountant-primary mb-12 italic border-b border-slate-800/60 pb-6">Matrix Node Information</h3>
+                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-accountant-primary mb-12 italic border-b border-slate-800/60 pb-6">Personal Information</h3>
                         
                         <form onSubmit={handleUpdate} className="grid grid-cols-1 md:grid-cols-2 gap-12">
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Given Name</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">First Name</label>
                                 <input 
                                     name="firstName"
                                     disabled={!editMode}
@@ -190,7 +190,7 @@ const AccountantProfile = () => {
                             </div>
                             
                             <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Family Name</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Last Name</label>
                                 <input 
                                     name="lastName"
                                     disabled={!editMode}
@@ -201,7 +201,7 @@ const AccountantProfile = () => {
                             </div>
 
                             <div className="space-y-4 md:col-span-2">
-                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Authentication Email</label>
+                                <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic block ml-1">Email Address</label>
                                 <input 
                                     name="email"
                                     disabled={!editMode}
@@ -218,8 +218,8 @@ const AccountantProfile = () => {
                             <Shield size={24} />
                         </div>
                         <div>
-                            <h4 className="text-[11px] font-black uppercase tracking-widest text-white mb-2 italic">Access Level: High Priority</h4>
-                            <p className="text-xs text-slate-500 leading-relaxed italic">You have root access to financial records and payroll generation. Ensure your cipher sequences are updated regularly according to institutional protocols.</p>
+                            <h4 className="text-[11px] font-black uppercase tracking-widest text-white mb-2 italic">Role: Accountant</h4>
+                            <p className="text-xs text-slate-500 leading-relaxed italic">You have access to manage school fees, payroll, and financial reports. Please keep your account secure.</p>
                         </div>
                     </div>
                 </div>
@@ -245,11 +245,11 @@ const AccountantProfile = () => {
                                 <div className="w-20 h-20 bg-accountant-primary/10 border border-accountant-primary/20 rounded-md flex items-center justify-center mx-auto mb-6">
                                     <Lock size={32} className="text-accountant-primary" />
                                 </div>
-                                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Security Uplink</h2>
+                                <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">Change Password</h2>
                                 
                                 <form onSubmit={handlePasswordChange} className="space-y-6 text-left">
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Old Credentials</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Current Password</label>
                                         <input 
                                             type="password"
                                             required
@@ -260,7 +260,7 @@ const AccountantProfile = () => {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">New Cipher Sequence</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">New Password</label>
                                         <input 
                                             type="password"
                                             required
@@ -271,7 +271,7 @@ const AccountantProfile = () => {
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Verify Cipher</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-600 ml-1 italic">Confirm New Password</label>
                                         <input 
                                             type="password"
                                             required
@@ -288,7 +288,7 @@ const AccountantProfile = () => {
                                         className="w-full py-5 bg-accountant-primary text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(225,29,72,0.3)] hover:bg-accountant-primary active:scale-95 flex items-center justify-center gap-3 disabled:opacity-50"
                                     >
                                         {loading ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
-                                        Apply Encryption Update
+                                        Update Password
                                     </button>
 
                                 </form>

@@ -46,13 +46,13 @@ const AccountantDashboard = () => {
         link.remove();
     };
 
-    if (!report) return <div className="p-20 text-center uppercase font-black italic text-slate-600 animate-pulse tracking-widest text-[10px]">Synchronizing Financial Data...</div>;
+    if (!report) return <div className="p-20 text-center uppercase font-black italic text-slate-600 animate-pulse tracking-widest text-[10px]">Loading Dashboard data...</div>;
 
     const cards = [
         { title: 'Total Collection', val: `₹${report.income?.toLocaleString()}`, change: '+12.5%', icon: TrendingUp, color: 'text-accountant-primary' },
         { title: 'Pending Fees', val: `₹${report.pending?.toLocaleString()}`, change: 'Current Cycle', icon: Layers, color: 'text-accountant-primary' },
         { title: 'Total Expenses', val: `₹${report.expenses?.toLocaleString()}`, change: '-2.1%', icon: TrendingDown, color: 'text-luxury-rose' },
-        { title: 'Fund Liquidity', val: `${report.health?.liquidity}%`, change: report.health?.status, icon: Activity, color: 'text-luxury-emerald' },
+        { title: 'Cash Liquidity', val: `${report.health?.liquidity}%`, change: report.health?.status, icon: Activity, color: 'text-luxury-emerald' },
     ];
 
     const summaryItems = [
@@ -64,8 +64,8 @@ const AccountantDashboard = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 font-outfit">Finance Command Node</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Real-time mapping of fund movement & liquidity.</p>
+                    <h1 className="text-2xl xs:text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-1 font-outfit">Accountant Dashboard</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Live summary of fee collections, expenses, and enrollment.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
@@ -73,7 +73,7 @@ const AccountantDashboard = () => {
                         className="flex items-center gap-2 px-4 py-2 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic hover:text-accountant-primary hover:border-accountant-primary/30 transition-all shadow-xl"
                     >
                         <Filter size={14} />
-                        Current Cycle
+                        Academic Year
                     </button>
                     <button 
                         onClick={exportVisualReport}
@@ -111,7 +111,7 @@ const AccountantDashboard = () => {
                     <div className="flex items-center justify-between mb-8">
                         <h2 className="text-sm font-black italic uppercase tracking-widest text-white flex items-center gap-3 font-outfit">
                             <Activity size={16} className="text-accountant-primary" />
-                            Monthly Trend Analysis
+                            Monthly Income & Expenses
                         </h2>
                     </div>
                     <div className="h-[350px] w-full">
@@ -146,7 +146,7 @@ const AccountantDashboard = () => {
                         <div className="absolute top-0 right-0 p-4">
                            <div className={`text-3xl font-black italic ${report.health?.grade === 'A+' ? 'text-luxury-emerald' : 'text-accountant-primary'}`}>{report.health?.grade}</div>
                         </div>
-                        <h2 className="text-sm font-black italic uppercase tracking-widest text-white mb-6 font-outfit">Financial Health Metric</h2>
+                        <h2 className="text-sm font-black italic uppercase tracking-widest text-white mb-6 font-outfit">Financial Stability Score</h2>
                         <div className="flex items-center justify-center mb-6">
                             <div className="relative w-32 h-32">
                                 <ResponsiveContainer width="100%" height="100%">
@@ -164,7 +164,7 @@ const AccountantDashboard = () => {
                             </div>
                         </div>
                         <p className="text-[10px] font-medium text-slate-500 italic uppercase leading-relaxed text-center">
-                            Aggregated score based on fund availability, pending receivables, and mandatory disbursement obligations.
+                            Score determined by fee collection status, pending dues, and staff payroll commitments.
                         </p>
                     </div>
 
@@ -190,9 +190,9 @@ const AccountantDashboard = () => {
             <div className="bg-slate-900 border border-slate-800/60 border-dashed p-4 rounded-md flex items-center justify-between text-[10px] font-black text-slate-500 uppercase italic tracking-widest overflow-hidden">
                 <div className="flex items-center gap-3">
                     <ShieldCheck className="text-accountant-primary" size={14} />
-                    Official Financial Audit Hash: 0X-RE-882-FT-AC-2026-SCHOOL-PROT-321
+                    Official Financial Audit: Verified for current session
                 </div>
-                <div className="opacity-40">Verified via Secure Registry</div>
+                <div className="opacity-40">Verified via Institutional Ledger</div>
             </div>
 
             {/* Filter Selection Modal */}
@@ -206,22 +206,22 @@ const AccountantDashboard = () => {
                             initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
                             className="bg-slate-900 border border-slate-800 w-full max-w-sm p-8 rounded-md shadow-3xl relative"
                         >
-                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter mb-6 font-outfit">Filter Command</h3>
+                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter mb-6 font-outfit">Search Filter</h3>
                             <div className="space-y-4">
                                 <div>
-                                    <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">Academic Year Node</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">Academic Year</label>
                                     <select 
                                         value={filterRange.year}
                                         onChange={(e) => setFilterRange({...filterRange, year: e.target.value})}
                                         className="w-full bg-slate-950/60 border border-slate-800 rounded-md p-3 text-xs font-bold text-slate-300 focus:outline-none focus:border-accountant-primary transition-colors"
                                     >
-                                        <option value="2026">Cycle 2026</option>
-                                        <option value="2025">Cycle 2025</option>
+                                        <option value="2026">Session 2026</option>
+                                        <option value="2025">Session 2025</option>
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">Start Node</label>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">Start Date</label>
                                         <input 
                                             type="date" 
                                             value={filterRange.start}
@@ -230,7 +230,7 @@ const AccountantDashboard = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">End Node</label>
+                                        <label className="text-[9px] font-black text-slate-500 uppercase italic mb-1 block ml-1">End Date</label>
                                         <input 
                                             type="date" 
                                             value={filterRange.end}
@@ -244,7 +244,7 @@ const AccountantDashboard = () => {
                                 onClick={() => setShowFilterModal(false)}
                                 className="w-full mt-8 py-3 bg-accountant-primary text-[10px] font-black text-slate-900 uppercase tracking-widest rounded-md hover:bg-accountant-primary hover:shadow-lg transition-all"
                             >
-                                Execute Protocol Search
+                                Apply Filter
                             </button>
                             <button onClick={() => setShowFilterModal(false)} className="absolute top-4 right-4 text-slate-600 hover:text-white transition-colors"><X size={18} /></button>
                         </motion.div>

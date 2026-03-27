@@ -55,6 +55,10 @@ const ProfileDetail = () => {
         // Super Admin & School Admin or self see everything
         if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || currentUser?._id === id) return 'full';
         
+        // Accountant & Transport Manager get full access to Student & Teacher profiles
+        if (viewerRole === 'Accountant' && (profileRole === 'Student' || profileRole === 'Teacher')) return 'full';
+        if (viewerRole === 'Transport_Manager' && profileRole === 'Student') return 'full';
+
         // Role-based limited views
         if (viewerRole === 'Student' && profileRole === 'Teacher') return 'limited';
         if (viewerRole === 'Teacher' && (profileRole === 'Student' || profileRole === 'School_Admin')) return 'limited';

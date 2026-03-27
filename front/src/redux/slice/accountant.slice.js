@@ -182,12 +182,12 @@ const accountantSlice = createSlice({
                 state.loading = false;
                 state.payroll = action.payload.payroll;
                 state.pagination.payroll = {
-                    total: action.payload.total,
-                    pages: action.payload.pages,
-                    current: action.payload.currentPage
+                    total: action.payload.pagination?.payroll?.total || action.payload.total || 0,
+                    pages: action.payload.pagination?.payroll?.pages || action.payload.pages || 1,
+                    current: action.payload.pagination?.payroll?.current || action.payload.currentPage || 1
                 };
-                state.totals.paid = action.payload.totalPaid;
-                state.totals.pending = action.payload.totalPending;
+                state.totals.paid = action.payload.totals?.paid || 0;
+                state.totals.pending = action.payload.totals?.pending || 0;
             })
             .addCase(generatePayroll.fulfilled, (state, action) => {
                 state.loading = false;

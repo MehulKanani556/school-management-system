@@ -91,9 +91,9 @@ const FeeStructures = () => {
     const handleDelete = (id) => {
         setConfirmModal({
             show: true,
-            title: 'Permanent Erasure Protocol',
-            message: 'You are about to permanently erase this fiscal structure node. This action will invalidate future fee generations for this grade. Proceed with irreversible deletion?',
-            confirmText: 'Erase Node',
+            title: 'Delete Fee Structure',
+            message: 'You are about to permanently delete this fee structure. This action will stop future fee billing for this class. Proceed with deletion?',
+            confirmText: 'Delete Structure',
             onConfirm: () => {
                 dispatch(deleteFeeStructure(id));
                 setConfirmModal({ ...confirmModal, show: false });
@@ -125,20 +125,20 @@ const FeeStructures = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fiscal Architecture</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Defining and provisioning administrative capital tiers.</p>
+                    <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fee Structures</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Create and manage fee charts for different standards.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-brand-background border border-brand-border rounded text-[9px] font-black text-luxury-emerald uppercase italic tracking-[0.2em]">
                         <ShieldCheck size={12} />
-                        Verified Command Node
+                        Verified Fee Module
                     </div>
                     <button 
                         onClick={() => { resetForm(); setIsModalOpen(true); }}
                         className="flex items-center gap-2 px-6 py-3 bg-brand-primary text-slate-100 rounded-md text-[10px] font-black uppercase italic tracking-widest hover:bg-brand-primary-hover shadow-[0_0_20px_rgba(37,99,235,0.3)] transition-all"
                     >
                         <Plus size={14} />
-                        <span>Provision New Alpha Node</span>
+                        <span>Create New Fee Structure</span>
                     </button>
                 </div>
             </div>
@@ -158,24 +158,24 @@ const FeeStructures = () => {
                                     <Layers size={20} />
                                 </div>
                                 <div className="text-left">
-                                    <h3 className="font-black text-slate-100 italic uppercase tracking-tight leading-none mb-1">{structure.standardId?.name || `Grade Node ${structure.standardId?.level}`}</h3>
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">{structure.academicYear} Academic Cycle</span>
+                                    <h3 className="font-black text-slate-100 italic uppercase tracking-tight leading-none mb-1">{structure.standardId?.name || `Standard ${structure.standardId?.level}`}</h3>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">{structure.academicYear} Academic Year</span>
                                 </div>
                             </div>
                             <div className="text-right">
-                                <span className="block text-xl font-black text-slate-100 italic tracking-tighter">${(structure.totalAmount || 0).toLocaleString()}</span>
-                                <span className="text-[8px] font-black text-brand-primary uppercase tracking-widest italic">Aggregate Quantum</span>
+                                <span className="block text-xl font-black text-slate-100 italic tracking-tighter">₹{(structure.totalAmount || 0).toLocaleString()}</span>
+                                <span className="text-[8px] font-black text-brand-primary uppercase tracking-widest italic">Total Amount</span>
                             </div>
                         </div>
 
                         <div className="space-y-3 mb-6">
                             <div className="flex items-center justify-between text-[10px] font-bold uppercase italic text-slate-400">
                                 <span className="flex items-center gap-1.5"><ListFilter size={10} className="text-brand-primary/50" /> Components</span>
-                                <span className="text-slate-200">{structure.feeItems?.length || 0} Assets</span>
+                                <span className="text-slate-200">{structure.feeItems?.length || 0} Items</span>
                             </div>
                             <div className="flex items-center justify-between text-[10px] font-bold uppercase italic text-slate-400">
                                 <span>Verification Status</span>
-                                <span className="text-luxury-emerald">Live Protocol</span>
+                                <span className="text-luxury-emerald">Active</span>
                             </div>
                         </div>
 
@@ -201,7 +201,7 @@ const FeeStructures = () => {
                                 className="py-3 bg-brand-background border border-brand-border rounded text-[9px] font-black text-slate-500 uppercase tracking-widest italic hover:text-white hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
                             >
                                 <Info size={11} />
-                                <span>Audit</span>
+                                <span>View Details</span>
                             </button>
                             <button 
                                 onClick={() => handleApply(structure)}
@@ -232,26 +232,26 @@ const FeeStructures = () => {
                             className="bg-[#0b0e14] border border-[#1e293b] rounded-xl p-0 w-full max-w-[450px] shadow-[0_25px_80px_rgba(0,0,0,0.8)] relative overflow-hidden"
                         >
                             <div className="flex items-center justify-between px-8 py-6 border-b border-[#1e293b]/50">
-                                <h3 className="text-[16px] font-[900] text-white tracking-[0.05em] uppercase">Execute Fee Billing</h3>
+                                <h3 className="text-[16px] font-[900] text-white tracking-[0.05em] uppercase">Generate Session Fees</h3>
                                 <button onClick={() => setApplyModalData(null)} className="text-slate-500 hover:text-white transition-all"><X size={20} /></button>
                             </div>
 
                             <div className="p-8 space-y-7">
                                 <div className="bg-[#111827] border border-[#3b82f6]/30 rounded-lg p-5">
                                     <p className="text-[11px] text-slate-300 leading-relaxed text-center font-medium">
-                                        You are about to generate individual fee records for <span className="text-[#3b82f6] font-black">ALL STUDENTS</span> in <span className="text-[#3b82f6] font-black underline underline-offset-4 decoration-[#3b82f6]/40 italic">{applyModalData.standardId?.name || "Target Grade"}</span>. This action will populate their financial profiles based on the defined structure.
+                                        You are about to generate fee bills for <span className="text-[#3b82f6] font-black">ALL STUDENTS</span> in <span className="text-[#3b82f6] font-black underline underline-offset-4 decoration-[#3b82f6]/40 italic">{applyModalData.standardId?.name || "Target Grade"}</span>. This action will populate their financial profiles based on the fee chart.
                                     </p>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Academic Year Context</label>
+                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Academic Year</label>
                                     <div className="w-full bg-[#111827] border border-[#1f2937] rounded-lg px-4 py-3.5 text-xs font-bold text-slate-100 italic">
                                         {applyModalData.academicYear}
                                     </div>
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Billing Due Date</label>
+                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Fee Due Date</label>
                                     <input 
                                         type="date"
                                         value={applyDueDate}
@@ -285,7 +285,7 @@ const FeeStructures = () => {
                             {/* Form Header */}
                             <div className="flex items-center justify-between px-8 py-6 border-b border-[#1e293b]/50">
                                 <h3 className="text-[17px] font-[900] text-white tracking-[0.05em] uppercase">
-                                    Architect Fee Structure
+                                    Define Fee Structure
                                 </h3>
                                 <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white transition-all transform hover:rotate-90">
                                     <X size={20} />
@@ -296,7 +296,7 @@ const FeeStructures = () => {
                                 {/* Grade & Year Section */}
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest leading-none">Standard (Grade)</label>
+                                        <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest leading-none">Standard / Class</label>
                                         <div className="relative">
                                             <select 
                                                 required
@@ -327,7 +327,7 @@ const FeeStructures = () => {
 
                                 {/* Due Date Section */}
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest leading-none">Structure Due Date</label>
+                                    <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest leading-none">Default Due Date</label>
                                     <div className="relative">
                                         <input 
                                             type="date"
@@ -342,13 +342,13 @@ const FeeStructures = () => {
                                 {/* Fee Items Section */}
                                 <div className="space-y-4 pt-2">
                                     <div className="flex items-center justify-between">
-                                        <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Fee Items & Breakdowns</label>
+                                        <label className="text-[9px] font-[800] text-slate-400 uppercase tracking-widest">Fee Components</label>
                                         <button 
                                             type="button" 
                                             onClick={handleAddItem}
                                             className="text-[9px] font-[800] text-[#3b82f6] hover:text-[#2563eb] uppercase tracking-widest flex items-center gap-1.5 transition-colors"
                                         >
-                                            + Add Component
+                                            + Add Item
                                         </button>
                                     </div>
 
@@ -387,9 +387,9 @@ const FeeStructures = () => {
 
                                 {/* Calculation Summary */}
                                 <div className="bg-[#111827]/80 border border-[#1e293b] rounded-xl p-6 flex items-center justify-between shadow-inner">
-                                    <span className="text-[10px] font-[900] text-[#3b82f6] uppercase tracking-[0.1em]">Total Annual Calculation</span>
+                                    <span className="text-[10px] font-[900] text-[#3b82f6] uppercase tracking-[0.1em]">Total Annual Fee</span>
                                     <span className="text-3xl font-[900] text-white italic tracking-tighter">
-                                        ${formData.totalAmount.toLocaleString()}
+                                        ₹{formData.totalAmount.toLocaleString()}
                                     </span>
                                 </div>
 
@@ -398,7 +398,7 @@ const FeeStructures = () => {
                                     type="submit"
                                     className="w-full bg-white hover:bg-slate-200 text-black rounded-lg py-4 text-sm font-[900] uppercase tracking-[0.1em] shadow-[0_4px_20px_rgba(255,255,255,0.1)] active:scale-[0.98] transition-all"
                                 >
-                                    Establish Structure
+                                    Save Fee Structure
                                 </button>
                             </form>
                         </motion.div>
@@ -418,31 +418,30 @@ const FeeStructures = () => {
                             className="bg-brand-surface border border-brand-border rounded-md p-8 w-full max-w-lg shadow-[0_0_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-1 h-full bg-brand-primary"></div>
-                            
-                            <div className="flex items-start justify-between mb-8">
+                                                       <div className="flex items-start justify-between mb-8">
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fiscal Audit Node</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic underline decoration-brand-primary/30 underline-offset-4">Structural breakdown for {selectedStructure.standardId?.name || `Grade Node ${selectedStructure.standardId?.level}`}.</p>
+                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fee Structure Details</h3>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic underline decoration-brand-primary/30 underline-offset-4">Itemized breakdown for {selectedStructure.standardId?.name || `Standard ${selectedStructure.standardId?.level}`}.</p>
                                 </div>
                                 <button onClick={() => setSelectedStructure(null)} className="p-1 hover:text-brand-primary transition-all text-slate-600"><X size={20} /></button>
                             </div>
 
-                            <div className="bg-brand-background/50 rounded-md border border-brand-border overflow-hidden mb-8">
+                             <div className="bg-brand-background/50 rounded-md border border-brand-border overflow-hidden mb-8">
                                 <div className="px-5 py-3 border-b border-brand-border bg-brand-background flex items-center justify-between text-[10px] font-black text-slate-500 uppercase tracking-widest italic">
-                                    <span>Asset Identity</span>
-                                    <span>Quantum ($)</span>
+                                    <span>Fee Item</span>
+                                    <span>Amount (₹)</span>
                                 </div>
                                 <div className="divide-y divide-brand-border/40 max-h-[300px] overflow-y-auto custom-scrollbar">
                                     {selectedStructure.feeItems?.map((item, idx) => (
                                         <div key={idx} className="px-5 py-4 flex items-center justify-between group hover:bg-brand-primary/5 transition-all">
                                             <span className="text-[11px] font-bold text-slate-300 uppercase italic tracking-tight">{item.name}</span>
-                                            <span className="text-sm font-black text-slate-100 italic tracking-tighter">${item.amount?.toLocaleString()}</span>
+                                            <span className="text-sm font-black text-slate-100 italic tracking-tighter">₹{item.amount?.toLocaleString()}</span>
                                         </div>
                                     ))}
                                 </div>
-                                <div className="px-5 py-4 bg-brand-primary/5 border-t border-brand-primary/10 flex items-center justify-between">
-                                    <span className="text-[11px] font-black text-brand-primary uppercase italic tracking-wider">Total Aggregated Capital</span>
-                                    <span className="text-lg font-black text-slate-100 italic tracking-tighter">${selectedStructure.totalAmount?.toLocaleString()}</span>
+                                 <div className="px-5 py-4 bg-brand-primary/5 border-t border-brand-primary/10 flex items-center justify-between">
+                                    <span className="text-[11px] font-black text-brand-primary uppercase italic tracking-wider">Total Annual Fee</span>
+                                    <span className="text-lg font-black text-slate-100 italic tracking-tighter">₹{selectedStructure.totalAmount?.toLocaleString()}</span>
                                 </div>
                             </div>
 
@@ -450,9 +449,9 @@ const FeeStructures = () => {
                                 <div className="p-2 bg-brand-primary/10 rounded-full text-brand-primary">
                                     <ShieldCheck size={16} strokeWidth={3} />
                                 </div>
-                                <div className="text-left">
-                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic mb-1">Verified Structural Record</p>
-                                    <p className="text-[9px] font-medium text-slate-500 leading-normal uppercase">This fee structure is verified as an active fiscal protocol. Modifications to this node will affect future inflow generations.</p>
+                                 <div className="text-left">
+                                    <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest italic mb-1">Official Fee Record</p>
+                                    <p className="text-[9px] font-medium text-slate-500 leading-normal uppercase">This fee structure is verified as an active fee chart. Modifications to this node will affect future fee collections.</p>
                                 </div>
                             </div>
                         </motion.div>

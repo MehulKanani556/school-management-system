@@ -32,7 +32,7 @@ const FeeCollection = () => {
         title: '',
         message: '',
         onConfirm: null,
-        confirmText: 'Execute Protocol'
+        confirmText: 'Confirm Payment'
     });
 
     useEffect(() => {
@@ -49,12 +49,11 @@ const FeeCollection = () => {
     }, [dispatch, searchTerm, statusFilter, dateRange, currentPage, success]);
 
     const handleOpenModal = (fee) => {
-        // Auto-calculate late fees if overdue (e.g., $10 per week late, or flat $50 if overdue)
-        // Simplified Logic: Flat $50 if today > dueDate and status is not paid
+        // Auto-calculate late fees if overdue (e.g., ₹10 per week late, or flat ₹50 if overdue)
         let calculatedLateFee = 0;
         if (moment().isAfter(moment(fee.dueDate)) && fee.status !== 'paid') {
             const daysLate = moment().diff(moment(fee.dueDate), 'days');
-            calculatedLateFee = daysLate > 0 ? Math.min(daysLate * 5, 200) : 0; // $5/day, max $200
+            calculatedLateFee = daysLate > 0 ? Math.min(daysLate * 5, 200) : 0; // ₹5/day, max ₹200
         }
 
         setSelectedFee(fee);
@@ -64,12 +63,12 @@ const FeeCollection = () => {
             transactionId: '',
             lateFees: calculatedLateFee || fee.lateFees || 0,
             discount: fee.discount || 0,
-            note: calculatedLateFee > 0 ? `Auto-calculated late penalty: $${calculatedLateFee}` : 'Manual collection via Fiscal Terminal'
+            note: calculatedLateFee > 0 ? `Auto-calculated late penalty: ₹${calculatedLateFee}` : 'Manual collection'
         });
     };
 
     const handleCollectSubmit = () => {
-        if (loading) return; // Guard
+        if (loading) return; 
         dispatch(collectFee({ 
             id: selectedFee._id, 
             data: collectionData 
@@ -85,11 +84,11 @@ const FeeCollection = () => {
             const url = window.URL.createObjectURL(new Blob([response.data]));
             const link = document.createElement('a');
             link.href = url;
-            link.setAttribute('download', `Fiscal_Report_${moment().format('YYYY-MM-DD')}.csv`);
+            link.setAttribute('download', `Fee_Report_${moment().format('YYYY-MM-DD')}.csv`);
             document.body.appendChild(link);
             link.click();
             link.remove();
-            toast.success('Fiscal report exported');
+            toast.success('Fee report exported');
         } catch (error) {
             console.error('Export failed', error);
             toast.error('Export failed');
@@ -118,11 +117,11 @@ const FeeCollection = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-2">Fee Inventory Control</h1>
+                    <h1 className="text-2xl xs:text-3xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-2">Fee Collection</h1>
                     <div className="flex items-center gap-3">
-                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Mapping citizen financial status nodes.</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Managing student fee records.</p>
                         <span className="h-px w-8 bg-brand-primary/30"></span>
-                        <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest italic leading-none">{pagination.fees.total} Records Detected</p>
+                        <p className="text-[10px] font-black text-brand-primary uppercase tracking-widest italic leading-none">{pagination.fees.total} Records Found</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -131,9 +130,9 @@ const FeeCollection = () => {
                             onClick={() => {
                                 setConfirmModal({
                                     show: true,
-                                    title: 'Bulk Fiscal Synchronization',
-                                    message: `Authorize the synchronization of ${selectedFees.length} fiscal nodes to PAID status? This action will generate multiple transaction receipts.`,
-                                    confirmText: 'Authorize Cycle',
+                                    title: 'Bulk Fee Payment',
+                                    message: `Authorize the payment of ${selectedFees.length} fees to PAID status? This action will generate multiple receipts.`,
+                                    confirmText: 'Confirm Payment',
                                     onConfirm: () => {
                                         selectedFees.forEach(fId => {
                                             dispatch(collectFee({ 
@@ -142,7 +141,7 @@ const FeeCollection = () => {
                                                     paidAmount: (fees.find(f => f._id === fId)?.totalAmount || 0), 
                                                     status: 'paid', 
                                                     paymentMethod: 'cash',
-                                                    note: 'Bulk reconciliation issued via control node.'
+                                                    note: 'Bulk collection processed.'
                                                 } 
                                             }));
                                         });
@@ -154,7 +153,7 @@ const FeeCollection = () => {
                             className="flex items-center gap-2 px-6 py-3 bg-luxury-emerald text-slate-100 rounded-md text-[10px] font-black uppercase tracking-[0.2em] italic shadow-[0_0_30px_rgba(16,185,129,0.3)] animate-pulse"
                         >
                             <ShieldCheck size={14} />
-                            Complete Bulk Cycle ({selectedFees.length})
+                            Bulk Pay Selected ({selectedFees.length})
                         </button>
                     )}
                     <button 
@@ -163,7 +162,7 @@ const FeeCollection = () => {
                     >
 
                         <Download size={14} />
-                        Export Fiscal Data
+                        Export Fee Data
                     </button>
                 </div>
             </div>
@@ -174,7 +173,7 @@ const FeeCollection = () => {
                     <Search className="absolute left-3 top-3 text-slate-600" size={14} />
                     <input 
                         type="text" 
-                        placeholder="Search identities..." 
+                        placeholder="Search students..." 
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-brand-background border border-brand-border rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-brand-primary/50 transition-all"
@@ -185,11 +184,11 @@ const FeeCollection = () => {
                     onChange={(e) => setStatusFilter(e.target.value)}
                     className="bg-brand-background border border-brand-border rounded-md py-2.5 px-4 text-xs font-black text-slate-400 uppercase tracking-widest italic focus:outline-none focus:border-brand-primary/50 appearance-none"
                 >
-                    <option value="">All Status Nodes</option>
+                    <option value="">All Statuses</option>
                     <option value="pending">Pending</option>
                     <option value="partially_paid">Partially Paid</option>
                     <option value="overdue">Overdue</option>
-                    <option value="paid">Finalized</option>
+                    <option value="paid">Paid</option>
                 </select>
                 <input 
                     type="date" 
@@ -221,12 +220,12 @@ const FeeCollection = () => {
                                         className="w-4 h-4 rounded border-brand-border bg-brand-background text-brand-primary focus:ring-brand-primary"
                                     />
                                 </th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Identity Identifier</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-center">Fiscal Status</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Net Balance</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Student Name</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-center">Status</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Due Amount</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Paid Amount</th>
                                 <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border">Timeline</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-right whitespace-nowrap">Control Nodes</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none border-b border-brand-border text-right whitespace-nowrap">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-brand-border">
@@ -259,8 +258,8 @@ const FeeCollection = () => {
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex flex-col">
-                                            <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">${((fee.totalAmount || fee.amount || 0) - (fee.paidAmount || 0)).toLocaleString()}</span>
-                                            <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of ${(fee.totalAmount || fee.amount || 0).toLocaleString()}</span>
+                                            <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">₹{((fee.totalAmount || fee.amount || 0) - (fee.paidAmount || 0)).toLocaleString()}</span>
+                                            <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of ₹{(fee.totalAmount || fee.amount || 0).toLocaleString()}</span>
                                         </div>
                                     </td>
 
@@ -272,7 +271,7 @@ const FeeCollection = () => {
                                     </td>
                                     <td className="px-6 py-5">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">${(fee.paidAmount || 0).toLocaleString()}</span>
+                                            <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">₹{(fee.paidAmount || 0).toLocaleString()}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5 text-right">
@@ -281,7 +280,7 @@ const FeeCollection = () => {
                                                 <>
                                                     <button 
                                                         onClick={() => dispatch(sendFeeReminders({ studentId: fee.studentId._id, feeId: fee._id }))}
-                                                        title="Broadcast Reminder"
+                                                        title="Send Reminder"
                                                         className="p-2 text-slate-500 hover:text-luxury-emerald transition-all opacity-0 group-hover/row:opacity-100"
                                                     >
                                                         <Bell size={16} />
@@ -290,7 +289,7 @@ const FeeCollection = () => {
                                                         onClick={() => handleOpenModal(fee)}
                                                         className="flex items-center gap-2 px-3 py-1.5 bg-brand-background border border-brand-border rounded-md text-[10px] font-black text-slate-400 uppercase tracking-widest italic group-hover/row:border-brand-primary/50 group-hover/row:text-slate-100 transition-all opacity-0 group-hover/row:opacity-100"
                                                     >
-                                                        <span>Sync Node</span>
+                                                        <span>Collect</span>
                                                         <CreditCard size={12} />
                                                     </button>
                                                 </>
@@ -299,7 +298,7 @@ const FeeCollection = () => {
                                                     <button 
                                                         onClick={() => downloadReceipt(fee)}
                                                         className="p-2 text-slate-500 hover:text-brand-primary transition-all opacity-0 group-hover/row:opacity-100"
-                                                        title="Generate Receipt"
+                                                        title="Print Receipt"
                                                     >
                                                         <Printer size={16} />
                                                     </button>
@@ -307,13 +306,13 @@ const FeeCollection = () => {
                                                         onClick={() => {
                                                             setConfirmModal({
                                                                 show: true,
-                                                                title: 'Protocol Reversal',
-                                                                message: 'Reverse this payment node? The fiscal status will reset to pending and the paid balance will be zeroed out.',
-                                                                confirmText: 'Reverse Node',
+                                                                title: 'Reverse Payment',
+                                                                message: 'Are you sure you want to reverse this payment? The status will be reset to pending.',
+                                                                confirmText: 'Confirm Reversal',
                                                                 onConfirm: () => {
                                                                     dispatch(collectFee({ 
                                                                         id: fee._id, 
-                                                                        data: { paidAmount: 0, status: 'pending', note: 'Manual Reversal Protocol Issued' } 
+                                                                        data: { paidAmount: 0, status: 'pending', note: 'Payment reversed by accountant.' } 
                                                                     }));
                                                                     setConfirmModal({ ...confirmModal, show: false });
                                                                 }
@@ -321,7 +320,7 @@ const FeeCollection = () => {
                                                         }}
                                                         className="flex items-center gap-2 px-3 py-1.5 bg-brand-background border border-luxury-rose/30 rounded-md text-[9px] font-black text-luxury-rose uppercase tracking-widest italic hover:bg-luxury-rose hover:text-white transition-all opacity-0 group-hover/row:opacity-100"
                                                     >
-                                                        Reverse Node
+                                                        Reverse
                                                     </button>
                                                 </div>
                                             )}
@@ -330,7 +329,7 @@ const FeeCollection = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic opacity-60 font-black uppercase text-xs tracking-widest">Initialization pending... no financial signals detected.</td>
+                                    <td colSpan="7" className="px-6 py-20 text-center text-slate-500 italic opacity-60 font-black uppercase text-xs tracking-widest">No fee records found matches your criteria.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -374,8 +373,8 @@ const FeeCollection = () => {
                             
                             <div className="flex items-start justify-between mb-8">
                                 <div>
-                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Fiscal Synchronization</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Updating node status for {selectedFee.studentId?.firstName}.</p>
+                                    <h3 className="text-xl font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">Collect Fees</h3>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic">Entering payment for {selectedFee.studentId?.firstName}.</p>
                                 </div>
                                 <button onClick={() => setSelectedFee(null)} className="p-1 hover:text-brand-primary transition-all text-slate-600"><X size={20} /></button>
                             </div>
@@ -383,14 +382,14 @@ const FeeCollection = () => {
                             {moment().isAfter(moment(selectedFee.dueDate)) && (
                                 <div className="mb-6 p-3 bg-luxury-rose/10 border border-luxury-rose/20 rounded-md flex items-center gap-3">
                                     <AlertCircle className="text-luxury-rose" size={18} />
-                                    <p className="text-[10px] font-black text-luxury-rose uppercase italic tracking-wider">Overdue Alert: Automatic penalty logic triggered.</p>
+                                    <p className="text-[10px] font-black text-luxury-rose uppercase italic tracking-wider">Overdue Alert: Penalty applied according to school rules.</p>
                                 </div>
                             )}
 
                             <div className="grid grid-cols-2 gap-6 mb-8">
                                 <div className="space-y-4 text-left">
                                     <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Payment Amount ($)</label>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Payment Amount (₹)</label>
                                         <input 
                                             type="number"
                                             value={collectionData.paidAmount}
@@ -399,7 +398,7 @@ const FeeCollection = () => {
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Late Penalty ($)</label>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Late Penalty (₹)</label>
                                         <input 
                                             type="number"
                                             value={collectionData.lateFees}
@@ -410,30 +409,30 @@ const FeeCollection = () => {
                                 </div>
                                 <div className="space-y-4 text-left">
                                     <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Method Matrix</label>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Payment Mode</label>
                                         <select 
                                             value={collectionData.paymentMethod}
                                             onChange={(e) => setCollectionData({...collectionData, paymentMethod: e.target.value})}
                                             className="w-full bg-brand-background border border-brand-border rounded-md py-3 px-4 text-xs font-black text-slate-400 uppercase tracking-widest italic focus:outline-none focus:border-brand-primary/50 appearance-none"
                                         >
-                                            <option value="cash">Cash Liquidity</option>
-                                            <option value="bank_transfer">Bank Protocol</option>
-                                            <option value="online">Digital Gateway</option>
-                                            <option value="cheque">Paper Authorization</option>
+                                            <option value="cash">Cash</option>
+                                            <option value="bank_transfer">Bank Transfer</option>
+                                            <option value="online">Online/UPI</option>
+                                            <option value="cheque">Cheque</option>
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Transaction Hash</label>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Transaction ID</label>
                                         <input 
                                             type="text"
-                                            placeholder="REF-HASH-XXX"
+                                            placeholder="REF-XXX"
                                             value={collectionData.transactionId}
                                             onChange={(e) => setCollectionData({...collectionData, transactionId: e.target.value})}
                                             className="w-full bg-brand-background border border-brand-border rounded-md py-3 px-4 text-[10px] font-black text-slate-100 focus:outline-none focus:border-brand-primary/50 uppercase italic"
                                         />
                                     </div>
                                     <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Scholarship / Discount ($)</label>
+                                        <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Discount (₹)</label>
                                         <input 
                                             type="number"
                                             value={collectionData.discount}
@@ -445,7 +444,7 @@ const FeeCollection = () => {
                             </div>
 
                             <div className="mb-8 text-left">
-                                <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Fiscal Remarks</label>
+                                <label className="text-[9px] font-black uppercase text-slate-500 tracking-widest mb-1.5 block italic">Narration / Note</label>
                                 <textarea 
                                     rows="2"
                                     value={collectionData.note}
@@ -461,7 +460,7 @@ const FeeCollection = () => {
                             >
                                 {loading ? <Loader2 className="animate-spin" size={16} /> : (
                                     <>
-                                        Authorize Synchronization
+                                        Record Payment
                                         <ChevronRight size={14} />
                                     </>
                                 )}
@@ -488,7 +487,7 @@ const FeeCollection = () => {
                                 </div>
                                 <div className="text-left">
                                     <h3 className="text-lg font-black text-slate-100 italic uppercase tracking-tighter leading-none mb-1">{confirmModal.title}</h3>
-                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Critical Protocol Confirmation Required</span>
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-widest opacity-60">Action Confirmation Required</span>
                                 </div>
                             </div>
                             
@@ -501,7 +500,7 @@ const FeeCollection = () => {
                                     onClick={() => setConfirmModal({ ...confirmModal, show: false })}
                                     className="flex-1 py-3 bg-brand-background border border-brand-border rounded text-[10px] font-black text-slate-500 uppercase tracking-widest italic hover:text-slate-100 transition-all"
                                 >
-                                    Abort Operation
+                                    Cancel
                                 </button>
                                 <button 
                                     onClick={confirmModal.onConfirm}
@@ -522,7 +521,7 @@ const FeeCollection = () => {
                         className={`fixed bottom-10 right-10 z-[110] px-6 py-4 rounded-md border shadow-2xl flex items-center gap-4 ${success ? 'bg-luxury-emerald/10 border-luxury-emerald/20 text-luxury-emerald' : 'bg-luxury-rose/10 border-luxury-rose/20 text-luxury-rose'}`}
                     >
                         <div className="flex flex-col text-left">
-                            <span className="text-[9px] font-black uppercase tracking-widest italic leading-none mb-1.5">{success ? 'Node Stabilized' : 'Sync Error'}</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest italic leading-none mb-1.5">{success ? 'Success' : 'Error'}</span>
                             <span className="text-xs font-bold text-slate-100 italic leading-none">{String(success || error?.message || error || '')}</span>
 
                         </div>
