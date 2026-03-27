@@ -232,9 +232,10 @@ export const changeTeacherPassword = createAsyncThunk('teacher/changePassword', 
     }
 });
 
-export const fetchFeeStatus = createAsyncThunk('teacher/fetchFees', async (_, { rejectWithValue }) => {
+export const fetchFeeStatus = createAsyncThunk('teacher/fetchFees', async (params = {}, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get('/teacher/get-fee-status');
+        const { classId } = params;
+        const response = await axiosInstance.get(`/teacher/get-fee-status?classId=${classId || ''}`);
         return response.data;
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
@@ -329,6 +330,20 @@ export const fetchBehaviorLogs = createAsyncThunk('teacher/fetchBehaviorLogs', a
         const { studentId, classId } = params;
         const response = await axiosInstance.get(`/teacher/behavior-logs?studentId=${studentId || ''}&classId=${classId || ''}`);
         return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const updateBehavior = createAsyncThunk('teacher/updateBehavior', async ({ id, data }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put(`/teacher/behavior-log/${id}`, data);
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const deleteBehavior = createAsyncThunk('teacher/deleteBehavior', async (id, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.delete(`/teacher/behavior-log/${id}`);
+        return { id, ...response.data };
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
@@ -573,6 +588,15 @@ const teacherSlice = createSlice({
             })
             .addCase(logBehavior.fulfilled, (state, action) => {
                 state.message = action.payload.message;
+            })
+            .addCase(updateBehavior.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+                const index = state.behaviorLogs.findIndex(l => l._id === action.payload.log?._id);
+                if (index !== -1) state.behaviorLogs[index] = action.payload.log;
+            })
+            .addCase(deleteBehavior.fulfilled, (state, action) => {
+                state.message = action.payload.message;
+                state.behaviorLogs = state.behaviorLogs.filter(l => l._id !== action.payload.id);
             })
             .addCase(fetchMeetings.fulfilled, (state, action) => {
                 state.meetings = action.payload;

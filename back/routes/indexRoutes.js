@@ -302,6 +302,8 @@ router.post('/teacher/generate-exam', ...teacher, tc.generateExam);
 // Behavior Log
 router.post('/teacher/behavior-log', ...teacher, tc.logBehavior);
 router.get('/teacher/behavior-logs', ...teacher, tc.getBehaviorLogs);
+router.put('/teacher/behavior-log/:id', ...teacher, tc.updateBehaviorLog);
+router.delete('/teacher/behavior-log/:id', ...teacher, tc.deleteBehaviorLog);
 
 // PTM Scheduling
 router.post('/teacher/meetings', ...teacher, tc.scheduleMeeting);

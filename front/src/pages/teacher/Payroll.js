@@ -2,14 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPayroll } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { DollarSign, Calendar, TrendingUp, TrendingDown, CheckCircle, Clock, FileText, Download, Activity, X, Printer } from 'lucide-react';
+import { DollarSign, Calendar, TrendingUp, TrendingDown, CheckCircle, Clock, FileText, Download, Activity, X, Printer, Loader2 } from 'lucide-react';
 import Modal from '../../components/Modal';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import toast from 'react-hot-toast';
 
 const Payroll = () => {
     const dispatch = useDispatch();
     const { payroll, loading } = useSelector((state) => state.teacher);
     const [selectedPayroll, setSelectedPayroll] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isDownloading, setIsDownloading] = useState(false);
 
     useEffect(() => {
         dispatch(fetchPayroll());
@@ -24,8 +28,54 @@ const Payroll = () => {
         setIsModalOpen(true);
     };
 
-    const handlePrint = () => {
-        window.print();
+    const handleDownload = async (item) => {
+        const toastId = toast.loading('Synthesizing Disbursement Matrix...');
+        setIsDownloading(true);
+        try {
+            // Temporarily set the selected payroll to render the hidden modal content if not open
+            setSelectedPayroll(item);
+            
+            // Allow DOM to update if we were to show it, but here we'll assume it's either open or we render a hidden clone
+            // For simplicity, we'll use the modal's content if it's already rendered, 
+            // but the requirement says "direct download", so we might need a hidden template.
+            // Let's ensure it's rendered.
+            
+            setTimeout(async () => {
+                const element = document.getElementById('payroll-capture-node');
+                if (!element) {
+                    toast.error('Financial Node Not Found in DOM', { id: toastId });
+                    setIsDownloading(false);
+                    return;
+                }
+
+                const canvas = await html2canvas(element, {
+                    scale: 1.5,
+                    useCORS: true,
+                    backgroundColor: '#ffffff'
+                });
+                
+                const imgData = canvas.toDataURL('image/jpeg', 0.7);
+                const pdf = new jsPDF({
+                    orientation: 'p',
+                    unit: 'mm',
+                    format: 'a4',
+                    compress: true
+                });
+                
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                
+                pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight, undefined, 'FAST');
+                pdf.save(`PAYROLL_${getMonthName(item.month).toUpperCase()}_${item.year}.pdf`);
+                
+                toast.success('Disbursement Registry Synchronized', { id: toastId });
+                setIsDownloading(false);
+            }, 100);
+        } catch (error) {
+            console.error(error);
+            toast.error('Protocol Synthesis Failed', { id: toastId });
+            setIsDownloading(false);
+        }
     };
 
     return (
@@ -132,11 +182,12 @@ const Payroll = () => {
                                             <FileText size={16} />
                                         </button>
                                         <button 
-                                            onClick={() => handleViewReceipt(item)}
-                                            className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-slate-700 shadow-xl group/btn"
-                                            title="Download Disbursement Data"
+                                            onClick={() => handleDownload(item)}
+                                            disabled={isDownloading}
+                                            className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-emerald-500 hover:bg-emerald-500/10 transition-all border border-slate-700 shadow-xl group/btn disabled:opacity-50"
+                                            title="Download Disbursement Matrix"
                                         >
-                                            <Download size={16} />
+                                            {isDownloading && selectedPayroll?._id === item._id ? <Loader2 className="animate-spin" size={16} /> : <Download size={16} />}
                                         </button>
                                     </div>
                                 </td>
@@ -153,7 +204,91 @@ const Payroll = () => {
                 </table>
             </div>
 
-            {/* Payslip/Receipt Modal */}
+            {/* Hidden Ghost Node for Direct PDF Capture (No Modal Trigger) */}
+            <div className="fixed -z-50 opacity-0 pointer-events-none overflow-hidden" style={{ height: 0, width: 0 }}>
+                {selectedPayroll && (
+                    <div id="payroll-capture-node" className="bg-white text-slate-900 p-10 rounded-md font-outfit border border-slate-200 w-[800px]">
+                        {/* Identical Content as Modal Receipt */}
+                        <div className="relative z-10">
+                            <div className="flex justify-between items-start border-b-2 border-dashed border-slate-200 pb-6 mb-8">
+                                <div>
+                                    <div className="bg-brand-primary w-12 h-12 rounded-md flex items-center justify-center text-white font-black text-xl mb-3 shadow-[0_0_20px_rgba(37,99,235,0.3)]">P</div>
+                                    <h2 className="text-xl font-black text-slate-900 uppercase tracking-widest ">Compensation Voucher</h2>
+                                    <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-widest">Disbursement ID: {selectedPayroll._id?.slice(-12).toUpperCase()}</p>
+                                </div>
+                                <div className="text-right">
+                                    <p className="text-xs font-black text-slate-900">{new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Institutional Audit Record</p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-10 mb-10">
+                                <div>
+                                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Faculty Associate</label>
+                                    <span className="text-sm font-black text-slate-900 block uppercase italic tracking-tight underline decoration-slate-200 underline-offset-4 decoration-2">Self</span>
+                                    <span className="text-[10px] font-bold text-slate-500 block mt-2">Professional Node: Active</span>
+                                </div>
+                                <div className="text-right">
+                                    <label className="text-[9px] font-black uppercase text-slate-400 tracking-widest block mb-2">Cycle Period</label>
+                                    <span className="text-sm font-black text-slate-900 block uppercase italic tracking-tight">{getMonthName(selectedPayroll.month)} {selectedPayroll.year}</span>
+                                    <span className={`text-[10px] font-black py-1 px-3 rounded-md uppercase inline-block mt-2 ${selectedPayroll.status === 'paid' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-teacher-primary'}`}>
+                                        {selectedPayroll.status}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="rounded-md border border-slate-100 overflow-hidden mb-8">
+                                <table className="w-full text-left">
+                                    <thead>
+                                        <tr className="bg-slate-50 border-b border-slate-100">
+                                            <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest text-slate-400">Description</th>
+                                            <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest text-slate-400">Allocation Type</th>
+                                            <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest text-slate-400">Temporal Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-50">
+                                        <tr>
+                                            <td className="px-6 py-4 text-xs font-bold text-slate-700">Base Professional Retribution</td>
+                                            <td className="px-6 py-4 text-right text-[10px] font-black text-slate-400 uppercase">Primary</td>
+                                            <td className="px-6 py-4 text-right text-xs font-black text-slate-900">₹{selectedPayroll.basicSalary?.toLocaleString() || 0}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-6 py-4 text-xs font-bold text-slate-700">Performance Loyalty Bonus</td>
+                                            <td className="px-6 py-4 text-right text-[10px] font-black text-emerald-500 uppercase italic">Incentive</td>
+                                            <td className="px-6 py-4 text-right text-xs font-black text-emerald-600">+₹{selectedPayroll.bonus?.toLocaleString() || 0}</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-6 py-4 text-xs font-bold text-slate-700">Institutional Deductions</td>
+                                            <td className="px-6 py-4 text-right text-[10px] font-black text-luxury-rose uppercase italic">Reduction</td>
+                                            <td className="px-6 py-4 text-right text-xs font-black text-luxury-rose">-₹{selectedPayroll.deductions?.toLocaleString() || 0}</td>
+                                        </tr>
+                                    </tbody>
+                                    <tfoot>
+                                        <tr className="bg-slate-900 text-white">
+                                            <td colSpan="2" className="px-6 py-4 text-[10px] font-black uppercase tracking-widest">Net Institutional Disbursement</td>
+                                            <td className="px-6 py-4 text-right text-lg font-black italic tracking-tighter">₹{selectedPayroll.netSalary?.toLocaleString() || 0}</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <div className="p-6 bg-slate-50 rounded-md border border-slate-100 flex items-center justify-between">
+                                <div className="flex flex-col">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Authorization Node</span>
+                                    <span className="text-[10px] font-bold text-slate-600">Institutional Finance Controller</span>
+                                </div>
+                                <div className="w-32 h-10 border-b-2 border-slate-200 border-dotted" />
+                            </div>
+
+                            <div className="mt-12 text-center pt-6 border-t border-slate-100">
+                                <p className="text-[9px] font-bold text-slate-300 uppercase tracking-[0.3em]">Financial Intelligence Matrix — Node Alpha-101</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            {/* Payslip/Receipt Modal - Document Matrix Preview */}
             <Modal open={isModalOpen} onClose={() => setIsModalOpen(false)} title="Document Matrix Preview">
                 {selectedPayroll && (
                     <div className="space-y-8">
@@ -241,10 +376,12 @@ const Payroll = () => {
                         </div>
 
                         <button 
-                            onClick={handlePrint}
-                            className="no-print w-full py-5 bg-slate-900 text-white hover:bg-brand-primary rounded-md font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98]"
+                            onClick={() => handleDownload(selectedPayroll)}
+                            disabled={isDownloading}
+                            className="w-full py-5 bg-slate-900 text-white hover:bg-brand-primary rounded-md font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50"
                         >
-                            <Printer size={18} /> Print Voucher Payload
+                            {isDownloading ? <Loader2 className="animate-spin" size={18} /> : <Download size={18} />} 
+                            Download Disbursement Matrix
                         </button>
                     </div>
                 )}

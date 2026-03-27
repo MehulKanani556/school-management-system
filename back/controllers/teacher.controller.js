@@ -636,7 +636,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
 
         const assignedClasses = await ClassSection.find({
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-        });
+        }).populate('standardId', 'level');
         const classIds = assignedClasses.map(c => c._id);
 
         const thirtyDaysAgo = new Date();
@@ -675,7 +675,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
                 });
             });
             return {
-                section: c.sectionLabel,
+                section: `Grade ${c.standardId?.level || 'N/A'} (${c.sectionLabel})`,
                 percentage: cTotal > 0 ? Number(((cPresent / cTotal) * 100).toFixed(1)) : 0
             };
         }));
@@ -747,10 +747,23 @@ exports.getMyPayroll = async (req, res) => {
 exports.getStudentFeeStatus = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const assignedClasses = await ClassSection.find({
-            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-        });
-        const classIds = assignedClasses.map(c => c._id);
+        const { classId } = req.query;
+        let classIds = [];
+
+        if (classId && classId !== 'all') {
+            classIds = [classId];
+            // Integrity Check: ensure teacher is assigned to this sector
+            const isAssigned = await ClassSection.exists({
+                _id: classId,
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+            if (!isAssigned) return res.status(403).json({ message: 'Pedagogical security clearance insufficient for this sector node' });
+        } else {
+            const assignedClasses = await ClassSection.find({
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+            classIds = assignedClasses.map(c => c._id);
+        }
 
         const students = await Student.find({ classSection: { $in: classIds }, deletedAt: null })
             .populate('classSection', 'sectionLabel')
@@ -763,6 +776,7 @@ exports.getStudentFeeStatus = async (req, res) => {
             return {
                 studentId: s._id,
                 name: `${s.firstName} ${s.lastName}`,
+                photo: s.photo,
                 admissionNumber: s.admissionNumber,
                 class: `Grade ${s.standard?.level || 'N/A'}-${s.classSection?.sectionLabel || '?'}`,
                 totalPending: pendingAmount,
@@ -1067,15 +1081,44 @@ exports.logBehavior = async (req, res) => {
 
 exports.getBehaviorLogs = async (req, res) => {
     try {
+        const teacher = await getTeacher(req.user._id);
         const { studentId, classId } = req.query;
-        let query = {};
+        let query = { schoolId: teacher.schoolId._id };
+        
         if (studentId) query.studentId = studentId;
         if (classId) {
-            const students = await Student.find({ classSection: classId }).select('_id');
-            query.studentId = { $in: students };
+            const students = await Student.find({ classSection: classId, schoolId: teacher.schoolId._id }).select('_id');
+            query.studentId = { $in: students.map(s => s._id) };
         }
-        const logs = await BehaviorLog.find(query).populate('studentId', 'firstName lastName').populate('teacherId', 'firstName lastName').sort({ date: -1 });
+        
+        const logs = await BehaviorLog.find(query)
+            .populate('studentId', 'firstName lastName')
+            .populate('teacherId', 'firstName lastName')
+            .sort({ date: -1 });
+            
         res.json(logs);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateBehaviorLog = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const log = await BehaviorLog.findOneAndUpdate(
+            { _id: req.params.id, teacherId: teacher._id, schoolId: teacher.schoolId._id },
+            req.body,
+            { new: true }
+        );
+        if (!log) return res.status(404).json({ message: 'Behavior log node not found or security clearance insufficient' });
+        res.json({ message: 'Conduct vector recalibrated successfully', log });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteBehaviorLog = async (req, res) => {
+    try {
+        const teacher = await getTeacher(req.user._id);
+        const log = await BehaviorLog.findOneAndDelete({ _id: req.params.id, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        if (!log) return res.status(404).json({ message: 'Behavior log node not found or security clearance insufficient' });
+        res.json({ message: 'Conduct vector purged from institutional memory' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1103,7 +1146,10 @@ exports.scheduleMeeting = async (req, res) => {
 exports.getMeetings = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const meetings = await Meeting.find({ teacherId: teacher._id })
+        const meetings = await Meeting.find({ 
+            teacherId: teacher._id,
+            schoolId: teacher.schoolId._id // Filter by school
+        })
             .populate([
                 { path: 'studentId', select: 'firstName lastName' },
                 { path: 'classSection', select: 'sectionLabel gradeLevel standardId', populate: { path: 'standardId', select: 'level' } }
@@ -1148,8 +1194,15 @@ exports.uploadResource = async (req, res) => {
 exports.getResources = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const resources = await ResourceLocker.find({ teacherId: teacher._id })
-            .populate('classSection', 'sectionLabel gradeLevel')
+        const resources = await ResourceLocker.find({ 
+            teacherId: teacher._id, 
+            schoolId: teacher.schoolId._id // Filter by school
+        })
+            .populate({
+                path: 'classSection',
+                select: 'sectionLabel standardId',
+                populate: { path: 'standardId', select: 'level' }
+            })
             .populate('subject', 'name')
             .sort({ uploadDate: -1 });
         res.json(resources);
@@ -1374,6 +1427,8 @@ module.exports = {
     deleteLessonPlan: exports.deleteLessonPlan,
     logBehavior: exports.logBehavior,
     getBehaviorLogs: exports.getBehaviorLogs,
+    updateBehaviorLog: exports.updateBehaviorLog,
+    deleteBehaviorLog: exports.deleteBehaviorLog,
     scheduleMeeting: exports.scheduleMeeting,
     getMeetings: exports.getMeetings,
     updateMeeting: exports.updateMeeting,

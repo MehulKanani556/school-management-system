@@ -335,7 +335,10 @@ exports.getChildBehaviorLogs = async (req, res) => {
         const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
         if (!student) return res.status(403).json({ message: 'Child link unauthorized' });
 
-        const logs = await BehaviorLog.find({ studentId })
+        const logs = await BehaviorLog.find({ 
+            studentId, 
+            schoolId: student.schoolId._id // Enforce school-wide isolation
+        })
             .populate('teacherId', 'firstName lastName')
             .sort({ date: -1 })
             .lean();

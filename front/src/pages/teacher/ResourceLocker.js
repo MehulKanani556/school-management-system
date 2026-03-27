@@ -160,7 +160,7 @@ const ResourceLocker = () => {
                                 </div>
                                 <h4 className="text-sm font-black text-white italic uppercase tracking-wider truncate w-full text-center">{res.title}</h4>
                                 <p className="text-[10px] font-bold text-slate-500 mt-2 uppercase tracking-widest truncate w-full text-center">
-                                    {res.classSection ? `Grade ${res.classSection.gradeLevel} - ${res.classSection.sectionLabel}` : 'Global Protocol'}
+                                    {res.classSection ? `Grade ${res.classSection.standardId?.level || res.classSection.gradeLevel || 'N/A'} - ${res.classSection.sectionLabel}` : 'Global Protocol'}
                                 </p>
                                 <p className="text-[9px] text-slate-600 mt-3">{new Date(res.uploadDate).toLocaleDateString()}</p>
                             </motion.div>
