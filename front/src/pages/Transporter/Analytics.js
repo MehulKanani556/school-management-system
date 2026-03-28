@@ -31,17 +31,17 @@ const Analytics = () => {
     };
 
     const stats = [
-        { label: 'Total Maintenance', value: `₹${fleet.totalMaintenanceCost.toLocaleString()}`, icon: Wallet, color: 'text-rose-500', trend: 'Financial Status' },
-        { label: 'Active Fleet', value: `${fleet.active}/${fleet.total}`, icon: Bus, color: 'text-transporter-primary', trend: 'Vehicle Availability' },
+        { label: 'Maintenance Cost', value: `₹${fleet.totalMaintenanceCost.toLocaleString()}`, icon: Wallet, color: 'text-rose-500', trend: 'Financial Status' },
+        { label: 'Active Buses', value: `${fleet.active}/${fleet.total}`, icon: Bus, color: 'text-transporter-primary', trend: 'Vehicle Availability' },
         { label: 'Driver Rating', value: `${operators.avgRating}/5`, icon: User, color: 'text-sky-500', trend: 'Rating Avg.' },
-        { label: 'Trip Delay Rate', value: `${efficiency.delayRate}%`, icon: Timer, color: 'text-amber-500', trend: 'Delay Percentage' }
+        { label: 'Late Trips', value: `${efficiency.delayRate}%`, icon: Timer, color: 'text-amber-500', trend: 'Punctuality' }
     ];
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 pb-20 font-outfit">
             <div className="px-2">
-                <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Transport Analytics</h1>
-                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Monitoring key metrics for school transport operations.</p>
+                <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Reports</h1>
+                <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Check your transport performance and costs.</p>
             </div>
 
             {/* Summary Metrics */}
@@ -66,7 +66,7 @@ const Analytics = () => {
                     <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-md bg-transporter-primary/10 text-transporter-primary"><Wrench size={16} /></div>
-                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Fleet Status Analysis</h3>
+                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Bus Status</h3>
                         </div>
                         <ShieldCheck size={16} className="text-emerald-500" />
                     </div>
@@ -110,7 +110,7 @@ const Analytics = () => {
                     <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950 flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="p-2 rounded-md bg-sky-600/10 text-sky-500"><Users size={16} /></div>
-                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Student Assignment Coverage</h3>
+                            <h3 className="text-sm font-black text-slate-100 uppercase italic tracking-widest">Student Coverage</h3>
                         </div>
                         <TrendingUp size={16} className="text-sky-500" />
                     </div>
@@ -162,13 +162,13 @@ const Analytics = () => {
                         <Navigation size={32} />
                     </div>
                     <div>
-                        <h4 className="text-lg font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">Latest Trip Performance</h4>
+                        <h4 className="text-lg font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">Recent Trip Status</h4>
                         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-60">Report based on the last 10 completed trips across all routes.</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-10">
                     <div className="text-right">
-                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Trip Completion Rate</p>
+                        <p className="text-[10px] font-black text-slate-500 uppercase italic mb-1 tracking-widest">Completed Trips</p>
                         <p className="text-2xl font-black text-emerald-500 italic">100%</p>
                     </div>
                     <div className="text-right border-l border-slate-800/60 pl-10">

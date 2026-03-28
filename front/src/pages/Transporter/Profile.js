@@ -82,8 +82,8 @@ const Profile = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex justify-between items-end px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">User Profile</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your account details and notification preferences.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">My Profile</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Check your details and change settings.</p>
                 </div>
             </div>
 
@@ -149,7 +149,7 @@ const Profile = () => {
                     <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden">
                         <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center gap-3">
                             <Settings size={18} className="text-transporter-primary" />
-                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">General Settings</h3>
+                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">My Details</h3>
                         </div>
                         <div className="p-8 space-y-8">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -220,7 +220,7 @@ const Profile = () => {
                     <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden">
                         <div className="px-8 py-6 border-b border-slate-800/60 bg-neutral-950/40 flex items-center gap-3">
                             <Shield size={18} className="text-emerald-500" />
-                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">Security & Access</h3>
+                            <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">Security</h3>
                         </div>
                         <div className="p-8">
                             <div className="space-y-6">

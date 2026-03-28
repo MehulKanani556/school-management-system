@@ -3,6 +3,8 @@ const Route = require('../models/route.model');
 const Student = require('../models/student.model');
 const Driver = require('../models/driver.model');
 const TripLog = require('../models/tripLog.model');
+const User = require('../models/user.model');
+const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
 
 const getSchoolId = (req) => req.user.schoolId;
@@ -41,10 +43,69 @@ exports.deleteVehicle = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+exports.toggleVehicleStatus = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOneAndUpdate(
+            { _id: id, schoolId },
+            { $set: { status } },
+            { new: true }
+        ).populate('driverId');
+
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle unit not found' });
+
+        res.json({ message: `Vehicle status shifted to ${status}`, data: vehicle });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.resolveMaintenanceRecord = async (req, res) => {
+    try {
+        const { id, recordId } = req.params;
+        const { cost, notes } = req.body;
+        const schoolId = getSchoolId(req);
+
+        const vehicle = await Vehicle.findOne({ _id: id, schoolId });
+        if (!vehicle) return res.status(404).json({ message: 'Vehicle unit not found' });
+
+        const record = vehicle.maintenanceHistory.id(recordId);
+        if (!record) return res.status(404).json({ message: 'Service record not found' });
+
+        record.cost = cost;
+        record.notes = `${record.notes} [RESOLVED: ${notes || 'Repair Completed'}]`;
+        record.date = new Date(); // Update to completion date
+
+        await vehicle.save();
+        const updated = await Vehicle.findById(id).populate('driverId');
+        res.json({ message: 'Protocol completed and resolved', data: updated });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 // Route CRUD
 exports.getRoutes = async (req, res) => {
     try {
-        const routes = await Route.find({ schoolId: getSchoolId(req) })
+        let query = { schoolId: getSchoolId(req) };
+        
+        // If driver, only show their own routes
+        if (req.user.role === 'Driver') {
+            const driver = await Driver.findOne({ userId: req.user._id, schoolId: getSchoolId(req) });
+            if (driver) {
+                // Find vehicle assigned to this driver
+                const vehicle = await Vehicle.findOne({ driverId: driver._id, schoolId: getSchoolId(req) });
+                if (vehicle) {
+                    query.vehicleId = vehicle._id;
+                } else {
+                    // No vehicle, no routes (or direct assignment)
+                    query.vehicleId = null; 
+                }
+            } else {
+                return res.status(404).json({ message: 'Driver profile not found' });
+            }
+        }
+
+        const routes = await Route.find(query)
             .populate('vehicleId')
             .populate('assignedStudents.studentId', 'firstName lastName admissionNumber');
         res.json(routes);
@@ -100,7 +161,7 @@ exports.getTransportApplicants = async (req, res) => {
     try {
         const students = await Student.find({
             schoolId: getSchoolId(req),
-            transportStatus: { $in: ['Applied', 'Approved', 'Active'] }
+            transportStatus: { $in: ['Applied', 'Approved'] }
         }).populate('standard classSection');
         res.json(students);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -156,7 +217,18 @@ exports.assignStudent = async (req, res) => {
             }
         }
 
-        // 2. State Transformation
+        // 2. Conflict Validation (Seat Number)
+        if (seatNumber) {
+            const seatConflict = route.assignedStudents.some(s => 
+                s.seatNumber?.toString() === seatNumber.toString() && 
+                s.studentId.toString() !== studentId
+            );
+            if (seatConflict) {
+                return res.status(400).json({ message: `Seat ${seatNumber} is already occupied by another student on this route.` });
+            }
+        }
+
+        // 3. State Transformation
         const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
         const assignmentData = { studentId, pickupStop, dropoffStop, seatNumber };
 
@@ -317,32 +389,72 @@ exports.updateVehicleLocation = async (req, res) => {
 // Driver CRUD
 exports.getDrivers = async (req, res) => {
     try {
-        const drivers = await Driver.find({ schoolId: getSchoolId(req) }).sort({ createdAt: -1 });
+        const drivers = await Driver.find({ schoolId: getSchoolId(req) }).populate('userId').sort({ createdAt: -1 });
         res.json(drivers);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.addDriver = async (req, res) => {
     try {
-        const driver = await Driver.create({ ...req.body, schoolId: getSchoolId(req) });
-        res.status(201).json({ message: 'Driver added successfully', data: driver });
+        const schoolId = getSchoolId(req);
+        const { email, password, baseSalary, name, contact } = req.body;
+
+        let userId = null;
+        if (email) {
+            const existingUser = await User.findOne({ email });
+            if (existingUser) return res.status(400).json({ message: 'A user with this email already exists' });
+
+            const hashedPassword = await bcrypt.hash(password || email, 10);
+            const user = await User.create({
+                firstName: name.split(' ')[0],
+                lastName: name.split(' ').slice(1).join(' ') || 'Driver',
+                email,
+                password: hashedPassword,
+                role: 'Driver',
+                schoolId,
+                phoneNumber: contact,
+                baseSalary: Number(baseSalary) || 0
+            });
+            userId = user._id;
+        }
+
+        const driver = await Driver.create({ ...req.body, schoolId, userId });
+        res.status(201).json({ message: 'Driver added and account provisioned', data: driver });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateDriver = async (req, res) => {
     try {
+        const { email, baseSalary, name, contact } = req.body;
+        const schoolId = getSchoolId(req);
+        
         const driver = await Driver.findOneAndUpdate(
-            { _id: req.params.id, schoolId: getSchoolId(req) },
+            { _id: req.params.id, schoolId },
             req.body, { new: true }
-        );
-        res.json({ message: 'Driver updated', data: driver });
+        ).populate('userId');
+
+        if (driver && driver.userId) {
+            await User.findByIdAndUpdate(driver.userId._id, {
+                firstName: name.split(' ')[0],
+                lastName: name.split(' ').slice(1).join(' ') || 'Driver',
+                email: email || driver.userId.email,
+                phoneNumber: contact,
+                baseSalary: Number(baseSalary) || driver.userId.baseSalary
+            });
+        }
+
+        res.json({ message: 'Driver and linked account updated', data: driver });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.deleteDriver = async (req, res) => {
     try {
-        await Driver.findOneAndDelete({ _id: req.params.id, schoolId: getSchoolId(req) });
-        res.json({ message: 'Driver deleted' });
+        const schoolId = getSchoolId(req);
+        const driver = await Driver.findOneAndDelete({ _id: req.params.id, schoolId });
+        if (driver && driver.userId) {
+            await User.findOneAndDelete({ _id: driver.userId, schoolId });
+        }
+        res.json({ message: 'Driver and linked personnel record deleted' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -58,19 +58,24 @@ const Messages = () => {
         (c.firstName + ' ' + c.lastName).toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    const { user } = useSelector((state) => state.auth);
+    const isTransporter = user?.role === 'Transport_Manager';
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-180px)] font-outfit">
             <div className="flex justify-between items-end px-2 mb-8">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Direct Messages</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Communicate directly with parents and school staff regarding transport.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Messages</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Talk to parents and drivers about bus timing.</p>
                 </div>
-                <button
-                    onClick={() => setIsBroadcastOpen(true)}
-                    className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px]"
-                >
-                    <Plus size={14} /> send broadcast
-                </button>
+                {isTransporter && (
+                    <button
+                        onClick={() => setIsBroadcastOpen(true)}
+                        className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px]"
+                    >
+                        <Plus size={14} /> Send Group Message
+                    </button>
+                )}
             </div>
 
             <div className="flex gap-6 h-full">
@@ -189,7 +194,7 @@ const Messages = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit">
                             <div className="p-10 space-y-8">
                                 <div className="flex items-center justify-between pb-4 border-b border-slate-800/60">
-                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Mass Notification</h3>
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Send to All</h3>
                                     <button onClick={() => setIsBroadcastOpen(false)} className="text-slate-600 hover:text-white transition-all"><X size={18} /></button>
                                 </div>
 

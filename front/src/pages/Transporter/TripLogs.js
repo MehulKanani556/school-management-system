@@ -135,8 +135,8 @@ const TripLogs = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Trip Logs</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage school bus trips and student attendance.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Trip Records</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Check daily bus trips and student presence.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
@@ -164,7 +164,7 @@ const TripLogs = () => {
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
                         className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap h-[42px] sm:h-auto"
                     >
-                        <Plus size={14} /> create trip
+                        <Plus size={14} /> Start New Trip
                     </button>
                 </div>
             </div>
@@ -175,7 +175,7 @@ const TripLogs = () => {
                         <div className="px-8 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col xl:flex-row xl:items-center justify-between gap-6">
                             <div className="flex items-center gap-6">
                                 <div className={`px-4 py-1.5 rounded-md text-[10px] font-black uppercase italic tracking-widest border ${log.type === 'Pickup' ? 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20' : 'bg-blue-600/10 text-blue-500 border-blue-600/20'}`}>
-                                    {log.type.toUpperCase()} TRIP
+                                    {log.type === 'Pickup' ? 'MORNING BUS' : 'AFTERNOON BUS'}
                                 </div>
                                 <div className="flex flex-col">
                                     <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter leading-none mb-1">{log.routeId?.name}</h3>
@@ -216,7 +216,7 @@ const TripLogs = () => {
                                                 onClick={() => handleStatusTransition(log._id, log.status)}
                                                 className="px-4 py-2 bg-sky-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-sky-600/10 hover:bg-sky-700 transition-all flex items-center gap-2"
                                             >
-                                                <Play size={10} /> start trip
+                                                <Play size={10} /> Start
                                             </button>
                                             <button onClick={() => handleCancelTrip(log._id)} className="p-2 text-rose-500 hover:bg-rose-500/10 border border-slate-800 rounded-md transition-all"><X size={14} /></button>
                                         </>
@@ -226,7 +226,7 @@ const TripLogs = () => {
                                             onClick={() => handleStatusTransition(log._id, log.status)}
                                             className="px-4 py-2 bg-emerald-600 text-white text-[9px] font-black uppercase italic tracking-widest rounded-md shadow-lg shadow-emerald-600/10 hover:bg-emerald-700 transition-all flex items-center gap-2"
                                         >
-                                            <CheckCircle2 size={10} /> end trip
+                                            <CheckCircle2 size={10} /> stop trip
                                         </button>
                                     )}
                                 </div>
@@ -272,7 +272,7 @@ const TripLogs = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-2xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit max-h-[90vh] overflow-y-auto custom-scrollbar">
                             <form onSubmit={handleSubmit} className="space-y-6 p-10">
                                 <div className="flex items-center justify-between mb-8 pb-4 border-b border-slate-800/60">
-                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Create New Trip</h3>
+                                    <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">New Trip</h3>
                                     <div className="flex bg-neutral-950 p-1 rounded-md border border-slate-800">
                                         <button
                                             type="button"
@@ -350,7 +350,7 @@ const TripLogs = () => {
                                         disabled={!formData.routeId}
                                         className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none hover:translate-y-[-2px] disabled:opacity-50 disabled:translate-y-0 h-[42px]"
                                     >
-                                        Save Trip Log
+                                        Save Trip
                                     </button>
                                 </div>
                             </form>

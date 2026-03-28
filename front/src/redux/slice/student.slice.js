@@ -152,6 +152,24 @@ export const fetchStudentAnnouncements = createAsyncThunk('student/fetchAnnounce
     }
 });
 
+export const fetchStudentTransport = createAsyncThunk('student/fetchTransport', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/student/transport');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
+export const applyStudentTransport = createAsyncThunk('student/applyTransport', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/student/apply-transport');
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data.message);
+    }
+});
+
 const studentSlice = createSlice({
     name: 'student',
     initialState: {
@@ -168,6 +186,7 @@ const studentSlice = createSlice({
         resources: [],
         notices: [],
         announcements: [],
+        transport: null,
         loading: false,
         error: null,
         message: null
@@ -235,6 +254,13 @@ const studentSlice = createSlice({
             })
             .addCase(fetchStudentAnnouncements.fulfilled, (state, action) => {
                 state.announcements = action.payload;
+            })
+            .addCase(fetchStudentTransport.fulfilled, (state, action) => {
+                state.transport = action.payload;
+            })
+            .addCase(applyStudentTransport.fulfilled, (state, action) => {
+                state.profile.transportStatus = 'Applied';
+                state.message = action.payload.message;
             })
 
             .addMatcher(

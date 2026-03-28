@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchVehicles, addMaintenanceSlice, addFuelLogSlice, addInsuranceRenewalSlice, clearTransportMessage } from '../../redux/slice/transport.slice';
+import { fetchVehicles, addMaintenanceSlice, addFuelLogSlice, addInsuranceRenewalSlice, clearTransportMessage, toggleVehicleStatusSlice, resolveMaintenanceSlice } from '../../redux/slice/transport.slice';
 import {
     Wrench, Fuel, ShieldCheck, History, TrendingUp,
     Plus, Search, Bus, Calendar, IndianRupee,
     Gauge, Info, FileText, AlertTriangle,
     ChevronRight, ChevronDown, CheckCircle2,
-    Clock, Tool
+    Clock, Tool, Power, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -18,7 +18,8 @@ const Maintenancetransport = () => {
     const [activeTab, setActiveTab] = useState('summary'); // summary, maintenance, fuel, insurance
     const [selectedVehicleId, setSelectedVehicleId] = useState('');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-    const [modalType, setModalType] = useState('maintenance'); // maintenance, fuel, insurance
+    const [modalType, setModalType] = useState('maintenance'); // maintenance, fuel, insurance, resolve
+    const [resolvingRecord, setResolvingRecord] = useState(null);
 
     const [formData, setFormData] = useState({
         date: new Date().toISOString().split('T')[0],
@@ -100,6 +101,13 @@ const Maintenancetransport = () => {
                     provider: formData.provider
                 }
             }));
+        } else if (modalType === 'resolve') {
+            dispatch(resolveMaintenanceSlice({
+                id: selectedVehicleId,
+                recordId: resolvingRecord._id,
+                cost: parseFloat(formData.cost),
+                notes: formData.notes
+            }));
         }
     }
 
@@ -130,20 +138,25 @@ const Maintenancetransport = () => {
         return diff < 30 * 24 * 60 * 60 * 1000;
     }
 
+    const handleStatusToggle = (vehicle) => {
+        const nextStatus = vehicle.status === 'maintenance' ? 'active' : 'maintenance';
+        dispatch(toggleVehicleStatusSlice({ id: vehicle._id, status: nextStatus }));
+    }
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-20 max-w-[1600px] mx-auto font-outfit">
             {/* Header */}
             <header className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8 px-2">
                 <div>
-                    <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-2 leading-none text-transporter-primary">Maintenance & Fuel Logs</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Track vehicle maintenance, fuel expenses, and insurance renewals.</p>
+                    <h1 className="text-4xl font-black italic uppercase tracking-tighter mb-2 leading-none text-transporter-primary">Service & Fuel</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage bus repairs, diesel bills, and insurance.</p>
                 </div>
 
                 <div className="flex bg-neutral-900/50 p-1 rounded-md border border-slate-800/60 shadow-2xl">
                     {[
                         { id: 'summary', icon: TrendingUp, label: 'Overview' },
-                        { id: 'maintenance', icon: Wrench, label: 'Service History' },
-                        { id: 'fuel', icon: Fuel, label: 'Fuel Logs' },
+                        { id: 'maintenance', icon: Wrench, label: 'Repairs' },
+                        { id: 'fuel', icon: Fuel, label: 'Diesel/Fuel' },
                         { id: 'insurance', icon: ShieldCheck, label: 'Insurance' }
                     ].map(tab => (
                         <button
@@ -171,7 +184,7 @@ const Maintenancetransport = () => {
                 </div>
 
                 <div className="flex items-center gap-4 w-full md:w-auto">
-                    <button onClick={() => openAddModal('maintenance')} className="flex-1 md:w-auto px-6 py-4 bg-transporter-primary/10 text-transporter-primary border border-transporter-primary/30 rounded-md text-[10px] font-black uppercase tracking-widest italic hover:bg-transporter-primary hover:text-white transition-all shadow-xl leading-none">Add Service</button>
+                    <button onClick={() => openAddModal('maintenance')} className="flex-1 md:w-auto px-6 py-4 bg-transporter-primary/10 text-transporter-primary border border-transporter-primary/30 rounded-md text-[10px] font-black uppercase tracking-widest italic hover:bg-transporter-primary hover:text-white transition-all shadow-xl leading-none">Add Repair</button>
                     <button onClick={() => openAddModal('fuel')} className="flex-1 md:w-auto px-6 py-4 bg-blue-600/10 text-blue-500 border border-blue-600/30 rounded-md text-[10px] font-black uppercase tracking-widest italic hover:bg-blue-600 hover:text-white transition-all shadow-xl leading-none">Add Fuel</button>
                 </div>
             </div>
@@ -198,7 +211,7 @@ const Maintenancetransport = () => {
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-neutral-950 border border-slate-800/40 rounded-md">
-                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Service Cost</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Repair Cost</p>
                                         <div className="flex items-center gap-2 text-blue-500">
                                             <IndianRupee size={14} />
                                             <span className="text-sm font-black italic uppercase">{vehicle.maintenanceHistory?.reduce((acc, log) => acc + (log.cost || 0), 0).toFixed(2) || '0.00'}</span>
@@ -206,14 +219,27 @@ const Maintenancetransport = () => {
                                     </div>
                                     <div className="p-4 bg-neutral-950 border border-slate-800/40 rounded-md">
                                         <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 italic">Vehicle Status</p>
-                                        <div className="flex items-center gap-2 text-transporter-primary">
-                                            <Wrench size={14} />
-                                            <span className="text-sm font-black italic uppercase">{vehicle.status || 'Active'}</span>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`text-sm font-black italic uppercase ${vehicle.status === 'maintenance' ? 'text-transporter-primary' : 'text-emerald-500'}`}>
+                                                {vehicle.status === 'maintenance' ? (
+                                                    <span className="flex items-center gap-1.5"><Wrench size={14} /> IN SHOP</span>
+                                                ) : (
+                                                    <span className="flex items-center gap-1.5"><Activity size={14} /> ON ROAD</span>
+                                                )}
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3 pt-4 border-t border-slate-800/40">
+                                <div className="pt-4 border-t border-slate-800/40 space-y-4">
+                                    <button 
+                                        onClick={() => handleStatusToggle(vehicle)}
+                                        className={`w-full py-3 rounded-md text-[9px] font-black uppercase tracking-widest italic transition-all flex items-center justify-center gap-2 ${vehicle.status === 'maintenance' ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-500/30 hover:bg-emerald-600 hover:text-white' : 'bg-transporter-primary/10 text-transporter-primary border border-transporter-primary/30 hover:bg-transporter-primary hover:text-white'}`}
+                                    >
+                                        <Power size={12} /> {vehicle.status === 'maintenance' ? 'Mark As Fully Operational' : 'Initiate Maintenance Mode'}
+                                    </button>
+                                    
+                                    <div className="space-y-3">
                                     <div className="flex items-center justify-between">
                                         <span className="text-[9px] font-bold text-slate-500 uppercase italic">Insurance</span>
                                         <span className={`text-[9px] font-black italic uppercase ${isExpiringSoon(vehicle.insuranceExpiry) ? 'text-red-500 animate-pulse' : 'text-slate-300'}`}>
@@ -221,10 +247,11 @@ const Maintenancetransport = () => {
                                         </span>
                                     </div>
                                     <div className="flex items-center justify-between">
-                                        <span className="text-[9px] font-bold text-slate-500 uppercase italic">Maintenance</span>
+                                        <span className="text-[9px] font-bold text-slate-500 uppercase italic">Last Repair</span>
                                         <span className="text-[9px] font-black italic text-slate-300 uppercase">
                                             SVC: {vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toLocaleDateString() : 'N/A'}
                                         </span>
+                                    </div>
                                     </div>
                                 </div>
                             </motion.div>
@@ -258,8 +285,30 @@ const Maintenancetransport = () => {
                                         </td>
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-3">
-                                                <div className="p-2 bg-neutral-950 border border-slate-800 rounded group-hover:border-transporter-primary/30 transition-all text-orange-500"><Wrench size={14} /></div>
-                                                <span className="text-xs font-black text-slate-200 uppercase italic">{log.serviceType}</span>
+                                                <div className={`p-2 bg-neutral-950 border border-slate-800 rounded group-hover:border-transporter-primary/30 transition-all ${log.serviceType?.startsWith('Driver Reported:') ? 'text-red-500 border-red-500/20 shadow-xl shadow-red-500/5' : 'text-orange-500'}`}>
+                                                    {log.serviceType?.startsWith('Driver Reported:') ? <AlertTriangle size={14} /> : <Wrench size={14} />}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className={`text-xs font-black uppercase italic ${log.serviceType?.startsWith('Driver Reported:') ? 'text-red-500' : 'text-slate-200'}`}>
+                                                        {log.serviceType}
+                                                    </span>
+                                                    {log.serviceType?.startsWith('Driver Reported:') && log.cost === 0 && (
+                                                        <div className="flex items-center gap-2 mt-2">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setResolvingRecord(log);
+                                                                    setSelectedVehicleId(log.vId);
+                                                                    setModalType('resolve');
+                                                                    setFormData({ ...formData, cost: '', notes: '' });
+                                                                    setIsAddModalOpen(true);
+                                                                }}
+                                                                className="px-3 py-1 bg-transporter-primary/20 text-transporter-primary border border-transporter-primary/30 rounded text-[8px] font-black uppercase tracking-widest hover:bg-transporter-primary hover:text-white transition-all shadow-lg"
+                                                            >
+                                                                Complete Repair
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6">
@@ -332,7 +381,7 @@ const Maintenancetransport = () => {
                             <thead className="bg-neutral-950 text-slate-500 border-b border-slate-800/60">
                                 <tr>
                                     <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest italic">Vehicle</th>
-                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest italic">Policy Number</th>
+                                    <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest italic">Policy No.</th>
                                     <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest italic">Provider</th>
                                     <th className="px-8 py-5 text-[9px] font-black uppercase tracking-widest italic">Expiry Date</th>
                                     <th className="px-8 py-5 text-right text-[9px] font-black uppercase tracking-widest italic">Status</th>
@@ -379,30 +428,36 @@ const Maintenancetransport = () => {
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 30 }} className="bg-neutral-900 w-full max-w-xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={handleSubmit} className="p-12 space-y-8">
                                 <div className="space-y-3">
-                                    <div className={`w-12 h-12 rounded-md flex items-center justify-center border ${modalType === 'fuel' ? 'bg-blue-600/10 border-blue-600/30 text-blue-500' : 'bg-transporter-primary/10 border-transporter-primary/30 text-transporter-primary'}`}>
-                                        {modalType === 'fuel' ? <Fuel size={24} /> : <Wrench size={24} />}
+                                    <div className={`w-12 h-12 rounded-md flex items-center justify-center border ${modalType === 'fuel' ? 'bg-blue-600/10 border-blue-600/30 text-blue-500' : modalType === 'resolve' ? 'bg-emerald-600/10 border-emerald-600/30 text-emerald-500' : 'bg-transporter-primary/10 border-transporter-primary/30 text-transporter-primary'}`}>
+                                        {modalType === 'fuel' ? <Fuel size={24} /> : modalType === 'resolve' ? <CheckCircle2 size={24} /> : <Wrench size={24} />}
                                     </div>
-                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Add {modalType === 'fuel' ? 'Fuel Log' : 'Maintenance Record'}</h3>
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-none opacity-60">Adding new record to the maintenance history.</p>
+                                    <h3 className="text-2xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">
+                                        {modalType === 'resolve' ? 'Complete Fleet Repair' : `Add ${modalType === 'fuel' ? 'Fuel Log' : 'Repair Record'}`}
+                                    </h3>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-none opacity-60">
+                                        {modalType === 'resolve' ? `Closing ticket for ${resolvingRecord?.serviceType}` : 'Adding new record to the maintenance history.'}
+                                    </p>
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Select Vehicle</label>
-                                        <select
-                                            required
-                                            value={selectedVehicleId}
-                                            onChange={(e) => setSelectedVehicleId(e.target.value)}
-                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-4 px-6 text-[11px] font-black uppercase italic text-slate-100 focus:outline-none focus:border-transporter-primary/50 appearance-none leading-none"
-                                        >
-                                            <option value="">Select Vehicle...</option>
-                                            {vehicles.map(v => <option key={v._id} value={v._id}>{v.registrationNumber}</option>)}
-                                        </select>
-                                    </div>
+                                    {modalType !== 'resolve' && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Select Vehicle</label>
+                                            <select
+                                                required
+                                                value={selectedVehicleId}
+                                                onChange={(e) => setSelectedVehicleId(e.target.value)}
+                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-4 px-6 text-[11px] font-black uppercase italic text-slate-100 focus:outline-none focus:border-transporter-primary/50 appearance-none leading-none"
+                                            >
+                                                <option value="">Select Vehicle...</option>
+                                                {vehicles.map(v => <option key={v._id} value={v._id}>{v.registrationNumber}</option>)}
+                                            </select>
+                                        </div>
+                                    )}
 
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Date</label>
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">{modalType === 'resolve' ? 'Completion Date' : 'Date'}</label>
                                             <input type="date" required value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} className="w-full bg-neutral-950 border border-slate-800 rounded-md py-4 px-6 text-[11px] font-black uppercase italic text-slate-300" />
                                         </div>
                                         <div className="space-y-2">
@@ -411,7 +466,7 @@ const Maintenancetransport = () => {
                                         </div>
                                     </div>
 
-                                    {modalType === 'maintenance' && (
+                                    {(modalType === 'maintenance' || modalType === 'resolve') && modalType !== 'fuel' && modalType !== 'resolve' && (
                                         <div className="space-y-2">
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 leading-none">Service Type</label>
                                             <input type="text" required placeholder="e.g. Engine Oil Change" value={formData.serviceType} onChange={(e) => setFormData({ ...formData, serviceType: e.target.value })} className="w-full bg-neutral-950 border border-slate-800 rounded-md py-4 px-6 text-[11px] font-black uppercase italic text-slate-100" />

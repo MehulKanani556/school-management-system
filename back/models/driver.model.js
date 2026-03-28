@@ -14,6 +14,7 @@ const driverSchema = new mongoose.Schema(
       enum: ['active', 'inactive', 'on-leave'], 
       default: 'active' 
     },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );

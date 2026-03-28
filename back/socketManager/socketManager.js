@@ -3,6 +3,8 @@ const userSocketMap = new Map(); // userId -> socketId
 const socketUserMap = new Map(); // socketId -> userId
 const vehicleLocationMap = new Map(); // vehicleId -> { lat, lng, updatedAt }
 const Message = require('../models/message.model');
+const Vehicle = require('../models/vehicle.model');
+const Driver = require('../models/driver.model');
 
 function initializeSocket(io) {
   ioInstance = io;
@@ -70,6 +72,49 @@ function initializeSocket(io) {
             
             // Also broadcast to a general fleet management room if anyone is watching everything
             io.to("fleet_management").emit("fleet_location_updated", updatePayload);
+        }
+    });
+
+    socket.on("UPDATE_DRIVER_LOCATION", async (data) => {
+        const { driverId, location, speed, heading, schoolId } = data;
+        if (driverId && location) {
+            const updatePayload = { 
+                driverId, 
+                lat: location.lat, 
+                lng: location.lng, 
+                speed, 
+                heading, 
+                updatedAt: new Date() 
+            };
+            
+            // Try to find the vehicle assigned to this driver
+            try {
+                const driver = await Driver.findOne({ userId: driverId });
+                if (driver) {
+                    const vehicle = await Vehicle.findOne({ driverId: driver._id });
+                    if (vehicle) {
+                        const vehiclePayload = {
+                            ...updatePayload,
+                            vehicleId: vehicle._id.toString(),
+                            registrationNumber: vehicle.registrationNumber
+                        };
+                        
+                        // Broadcast to vehicle room (for Parents/Students)
+                        io.to(`vehicle_${vehicle._id}`).emit("vehicle_location_updated", vehiclePayload);
+                        
+                        // Broadcast to fleet management (for Transporter)
+                        io.to("fleet_management").emit("fleet_location_updated", vehiclePayload);
+                        
+                        // Update the internal map for caching
+                        vehicleLocationMap.set(vehicle._id.toString(), vehiclePayload);
+                    }
+                }
+            } catch (err) {
+                console.error("Error finding vehicle for driver location update:", err);
+            }
+
+            // Always broadcast to driver-specific room
+            io.to(`driver_${driverId}`).emit("driver_location_updated", updatePayload);
         }
     });
 

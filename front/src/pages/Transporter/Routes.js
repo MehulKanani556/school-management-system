@@ -1,19 +1,30 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage, fetchTransportApplicantsSlice, assignStudentSlice, unassignStudentSlice } from '../../redux/slice/transport.slice';
-import { Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair, UserPlus, UserMinus, ShieldCheck } from 'lucide-react';
+import { 
+    Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair, 
+    UserPlus, UserMinus, ShieldCheck, Search, Home, Info
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
+import { fetchStudents } from '../../redux/slice/schoolAdmin.slice';
 
 // Map component for picking coordinates
-const StopPickerMap = ({ onPick, stops = [] }) => {
+const StopPickerMap = ({ onPick, stops = [], center }) => {
+    const map = useMap();
     useMapEvents({
         click(e) {
             onPick(e.latlng);
         },
     });
+
+    useEffect(() => {
+        if (center) {
+            map.flyTo(center, 14, { animate: true });
+        }
+    }, [center, map]);
 
     return (
         <>
@@ -42,25 +53,34 @@ const StopPickerMap = ({ onPick, stops = [] }) => {
 const Routes = () => {
     const dispatch = useDispatch();
     const { routes, vehicles, applicants, loading, message, error } = useSelector((state) => state.transport);
+    const { students } = useSelector((state) => state.schoolAdmin);
     const [isAddOpen, setIsAddOpen] = React.useState(false);
     const [isEditOpen, setIsEditOpen] = React.useState(false);
     const [isAssignOpen, setIsAssignOpen] = React.useState(false);
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [selectedRouteForAssign, setSelectedRouteForAssign] = React.useState(null);
-    const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0 });
+    const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0, startTime: '08:00 AM' });
     const [newStop, setNewStop] = React.useState({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
+    const [searchTerm, setSearchTerm] = React.useState('');
+    const [mapSearch, setMapSearch] = React.useState('');
+    const [suggestions, setSuggestions] = React.useState([]);
+    const [isSearching, setIsSearching] = React.useState(false);
+    const [schoolLoc, setSchoolLoc] = React.useState({ lat: 23.0225, lng: 72.5714 }); // Default to Ahmedabad center
     const [assignData, setAssignData] = React.useState({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
+    const [studentSearch, setStudentSearch] = React.useState('');
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
         dispatch(fetchVehicles());
         dispatch(fetchTransportApplicantsSlice());
+        dispatch(fetchStudents());
     }, [dispatch]);
 
     useEffect(() => {
         if (message) {
             toast.success(message);
             dispatch(clearTransportMessage());
+            dispatch(fetchTransportApplicantsSlice());
             setIsAddOpen(false);
             setIsEditOpen(false);
             setIsAssignOpen(false);
@@ -73,11 +93,76 @@ const Routes = () => {
     }, [message, error, dispatch]);
 
     const resetForm = () => {
-        setFormData({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0 });
+        setFormData({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0, startTime: '08:00 AM' });
         setNewStop({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
         setSelectedRoute(null);
         setAssignData({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     }
+
+    const helperDistance = (lat1, lon1, lat2, lon2) => {
+        const R = 6371;
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    };
+
+    const helperAddTime = (baseTime, distKm) => {
+        const speed = 25; // km/h
+        const addedMins = (distKm / speed) * 60 + 2; // 2 min buffer
+        const [h, m_ap] = baseTime.split(':');
+        const [m, ap] = m_ap.split(' ');
+        let hours = parseInt(h);
+        let mins = parseInt(m);
+        if (ap === 'PM' && hours < 12) hours += 12;
+        if (ap === 'AM' && hours === 12) hours = 0;
+        let total = hours * 60 + mins + Math.round(addedMins);
+        let nh = Math.floor(total / 60) % 24;
+        let nm = total % 60;
+        let nap = nh >= 12 ? 'PM' : 'AM';
+        return `${(nh % 12 || 12).toString().padStart(2, '0')}:${nm.toString().padStart(2, '0')} ${nap}`;
+    };
+
+    const handleMapSearch = async (query = mapSearch) => {
+        if (!query) return;
+        setIsSearching(true);
+        try {
+            const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`);
+            const data = await resp.json();
+            if (data.length > 0) {
+                setSuggestions(data);
+                if (query === mapSearch) {
+                    const { lat, lon } = data[0];
+                    setNewStop({ ...newStop, lat: parseFloat(lat), lng: parseFloat(lon) });
+                }
+            } else {
+                setSuggestions([]);
+            }
+        } catch (err) {
+            console.error('Search failed', err);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            if (mapSearch.length > 2) {
+                handleMapSearch(mapSearch);
+            } else {
+                setSuggestions([]);
+            }
+        }, 800);
+        return () => clearTimeout(timer);
+    }, [mapSearch]);
+
+    const selectSuggestion = (s) => {
+        const lat = parseFloat(s.lat);
+        const lon = parseFloat(s.lon);
+        setNewStop({ ...newStop, lat, lng: lon, name: s.display_name.split(',')[0] });
+        setMapSearch(s.display_name);
+        setSuggestions([]);
+    };
 
     const handleAdd = (e) => {
         e.preventDefault();
@@ -122,7 +207,8 @@ const Routes = () => {
             vehicleId: route.vehicleId?._id || '',
             stops: [...route.stops],
             status: route.status || 'active',
-            fee: route.fee || 0
+            fee: route.fee || 0,
+            startTime: route.stops?.[0]?.estimatedTime || '08:00 AM'
         });
         setIsEditOpen(true);
     }
@@ -131,9 +217,13 @@ const Routes = () => {
         if (!newStop.name) return toast.error('Stop name is required');
         if (!newStop.lat || !newStop.lng) return toast.error('Select location on map');
         
+        const prevStop = formData.stops.length > 0 ? formData.stops[formData.stops.length - 1] : { lat: schoolLoc.lat, lng: schoolLoc.lng, estimatedTime: formData.startTime };
+        const dist = helperDistance(prevStop.lat, prevStop.lng, newStop.lat, newStop.lng);
+        const autoTime = helperAddTime(prevStop.estimatedTime, dist);
+
         const order = formData.stops.length + 1;
-        setFormData({ ...formData, stops: [...formData.stops, { ...newStop, order }] });
-        setNewStop({ name: '', order: order + 1, estimatedTime: '08:00 AM', lat: null, lng: null });
+        setFormData({ ...formData, stops: [...formData.stops, { ...newStop, order, estimatedTime: autoTime }] });
+        setNewStop({ name: '', order: order + 1, estimatedTime: autoTime, lat: null, lng: null });
     }
 
     const removeStop = (index) => {
@@ -149,21 +239,34 @@ const Routes = () => {
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
-            <div className="flex justify-between items-end px-2 font-outfit">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end px-2 font-outfit gap-4">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Route List</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage school bus routes and student stops.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Routes</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your bus routes and stops.</p>
                 </div>
-                <button
-                    onClick={() => { resetForm(); setIsAddOpen(true); }}
-                    className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group h-[42px] leading-none"
-                >
-                    <Plus size={14} className="group-hover:rotate-90 transition-transform" /> create new route
-                </button>
+                
+                <div className="flex items-center gap-4 w-full md:w-auto">
+                    <div className="relative flex-1 md:w-64">
+                         <input 
+                            type="text" 
+                            placeholder="SEARCH ROUTES..." 
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full bg-neutral-900 border border-slate-800 rounded-md py-3 pl-10 pr-4 text-[10px] font-black uppercase italic text-white focus:border-blue-500/50 outline-none"
+                         />
+                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+                    </div>
+                    <button
+                        onClick={() => { resetForm(); setIsAddOpen(true); }}
+                        className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-blue-600/20 hover:shadow-blue-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group h-[42px] leading-none"
+                    >
+                        <Plus size={14} className="group-hover:rotate-90 transition-transform" /> Create Route
+                    </button>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 font-outfit">
-                {routes.length > 0 ? routes.map((route, i) => (
+                {routes.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? routes.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).map((route, i) => (
                     <div key={route._id} className={`bg-neutral-900 border ${route.status === 'inactive' ? 'border-rose-900/40 opacity-70' : 'border-slate-800/60'} rounded-md p-8 shadow-2xl group hover:border-blue-600/30 transition-all relative`}>
                         <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-800/40">
                             <div className="flex items-center gap-4">
@@ -176,17 +279,17 @@ const Routes = () => {
                                         </span>
                                     </div>
                                     <p className="text-[10px] font-bold text-slate-500 uppercase italic opacity-60 tracking-widest mt-1.5">
-                                        Assigned Vehicle: {route.vehicleId?.registrationNumber || 'UNASSIGNED'}
+                                        Bus Number: {route.vehicleId?.registrationNumber || 'NOT SET'}
                                     </p>
                                 </div>
                             </div>
                             <div className="flex items-center gap-2">
                                 <button 
                                      onClick={() => openAssign(route)}
-                                     title="Manage Students"
+                                     title="Manage Enrollments"
                                      className="p-2.5 text-blue-400 hover:text-blue-300 bg-blue-600/10 border border-blue-600/20 rounded-md transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase italic leading-none px-4"
                                  >
-                                     <Users size={16} /> students
+                                     <Users size={16} /> Enrollments
                                  </button>
                                  <button 
                                      onClick={() => toggleStatus(route)}
@@ -259,8 +362,8 @@ const Routes = () => {
                                             <div>
                                                 <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none mb-1">{stop.name}</p>
                                                 <div className="flex items-center gap-2">
-                                                    <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">STOP NO. 0{stop.order}</p>
-                                                    {stop.lat && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1"><MapPin size={8} /> GEO-SYNCED</span>}
+                                                    <p className="text-[9px] font-bold text-slate-600 uppercase italic opacity-60 leading-none">STOP NO. {stop.order}</p>
+                                                    {stop.lat && <span className="text-[8px] font-black text-emerald-500 uppercase tracking-widest flex items-center gap-1"><MapPin size={8} /> LIVE LOCATION</span>}
                                                 </div>
                                             </div>
                                             <div className="text-right">
@@ -290,45 +393,55 @@ const Routes = () => {
                             {/* Left: Form */}
                             <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-auto">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
-                                    {isEditOpen ? 'Edit Route' : 'Create New Route'}
+                                    {isEditOpen ? 'Edit Route' : 'Add Route'}
                                 </h3>
 
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-3 gap-4">
-                                         <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Route Name</label>
-                                             <input 
-                                                 type="text" 
-                                                 required
-                                                 value={formData.name}
-                                                 onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
-                                             />
-                                         </div>
-                                         <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Monthly Fee (₹)</label>
-                                             <input 
-                                                 type="number" 
-                                                 required
-                                                 value={formData.fee}
-                                                 onChange={(e) => setFormData({...formData, fee: parseFloat(e.target.value)})}
-                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none h-[42px]"
-                                             />
-                                         </div>
-                                         <div className="space-y-2 col-span-1">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Status</label>
-                                             <select 
-                                                 value={formData.status}
-                                                 onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                                 className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
-                                             >
-                                                 <option value="active">Active Route</option>
-                                                 <option value="inactive">Inactive Route</option>
-                                             </select>
-                                         </div>
-                                     </div>
+                                     <div className="grid grid-cols-4 gap-4">
+                                          <div className="space-y-2 col-span-1">
+                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Route Name</label>
+                                              <input 
+                                                  type="text" 
+                                                  required
+                                                  value={formData.name}
+                                                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
+                                              />
+                                          </div>
+                                          <div className="space-y-2 col-span-1">
+                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-blue-500">Start Time</label>
+                                              <input 
+                                                  type="text" 
+                                                  required
+                                                  value={formData.startTime}
+                                                  onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
+                                              />
+                                          </div>
+                                          <div className="space-y-2 col-span-1">
+                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Fee (₹)</label>
+                                              <input 
+                                                  type="number" 
+                                                  required
+                                                  value={formData.fee}
+                                                  onChange={(e) => setFormData({...formData, fee: parseFloat(e.target.value)})}
+                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none h-[42px]"
+                                              />
+                                          </div>
+                                          <div className="space-y-2 col-span-1">
+                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Status</label>
+                                              <select 
+                                                  value={formData.status}
+                                                  onChange={(e) => setFormData({...formData, status: e.target.value})}
+                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
+                                              >
+                                                  <option value="active">Active</option>
+                                                  <option value="inactive">Inactive</option>
+                                              </select>
+                                          </div>
+                                      </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assign Vehicle</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Select Bus</label>
                                         <select
                                             required
                                             value={formData.vehicleId}
@@ -362,7 +475,7 @@ const Routes = () => {
                                             <div className="flex items-center gap-4 bg-black/40 p-3 rounded-md border border-slate-800/40 flex-wrap">
                                                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic">
                                                     <Crosshair size={12} className={newStop.lat ? 'text-emerald-500' : ''} /> 
-                                                    {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'PICK LOCATION ON MAP'}
+                                                    {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'SELECT ON MAP'}
                                                 </div>
                                                 <button 
                                                     type="button"
@@ -417,21 +530,83 @@ const Routes = () => {
 
                             {/* Right: Map for Picking */}
                             <div className="w-full xl:w-[450px] bg-neutral-950 border-l border-slate-800 flex flex-col">
-                                <div className="p-6 border-b border-slate-800/60">
-                                     <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Route Map</h4>
-                                     <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to add bus stops</p>
-                                </div>
-                                <div className="flex-1 min-h-[400px]">
-                                    <MapContainer 
-                                        center={[23.0225, 72.5714]} 
-                                        zoom={13} 
-                                        className="h-full w-full"
-                                        zoomControl={false}
-                                    >
-                                        <StopPickerMap 
-                                            stops={formData.stops} 
-                                            onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })} 
-                                        />
+                                 <div className="p-6 border-b border-slate-800/60 space-y-4">
+                                      <div>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Route Map</h4>
+                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to add bus stops</p>
+                                      </div>
+                                      <div className="flex gap-2 relative">
+                                          <div className="flex-1 relative">
+                                              <input 
+                                                type="text" 
+                                                placeholder="SEARCH LOCATION..." 
+                                                value={mapSearch}
+                                                onChange={(e) => setMapSearch(e.target.value)}
+                                                className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[9px] font-black text-white focus:border-blue-500 outline-none uppercase"
+                                              />
+                                              {suggestions.length > 0 && (
+                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 border border-slate-800 rounded-md shadow-2xl z-[1000] overflow-hidden">
+                                                      {suggestions.map((s, idx) => (
+                                                          <button
+                                                              key={idx}
+                                                              type="button"
+                                                              onClick={() => selectSuggestion(s)}
+                                                              className="w-full text-left px-3 py-2 text-[8px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-white border-b border-slate-800/40 last:border-0 truncate"
+                                                          >
+                                                              {s.display_name}
+                                                          </button>
+                                                      ))}
+                                                  </div>
+                                              )}
+                                              {isSearching && (
+                                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                      <Loader2 size={12} className="animate-spin text-blue-500" />
+                                                  </div>
+                                              )}
+                                          </div>
+                                          <button 
+                                            type="button"
+                                            onClick={() => handleMapSearch()}
+                                            className="p-2 bg-blue-600/10 border border-blue-600/20 rounded-md text-blue-400 hover:bg-blue-600 hover:text-white transition-all"
+                                          >
+                                              <Search size={14} />
+                                          </button>
+                                          <button 
+                                            type="button"
+                                            onClick={() => {
+                                                if (newStop.lat) {
+                                                    setSchoolLoc({ lat: newStop.lat, lng: newStop.lng });
+                                                    toast.success('School location set');
+                                                }
+                                            }}
+                                            title="Set as School Base"
+                                            className="p-2 bg-emerald-600/10 border border-emerald-600/20 rounded-md text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all"
+                                          >
+                                              <Home size={14} />
+                                          </button>
+                                      </div>
+                                 </div>
+                                 <div className="flex-1 min-h-[400px]">
+                                     <MapContainer 
+                                         center={[schoolLoc.lat, schoolLoc.lng]} 
+                                         zoom={13} 
+                                         className="h-full w-full"
+                                         zoomControl={false}
+                                     >
+                                         <StopPickerMap 
+                                             stops={formData.stops} 
+                                             center={newStop.lat ? [newStop.lat, newStop.lng] : null}
+                                             onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })} 
+                                         />
+                                         <Marker 
+                                            position={[schoolLoc.lat, schoolLoc.lng]} 
+                                            icon={L.divIcon({
+                                                html: `<div class="w-8 h-8 bg-emerald-500 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>`,
+                                                className: 'school-marker',
+                                                iconSize: [32, 32],
+                                                iconAnchor: [16, 16]
+                                            })}
+                                         />
                                         {newStop.lat && (
                                             <Marker 
                                                 position={[newStop.lat, newStop.lng]} 
@@ -459,12 +634,22 @@ const Routes = () => {
                             <div className="w-full md:w-1/3 p-10 border-r border-slate-800/60 overflow-y-auto">
                                 <div className="flex items-center gap-3 mb-8">
                                     <UserPlus className="text-blue-500" size={24} />
-                                    <h3 className="text-xl font-black italic uppercase text-white leading-none">Assign Student</h3>
+                                    <h3 className="text-xl font-black italic uppercase text-white leading-none">Add Student</h3>
                                 </div>
 
                                 <form onSubmit={handleAssign} className="space-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Select Student</label>
+                                        <div className="relative mb-2">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={12} />
+                                            <input 
+                                                type="text"
+                                                placeholder="SEARCH STUDENT BY NAME/ADM..."
+                                                value={studentSearch}
+                                                onChange={(e) => setStudentSearch(e.target.value)}
+                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-2.5 pl-9 pr-4 text-[9px] font-black text-slate-300 uppercase italic focus:border-blue-500 outline-none"
+                                            />
+                                        </div>
                                         <select 
                                             required
                                             value={assignData.studentId}
@@ -472,11 +657,33 @@ const Routes = () => {
                                             className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[11px] font-black uppercase text-slate-300 italic focus:border-blue-500 transition-all appearance-none"
                                         >
                                             <option value="">Select Student...</option>
-                                            {applicants.map(a => (
-                                                <option key={a._id} value={a._id}>{a.firstName} {a.lastName} ({a.standard?.name || 'N/A'})</option>
-                                            ))}
+                                            {/* Priority 1: Applicants (Those who applied via portal) */}
+                                            {applicants.length > 0 && (
+                                                <optgroup label="PENDING APPLICATIONS" className="bg-neutral-900 text-blue-400">
+                                                    {applicants.map(a => (
+                                                        <option key={a._id} value={a._id}>{a.firstName} {a.lastName} (ADM: {a.admissionNumber || 'N/A'})</option>
+                                                    ))}
+                                                </optgroup>
+                                            )}
+                                            {/* Priority 2: All Other Students */}
+                                            <optgroup label="ALL STUDENTS" className="bg-neutral-950 text-slate-500">
+                                                {students
+                                                    .filter(s => 
+                                                        !applicants.some(a => a._id === s._id) && 
+                                                        (`${s.firstName} ${s.lastName} ${s.admissionNumber}`.toLowerCase().includes(studentSearch.toLowerCase()))
+                                                    )
+                                                    .map(s => (
+                                                        <option key={s._id} value={s._id}>{s.firstName} {s.lastName} (ADM: {s.admissionNumber || 'N/A'})</option>
+                                                    ))
+                                                }
+                                            </optgroup>
                                         </select>
-                                        <p className="text-[8px] font-bold text-slate-600 uppercase italic px-1">Note: Only students with active transport applications are listed here.</p>
+                                        <div className="flex items-start gap-2 bg-blue-600/5 p-3 rounded border border-blue-600/10 mt-2">
+                                            <Info size={12} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                                            <p className="text-[8px] font-bold text-slate-500 uppercase italic leading-relaxed">
+                                                You can now enroll ANY student directly. Students who applied via the <span className="text-blue-400">Parent Portal</span> are highlighted at the top.
+                                            </p>
+                                        </div>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-4">
@@ -511,13 +718,23 @@ const Routes = () => {
                                             onChange={(e) => setAssignData({...assignData, seatNumber: e.target.value})}
                                             className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-xs font-bold text-slate-200"
                                         />
+                                        {selectedRouteForAssign?.assignedStudents?.some(s => s.seatNumber) && (
+                                            <div className="flex flex-wrap gap-1 mt-2">
+                                                <span className="text-[8px] font-black text-slate-600 uppercase italic mr-1">Occupied Seats:</span>
+                                                {selectedRouteForAssign.assignedStudents
+                                                    .filter(s => s.seatNumber)
+                                                    .map((s, idx) => (
+                                                        <span key={idx} className="text-[8px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded">#{s.seatNumber}</span>
+                                                    ))}
+                                            </div>
+                                        )}
                                     </div>
 
                                     <button 
                                         type="submit"
                                         className="w-full py-4 bg-blue-600 text-[11px] font-black uppercase italic tracking-[.2em] text-white rounded-md shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all mt-4"
                                     >
-                                        Assign to Route
+                                        Add to Route
                                     </button>
                                 </form>
                             </div>

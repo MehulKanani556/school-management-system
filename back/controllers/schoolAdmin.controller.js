@@ -258,10 +258,10 @@ exports.getDashboardStats = async (req, res) => {
 
 exports.createStaff = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, role, password, baseSalary, employeeId } = req.body;
+    const { firstName, lastName, email, phone, role, password, baseSalary, employeeId, licenseNumber, licenseExpiry, status } = req.body;
     const schoolId = getSchoolId(req);
 
-    const allowedRoles = ['Accountant', 'Librarian', 'Transport_Manager'];
+    const allowedRoles = ['Accountant', 'Librarian', 'Transport_Manager', 'Driver'];
     if (!allowedRoles.includes(role)) {
       return res.status(400).json({ message: 'Invalid role for staff registry' });
     }
@@ -285,14 +285,32 @@ exports.createStaff = async (req, res) => {
       employeeId: finalEmployeeId
     });
 
+    // If role is Driver, sync to Driver model
+    if (role === 'Driver') {
+      const Driver = require('../models/driver.model');
+      await Driver.create({
+        schoolId,
+        name: `${firstName} ${lastName}`,
+        contact: phone,
+        licenseNumber: licenseNumber || `PENDING-${finalEmployeeId}`,
+        licenseExpiry: licenseExpiry || new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+        userId: user._id,
+        status: status || 'active'
+      });
+    }
+
     res.status(201).json({ message: 'Staff member provisioned successfully', user });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateStaff = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, role, baseSalary, employeeId } = req.body;
+    const { firstName, lastName, email, phone, role, baseSalary, employeeId, licenseNumber, licenseExpiry, status } = req.body;
     const schoolId = getSchoolId(req);
+    const allowedRoles = ['Accountant', 'Librarian', 'Transport_Manager', 'Driver'];
+    if (!allowedRoles.includes(role)) {
+      return res.status(400).json({ message: 'Invalid role for staff registry' });
+    }
 
     const updateData = { 
       firstName, lastName, email, role, 
@@ -313,6 +331,21 @@ exports.updateStaff = async (req, res) => {
 
     if (!user) return res.status(404).json({ message: 'Staff member not found' });
 
+    // Sync to Driver model if role is/was Driver
+    if (role === 'Driver') {
+        const Driver = require('../models/driver.model');
+        const driverData = { name: `${firstName} ${lastName}`, contact: phone };
+        if (licenseNumber) driverData.licenseNumber = licenseNumber;
+        if (licenseExpiry) driverData.licenseExpiry = licenseExpiry;
+        if (status) driverData.status = status;
+
+        await Driver.findOneAndUpdate(
+            { userId: user._id, schoolId },
+            driverData,
+            { upsert: true }
+        );
+    }
+
     res.json({ message: 'Staff member updated successfully', user });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -322,6 +355,13 @@ exports.deleteStaff = async (req, res) => {
     const schoolId = getSchoolId(req);
     const user = await User.findOneAndDelete({ _id: req.params.id, schoolId });
     if (!user) return res.status(404).json({ message: 'Staff member not found' });
+    
+    // If they were a Driver, remove the driver record too
+    if (user.role === 'Driver') {
+        const Driver = require('../models/driver.model');
+        await Driver.findOneAndDelete({ userId: user._id, schoolId });
+    }
+
     res.json({ message: 'Staff member deleted' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

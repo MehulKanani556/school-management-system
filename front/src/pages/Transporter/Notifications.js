@@ -38,7 +38,7 @@ const Notifications = () => {
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 px-2">
                 <div>
                     <h1 className="text-4xl font-black text-transporter-primary italic uppercase tracking-tighter leading-none">Notifications</h1>
-                    <p className="text-slate-500 font-medium text-lg italic mt-2">Stay updated with the latest transport and system alerts.</p>
+                    <p className="text-slate-500 font-medium text-lg italic mt-2">See latest bus updates and messages.</p>
                 </div>
 
                 <button
@@ -70,7 +70,7 @@ const Notifications = () => {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between mb-2">
                                             <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded border ${getTypeStyles(notification.type)}`}>
-                                                {notification.type || 'Transport Alert'}
+                                                {notification.type === 'Transport' ? 'Fleet Alert' : 'Admin Alert'}
                                             </span>
                                             <div className="flex items-center gap-2 text-slate-500 text-[10px] font-bold italic">
                                                 <Clock size={12} />

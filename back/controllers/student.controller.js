@@ -21,6 +21,7 @@ const nc = require('./notification.controller');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const ResourceLocker = require('../models/resourceLocker.model');
+const Route = require('../models/route.model');
 
 
 // Helper to get student node
@@ -555,5 +556,61 @@ exports.getStudentResources = async (req, res) => {
         .populate('subject', 'name')
         .sort({ uploadDate: -1 });
         res.json(resources);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+// 17. Transport Logistics
+exports.getTransport = async (req, res) => {
+    try {
+        const studentId = req.user._id;
+        const route = await Route.findOne({
+            'assignedStudents.studentId': studentId
+        })
+        .populate({
+            path: 'vehicleId',
+            select: 'registrationNumber type capacity driverName driverContact currentLocation'
+        })
+        .populate('assignedStudents.studentId', 'firstName lastName')
+        .lean();
+
+        if (!route) {
+            return res.status(200).json(null);
+        }
+
+        const assignment = route.assignedStudents.find(as => as.studentId._id.toString() === studentId.toString());
+
+        res.status(200).json({
+            route,
+            assignment
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.applyTransport = async (req, res) => {
+    try {
+        const studentId = req.user._id;
+        const student = await Student.findById(studentId);
+        
+        if (student.transportStatus !== 'None') {
+            return res.status(400).json({ message: `Current logistical status: ${student.transportStatus}. Application cannot be duplicated.` });
+        }
+
+        student.transportStatus = 'Applied';
+        await student.save();
+
+        // Notify Transporter
+        const transporters = await User.find({ schoolId: student.schoolId, role: 'Transport_Manager' });
+        for (const t of transporters) {
+            await nc.sendNotification({
+                schoolId: student.schoolId,
+                recipient: t._id,
+                sender: student._id,
+                type: 'Transport',
+                title: 'New Student Application',
+                message: `Logistics request for ${student.firstName} ${student.lastName} has been filed.`,
+                link: '/transporter/students'
+            });
+        }
+
+        res.json({ message: 'Transport application synthesized. Awaiting administrative clearance.', student });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

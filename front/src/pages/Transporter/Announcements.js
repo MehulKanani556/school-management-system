@@ -50,8 +50,8 @@ const Announcements = () => {
         >
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 px-2">
                 <div className="space-y-3 font-outfit">
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Announcements & Notices</h1>
-                    <p className="text-slate-500 font-medium text-lg italic mt-1 leading-none">View information and updates regarding school transport.</p>
+                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Notice Board</h1>
+                    <p className="text-slate-500 font-medium text-lg italic mt-1 leading-none">Check important school news and bus alerts here.</p>
                 </div>
 
                 <div className="flex bg-neutral-900/50 p-1 rounded-md border border-slate-800/60 shadow-2xl font-outfit">
@@ -76,13 +76,13 @@ const Announcements = () => {
                     <div className="bg-neutral-900 border border-slate-800/60 p-8 rounded-md shadow-2xl space-y-8">
                         <div>
                             <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3">
-                                <span className="w-8 h-px bg-transporter-primary"></span> Search Filters
+                                <span className="w-8 h-px bg-transporter-primary"></span> Search
                             </h3>
                             <div className="relative group">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-transporter-primary transition-colors" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="SEARCH ANNOUNCEMENTS..."
+                                    placeholder="SEARCH NOTICES..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full bg-neutral-950/50 border border-slate-800 h-14 pl-12 pr-6 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white outline-none focus:border-transporter-primary placeholder:text-slate-800 italic transition-all shadow-inner"
@@ -100,7 +100,7 @@ const Announcements = () => {
                     </div>
 
                     <div className="bg-gradient-to-br from-transporter-primary/10 to-transparent border border-transporter-primary/20 p-8 rounded-md shadow-2xl">
-                        <h4 className="text-xs font-black text-transporter-primary uppercase tracking-[.2em] mb-4">Official Updates</h4>
+                        <h4 className="text-xs font-black text-transporter-primary uppercase tracking-[.2em] mb-4">Important Info</h4>
                         <p className="text-slate-400 text-xs font-medium leading-relaxed italic opacity-80 font-outfit">
                             All announcements are officially issued by the school management. Please check regularly for updates.
                         </p>
@@ -132,7 +132,7 @@ const Announcements = () => {
                                         <div className="flex-1">
                                             <div className="flex items-center gap-4 mb-4">
                                                 <span className={`px-4 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest border ${activeTab === 'announcements' ? 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20' : 'bg-transporter-primary/10 text-transporter-primary border-transporter-primary/20'}`}>
-                                                    {activeTab === 'announcements' ? 'School Announcement' : 'Transport Notice'}
+                                                    {activeTab === 'announcements' ? 'Official Circular' : 'Bus Alert'}
                                                 </span>
                                                 <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest italic bg-neutral-950 px-3 py-1.5 rounded-md border border-slate-800/60">
                                                     <Calendar size={12} /> {new Date(item.createdAt).toLocaleDateString()}

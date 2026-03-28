@@ -21,6 +21,7 @@ import ParentLayout from './pages/Parent/ParentLayout';
 import AccountantLayout from './pages/Accountant/AccountantLayout';
 import LibrarianLayout from './pages/Librarian/LibrarianLayout';
 import TransporterLayout from './pages/Transporter/TransporterLayout';
+import DriverLayout from './pages/Driver/DriverLayout';
 
 
 // School Admin Pages
@@ -90,6 +91,7 @@ import MessagesStudent from './pages/Student/Messages';
 import ExamsStudent from './pages/Student/Exams';
 import LibraryStudent from './pages/Student/Library';
 import ELearning from './pages/Student/ELearning';
+import StudentTransport from './pages/Student/StudentTransport';
 
 // Parent Pages
 import ParentDashboard from './pages/Parent/ParentDashboard';
@@ -199,6 +201,13 @@ const Maintenancetransport = React.lazy(() => import('./pages/Transporter/Mainte
 const Tracking = React.lazy(() => import('./pages/Transporter/Tracking'));
 const TransporterAnalytics = React.lazy(() => import('./pages/Transporter/Analytics'));
 
+const DriverDashboard = React.lazy(() => import('./pages/Driver/DriverDashboard'));
+const DriverActiveTrip = React.lazy(() => import('./pages/Driver/DriverActiveTrip'));
+const DriverTripLogs = React.lazy(() => import('./pages/Driver/DriverTripLogs'));
+const DriverRouteMap = React.lazy(() => import('./pages/Driver/DriverRouteMap'));
+const DriverMaintenance = React.lazy(() => import('./pages/Driver/DriverMaintenance'));
+const DriverAttendance = React.lazy(() => import('./pages/Driver/DriverAttendance'));
+
 const { store, persistor } = configureStore();
 
 // Guard: only allow if authenticated + has required role
@@ -222,6 +231,7 @@ function AppRoutes() {
     if (user?.role === 'Accountant') return <Navigate to="/accountant" />;
     if (user?.role === 'Librarian') return <Navigate to="/librarian" />;
     if (user?.role === 'Transport_Manager') return <Navigate to="/transporter" />;
+    if (user?.role === 'Driver') return <Navigate to="/driver" />;
     return <Home />;
   };
 
@@ -263,6 +273,7 @@ function AppRoutes() {
             <Route path="exams" element={<ExamsStudent />} />
             <Route path="library" element={<LibraryStudent />} />
             <Route path="e-learning" element={<ELearning />} />
+            <Route path="transport" element={<StudentTransport />} />
           </Route>
 
           {/* Teacher Panel */}
@@ -456,6 +467,23 @@ function AppRoutes() {
             <Route path="messages" element={<TransporterMessages />} />
             <Route path="profile" element={<TransporterProfile />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
+          </Route>
+
+          {/* Driver Panel */}
+          <Route path="/driver" element={
+            <RoleRoute role="Driver"><div className="theme-driver min-h-screen w-full font-outfit"><DriverLayout /></div></RoleRoute>
+          }>
+            <Route index element={<DriverDashboard />} />
+            <Route path="active-trip" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverActiveTrip /></Suspense>} />
+            <Route path="trip-history" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverTripLogs /></Suspense>} />
+            <Route path="route-map" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverRouteMap /></Suspense>} />
+            <Route path="maintenance" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverMaintenance /></Suspense>} />
+            <Route path="messages" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterMessages /></Suspense>} />
+            <Route path="announcements" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterAnnouncements /></Suspense>} />
+            <Route path="notifications" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterNotifications /></Suspense>} />
+            <Route path="profile" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterProfile /></Suspense>} />
+            <Route path="holidays" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterHolidays /></Suspense>} />
+            <Route path="attendance" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverAttendance /></Suspense>} />
           </Route>
 
         </Routes>

@@ -16,10 +16,10 @@ const TransporterDashboard = () => {
     }, [dispatch]);
 
     const stats = [
-        { label: 'Total Vehicles', value: vehicles.length, icon: Bus, color: 'text-orange-400', sub: `${vehicles.filter(v => v.status === 'active').length} Running` },
-        { label: 'Active Routes', value: routes.length, icon: Navigation, color: 'text-blue-400', sub: `${routes.reduce((acc, r) => acc + (r.stops?.length || 0), 0)} Total Stops` },
-        { label: 'Students Assigned', value: routes.reduce((acc, r) => acc + (r.assignedStudents?.length || 0), 0), icon: Users, color: 'text-emerald-400', sub: 'Student Distribution' },
-        { label: 'Trip Delay', value: analytics ? `${analytics.efficiency.delayRate}%` : '0%', icon: Activity, color: 'text-rose-400', sub: 'Delay Status' },
+        { label: 'Total Buses', value: vehicles.length, icon: Bus, color: 'text-orange-400', sub: `${vehicles.filter(v => v.status === 'active').length} Running` },
+        { label: 'Routes', value: routes.length, icon: Navigation, color: 'text-blue-400', sub: `${routes.reduce((acc, r) => acc + (r.stops?.length || 0), 0)} Stops` },
+        { label: 'Students', value: routes.reduce((acc, r) => acc + (r.assignedStudents?.length || 0), 0), icon: Users, color: 'text-emerald-400', sub: 'Using Bus' },
+        { label: 'Delay Rate', value: analytics ? `${analytics.efficiency.delayRate}%` : '0%', icon: Activity, color: 'text-rose-400', sub: 'On Time %' },
     ];
 
     return (
@@ -27,7 +27,7 @@ const TransporterDashboard = () => {
             <div className="flex justify-between items-end px-2">
                 <div>
                     <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none">Dashboard</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage vehicle fleet and routes in real-time.</p>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">View bus and route status here.</p>
                 </div>
                 {loading && <Loader2 size={16} className="text-violet-500 animate-spin mb-2" />}
             </div>
@@ -56,22 +56,22 @@ const TransporterDashboard = () => {
                             <div className="absolute inset-0 border-2 border-slate-800/40 border-dashed rounded-full animate-[spin_20s_linear_infinite]"></div>
                          </div>
                          <div className="text-center sm:text-left">
-                            <h4 className="text-xl font-black uppercase italic tracking-tighter text-slate-100 mb-2 font-outfit">Vehicle Tracking Active</h4>
+                            <h4 className="text-xl font-black uppercase italic tracking-tighter text-slate-100 mb-2 font-outfit">Live Tracking</h4>
                             <p className="text-[10px] font-bold text-slate-500 opacity-60 uppercase italic leading-loose max-w-lg mb-8">
-                                Monitoring vehicle movement and schedule adherence across all routes. Ensuring transit safety and efficiency for all students.
+                                Check where the buses are and if they are on time. Ensuring student safety and transport timing.
                             </p>
                             <div className="flex flex-wrap gap-4 justify-center sm:justify-start">
                                 <div className="px-4 py-3 bg-neutral-950 border border-slate-800 rounded flex items-center gap-3">
                                     <Wrench size={14} className="text-rose-500" />
                                     <div className="text-left font-outfit">
-                                        <p className="text-[8px] font-black text-slate-600 uppercase italic leading-none mb-1">Under Maintenance</p>
-                                        <p className="text-sm font-black text-slate-100 italic leading-none uppercase tracking-tighter">{analytics?.fleet.maintenance || 0} Units</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase italic leading-none mb-1">Repairing</p>
+                                        <p className="text-sm font-black text-slate-100 italic leading-none uppercase tracking-tighter">{analytics?.fleet.maintenance || 0} Buses</p>
                                     </div>
                                 </div>
                                 <div className="px-4 py-3 bg-neutral-950 border border-slate-800 rounded flex items-center gap-3">
                                     <Wallet size={14} className="text-emerald-500" />
                                     <div className="text-left font-outfit">
-                                        <p className="text-[8px] font-black text-slate-600 uppercase italic leading-none mb-1">Maintenance Cost</p>
+                                        <p className="text-[8px] font-black text-slate-600 uppercase italic leading-none mb-1">Service Cost</p>
                                         <p className="text-sm font-black text-slate-100 italic leading-none uppercase tracking-tighter">₹{analytics?.fleet.totalMaintenanceCost.toLocaleString() || 0}</p>
                                     </div>
                                 </div>
@@ -87,7 +87,7 @@ const TransporterDashboard = () => {
                     <div className="space-y-6">
                         <div className="text-center py-6 bg-neutral-950 border border-slate-800 rounded-md">
                             <p className="text-5xl font-black text-orange-500 italic mb-2 tracking-tighter">{analytics?.operators.avgRating || 0}</p>
-                            <p className="text-[10px] font-black text-slate-600 uppercase italic tracking-widest opacity-60">Average Driver Rating</p>
+                            <p className="text-[10px] font-black text-slate-600 uppercase italic tracking-widest opacity-60">Average Rating</p>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                              <div className="p-3 bg-neutral-950 border border-slate-800 rounded-md">
@@ -95,8 +95,8 @@ const TransporterDashboard = () => {
                                 <p className="text-sm font-black text-slate-100 italic uppercase">{analytics?.operators.total || 0}</p>
                              </div>
                              <div className="p-3 bg-neutral-950 border border-slate-800 rounded-md">
-                                <p className="text-[8px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">Performance</p>
-                                <p className="text-sm font-black text-slate-100 italic uppercase">OPTIMAL</p>
+                                <p className="text-[8px] font-black text-slate-600 uppercase italic mb-1 tracking-widest">Status</p>
+                                <p className="text-sm font-black text-slate-100 italic uppercase">GOOD</p>
                              </div>
                         </div>
                     </div>
@@ -105,10 +105,10 @@ const TransporterDashboard = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
-                    { to: '/transporter/tracking', label: 'Live Tracking', icon: Navigation, desc: 'Real-time GPS status', color: 'bg-blue-600' },
-                    { to: '/transporter/Maintenancetransport', label: 'Fuel & Maintenance', icon: Fuel, desc: 'Expenses and logs', color: 'bg-orange-600' },
-                    { to: '/transporter/announcements', label: 'Notice Board', icon: Megaphone, desc: 'School-wide directives', color: 'bg-violet-600' },
-                    { to: '/transporter/students', label: 'Student Links', icon: Users, desc: 'Assign students to routes', color: 'bg-emerald-600' }
+                    { to: '/transporter/tracking', label: 'Live Map', icon: Navigation, desc: 'Check bus location', color: 'bg-blue-600' },
+                    { to: '/transporter/Maintenancetransport', label: 'Maintenance', icon: Fuel, desc: 'Logs and costs', color: 'bg-orange-600' },
+                    { to: '/transporter/announcements', label: 'Notice Board', icon: Megaphone, desc: 'All notices', color: 'bg-violet-600' },
+                    { to: '/transporter/students', label: 'Assign Students', icon: Users, desc: 'Add students to routes', color: 'bg-emerald-600' }
                 ].map((action, idx) => (
                     <NavLink key={idx} to={action.to} className="group relative bg-neutral-900 border border-slate-800/60 p-1 rounded-md overflow-hidden hover:border-white/20 transition-all font-outfit h-32 flex">
                         <div className="bg-neutral-950/40 rounded-md p-6 flex items-center justify-between w-full h-full">

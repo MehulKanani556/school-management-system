@@ -25,6 +25,7 @@ const sac = require('../controllers/superAdmin.controller');
 const ac = require('../controllers/accountant.controller');
 const lc = require('../controllers/librarian.controller');
 const trc = require('../controllers/transport.controller');
+const drc = require('../controllers/driver.controller');
 const mc = require('../controllers/message.controller');
 const staffAttendanceRoutes = require('./staffAttendance.routes');
 
@@ -350,6 +351,8 @@ router.get('/student/quizzes', ...student, stc.getQuizzes);
 router.post('/student/quiz/submit', ...student, stc.submitQuiz);
 router.get('/student/quiz-history', ...student, stc.getQuizHistory);
 router.get('/student/resources', ...student, stc.getStudentResources);
+router.get('/student/transport', ...student, stc.getTransport);
+router.post('/student/apply-transport', ...student, stc.applyTransport);
 
 
 // ─── Parent Routes ─────────────────────────────────────────────────────────
@@ -475,12 +478,14 @@ router.get('/transport/vehicles', ...transportManager, trc.getVehicles);
 router.post('/transport/vehicles', ...transportManager, trc.addVehicle);
 router.put('/transport/vehicles/:id', ...transportManager, trc.updateVehicle);
 router.delete('/transport/vehicles/:id', ...transportManager, trc.deleteVehicle);
+router.patch('/transport/vehicles/:id/status', ...transportManager, trc.toggleVehicleStatus);
+router.patch('/transport/vehicles/:id/maintenance/:recordId/resolve', ...transportManager, trc.resolveMaintenanceRecord);
 router.get('/transport/analytics', ...transportManager, trc.getTransportAnalytics);
 router.post('/transport/vehicles/:id/maintenance', ...transportManager, trc.addMaintenanceRecord);
 router.post('/transport/vehicles/:id/fuel-logs', ...transportManager, trc.addFuelLog);
 router.post('/transport/vehicles/:id/insurance-renewals', ...transportManager, trc.addInsuranceRenewal);
 router.patch('/transport/vehicles/:id/location', ...transportManager, trc.updateVehicleLocation);
-router.get('/transport/routes', ...transportManager, trc.getRoutes);
+router.get('/transport/routes', auth, requireRole('Transport_Manager', 'School_Admin', 'Driver'), trc.getRoutes);
 router.post('/transport/routes', ...transportManager, trc.addRoute);
 router.put('/transport/routes/:id', ...transportManager, trc.updateRoute);
 router.delete('/transport/routes/:id', ...transportManager, trc.deleteRoute);
@@ -499,10 +504,30 @@ router.delete('/transport/drivers/:id', ...transportManager, trc.deleteDriver);
 // Trip Logs
 router.get('/transport/trip-logs', ...transportManager, trc.getTripLogs);
 router.post('/transport/trip-logs', ...transportManager, trc.recordTrip);
-router.put('/transport/trip-logs/:id/status', ...transportManager, trc.updateTripStatus);
-router.put('/transport/trip-logs/:id/toggle-boarding', ...transportManager, trc.toggleBoarding);
+router.put('/transport/trip-logs/:id/status', auth, requireRole('Transport_Manager', 'School_Admin', 'Driver'), trc.updateTripStatus);
+router.put('/transport/trip-logs/:id/toggle-boarding', auth, requireRole('Transport_Manager', 'School_Admin', 'Driver'), trc.toggleBoarding);
+// ─── Driver Routes ─────────────────────────────────────────────────────────────
+const driver = [auth, requireRole('Driver')];
 
-// ─── Super Admin Extended Routes ──────────────────────────────────────────────
+router.get('/driver/profile', ...driver, drc.getDriverProfile);
+router.get('/driver/routes', ...driver, drc.getMyRoutes);
+router.get('/driver/trip-logs', ...driver, drc.getMyTrips);
+router.post('/driver/start-trip', ...driver, drc.startTrip);
+router.put('/driver/trip-logs/:id/status', ...driver, trc.updateTripStatus);
+router.put('/driver/trip-logs/:id/toggle-boarding', ...driver, trc.toggleBoarding);
+router.post('/driver/report-issue', ...driver, drc.reportBusIssue);
+router.get('/driver/attendance', ...driver, drc.getAttendance);
+router.patch('/driver/location', ...driver, (req, res) => {
+    // Reuse vehicle location update but automatically find driver's vehicle
+    // Handled mostly by sockets, but this is for direct API update
+    drc.getDriverProfile(req, res).then(async (profile) => {
+        if (profile.vehicle?._id) {
+            req.params.id = profile.vehicle._id;
+            return trc.updateVehicleLocation(req, res);
+        }
+        res.status(404).json({ message: 'No vehicle assigned to driver' });
+    });
+});
 router.put('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
 router.delete('/superadmin/users/:id', ...superAdmin, sac.deletePlatformUser);
 router.get('/superadmin/messages/:recipientId', ...superAdmin, sac.getPlatformMessages);

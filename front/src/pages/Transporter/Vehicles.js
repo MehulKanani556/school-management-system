@@ -142,25 +142,25 @@ const Vehicles = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Vehicle List</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your school buses and vans here.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">All Buses</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Add and manage your school buses.</p>
                 </div>
                 <button
                     onClick={() => { resetForm(); setIsAddOpen(true); }}
                     className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group"
                 >
-                    <Plus size={14} className="group-hover:rotate-90 transition-transform" /> add vehicle
+                    <Plus size={14} className="group-hover:rotate-90 transition-transform" /> Add Bus
                 </button>
             </div>
 
             <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group">
                 <div className="px-6 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none font-outfit">Vehicle Records</h2>
+                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none font-outfit">Bus List</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Search Vehicle Number..."
+                            placeholder="Search Number..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-950 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all w-full sm:w-64 italic"
@@ -172,11 +172,11 @@ const Vehicles = () => {
                     <table className="w-full text-left">
                         <thead className="bg-neutral-950/60 text-slate-500 border-b border-slate-800/60">
                             <tr>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Vehicle Details</th>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Assigned Driver</th>
-                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Capacity & Service</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Bus Details</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Driver</th>
+                                <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Seats & Service</th>
                                 <th className="px-6 py-4 text-[9px] font-black uppercase tracking-widest italic">Status</th>
-                                <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest italic">Operations</th>
+                                <th className="px-6 py-4 text-right text-[9px] font-black uppercase tracking-widest italic">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/40">
@@ -210,7 +210,7 @@ const Vehicles = () => {
                                         <div className="flex flex-col items-start gap-1">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-xs font-black text-slate-200 tracking-tighter">{vehicle.capacity}</span>
-                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Capacity</span>
+                                                <span className="text-[8px] font-black uppercase tracking-widest text-slate-600">Seats</span>
                                             </div>
                                             <div className="text-[9px] font-bold text-slate-500 italic opacity-60">
                                                 Last Service: {vehicle.lastServiceDate ? new Date(vehicle.lastServiceDate).toLocaleDateString() : 'N/A'}
@@ -227,7 +227,7 @@ const Vehicles = () => {
                                             <button
                                                 onClick={() => openMaintenance(vehicle)}
                                                 className="p-2.5 text-slate-500 hover:text-emerald-500 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg hover:shadow-emerald-600/10"
-                                                title="Log Maintenance"
+                                                title="Service Record"
                                             >
                                                 <Wrench size={16} />
                                             </button>
@@ -269,7 +269,7 @@ const Vehicles = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Vehicle Registration No.</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Bus Number</label>
                                         <input type="text" required placeholder="e.g. GJ-01-XX-1234" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
@@ -282,7 +282,7 @@ const Vehicles = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Student Capacity</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Total Seats</label>
                                         <input type="number" required value={formData.capacity} onChange={(e) => setFormData({ ...formData, capacity: parseInt(e.target.value) })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
@@ -325,7 +325,7 @@ const Vehicles = () => {
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Cancel</button>
                                     <button type="submit" disabled={loading} className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-xl shadow-transporter-primary/20 leading-none disabled:opacity-50">
-                                        {loading ? 'Saving...' : isEditOpen ? 'Update Vehicle' : 'Add Vehicle'}
+                                        {loading ? 'Saving...' : isEditOpen ? 'Update Bus' : 'Add Bus'}
                                     </button>
                                 </div>
                             </form>
@@ -369,7 +369,7 @@ const Vehicles = () => {
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">Logic Logs (Notes)</label>
                                                 <textarea rows="3" value={maintenanceFormData.notes} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, notes: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
-                                            <button type="submit" disabled={loading} className="w-full py-3 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-lg shadow-transporter-primary/10">Commit Log</button>
+                                            <button type="submit" disabled={loading} className="w-full py-3 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-lg shadow-transporter-primary/10">Save Service</button>
                                         </div>
                                     </form>
                     

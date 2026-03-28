@@ -62,18 +62,22 @@ const RecenterMap = ({ coords }) => {
     return null;
 };
 
-const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
+const LiveMap = ({ vehicleLocation, allLocations = {}, stops = [], autoCenter = true, mapTheme = 'dark' }) => {
     const defaultCenter = [23.0225, 72.5714]; // Default point
 
-    // Ensure center has valid numbers
     const center = (vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number')
         ? [vehicleLocation.lat, vehicleLocation.lng]
         : defaultCenter;
 
-    // Filter valid stops
     const validStops = stops.filter(stop =>
         stop && typeof stop.lat === 'number' && typeof stop.lng === 'number'
     );
+
+    const tileUrl = mapTheme === 'satellite' 
+        ? "https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}" 
+        : "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+
+    const subdomains = mapTheme === 'satellite' ? ['mt0','mt1','mt2','mt3'] : ['a','b','c','d'];
 
     return (
         <div className="h-full w-full rounded-md overflow-hidden border border-slate-800 relative shadow-2xl">
@@ -84,8 +88,10 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                 zoomControl={false}
             >
                 <TileLayer
-                    url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    key={mapTheme}
+                    url={mapTheme === 'satellite' ? "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" : tileUrl}
+                    subdomains={subdomains}
+                    attribution={mapTheme === 'satellite' ? '&copy; Esri' : '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'}
                 />
 
                 {autoCenter && vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number' && (
@@ -116,24 +122,32 @@ const LiveMap = ({ vehicleLocation, stops = [], autoCenter = true }) => {
                     />
                 )}
 
-                {/* Vehicle */}
-                {vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number' && (
-                    <Marker
-                        position={[vehicleLocation.lat, vehicleLocation.lng]}
-                        icon={createBusIcon(vehicleLocation.heading || 0)}
-                    >
-                        <Popup className="custom-popup">
-                            <div className="font-outfit p-1">
-                                <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Live Location</p>
-                                <p className="text-sm font-bold text-slate-900 leading-none">{vehicleLocation.vehicleNumber || 'School Bus'}</p>
-                                <div className="mt-2 flex items-center gap-2 pt-2 border-t border-slate-100">
-                                    <Navigation size={12} className="text-emerald-500" />
-                                    <span className="text-[9px] font-black text-slate-500 uppercase leading-none">Connection Active</span>
+                {/* Multiple Vehicles */}
+                {Object.entries(allLocations).map(([vid, loc]) => {
+                    if (!loc || typeof loc.lat !== 'number' || typeof loc.lng !== 'number') return null;
+                    const isSelected = vehicleLocation && vehicleLocation.vehicleId === vid;
+                    
+                    return (
+                        <Marker
+                            key={vid}
+                            position={[loc.lat, loc.lng]}
+                            icon={createBusIcon(loc.heading || 0)}
+                            zIndexOffset={isSelected ? 1000 : 0}
+                        >
+                            <Popup className="custom-popup">
+                                <div className="font-outfit p-1">
+                                    <p className="text-[10px] font-black uppercase text-orange-500 tracking-widest leading-none mb-1">Live Location</p>
+                                    <p className="text-sm font-bold text-slate-900 leading-none">{loc.registrationNumber || 'School Bus'}</p>
+                                    <div className="mt-2 flex items-center gap-2 pt-2 border-t border-slate-100">
+                                        <Navigation size={12} className="text-emerald-500" />
+                                        <span className="text-[9px] font-black text-slate-500 uppercase leading-none">Connection Active</span>
+                                    </div>
+                                    <p className="text-[8px] font-bold text-slate-400 mt-1 uppercase italic">SPEED: {loc.speed?.toFixed(1) || 0} KM/H</p>
                                 </div>
-                            </div>
-                        </Popup>
-                    </Marker>
-                )}
+                            </Popup>
+                        </Marker>
+                    );
+                })}
             </MapContainer>
 
             {/* Map Overlay Info */}

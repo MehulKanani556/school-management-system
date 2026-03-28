@@ -197,7 +197,7 @@ exports.getAllUsers = async (req, res) => {
         if (req.user && req.user.role !== 'Super_Admin') {
             query.schoolId = req.user.schoolId;
         }
-        const users = await User.find(query);
+        const users = await User.find(query).populate('driverInfo');
         res.status(200).json({ users, message: "Users fetched successfully" });
     } catch (error) {
         res.status(500).json({ message: error.message });

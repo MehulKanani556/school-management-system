@@ -55,6 +55,10 @@ body {
   --color-primary-rgb: 251 146 60;
   --color-secondary-rgb: 249 115 22;
 }
+.theme-driver {
+  --color-primary-rgb: 16 185 129;
+  --color-secondary-rgb: 5 150 105;
+}
 
 /* 1. Global Font Force (Inter) - No Italic, Global Capitalize */
 * {

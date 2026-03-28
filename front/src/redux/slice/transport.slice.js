@@ -181,6 +181,30 @@ export const updateVehicleLocationSlice = createAsyncThunk(
     }
 );
 
+export const toggleVehicleStatusSlice = createAsyncThunk(
+    'transport/toggleVehicleStatus',
+    async ({ id, status }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.patch(`/transport/vehicles/${id}/status`, { status });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const resolveMaintenanceSlice = createAsyncThunk(
+    'transport/resolveMaintenance',
+    async ({ id, recordId, cost, notes }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.patch(`/transport/vehicles/${id}/maintenance/${recordId}/resolve`, { cost, notes });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 // Drivers
 export const fetchDriversSlice = createAsyncThunk(
     'transport/fetchDrivers',
@@ -315,6 +339,90 @@ export const bulkAssignStudentSlice = createAsyncThunk(
     }
 );
 
+export const fetchDriverProfileSlice = createAsyncThunk(
+    'transport/fetchDriverProfile',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/driver/profile');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchDriverRoutesSlice = createAsyncThunk(
+    'transport/fetchDriverRoutes',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/driver/routes');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchDriverTripLogsSlice = createAsyncThunk(
+    'transport/fetchDriverTripLogs',
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/driver/trip-logs', { params });
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const startDriverTripSlice = createAsyncThunk(
+    'transport/startDriverTrip',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/driver/start-trip', data);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const reportDriverIssueSlice = createAsyncThunk(
+    'transport/reportDriverIssue',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/driver/report-issue', data);
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchDriverAttendanceSlice = createAsyncThunk(
+    'transport/fetchDriverAttendance',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/driver/attendance');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const updateDriverLocationAPI = createAsyncThunk(
+    'transport/updateDriverLocation',
+    async ({ lat, lng }, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.patch('/driver/location', { lat, lng });
+            return response.data.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 const transportSlice = createSlice({
     name: 'transport',
     initialState: {
@@ -324,6 +432,9 @@ const transportSlice = createSlice({
         tripLogs: [],
         analytics: null,
         applicants: [],
+        driverProfile: null,
+        driverVehicle: null,
+        driverAttendance: [],
         loading: false,
         error: null,
         message: null
@@ -348,6 +459,16 @@ const transportSlice = createSlice({
                 const index = state.vehicles.findIndex(v => v._id === action.payload._id);
                 if (index !== -1) state.vehicles[index] = action.payload;
                 state.message = "Vehicle identity synchronized";
+            })
+            .addCase(toggleVehicleStatusSlice.fulfilled, (state, action) => {
+                const index = state.vehicles.findIndex(v => v._id === action.payload._id);
+                if (index !== -1) state.vehicles[index] = action.payload;
+                state.message = `Unit status transition: ${action.payload.status}`;
+            })
+            .addCase(resolveMaintenanceSlice.fulfilled, (state, action) => {
+                const index = state.vehicles.findIndex(v => v._id === action.payload._id);
+                if (index !== -1) state.vehicles[index] = action.payload;
+                state.message = "Protocol resolved successfully";
             })
             .addCase(addMaintenanceSlice.fulfilled, (state, action) => {
                 const index = state.vehicles.findIndex(v => v._id === action.payload._id);
@@ -400,6 +521,9 @@ const transportSlice = createSlice({
             .addCase(assignStudentSlice.fulfilled, (state, action) => {
                 const index = state.routes.findIndex(r => r._id === action.payload._id);
                 if (index !== -1) state.routes[index] = action.payload;
+                // Remove assigned student from applicants list if they were there
+                const assignedStudentId = action.meta.arg.data.studentId;
+                state.applicants = state.applicants.filter(a => a._id !== assignedStudentId);
                 state.message = 'Entity displacement assigned';
             })
             .addCase(unassignStudentSlice.fulfilled, (state, action) => {
@@ -410,6 +534,9 @@ const transportSlice = createSlice({
             .addCase(bulkAssignStudentSlice.fulfilled, (state, action) => {
                 const index = state.routes.findIndex(r => r._id === action.payload._id);
                 if (index !== -1) state.routes[index] = action.payload;
+                // Remove bulk assigned students from applicants list
+                const assignedIds = action.meta.arg.studentIds || [];
+                state.applicants = state.applicants.filter(a => !assignedIds.includes(a._id));
                 state.message = 'Bulk allocation synthesized';
             })
             // Drivers
@@ -457,6 +584,28 @@ const transportSlice = createSlice({
             .addCase(fetchTransportAnalyticsSlice.fulfilled, (state, action) => {
                 state.analytics = action.payload;
                 state.loading = false;
+            })
+            // Driver Specific
+            .addCase(fetchDriverProfileSlice.fulfilled, (state, action) => {
+                state.driverProfile = action.payload.driver;
+                state.driverVehicle = action.payload.vehicle;
+            })
+            .addCase(fetchDriverRoutesSlice.fulfilled, (state, action) => {
+                state.routes = action.payload;
+            })
+            .addCase(fetchDriverTripLogsSlice.fulfilled, (state, action) => {
+                state.tripLogs = action.payload;
+            })
+            .addCase(startDriverTripSlice.fulfilled, (state, action) => {
+                state.tripLogs.unshift(action.payload);
+                state.message = 'Duty shift commenced (ड्यूटी शुरू हुई)';
+            })
+            .addCase(reportDriverIssueSlice.fulfilled, (state, action) => {
+                state.driverVehicle = action.payload;
+                state.message = 'Issue logged for vehicle maintenance (शिकायत दर्ज की गई)';
+            })
+            .addCase(fetchDriverAttendanceSlice.fulfilled, (state, action) => {
+                state.driverAttendance = action.payload;
             })
             .addMatcher(
                 (action) => action.type.endsWith('/pending'),

@@ -7,7 +7,7 @@ import {
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
   LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
   ClipboardList, Wrench, Megaphone,
-  Settings, UserPlus, Activity
+  Settings, UserPlus, Activity, Play, Square, Locate
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -15,59 +15,109 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 
-const TransporterLayout = () => {
+const DriverLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useSelector((state) => state.auth);
+  const { socket } = useSocket();
 
   const navItems = [
-    { to: '/transporter', icon: LayoutDashboard, label: 'Dashboard', end: true },
+    { to: '/driver', icon: LayoutDashboard, label: 'Main Page', end: true },
     {
-        label: 'Vehicles',
+        label: 'My Bus Trips',
+        icon: Navigation,
+        children: [
+            { to: '/driver/active-trip', icon: Play, label: 'Start Duty / Trip', desc: 'Click to start your bus trip' },
+            { to: '/driver/trip-history', icon: Activity, label: 'Past Trip History', desc: 'Your finished trips' },
+            { to: '/driver/route-map', icon: MapPin, label: 'My Route Map', desc: 'See stops and roads' },
+        ]
+    },
+    {
+        label: 'Bus & My Health',
         icon: Truck,
         children: [
-           { to: '/transporter/vehicles', icon: Truck, label: 'All Buses' },
-            { to: '/transporter/logs', icon: Activity, label: 'Daily Logs' },
-            { to: '/transporter/tracking', icon: MapPin, label: 'Track Bus' },
-            { to: '/transporter/Maintenancetransport', icon: Settings, label: 'Maintenance' },
-            { to: '/transporter/analytics', icon: Activity, label: 'Reports' },
+            { to: '/driver/maintenance', icon: Wrench, label: 'Complain/Fix Bus', desc: 'Report any bus problem' },
+            { to: '/driver/attendance', icon: ClipboardList, label: 'My Day Attendance', desc: 'Daily duty check-in' },
         ]
     },
     {
-        label: 'Routes & Drivers',
-        icon: Map,
-        children: [
-            { to: '/transporter/routes', icon: Map, label: 'Route List' },
-            { to: '/transporter/drivers', icon: Users, label: 'Driver List' },
-            { to: '/transporter/students', icon: UserPlus, label: 'Student List' },
-        ]
-    },
-    {
-        label: 'Messages',
+        label: 'Messages/Notices',
         icon: MessageSquare,
         children: [
-            { to: '/transporter/messages', icon: MessageSquare, label: 'Chat' },
-            { to: '/transporter/announcements', icon: Bell, label: 'Notices' },
-            { to: '/transporter/notifications', icon: Bell, label: 'Alerts' },
+            { to: '/driver/messages', icon: MessageSquare, label: 'Talk to Office', desc: 'Chat with manager' },
+            { to: '/driver/announcements', icon: Bell, label: 'New Notices', desc: 'Important school news' },
         ]
     },
     {
-        label: 'Account Settings',
+        label: 'My Profile',
         icon: User,
         children: [
-            { to: '/transporter/profile', icon: User, label: 'My Profile' },
-            { to: '/transporter/holidays', icon: Calendar, label: 'Holiday List' },
+            { to: '/driver/profile', icon: User, label: 'My Details', desc: 'Your personal info' },
+            { to: '/driver/holidays', icon: Calendar, label: 'Holiday List', desc: 'School off-days' },
         ]
     }
   ];
 
   const { unreadCount: notifCount } = useSelector((state) => state.notifications);
-  const { socket } = useSocket();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [isTracking, setIsTracking] = useState(false);
+  const [watchId, setWatchId] = useState(null);
+
+  // Derived: check if there is an active trip
+  const activeTrip = useSelector(state => state.transport.tripLogs?.find(log => log.status === 'In-Progress'));
+
+  // Auto-start tracking when trip starts, and stop when trip ends
+  useEffect(() => {
+    if (activeTrip) {
+        setIsTracking(true);
+    } else {
+        setIsTracking(false);
+    }
+  }, [activeTrip]);
+
+  // GPS Tracking Logic
+  useEffect(() => {
+    if (isTracking && socket && user) {
+        if ("geolocation" in navigator) {
+            const id = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude, speed, heading } = position.coords;
+                    socket.emit('UPDATE_DRIVER_LOCATION', {
+                        driverId: user._id,
+                        schoolId: user.schoolId,
+                        location: { lat: latitude, lng: longitude },
+                        speed,
+                        heading,
+                        timestamp: new Date()
+                    });
+                },
+                (error) => {
+                    console.error("GPS Error:", error);
+                    toast.error("Unable to get GPS location. Please check browser permissions.");
+                    setIsTracking(false);
+                },
+                { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+            );
+            setWatchId(id);
+        } else {
+            toast.error("GPS is not supported by this phone/browser.");
+            setIsTracking(false);
+        }
+    } else {
+        if (watchId !== null) {
+            navigator.geolocation.clearWatch(watchId);
+            setWatchId(null);
+        }
+    }
+
+    return () => {
+        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+    };
+  }, [isTracking, socket, user]);
 
   useEffect(() => {
     dispatch(fetchNotifications());
@@ -77,13 +127,13 @@ const TransporterLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
-      toast.success(`Notification: ${notif.title}`, {
-        icon: '🚛',
+      toast.success(`Priority: ${notif.title}`, {
+        icon: '🚨',
         style: {
           borderRadius: '1.5rem',
           background: '#0f172a',
           color: '#fff',
-          border: '1px solid #f97316',
+          border: '1px solid #10b981',
           fontWeight: 900,
           textTransform: 'uppercase',
           letterSpacing: '0.1em',
@@ -107,7 +157,7 @@ const TransporterLayout = () => {
   };
 
   const handleSettings = () => {
-    navigate(`/transporter/profile`);
+    navigate(`/driver/profile`);
     setShowProfileMenu(false);
   };
 
@@ -119,17 +169,27 @@ const TransporterLayout = () => {
 
   return (
     <div className="h-screen bg-brand-background text-slate-100 flex font-outfit antialiased overflow-hidden">
-      {/* Sidebar - Terminal Aesthetic with Transporter Theme (Orange) */}
+      {/* Sidebar - Emerald Theme for Driver */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full font-outfit`}>
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-transporter-primary to-transporter-primary/80 flex items-center justify-center font-black text-xl italic shadow-lg shadow-transporter-primary/20 text-black">ST</div>
-            <span className="text-xl font-black tracking-tight uppercase text-white">School <span className="text-transporter-primary">Transport</span></span>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center font-black text-xl italic shadow-lg shadow-emerald-500/20 text-black">DR</div>
+            <span className="text-xl font-black tracking-tight uppercase text-white">Driver <span className="text-emerald-500">Panel</span></span>
           </div>
         </div>
 
+        <div className="px-6 mb-4">
+            <button 
+                onClick={() => setIsTracking(!isTracking)}
+                className={`w-full py-3 rounded-md flex items-center justify-center gap-3 transition-all font-black text-[10px] uppercase tracking-widest ${isTracking ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 shadow-lg shadow-emerald-500/10' : 'bg-brand-background border border-brand-border text-slate-500 hover:text-emerald-500 hover:border-emerald-500/40'}`}
+            >
+                {isTracking ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> : <Locate size={14} />}
+                {isTracking ? 'GPS Running (GPS चालू है)' : 'Start GPS (GPS चालू करें)'}
+            </button>
+        </div>
+
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Manage Transport</p>
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Duty Menu (मेरा काम)</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -141,9 +201,9 @@ const TransporterLayout = () => {
                   key={item.to}
                   to={item.to}
                   onClick={() => setSidebarOpen(false)}
-                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
+                  className={`flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isActive(item.to) ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-600/20' : 'text-slate-400 hover:bg-white/5 hover:text-white'}`}
                 >
-                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-transporter-primary transition-colors'} />
+                  <Icon size={18} className={isActive(item.to) ? 'text-white' : 'group-hover:text-emerald-500 transition-colors'} />
                   <span className="text-[11px] font-black uppercase tracking-[0.15em]">{item.label}</span>
                   {isActive(item.to) && <ChevronRight size={14} className="ml-auto" />}
                 </Link>
@@ -156,9 +216,9 @@ const TransporterLayout = () => {
                   onClick={() => toggleSubmenu(item.label)}
                   className={`w-full flex items-center gap-4 px-6 py-4 rounded-md transition-all duration-300 group ${isExpanded ? 'bg-white/5 text-slate-100' : 'text-slate-400 hover:bg-white/5 hover:text-slate-100'}`}
                 >
-                  <Icon size={18} className={isExpanded ? 'text-transporter-primary' : 'group-hover:text-transporter-primary transition-colors'} />
+                  <Icon size={18} className={isExpanded ? 'text-emerald-500' : 'group-hover:text-emerald-500 transition-colors'} />
                   <span className="text-[11px] font-black uppercase tracking-[0.15em] flex-1 text-left">{item.label}</span>
-                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-transporter-primary' : 'opacity-40'}`} />
+                  <ChevronDown size={14} className={`transition-transform duration-300 ${isExpanded ? 'rotate-180 text-emerald-500' : 'opacity-40'}`} />
                 </button>
 
                 <AnimatePresence>
@@ -178,9 +238,9 @@ const TransporterLayout = () => {
                               key={child.to}
                               to={child.to}
                               onClick={() => setSidebarOpen(false)}
-                              className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-transporter-primary bg-transporter-primary/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
+                              className={`flex items-center gap-3 px-6 py-3 rounded-md transition-all duration-300 group ${childActive ? 'text-emerald-500 bg-emerald-500/10' : 'text-slate-500 hover:text-slate-300 hover:bg-white/5'}`}
                             >
-                              <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-transporter-primary' : 'opacity-60 group-hover:opacity-100'}`} />
+                              <ChildIcon size={16} className={`transition-opacity ${childActive ? 'opacity-100 text-emerald-500' : 'opacity-60 group-hover:opacity-100'}`} />
                               <span className="font-black text-[10px] uppercase tracking-[0.15em]">{child.label}</span>
                             </Link>
                           );
@@ -195,36 +255,36 @@ const TransporterLayout = () => {
         </nav>
 
         <div className="p-6 flex-shrink-0">
-          <button onClick={handleLogout} className="w-full h-[42px] flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-transporter-primary/10 hover:text-transporter-primary transition-all group font-outfit border border-transparent hover:border-transporter-primary/20 uppercase tracking-widest text-[11px] font-black">
+          <button onClick={handleLogout} className="w-full h-[42px] flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-emerald-500/10 hover:text-emerald-500 transition-all group font-outfit border border-transparent hover:border-emerald-500/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Sign Out</span>
+            <span className="italic">Sign Out (बाहर निकलें)</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden font-outfit">
-        {/* Header - Stays at top */}
+        {/* Header */}
         <header className="h-20 flex-shrink-0 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 z-10 w-full transition-all font-outfit">
           <div className="flex items-center gap-4 text-slate-500">
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
               <Menu size={20} />
             </button>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Transport Portal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner text-emerald-500">Bus Driver Portal (ड्राइवर पैनल)</span>
             <ChevronRight size={14} className="hidden sm:block opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-transporter-primary italic">Admin</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-500 italic">Duty Status: Active</span>
           </div>
 
           <div className="flex items-center gap-6">
             <div className="relative">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-transporter-primary text-white border-transporter-primary shadow-xl shadow-transporter-primary/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-transporter-primary hover:border-transporter-primary/40 shadow-inner'}`}
+                className={`p-2.5 rounded-md border transition-all relative ${isNotifOpen ? 'bg-emerald-600 text-white border-emerald-600 shadow-xl shadow-emerald-600/20 scale-110' : 'bg-brand-background border-brand-border text-slate-400 hover:text-emerald-500 hover:border-emerald-500/40 shadow-inner'}`}
               >
                 <Bell size={18} />
-                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-transporter-primary rounded-md border-2 border-brand-surface animate-pulse"></span>
+                <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-emerald-500 rounded-md border-2 border-brand-surface animate-pulse"></span>
               </button>
-              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} role="Transporter" />
+              <NotificationPanel isOpen={isNotifOpen} onClose={() => setIsNotifOpen(false)} role="Driver" />
             </div>
 
             <div className="h-10 w-px bg-brand-border/60"></div>
@@ -236,9 +296,9 @@ const TransporterLayout = () => {
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[9px] font-black text-transporter-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Transport Head</p>
+                  <p className="text-[9px] font-black text-emerald-500 uppercase tracking-[0.4em] opacity-80 leading-none italic">Verified Driver (स्कूल ड्राइवर)</p>
                 </div>
-                <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-transporter-primary transition-all p-0.5">
+                <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-emerald-500 transition-all p-0.5">
                   <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
                     {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
                   </div>
@@ -269,8 +329,8 @@ const TransporterLayout = () => {
                         <button
                           onClick={handleSettings}
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic font-outfit">
-                          <User size={18} className="text-transporter-primary" />
-                          View Profile
+                          <User size={18} className="text-emerald-500" />
+                          My Profile
                         </button>
 
                         <div className="p-1 mb-1">
@@ -305,4 +365,4 @@ const TransporterLayout = () => {
   );
 };
 
-export default TransporterLayout;
+export default DriverLayout;

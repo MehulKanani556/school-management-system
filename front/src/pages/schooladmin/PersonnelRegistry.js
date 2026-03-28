@@ -63,7 +63,7 @@ const PersonnelRegistry = () => {
         }
     }, [userMsg, userErr, driverMsg, driverErr, dispatch]);
 
-    const managementRoles = ['Accountant', 'Librarian', 'Transport_Manager'];
+    const managementRoles = ['Accountant', 'Librarian', 'Transport_Manager', 'Driver'];
     
     const filteredStaff = users.filter(user => {
         const matchesRole = selectedRole === 'All' ? managementRoles.includes(user.role) : user.role === selectedRole;
@@ -239,6 +239,7 @@ const PersonnelRegistry = () => {
                         <option value="Accountant">Fiscal Sector</option>
                         <option value="Librarian">Archive Sector</option>
                         <option value="Transport_Manager">Logistics Sector</option>
+                        <option value="Driver">Operations Sector</option>
                     </select>
                 )}
             </div>
@@ -282,8 +283,8 @@ const PersonnelRegistry = () => {
             {/* Add/Edit Modal */}
             <AnimatePresence>
                 {(isAddOpen || isEditOpen) && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="absolute inset-0 bg-neutral-950/40 backdrop-blur-xl"></motion.div>
+                    <div className="fixed -top-12 left-0 right-0 bottom-0 z-[9999] flex items-center justify-center p-6">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="absolute inset-0 bg-neutral-950/90 backdrop-blur-xl"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 30 }} className="bg-brand-surface w-full max-w-2xl rounded-2xl border border-brand-border shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={isEditOpen ? handleUpdate : handleProvision} className="p-12 space-y-8">
                                 <div className="flex justify-between items-center pb-6 border-b border-brand-border/40">
@@ -335,6 +336,7 @@ const PersonnelRegistry = () => {
                                                     <option value="Accountant">Accountant</option>
                                                     <option value="Librarian">Librarian</option>
                                                     <option value="Transport_Manager">Transport Manager</option>
+                                                    <option value="Driver">Driver</option>
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
@@ -356,6 +358,29 @@ const PersonnelRegistry = () => {
                                                 className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                             />
                                         </div>
+
+                                        {formData.role === 'Driver' && (
+                                            <div className="space-y-6 pt-6 border-t border-brand-border/20 animate-in fade-in slide-in-from-top-4 duration-300">
+                                                <div className="grid grid-cols-2 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1">License ID</label>
+                                                        <input
+                                                            type="text" required value={formData.licenseNumber}
+                                                            onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                                                            className="w-full bg-slate-950 border border-emerald-500/20 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1">License Expiry</label>
+                                                        <input
+                                                            type="date" required value={formData.licenseExpiry}
+                                                            onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
+                                                            className="w-full bg-slate-950 border border-emerald-500/20 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
                                         {!isEditOpen && (
                                             <div className="space-y-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Initial Passkey</label>

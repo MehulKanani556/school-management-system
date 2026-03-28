@@ -16,7 +16,9 @@ const Drivers = () => {
         name: '',
         contact: '',
         licenseNumber: '',
-        licenseExpiry: '',
+        email: '',
+        password: '',
+        baseSalary: '',
         status: 'active',
         emergencyContact: '',
         performanceRating: 5
@@ -45,7 +47,9 @@ const Drivers = () => {
             name: '',
             contact: '',
             licenseNumber: '',
-            licenseExpiry: '',
+            email: '',
+            password: '',
+            baseSalary: '',
             status: 'active',
             emergencyContact: '',
             performanceRating: 5
@@ -69,6 +73,8 @@ const Drivers = () => {
             contact: driver.contact,
             licenseNumber: driver.licenseNumber,
             licenseExpiry: driver.licenseExpiry ? new Date(driver.licenseExpiry).toISOString().split('T')[0] : '',
+            email: driver.userId?.email || '',
+            baseSalary: driver.userId?.baseSalary || '',
             status: driver.status || 'active',
             emergencyContact: driver.emergencyContact || '',
             performanceRating: driver.performanceRating || 5
@@ -99,8 +105,8 @@ const Drivers = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Drivers & Helpers</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage transport staff and license validity.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Drivers</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your drivers and helpers.</p>
                 </div>
 
                 <div className="flex items-center gap-4 w-full sm:w-auto">
@@ -108,7 +114,7 @@ const Drivers = () => {
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Search Staff Name..."
+                            placeholder="Search Name..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all w-full italic"
@@ -118,7 +124,7 @@ const Drivers = () => {
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
                         className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-violet-600/20 hover:shadow-violet-600/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none whitespace-nowrap"
                     >
-                        <Plus size={14} /> add driver/helper
+                        <Plus size={14} /> Add Driver
                     </button>
                 </div>
             </div>
@@ -148,7 +154,7 @@ const Drivers = () => {
 
                             <div className="space-y-3 pt-6 border-t border-slate-800/40">
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">License No.</span>
+                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">License Number</span>
                                     <div className="flex flex-col items-end">
                                         <span className="text-[11px] font-black text-slate-300 uppercase italic leading-none">{driver.licenseNumber}</span>
                                         {isExpiringSoon(driver.licenseExpiry) && (
@@ -157,7 +163,7 @@ const Drivers = () => {
                                     </div>
                                 </div>
                                 <div className="flex items-center justify-between">
-                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">Mobile Number</span>
+                                    <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">Phone</span>
                                     <div className="flex items-center gap-1.5 text-[11px] font-black text-violet-400 italic">
                                         <Phone size={10} />
                                         <span>{driver.contact}</span>
@@ -170,21 +176,25 @@ const Drivers = () => {
                             </div>
                         </div>
 
-                        <div className="mt-8 flex items-center justify-between bg-neutral-950/40 p-3 rounded border border-slate-800/60">
-                            <div className="flex items-center gap-1">
-                                {[...Array(5)].map((_, i) => (
-                                    <Star key={i} size={10} className={i < (driver.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
-                                ))}
+                            <div className="mt-4 flex items-center justify-between border-t border-slate-800/40 pt-4">
+                                <span className="text-[10px] font-black uppercase text-slate-500 italic tracking-[0.1em]">Monthly Yield</span>
+                                <span className="text-[11px] font-black text-emerald-400 uppercase italic leading-none">₹{driver.userId?.baseSalary?.toLocaleString() || '0'}</span>
                             </div>
-                            <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Performance Rating</span>
-                        </div>
+                            <div className="mt-4 flex items-center justify-between bg-neutral-950/40 p-3 rounded border border-slate-800/60">
+                                <div className="flex items-center gap-1">
+                                    {[...Array(5)].map((_, i) => (
+                                        <Star key={i} size={10} className={i < (driver.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
+                                    ))}
+                                </div>
+                                <span className="text-[9px] font-black text-slate-600 uppercase italic tracking-widest">Service Score</span>
+                            </div>
                     </div>
                 ))}
             </div>
 
             <AnimatePresence>
                 {(isAddOpen || isEditOpen) && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
+                    <div className="fixed inset-0 -top-8 z-50 flex items-center justify-center p-6 sm:p-0">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-2xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden">
                             <form onSubmit={handleSubmit} className="p-10">
@@ -194,7 +204,7 @@ const Drivers = () => {
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Staff Full Name</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Full Name</label>
                                         <input
                                             type="text"
                                             required
@@ -204,7 +214,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Mobile Number</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Phone Number</label>
                                         <input
                                             type="text"
                                             required
@@ -214,7 +224,7 @@ const Drivers = () => {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Driving License (DL) No.</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">License Number</label>
                                         <input
                                             type="text"
                                             required
@@ -230,6 +240,39 @@ const Drivers = () => {
                                             required
                                             value={formData.licenseExpiry}
                                             onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Account Email</label>
+                                        <input
+                                            type="email"
+                                            required={!isEditOpen}
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
+                                            placeholder="driver@school.com"
+                                        />
+                                    </div>
+                                    {!isEditOpen && (
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Initial Password</label>
+                                            <input
+                                                type="password"
+                                                required
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
+                                            />
+                                        </div>
+                                    )}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Base Salary (₹)</label>
+                                        <input
+                                            type="number"
+                                            required
+                                            value={formData.baseSalary}
+                                            onChange={(e) => setFormData({ ...formData, baseSalary: e.target.value })}
                                             className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-violet-600/50 transition-all italic leading-none"
                                         />
                                     </div>
@@ -253,7 +296,7 @@ const Drivers = () => {
                                         </select>
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Work Status</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Duty Status</label>
                                         <select
                                             value={formData.status}
                                             onChange={(e) => setFormData({ ...formData, status: e.target.value })}

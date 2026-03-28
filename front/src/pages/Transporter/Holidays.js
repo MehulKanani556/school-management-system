@@ -45,7 +45,7 @@ const Holidays = () => {
                             <div className="flex items-center gap-2">
                                 <div className="px-3 py-1 rounded-md bg-neutral-900/80 border border-white/10 flex items-center gap-1.5 backdrop-blur-md shadow-md">
                                     <div className="w-1.5 h-1.5 rounded-md bg-transporter-primary animate-ping"></div>
-                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 font-outfit">Holiday Schedule</span>
+                                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 font-outfit">Holiday List</span>
                                 </div>
                             </div>
 
@@ -55,7 +55,7 @@ const Holidays = () => {
                                     <span className="text-transporter-primary">Holidays</span>
                                 </h1>
                                 <p className="text-slate-500 font-medium text-xs md:text-sm max-w-md leading-normal italic tracking-wide opacity-80">
-                                    Official list of school holidays. Use this to plan transport operations and vehicle maintenance.
+                                    Official list of school holidays. Track off-days to plan fleet maintenance and crew schedules.
                                 </p>
                             </div>
 

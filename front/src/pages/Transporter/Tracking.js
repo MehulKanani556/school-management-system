@@ -20,6 +20,8 @@ const Tracking = () => {
     const [isTracking, setIsTracking] = useState(false);
     const [watchId, setWatchId] = useState(null);
     const [fleetLocations, setFleetLocations] = useState({});
+    const [mapTheme, setMapTheme] = useState('dark');
+    const [autoCenter, setAutoCenter] = useState(true);
 
     useEffect(() => {
         dispatch(fetchVehicles());
@@ -118,27 +120,27 @@ const Tracking = () => {
                             <Radio size={20} />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none">Vehicle Tracking</h1>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Live GPS Monitoring</p>
+                            <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none">Live Map</h1>
+                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic opacity-70">Track your buses.</p>
                         </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="p-4 bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl">
-                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Active Vehicles</p>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Total Buses</p>
                             <span className="text-2xl font-black italic text-transporter-primary tracking-tighter">{vehicles.length}</span>
                         </div>
                         <div className="p-4 bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl">
-                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Signal Status</p>
+                            <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-1">GPS Status</p>
                             <span className={`text-2xl font-black italic ${isConnected ? 'text-emerald-500' : 'text-red-500'} tracking-tighter`}>
-                                {isConnected ? 'Online' : 'Offline'}
+                                {isConnected ? 'Linked' : 'Offline'}
                             </span>
                         </div>
                     </div>
                 </header>
 
                 <div className="flex-1 space-y-3">
-                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none ml-1">Vehicle List</p>
+                    <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none ml-1">Select Bus</p>
                     {vehicles.map(vehicle => (
                         <div
                             key={vehicle._id}
@@ -155,7 +157,7 @@ const Tracking = () => {
                                         <div className="flex items-center gap-2">
                                             <span className={`w-1.5 h-1.5 rounded-full ${fleetLocations[vehicle._id] ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-slate-700'}`}></span>
                                             <span className="text-[9px] font-black text-slate-500 uppercase italic">
-                                                {fleetLocations[vehicle._id] ? 'Tracking Active' : 'No Signal'}
+                                                {fleetLocations[vehicle._id] ? 'Signal Locked' : 'Searching...'}
                                             </span>
                                         </div>
                                     </div>
@@ -177,69 +179,95 @@ const Tracking = () => {
             <div className="flex-1 bg-neutral-900 border border-slate-800/60 rounded-md relative overflow-hidden shadow-2xl">
                 <LiveMap
                     vehicleLocation={selectedId ? fleetLocations[selectedId] : null}
+                    allLocations={fleetLocations}
                     stops={[]} 
-                    autoCenter={true}
+                    autoCenter={autoCenter}
+                    mapTheme={mapTheme}
                 />
 
                 {/* Active Unit Stats Panel */}
-                {activeVehicle && (
-                    <motion.div
-                        initial={{ x: 100, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        key={activeVehicle._id}
-                        className="absolute right-8 top-8 w-80 bg-neutral-950/80 backdrop-blur-2xl border border-white/5 rounded-md p-1 shadow-[0_0_50px_rgba(0,0,0,0.5)] z-[1001] hidden md:block"
-                    >
-                        <div className="p-8 space-y-8">
-                            <div className="flex items-center gap-4 border-b border-white/5 pb-6">
-                                <div className="p-3 bg-transporter-primary rounded text-white shadow-xl shadow-transporter-primary/20">
-                                    <Target size={22} />
-                                </div>
-                                <div>
-                                    <h3 className="text-lg font-black italic uppercase tracking-tighter text-white leading-none mb-1">{activeVehicle.registrationNumber}</h3>
-                                    <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic opacity-80 leading-none">
-                                        {isTracking ? 'LOCATION TRACKING ACTIVE' : 'SYSTEM READY'}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-6">
-                                <div className="space-y-1">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Current Speed</p>
-                                    <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.speed?.toFixed(1) || '0.0'} <span className="text-[10px] text-slate-500 tracking-normal">KM/H</span></p>
-                                </div>
-                                <div className="space-y-1 text-right">
-                                    <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Direction</p>
-                                    <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.heading?.toFixed(0) || '0'}° <span className="text-[10px] text-slate-500 tracking-normal">DEG</span></p>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4 pt-4 border-t border-white/5">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Activity size={12} className="text-transporter-primary" />
-                                        <span className="text-[10px] font-black text-slate-400 italic">STATUS</span>
+                    {/* {activeVehicle && (
+                        <motion.div
+                            initial={{ x: 100, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            key={activeVehicle._id}
+                            className="absolute right-8 top-8 w-80 bg-neutral-950/80 backdrop-blur-2xl border border-white/5 rounded-md p-1 shadow-[0_0_50px_rgba(0,0,0,0.5)] z-[1001] hidden md:block"
+                        >
+                            <div className="p-8 space-y-8">
+                                <div className="flex items-center gap-4 border-b border-white/5 pb-6">
+                                    <div className="p-3 bg-transporter-primary rounded text-white shadow-xl shadow-transporter-primary/20">
+                                        <Target size={22} />
                                     </div>
-                                    <span className="text-[10px] font-black text-emerald-500 italic uppercase">OPTIMAL</span>
-                                </div>
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Shield size={12} className="text-blue-500" />
-                                        <span className="text-[10px] font-black text-slate-400 italic">DATA SECURITY</span>
+                                    <div>
+                                        <h3 className="text-lg font-black italic uppercase tracking-tighter text-white leading-none mb-1">{activeVehicle.registrationNumber}</h3>
+                                        <p className="text-[9px] font-black text-emerald-500 uppercase tracking-widest italic opacity-80 leading-none">
+                                            {isTracking ? 'FOLLOWING BUS' : 'SYSTEM READY'}
+                                        </p>
                                     </div>
-                                    <span className="text-[10px] font-black text-emerald-500 italic uppercase">SECURE</span>
                                 </div>
-                            </div>
 
-                            <button className="w-full py-4 bg-transporter-primary/10 border border-transporter-primary/30 text-transporter-primary text-[10px] font-black uppercase tracking-[0.2em] italic rounded hover:bg-transporter-primary hover:text-white transition-all">CONTACT DRIVER</button>
-                        </div>
-                    </motion.div>
-                )}
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div className="space-y-1">
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Speed</p>
+                                        <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.speed?.toFixed(1) || '0.0'} <span className="text-[10px] text-slate-500 tracking-normal">KM/H</span></p>
+                                    </div>
+                                    <div className="space-y-1 text-right">
+                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Direction</p>
+                                        <p className="text-sm font-black text-white italic">{fleetLocations[activeVehicle._id]?.heading?.toFixed(0) || '0'}° <span className="text-[10px] text-slate-500 tracking-normal">DEG</span></p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Activity size={12} className="text-transporter-primary" />
+                                            <span className="text-[10px] font-black text-slate-400 italic">STATUS</span>
+                                        </div>
+                                        <span className="text-[10px] font-black text-emerald-500 italic uppercase">GOOD</span>
+                                    </div>
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <Shield size={12} className="text-blue-500" />
+                                            <span className="text-[10px] font-black text-slate-400 italic">SECURITY</span>
+                                        </div>
+                                        <span className="text-[10px] font-black text-emerald-500 italic uppercase">SECURE</span>
+                                    </div>
+                                </div>
+
+                                <button className="w-full py-4 bg-transporter-primary/10 border border-transporter-primary/30 text-transporter-primary text-[10px] font-black uppercase tracking-[0.2em] italic rounded hover:bg-transporter-primary hover:text-white transition-all">CALL DRIVER</button>
+                            </div>
+                        </motion.div>
+                    )} */}
 
                 {/* Map Control Cluster */}
                 <div className="absolute bottom-8 left-8 flex items-center gap-3 z-[1001]">
-                    <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Layers size={18} /></button>
-                    <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Crosshair size={18} /></button>
-                    <button className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"><Compass size={18} /></button>
+                    <button 
+                        onClick={() => setMapTheme(prev => prev === 'dark' ? 'satellite' : 'dark')}
+                        className={`w-12 h-12 bg-neutral-950 border ${mapTheme === 'satellite' ? 'border-transporter-primary text-transporter-primary' : 'border-white/10 text-slate-500'} rounded flex items-center justify-center hover:text-white transition-colors shadow-2xl backdrop-blur-md`}
+                        title="Toggle Map Theme"
+                    >
+                        <Layers size={18} />
+                    </button>
+                    <button 
+                        onClick={() => setAutoCenter(prev => !prev)}
+                        className={`w-12 h-12 bg-neutral-950 border ${autoCenter ? 'border-transporter-primary text-transporter-primary' : 'border-white/10 text-slate-500'} rounded flex items-center justify-center hover:text-white transition-colors shadow-2xl backdrop-blur-md`}
+                        title="Toggle Auto Center"
+                    >
+                        <Crosshair size={18} />
+                    </button>
+                    <button 
+                        onClick={() => {
+                            if (selectedId && fleetLocations[selectedId]) {
+                                setAutoCenter(true);
+                                // Trigger a re-center by slightly shifting and back if needed, 
+                                // but the RecenterMap component handles it on props change.
+                            }
+                        }}
+                        className="w-12 h-12 bg-neutral-950 border border-white/10 rounded flex items-center justify-center text-slate-500 hover:text-white transition-colors shadow-2xl backdrop-blur-md"
+                        title="Reset View"
+                    >
+                        <Compass size={18} />
+                    </button>
                 </div>
             </div>
         </motion.div>

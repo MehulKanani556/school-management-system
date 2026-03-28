@@ -30,11 +30,12 @@ const StudentAssignment = () => {
         if (message) {
             toast.success(message);
             dispatch(clearTransportMessage());
+            dispatch(fetchTransportApplicantsSlice());
             setIsAddOpen(false);
             setIsBulkOpen(false);
             setSelectedStudents([]);
-            setFormData({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '' });
-            setBulkData({ routeId: '', pickupStop: '', dropoffStop: '' });
+            setFormData({ routeId: '', studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
+            setBulkData({ routeId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
         }
         if (error) {
             toast.error(error);
@@ -129,8 +130,8 @@ const StudentAssignment = () => {
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 pb-10">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2 font-outfit">
                 <div>
-                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Student Assignment</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Assign students to routes and manage transport inquiries.</p>
+                    <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Assign Seats</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Assign seats to students and manage requests.</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
@@ -146,7 +147,7 @@ const StudentAssignment = () => {
                             onClick={() => setActiveTab('inquiries')}
                             className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
-                            <Inbox size={12} /> Requests
+                            <Inbox size={12} /> New Requests
                             {applicants.length > 0 && <span className="absolute -top-1 -right-1 w-4 h-4 bg-rose-500 text-[8px] flex items-center justify-center rounded-full border border-black animate-bounce">{applicants.length}</span>}
                         </button>
                     </div>
@@ -155,7 +156,7 @@ const StudentAssignment = () => {
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input
                             type="text"
-                            placeholder="Search Student or Route..."
+                            placeholder="Search Students..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-neutral-900 border border-slate-800/60 rounded-md py-2.5 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all w-full italic h-[42px]"
@@ -166,22 +167,22 @@ const StudentAssignment = () => {
                             onClick={() => setIsAddOpen(true)}
                             className="px-6 py-4 bg-transporter-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-transporter-primary/20 hover:shadow-transporter-primary/40 hover:translate-y-[-2px] transition-all flex items-center gap-2 group leading-none font-outfit whitespace-nowrap h-[42px]"
                         >
-                            <Plus size={14} /> assign student
+                            <Plus size={14} /> Add Student
                         </button>
                         <button
                             onClick={() => setIsBulkOpen(true)}
                             className="px-6 py-4 bg-neutral-900 border border-slate-800 text-slate-300 text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-slate-800 transition-all flex items-center gap-2 leading-none font-outfit h-[42px]"
                         >
-                            <Users size={14} /> bulk assign
+                            <Users size={14} /> Bulk Add
                         </button>
                         <button
                             onClick={runLogicEngine}
                             className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 leading-none font-outfit h-[42px] group"
                         >
-                            <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> smart match
+                            <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> auto match
                         </button>
                         <label className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
-                            <Plus size={14} /> Import CSV
+                            <Plus size={14} /> Add from File
                             <input
                                 type="file"
                                 accept=".csv"
@@ -219,8 +220,8 @@ const StudentAssignment = () => {
                                     <Navigation size={18} className="text-transporter-primary" />
                                     <h3 className="text-md font-black text-slate-100 uppercase italic tracking-tighter">{route.name} Route</h3>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Students Assigned</span>
-                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Vehicle: {route.vehicleId?.registrationNumber || 'NA'}</span>
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">{route.assignedStudents?.length || 0} Students</span>
+                                        <span className="text-[9px] font-black uppercase text-slate-500 italic bg-slate-900 px-3 py-1 rounded-md border border-slate-800/60">Bus: {route.vehicleId?.registrationNumber || 'NA'}</span>
                                     </div>
                                 </div>
                             </div>
@@ -334,7 +335,7 @@ const StudentAssignment = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAddOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-lg rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit">
                             <form onSubmit={handleAssign} className="space-y-6 p-10">
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">Assign Student to Route</h3>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">Assign to Route</h3>
 
                                 <div className="space-y-5">
                                     <div className="space-y-2">
@@ -409,6 +410,16 @@ const StudentAssignment = () => {
                                                     placeholder="Enter Seat Number (Optional)"
                                                     className="w-full bg-neutral-950 border border-transporter-primary/20 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none focus:border-transporter-primary"
                                                 />
+                                                {formData.routeId && routes.find(r => r._id === formData.routeId)?.assignedStudents?.length > 0 && (
+                                                    <div className="flex flex-wrap gap-1 mt-2 px-1">
+                                                        <span className="text-[8px] font-black text-slate-600 uppercase italic mr-1">Taken:</span>
+                                                        {routes.find(r => r._id === formData.routeId).assignedStudents
+                                                            .filter(s => s.seatNumber)
+                                                            .map((s, idx) => (
+                                                                <span key={idx} className="text-[8px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded">#{s.seatNumber}</span>
+                                                            ))}
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
@@ -417,7 +428,7 @@ const StudentAssignment = () => {
                                 <div className="flex gap-4 pt-4">
                                     <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none h-[42px]">Cancel</button>
                                     <button type="submit" className="flex-1 px-6 py-4 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all leading-none disabled:opacity-50 h-[42px]">
-                                        {loading ? 'Processing...' : 'Assign Student'}
+                                        {loading ? 'Processing...' : 'Assign'}
                                     </button>
                                 </div>
                             </form>
@@ -430,7 +441,7 @@ const StudentAssignment = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsBulkOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden font-outfit max-h-[90vh] flex flex-col">
                             <div className="p-10 border-b border-slate-800/60 bg-neutral-950/40">
-                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Bulk Student Assignment</h3>
+                                <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 leading-none">Assign Many Students</h3>
                             </div>
 
                             <div className="overflow-y-auto p-10 flex-1 custom-scrollbar">

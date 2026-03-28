@@ -6,7 +6,7 @@ import {
   LayoutDashboard, BookOpen, CalendarCheck, ClipboardList, Book,
   MessageSquare, Menu, X, User, ChevronRight, BookMarked,
   Clock, Calendar, Bell, LogOut, ChevronDown, CalendarDays, Brain, Globe, CreditCard,
-  Award, Download, Megaphone, GraduationCap
+  Award, Download, Megaphone, GraduationCap, Truck
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -52,10 +52,11 @@ const StudentLayout = () => {
       ]
     },
     {
-      label: 'Library',
-      icon: Book,
+      label: 'Campus Life',
+      icon: Globe,
       children: [
         { to: '/student/library', icon: Book, label: 'School Library' },
+        { to: '/student/transport', icon: Truck, label: 'My Bus Tracking' },
       ]
     },
     {

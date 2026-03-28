@@ -15,10 +15,10 @@ const StaffRegistry = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRole, setSelectedRole] = useState('All');
     const [isAddOpen, setIsAddOpen] = useState(false);
-    const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '' });
+    const [formData, setFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '', licenseNumber: '', licenseExpiry: '', status: 'active' });
     const [isEditOpen, setIsEditOpen] = useState(false);
     const [selectedStaff, setSelectedStaff] = useState(null);
-    const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', baseSalary: '', employeeId: '' });
+    const [editFormData, setEditFormData] = useState({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', baseSalary: '', employeeId: '', licenseNumber: '', licenseExpiry: '', status: 'active' });
 
     useEffect(() => {
         dispatch(fetchUsers());
@@ -35,7 +35,7 @@ const StaffRegistry = () => {
         }
     }, [message, error, dispatch]);
 
-    const staffRoles = ['Accountant', 'Librarian', 'Transport_Manager'];
+    const staffRoles = ['Accountant', 'Librarian', 'Transport_Manager', 'Driver'];
     const filteredStaff = users.filter(user => {
         const matchesRole = selectedRole === 'All' ? staffRoles.includes(user.role) : user.role === selectedRole;
         const matchesSearch = (user.firstName + ' ' + user.lastName).toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -46,7 +46,7 @@ const StaffRegistry = () => {
     const handleAdd = (e) => {
         e.preventDefault();
         dispatch(addStaff(formData));
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', role: 'Accountant', password: '', baseSalary: '', employeeId: '', licenseNumber: '', licenseExpiry: '', status: 'active' });
     };
 
     const handleEditClick = (member) => {
@@ -58,7 +58,10 @@ const StaffRegistry = () => {
             phone: member.phoneNumber || '',
             role: member.role,
             baseSalary: member.baseSalary || '',
-            employeeId: member.employeeId || ''
+            employeeId: member.employeeId || '',
+            licenseNumber: member.driverInfo?.licenseNumber || '',
+            licenseExpiry: member.driverInfo?.licenseExpiry ? new Date(member.driverInfo.licenseExpiry).toISOString().split('T')[0] : '',
+            status: member.driverInfo?.status || 'active'
         });
         setIsEditOpen(true);
     };
@@ -75,7 +78,7 @@ const StaffRegistry = () => {
     };
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 font-inter">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="font-inter">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                 <div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-1 font-outfit leading-none">Staff Registry</h1>
@@ -107,6 +110,7 @@ const StaffRegistry = () => {
                         <option value="Accountant">Fiscal</option>
                         <option value="Librarian">Archive</option>
                         <option value="Transport_Manager">Logistics</option>
+                        <option value="Driver">Operations</option>
                     </select>
                 </div>
             </div>
@@ -149,7 +153,8 @@ const StaffRegistry = () => {
                                     </div>
                                     <span className={`text-[9px] font-black uppercase tracking-[0.2em] italic px-3 py-1 rounded-md border ${member.role === 'Accountant' ? 'border-luxury-gold/20 text-luxury-gold bg-luxury-gold/5' :
                                             member.role === 'Librarian' ? 'border-indigo-600/20 text-indigo-400 bg-indigo-600/5' :
-                                                'border-orange-600/20 text-orange-400 bg-orange-600/5'
+                                            member.role === 'Transport_Manager' ? 'border-orange-600/20 text-orange-400 bg-orange-600/5' :
+                                                'border-emerald-600/20 text-emerald-400 bg-emerald-600/5'
                                         }`}>
                                         {member.role.replace('_', ' ')} logic
                                     </span>
@@ -249,6 +254,7 @@ const StaffRegistry = () => {
                                             <option value="Accountant">Accountant (Fiscal)</option>
                                             <option value="Librarian">Librarian (Archive)</option>
                                             <option value="Transport_Manager">Transport Manager (Logistics)</option>
+                                            <option value="Driver">Driver (Operations)</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -285,6 +291,44 @@ const StaffRegistry = () => {
                                         </div>
                                     </div>
                                 </div>
+                                
+                                {formData.role === 'Driver' && (
+                                    <div className="space-y-6 p-6 bg-emerald-500/5 rounded-md border border-emerald-500/10 animate-in fade-in slide-in-from-top-4 duration-300">
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">License Number</label>
+                                                <input
+                                                    type="text" required placeholder="DL-0000000000"
+                                                    value={formData.licenseNumber}
+                                                    onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                                                    className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all leading-none shadow-inner"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">License Expiry</label>
+                                                <input
+                                                    type="date" required
+                                                    value={formData.licenseExpiry}
+                                                    onChange={(e) => setFormData({ ...formData, licenseExpiry: e.target.value })}
+                                                    className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all leading-none shadow-inner"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">Initial Duty Status</label>
+                                            <select
+                                                required value={formData.status}
+                                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                            >
+                                                <option value="active">Active (On Duty)</option>
+                                                <option value="inactive">Inactive (Standby)</option>
+                                                <option value="on-leave">On-Leave (Absent)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+
 
                                 <div className="flex gap-4 pt-10">
                                     <button type="button" onClick={() => setIsAddOpen(false)} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
@@ -352,6 +396,7 @@ const StaffRegistry = () => {
                                             <option value="Accountant">Accountant (Fiscal)</option>
                                             <option value="Librarian">Librarian (Archive)</option>
                                             <option value="Transport_Manager">Transport Manager (Logistics)</option>
+                                            <option value="Driver">Driver (Operations)</option>
                                         </select>
                                     </div>
                                     <div className="space-y-2">
@@ -377,6 +422,44 @@ const StaffRegistry = () => {
                                         className="w-full bg-slate-950 border border-brand-border/40 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all leading-none shadow-inner"
                                     />
                                 </div>
+
+                                {editFormData.role === 'Driver' && (
+                                    <div className="space-y-6 p-6 bg-emerald-500/5 rounded-md border border-emerald-500/10 animate-in fade-in slide-in-from-top-4 duration-300">
+                                        <div className="grid grid-cols-2 gap-6">
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">License Number</label>
+                                                <input
+                                                    type="text" required placeholder="DL-0000000000"
+                                                    value={editFormData.licenseNumber}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, licenseNumber: e.target.value })}
+                                                    className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all leading-none shadow-inner"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">License Expiry</label>
+                                                <input
+                                                    type="date" required
+                                                    value={editFormData.licenseExpiry}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, licenseExpiry: e.target.value })}
+                                                    className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all leading-none shadow-inner"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-emerald-500 italic ml-1 leading-none">Duty Status</label>
+                                            <select
+                                                required value={editFormData.status}
+                                                onChange={(e) => setEditFormData({ ...editFormData, status: e.target.value })}
+                                                className="w-full bg-slate-950 border border-emerald-500/20 rounded-md py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-emerald-500 transition-all shadow-inner"
+                                            >
+                                                <option value="active">Active (On Duty)</option>
+                                                <option value="inactive">Inactive (Standby)</option>
+                                                <option value="on-leave">On-Leave (Absent)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                )}
+
 
                                 <div className="flex gap-4 pt-10">
                                     <button type="button" onClick={() => setIsEditOpen(false)} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500 hover:bg-slate-800 transition-all rounded-md leading-none">abort protocol</button>
