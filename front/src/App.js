@@ -74,6 +74,7 @@ import MarkAttendance from './pages/teacher/MarkAttendance';
 import AddMarks from './pages/teacher/AddMarks';
 import Assignments from './pages/teacher/Assignments';
 import TeacherLeaves from './pages/teacher/TeacherLeaves';
+import MyStaffAttendance from './pages/teacher/MyStaffAttendance';
 
 // Student Pages
 import StudentDashboard from './pages/Student/StudentDashboard';
@@ -280,6 +281,7 @@ function AppRoutes() {
             <Route path="analytics" element={<TeacherAnalytics />} />
             <Route path="payroll" element={<TeacherPayroll />} />
             <Route path="leaves" element={<TeacherLeaves />} />
+            <Route path="staff-attendance" element={<MyStaffAttendance />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="fee-status" element={<TeacherFeeStatus />} />
             <Route path="student-attendance/:studentId" element={<StudentDetailedAttendance />} />

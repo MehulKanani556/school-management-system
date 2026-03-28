@@ -19,14 +19,24 @@ exports.markBulkAttendance = async (req, res) => {
         attendanceDate.setHours(0, 0, 0, 0);
 
         const bulkOps = records.map(rec => {
-            const filter = { schoolId, date: attendanceDate };
-            if (rec.teacherId) filter.teacherId = rec.teacherId;
-            else if (rec.userId) filter.userId = rec.userId;
+            const filter = { 
+                schoolId, 
+                date: attendanceDate, 
+                teacherId: rec.teacherId || null, 
+                userId: rec.userId || null 
+            };
             
             return {
                 updateOne: {
                     filter,
-                    update: { $set: { status: rec.status, remarks: rec.remarks } },
+                    update: { 
+                        $set: { 
+                            status: rec.status, 
+                            remarks: rec.remarks, 
+                            arrivalTime: rec.arrivalTime, 
+                            departureTime: rec.departureTime 
+                        } 
+                    },
                     upsert: true
                 }
             };
@@ -128,13 +138,24 @@ exports.getMonthlySummary = async (req, res) => {
 // 5. Get Attendance Report (Filtered)
 exports.getAttendanceReport = async (req, res) => {
     try {
-        const { startDate, endDate, teacherId, userId } = req.query;
+        const { startDate, endDate, teacherId, userId, date } = req.query;
         const schoolId = getSchoolId(req);
 
         const filter = { schoolId };
+        
         if (startDate && endDate) {
-            filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+            filter.date = { 
+                $gte: new Date(startDate).setHours(0, 0, 0, 0), 
+                $lte: new Date(endDate).setHours(23, 59, 59, 999) 
+            };
+        } else if (date) {
+            const d = new Date(date);
+            filter.date = { 
+                $gte: new Date(d).setHours(0, 0, 0, 0), 
+                $lte: new Date(d).setHours(23, 59, 59, 999) 
+            };
         }
+
         if (teacherId) filter.teacherId = teacherId;
         if (userId) filter.userId = userId;
 
@@ -143,6 +164,24 @@ exports.getAttendanceReport = async (req, res) => {
             .populate('userId', 'firstName lastName role')
             .sort({ date: -1 });
 
+        res.json(records);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 6. Get My Attendance History (Self)
+exports.getMyAttendanceHistory = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const filter = { schoolId };
+
+        const teacher = await Teacher.findOne({ userId: req.user._id, schoolId });
+        if (teacher) {
+            filter.teacherId = teacher._id;
+        } else {
+            filter.userId = req.user._id;
+        }
+
+        const records = await StaffAttendance.find(filter).sort({ date: -1 });
         res.json(records);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

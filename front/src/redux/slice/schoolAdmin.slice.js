@@ -547,7 +547,13 @@ const schoolAdminSlice = createSlice({
       // Payroll
       .addCase(fetchPayroll.fulfilled, handleList('payroll'))
       .addCase(generateBulkPayroll.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(fetchStaffAttendance.pending, (state) => {
+        state.staffAttendance = [];
+        state.loading = true;
+        state.error = null;
+      })
       .addCase(fetchStaffAttendance.fulfilled, handleList('staffAttendance'))
+      .addCase(fetchStaffAttendance.rejected, rejected)
       .addCase(saveStaffAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(fetchAssignmentsOverview.fulfilled, handleList('assignments'))
       .addCase(createPayroll.fulfilled, (state, a) => {
@@ -701,7 +707,7 @@ const schoolAdminSlice = createSlice({
     // pending/rejected for all
     [
       fetchDashboard, fetchStudents, fetchTeachers, fetchClasses, fetchStandards, fetchSubjects, fetchFeeStructures, fetchFees, fetchExams,
-      fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts, fetchStaffAttendance,
+      fetchAttendance, fetchAttendanceReport, fetchAttendanceAnalytics, fetchAttendanceAlerts, 
       fetchSchoolPerformance, fetchFeeReport, exportFeeReport, exportAttendanceReport,
       fetchHolidays, fetchAllTimetables, fetchTimetable,
       createStudent, createTeacher, createClass, createStandard, createSubject, createFeeStructure, createFee, createExam, createHoliday,

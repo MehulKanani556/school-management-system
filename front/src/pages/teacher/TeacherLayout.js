@@ -88,6 +88,7 @@ const TeacherLayout = () => {
             icon: Clock,
             children: [
                 { to: '/teacher/payroll', icon: DollarSign, label: 'Payslips/Salary' },
+                { to: '/teacher/staff-attendance', icon: CalendarDays, label: 'Attendance Ledger' },
                 { to: '/teacher/leaves', icon: CalendarDays, label: 'Leave Application' },
                 { to: '/teacher/performance-report', icon: TrendingUp, label: 'Performance Appraisal' },
             ]

@@ -23,4 +23,7 @@ router.get('/monthly-summary', ...superAdminAndSchoolAdmin, staffAttendanceContr
 // 5. Get report
 router.get('/report', ...superAdminAndSchoolAdmin, staffAttendanceController.getAttendanceReport);
 
+// 6. Get My History (Self)
+router.get('/my-history', auth, staffAttendanceController.getMyAttendanceHistory);
+
 module.exports = router;

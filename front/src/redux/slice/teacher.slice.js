@@ -389,6 +389,13 @@ export const deleteLessonPlan = createAsyncThunk('teacher/deleteLessonPlan', asy
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
+export const fetchMyStaffAttendance = createAsyncThunk('teacher/fetchMyStaffAttendance', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/staff-attendance/my-history');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
 const teacherSlice = createSlice({
     name: 'teacher',
     initialState: {
@@ -417,6 +424,7 @@ const teacherSlice = createSlice({
         contacts: [],
         meetings: [],
         profile: null,
+        myStaffAttendance: [],
         loading: false,
         error: null,
         message: null
@@ -623,6 +631,10 @@ const teacherSlice = createSlice({
                 state.lessonPlans = state.lessonPlans.filter(p => p._id !== action.payload.id);
                 state.loading = false;
                 state.message = action.payload.message || 'Lesson plan deleted';
+            })
+            .addCase(fetchMyStaffAttendance.fulfilled, (state, action) => {
+                state.myStaffAttendance = action.payload;
+                state.loading = false;
             })
             .addMatcher(
                 (action) => action.type.endsWith('/fulfilled'),

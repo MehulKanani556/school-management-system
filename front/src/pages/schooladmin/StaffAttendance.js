@@ -18,6 +18,7 @@ const StaffAttendance = () => {
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedRole, setSelectedRole] = useState('All');
     const [localRecords, setLocalRecords] = useState([]);
+    const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
         dispatch(fetchStaffForAttendance());
@@ -46,7 +47,12 @@ const StaffAttendance = () => {
             };
         });
         setLocalRecords(records);
-    }, [staffList, staffAttendance]);
+        // Automatically enable editing if no records exist for the new date context
+        if (!loading) {
+            if (staffAttendance.length > 0) setIsEditing(false);
+            else setIsEditing(true); 
+        }
+    }, [staffList, staffAttendance, loading]);
 
     const handleStatusChange = (id, status) => {
         setLocalRecords(prev => prev.map(r => r._id === id ? { ...r, status } : r));
@@ -68,6 +74,7 @@ const StaffAttendance = () => {
         const res = await dispatch(saveStaffAttendance({ records, date: selectedDate }));
         if (saveStaffAttendance.fulfilled.match(res)) {
             toast.success('Workforce Registry Synchronized');
+            setIsEditing(false);
         }
     };
 
@@ -102,14 +109,24 @@ const StaffAttendance = () => {
                             className="bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-6 text-white text-sm outline-none focus:border-schooladmin-primary transition-all font-bold shadow-inner"
                         />
                     </div>
-                    <button 
-                        onClick={handleSave} 
-                        disabled={loading}
-                        className="flex items-center gap-2 px-6 py-3 bg-white text-slate-950 hover:bg-slate-200 disabled:opacity-50 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95"
-                    >
-                        {loading ? <Clock className="animate-spin" size={14} /> : <Save size={14} />}
-                        Sync Data
-                    </button>
+                    {isEditing ? (
+                        <button 
+                            onClick={handleSave} 
+                            disabled={loading}
+                            className="flex items-center gap-2 px-6 py-3 bg-schooladmin-primary text-slate-950 hover:bg-schooladmin-primary/90 disabled:opacity-50 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95"
+                        >
+                            {loading ? <Clock className="animate-spin" size={14} /> : <Save size={14} />}
+                            Sync Data
+                        </button>
+                    ) : (
+                        <button 
+                            onClick={() => setIsEditing(true)}
+                            className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95"
+                        >
+                            <FileText size={14} className="text-schooladmin-primary" />
+                            Edit Registry
+                        </button>
+                    )}
                 </div>
             </div>
 
@@ -202,12 +219,14 @@ const StaffAttendance = () => {
                                             ].map(s => (
                                                 <button 
                                                     key={s.id}
+                                                    type="button"
+                                                    disabled={!isEditing}
                                                     onClick={() => handleStatusChange(r._id, s.id)}
                                                     className={`w-9 py-2 rounded-lg text-[10px] font-black transition-all ${
                                                         r.status === s.id 
                                                             ? `${s.color} text-slate-950 shadow-lg scale-110 z-10` 
                                                             : 'text-slate-700 hover:text-slate-400'
-                                                    }`}
+                                                    } ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
                                                     {s.label}
                                                 </button>
@@ -219,8 +238,9 @@ const StaffAttendance = () => {
                                             <input 
                                                 type="time" 
                                                 value={r.arrivalTime}
+                                                disabled={!isEditing}
                                                 onChange={(e) => handleTimeChange(r._id, 'arrivalTime', e.target.value)}
-                                                className="bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-schooladmin-primary outline-none focus:border-schooladmin-primary shadow-inner"
+                                                className={`bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-schooladmin-primary outline-none focus:border-schooladmin-primary shadow-inner ${!isEditing ? 'opacity-40' : ''}`}
                                             />
                                         </div>
                                     </td>
@@ -229,8 +249,9 @@ const StaffAttendance = () => {
                                             type="text" 
                                             placeholder="..." 
                                             value={r.remarks}
+                                            disabled={!isEditing}
                                             onChange={(e) => handleTimeChange(r._id, 'remarks', e.target.value)}
-                                            className="bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-schooladmin-primary/30 max-w-[150px]"
+                                            className={`bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-schooladmin-primary/30 max-w-[150px] ${!isEditing ? 'cursor-default' : ''}`}
                                         />
                                     </td>
                                 </tr>
