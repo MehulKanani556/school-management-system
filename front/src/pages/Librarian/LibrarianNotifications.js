@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const LibrarianNotifications = () => {
   const dispatch = useDispatch();
-  const { notifications, loading } = useSelector((state) => state.notifications);
+  const { items: notifications = [], loading } = useSelector((state) => state.notifications);
 
   useEffect(() => {
     dispatch(fetchNotifications());
@@ -17,7 +17,7 @@ const LibrarianNotifications = () => {
   const handleMarkAllAsRead = () => dispatch(markAllRead());
 
   if (loading && notifications.length === 0) {
-    return <div className="p-8 text-center text-slate-400">Syncing Communication Nodes...</div>;
+    return <div className="p-8 text-center text-slate-400">Loading Notifications...</div>;
   }
 
   return (
@@ -26,16 +26,16 @@ const LibrarianNotifications = () => {
         <div>
           <h1 className="text-2xl font-black text-white uppercase tracking-widest italic flex items-center gap-3">
             <Bell className="text-librarian-primary" size={28} />
-            Global Alerts
+            Library Alerts
           </h1>
-          <p className="text-sm text-slate-400 mt-1 uppercase tracking-widest text-[10px]">Institutional Synchronization</p>
+          <p className="text-sm text-slate-400 mt-1 uppercase tracking-widest text-[10px]">Updates & Notifications</p>
         </div>
         {notifications.some(n => !n.isRead) && (
           <button
             onClick={handleMarkAllAsRead}
             className="flex items-center gap-2 bg-brand-surface border border-librarian-primary/30 text-librarian-primary px-4 py-2 rounded-md hover:bg-librarian-primary/10 transition-colors uppercase tracking-widest text-[10px] font-black italic"
           >
-            <CheckCircle2 size={16} /> Acknowledge All
+            <CheckCircle2 size={16} /> Mark All as Read
           </button>
         )}
       </div>
@@ -78,7 +78,7 @@ const LibrarianNotifications = () => {
                         <button
                           onClick={() => handleMarkAsRead(notif._id)}
                           className="p-1.5 rounded-md hover:bg-librarian-primary/20 text-librarian-primary transition-colors"
-                          title="Acknowledge"
+                          title="Mark as Read"
                         >
                           <Check size={16} />
                         </button>
@@ -86,7 +86,7 @@ const LibrarianNotifications = () => {
                       <button
                         onClick={() => handleDelete(notif._id)}
                         className="p-1.5 rounded-md hover:bg-librarian-primary/20 text-librarian-primary transition-colors"
-                        title="Purge Node"
+                        title="Delete Notification"
                       >
                         <Trash2 size={16} />
                       </button>

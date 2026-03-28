@@ -65,7 +65,7 @@ const BookInventory = () => {
     );
 
     const handleDelete = (id) => {
-        if (window.confirm('Delete this book protocol?')) {
+        if (window.confirm('Are you sure you want to delete this book?')) {
             dispatch(deleteBookSlice(id));
         }
     }
@@ -74,25 +74,25 @@ const BookInventory = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-librarian-primary">Inventory Node</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Archived physical knowledge repositories.</p>
+                    <h1 className="text-3xl font-black text-slate-100 italic uppercase tracking-tighter mb-1 leading-none text-librarian-primary">Book Inventory</h1>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage all books available in the library.</p>
                 </div>
                 <button 
                     onClick={() => handleOpenModal()}
-                    className="px-6 py-3 bg-librarian-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-librarian-primary/20 hover:translate-y-[-2px] transition-all flex items-center gap-2"
+                    className="px-6 py-3 bg-librarian-primary text-white text-[11px] font-black italic uppercase tracking-widest rounded-md shadow-lg shadow-librarian-primary/20 hover:translate-y-[-2px] transition-all flex items-center gap-2 text-nowrap"
                 >
-                    <Plus size={14} /> add book
+                    <Plus size={14} /> add new book
                 </button>
             </div>
 
             <div className="bg-neutral-900 border border-slate-800/60 rounded-md shadow-2xl overflow-hidden group">
                 <div className="px-6 py-5 border-b border-slate-800/60 bg-neutral-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none">Archive Registry</h2>
+                    <h2 className="text-lg font-black italic uppercase tracking-tight text-slate-100 leading-none">All Books</h2>
                     <div className="relative">
                         <Search className="absolute left-3 top-2.5 text-slate-600" size={14} />
                         <input 
                             type="text" 
-                            placeholder="Identify volume..." 
+                            placeholder="Search by Title, Author or ISBN..." 
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-9 pr-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all w-full sm:w-64 italic"
@@ -104,11 +104,11 @@ const BookInventory = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-neutral-950/50 border-b border-slate-800/60 font-outfit">
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Book Identity</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Metadata & Cluster</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Archival Locale</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Availability Matrix</th>
-                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none text-right">Maintenance Protocol</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Book Details</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Author & Category</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Shelf Location</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none">Stock Status</th>
+                                <th className="px-6 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest italic leading-none text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-800/40">
@@ -138,17 +138,17 @@ const BookInventory = () => {
                                     <td className="px-6 py-6">
                                         <div className="flex flex-col">
                                             <span className="text-sm font-black text-slate-200 tracking-tighter italic uppercase leading-none mb-1">{book.publisher}</span>
-                                            <span className="text-[10px] font-bold text-slate-600 uppercase italic opacity-60 tracking-widest">{book.location || 'Unassigned Node'}</span>
+                                            <span className="text-[10px] font-bold text-slate-600 uppercase italic opacity-60 tracking-widest">{book.location || 'Unassigned'}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-6">
                                         <div className="flex items-center gap-4">
                                             <div className="flex flex-col">
-                                                <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">{book.availableCopies} Node(s)</span>
-                                                <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of {book.totalCopies} registered</span>
+                                                <span className="text-sm font-black text-slate-100 tracking-tighter italic uppercase leading-none mb-1">{book.availableCopies} Copy(ies)</span>
+                                                <span className="text-[9px] font-bold text-slate-600 uppercase italic leading-none opacity-60">of {book.totalCopies} Total</span>
                                             </div>
                                             <span className={`inline-flex items-center px-2 py-0.5 border text-[9px] font-black uppercase tracking-widest rounded-md italic ${book.type === 'E-Book' ? 'bg-purple-600/10 border-purple-600/20 text-purple-400' : book.availableCopies > 0 ? 'bg-librarian-primary/10 border-librarian-primary/20 text-librarian-primary' : 'bg-red-600/10 border-red-600/20 text-red-400'}`}>
-                                                {book.type === 'E-Book' ? 'Digital' : book.availableCopies > 0 ? 'Accessible' : 'Restricted'}
+                                                {book.type === 'E-Book' ? 'Digital' : book.availableCopies > 0 ? 'Available' : 'Out of Stock'}
                                             </span>
                                         </div>
                                     </td>
@@ -171,7 +171,7 @@ const BookInventory = () => {
                                 </tr>
                             )) : (
                                 <tr>
-                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic font-black uppercase text-xs tracking-[0.2em] opacity-40">No knowledge volumes archived in current sector.</td>
+                                    <td colSpan="5" className="px-6 py-20 text-center text-slate-500 italic font-black uppercase text-xs tracking-[0.2em] opacity-40">No books found in the inventory.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -181,17 +181,23 @@ const BookInventory = () => {
 
             <AnimatePresence>
                 {isModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsModalOpen(false)} className="absolute inset-0 bg-neutral-950/90 backdrop-blur-xl"></motion.div>
+                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-0">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            onClick={() => setIsModalOpen(false)} 
+                            className="fixed inset-0 bg-neutral-950/90 backdrop-blur-xl"
+                        ></motion.div>
                         <motion.div initial={{ scale: 0.95, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 30 }} className="bg-neutral-900 w-full max-w-2xl rounded-2xl border border-white/5 shadow-[0_0_50px_-12px_rgba(79,70,229,0.3)] relative z-10 overflow-hidden font-outfit">
                             <form onSubmit={handleSubmit} className="p-0">
                                 {/* Header */}
                                 <div className="px-10 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
                                     <div>
                                         <h3 className="text-xl font-black italic uppercase tracking-tighter text-librarian-primary leading-none">
-                                            {editingBook ? 'Update Volume Protocol' : 'New Volume Protocol'}
+                                            {editingBook ? 'Update Book Details' : 'Add New Book'}
                                         </h3>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic opacity-60">Master Archival Entry System</p>
+                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic opacity-60">Enter book details below</p>
                                     </div>
                                     <div className="flex gap-2">
                                         {['Physical', 'E-Book'].map(t => (
@@ -216,12 +222,12 @@ const BookInventory = () => {
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-librarian-primary"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Core Identity</h4>
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Basic Information</h4>
                                         </div>
                                         <div className="grid grid-cols-1 gap-5">
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <Library size={10} /> Volume Title
+                                                    <Library size={10} /> Title
                                                 </label>
                                                 <input 
                                                     type="text" 
@@ -236,7 +242,7 @@ const BookInventory = () => {
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <Search size={10} /> Archive ID (ISBN)
+                                                    <Search size={10} /> ISBN Number
                                                 </label>
                                                 <input 
                                                     type="text" 
@@ -249,7 +255,7 @@ const BookInventory = () => {
                                             </div>
                                             <div className="space-y-2">
                                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <User size={10} /> Custodian (Author)
+                                                    <User size={10} /> Author Name
                                                 </label>
                                                 <input 
                                                     type="text" 
@@ -267,13 +273,13 @@ const BookInventory = () => {
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Volume Archetype Specifics</h4>
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Stock & Location</h4>
                                         </div>
                                         
                                         {formData.type === 'Physical' ? (
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                                 <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Total Registered Copies</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Total Copies</label>
                                                     <input 
                                                         type="number" 
                                                         required
@@ -284,7 +290,7 @@ const BookInventory = () => {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Physical Location (Shelf)</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Shelf / Location</label>
                                                     <input 
                                                         type="text" 
                                                         placeholder="Shelf A-12, Sector 4..."
@@ -298,7 +304,7 @@ const BookInventory = () => {
                                             <div className="space-y-5 bg-purple-500/5 border border-purple-500/10 rounded-2xl p-6">
                                                 <div className="space-y-2">
                                                     <label className="text-[9px] font-black uppercase tracking-widest text-purple-400 italic ml-1 flex items-center gap-1.5">
-                                                        <Edit3 size={10} /> Digital Asset Source (Manual URL)
+                                                        <Edit3 size={10} /> E-Book Link (URL)
                                                     </label>
                                                     <input 
                                                         type="url" 
@@ -309,7 +315,7 @@ const BookInventory = () => {
                                                     />
                                                 </div>
                                                 <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-purple-400 italic ml-1">Native Digital Volume Upload</label>
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-purple-400 italic ml-1">Upload E-Book File</label>
                                                     <div className="relative group/upload h-32">
                                                         <input 
                                                             type="file" 
@@ -322,7 +328,7 @@ const BookInventory = () => {
                                                                 <Plus size={20} />
                                                             </div>
                                                             <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">
-                                                                {bookFile ? bookFile.name : 'Drag or click to commit PDF material'}
+                                                                {bookFile ? bookFile.name : 'Drag or click to upload PDF/E-Book'}
                                                             </span>
                                                             <span className="text-[8px] text-slate-600 uppercase tracking-widest font-bold">Max Limit: 5.0 MB Matrix</span>
                                                         </div>
@@ -336,11 +342,11 @@ const BookInventory = () => {
                                     <div className="space-y-5">
                                         <div className="flex items-center gap-2 mb-2">
                                             <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Secondary Metadata</h4>
+                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Other Details</h4>
                                         </div>
                                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                             <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Cluster (Category)</label>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Category</label>
                                                 <input 
                                                     list="categories"
                                                     type="text" 
@@ -364,7 +370,7 @@ const BookInventory = () => {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Archive Year</label>
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Publication Year</label>
                                                 <input 
                                                     type="number" 
                                                     value={formData.publicationYear}
@@ -383,13 +389,13 @@ const BookInventory = () => {
                                         onClick={() => setIsModalOpen(false)} 
                                         className="flex-1 px-6 py-4 border border-white/5 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-white/5 transition-all rounded-xl leading-none"
                                     >
-                                        Abort
+                                        Cancel
                                     </button>
                                     <button 
                                         type="submit" 
                                         className="flex-[2] px-6 py-4 bg-librarian-primary text-[11px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:bg-librarian-primary transition-all shadow-xl shadow-librarian-primary/20 leading-none flex items-center justify-center gap-2 group"
                                     >
-                                        {editingBook ? 'Update Archive Registry' : 'Commit Volume to Matrix'}
+                                        {editingBook ? 'Update Book' : 'Add Book'}
                                         <Plus size={14} className="group-hover:rotate-90 transition-transform" />
                                     </button>
                                 </div>

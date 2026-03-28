@@ -367,7 +367,7 @@ function AppRoutes() {
 
             {/* Library & Knowledge Hub */}
             <Route path="library-inventory" element={<Suspense fallback={<Loader2 className="animate-spin" />}><BookInventory /></Suspense>} />
-            <Route path="library-records" element={<Suspense fallback={<Loader2 className="animate-spin" />}><IssueRecords /></Suspense>} />
+            <Route path="library-records" element={<Suspense fallback={<Loader2 className="animate-spin" />}><IssueRecords type="all" /></Suspense>} />
             <Route path="library-history" element={<Suspense fallback={<Loader2 className="animate-spin" />}><CirculationHistory /></Suspense>} />
             <Route path="library-categories" element={<Suspense fallback={<Loader2 className="animate-spin" />}><BookCategories /></Suspense>} />
           </Route>
@@ -419,9 +419,9 @@ function AppRoutes() {
           }>
             <Route index element={<LibrarianDashboard />} />
             <Route path="inventory" element={<BookInventory />} />
-            <Route path="issue" element={<IssueRecords />} />
-            <Route path="return" element={<IssueRecords />} />
-            <Route path="records" element={<IssueRecords />} />
+            <Route path="issue" element={<IssueRecords type="issue" />} />
+            <Route path="return" element={<IssueRecords type="return" />} />
+            <Route path="records" element={<IssueRecords type="all" />} />
             <Route path="categories" element={<BookCategories />} />
             <Route path="history" element={<CirculationHistory />} />
             <Route path="students" element={<MemberRegistry />} />

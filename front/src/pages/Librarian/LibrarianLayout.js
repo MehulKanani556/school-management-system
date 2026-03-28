@@ -75,7 +75,7 @@ const LibrarianLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
-      toast.success(`Archive Alert: ${notif.title}`, {
+      toast.success(`Notification: ${notif.title}`, {
         icon: '📚',
         style: {
           borderRadius: '1.5rem',
@@ -121,13 +121,13 @@ const LibrarianLayout = () => {
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full`}>
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-librarian-primary to-librarian-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-librarian-primary/20 text-black">AK</div>
-            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Archive <span className="text-librarian-primary">Node</span></span>
+            <div className="w-10 h-10 rounded-md bg-gradient-to-br from-librarian-primary to-librarian-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-librarian-primary/20 text-black">LM</div>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Library <span className="text-librarian-primary">Mgt</span></span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Knowledge Custodian</p>
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Librarian Panel</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -195,7 +195,7 @@ const LibrarianLayout = () => {
         <div className="p-6 flex-shrink-0">
           <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-librarian-primary/10 hover:text-librarian-primary transition-all group font-outfit border border-transparent hover:border-librarian-primary/20 uppercase tracking-widest text-[11px] font-black">
             <LogOut size={20} />
-            <span className="italic">Shutdown</span>
+            <span className="italic">Logout</span>
           </button>
         </div>
       </aside>
@@ -208,9 +208,9 @@ const LibrarianLayout = () => {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
               <Menu size={20} />
             </button>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Archive Oversight</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Library Management</span>
             <ChevronRight size={14} className="hidden sm:block opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-librarian-primary italic">Librarian Terminal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-librarian-primary italic">Librarian Panel</span>
           </div>
 
           <div className="flex items-center gap-6">
@@ -234,7 +234,7 @@ const LibrarianLayout = () => {
               >
                 <div className="text-right hidden sm:block">
                   <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
-                  <p className="text-[9px] font-black text-librarian-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Asset Guardian</p>
+                  <p className="text-[9px] font-black text-librarian-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Librarian</p>
                 </div>
                 <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-librarian-primary transition-all p-0.5">
                   <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
@@ -268,7 +268,7 @@ const LibrarianLayout = () => {
                           onClick={handleSettings}
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/5 text-slate-300 hover:text-white transition-all text-[10px] font-black uppercase tracking-widest italic">
                           <User size={18} className="text-librarian-primary" />
-                          View Profile
+                          My Profile
                         </button>
 
                         <div className="p-1 mb-1">
@@ -279,7 +279,7 @@ const LibrarianLayout = () => {
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-librarian-primary/10 text-librarian-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                          Log Out Matrix
+                          Log Out
                         </button>
                       </div>
                     </motion.div>

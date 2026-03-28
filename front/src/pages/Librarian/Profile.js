@@ -89,7 +89,7 @@ const LibrarianProfile = () => {
     }
   };
 
-  if (loading) return <div className="p-8 text-center text-slate-400">Loading node data...</div>;
+  if (loading) return <div className="p-8 text-center text-slate-400">Loading Profile...</div>;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -97,9 +97,9 @@ const LibrarianProfile = () => {
         <div>
           <h1 className="text-2xl font-black text-white uppercase tracking-widest italic flex items-center gap-3">
             <User className="text-librarian-primary" size={28} />
-            Archive Guardian Profile
+            Librarian Profile
           </h1>
-          <p className="text-sm text-slate-400 mt-1 uppercase tracking-widest text-[10px]">Manage your access nodes</p>
+          <p className="text-sm text-slate-400 mt-1 uppercase tracking-widest text-[10px]">Manage your personal and account details.</p>
         </div>
       </div>
 
@@ -109,7 +109,7 @@ const LibrarianProfile = () => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-librarian-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
           
           <h2 className="text-xs font-black text-white/50 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-            Identity Matrix
+            Basic Information
             <div className="h-px bg-white/10 flex-1 ml-2" />
           </h2>
 
@@ -168,7 +168,7 @@ const LibrarianProfile = () => {
                 </div>
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Phone Node</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Contact Number</label>
                  <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                   <input
@@ -185,7 +185,7 @@ const LibrarianProfile = () => {
             {editMode && (
               <div className="flex justify-end pt-4">
                 <button type="submit" className="flex items-center gap-2 bg-librarian-primary text-black px-6 py-2 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-librarian-secondary transition-colors italic">
-                  <Save size={16} /> Replace Identity Vector
+                  <Save size={16} /> Update Profile
                 </button>
               </div>
             )}
@@ -197,13 +197,13 @@ const LibrarianProfile = () => {
           <div className="absolute top-0 right-0 w-32 h-32 bg-librarian-primary/5 rounded-full blur-3xl -mr-10 -mt-10" />
           
           <h2 className="text-xs font-black text-white/50 uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
-            Security Block
+            Change Password
             <div className="h-px bg-white/10 flex-1 ml-2" />
           </h2>
 
           <form onSubmit={handlePasswordChange} className="space-y-4">
              <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Current Key</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Current Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                   <input
@@ -220,7 +220,7 @@ const LibrarianProfile = () => {
               </div>
 
                <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">New Key</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">New Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                   <input
@@ -238,7 +238,7 @@ const LibrarianProfile = () => {
               </div>
 
                <div className="space-y-1">
-                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Confirm Key</label>
+                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">Confirm Password</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
                   <input
@@ -255,7 +255,7 @@ const LibrarianProfile = () => {
               </div>
 
               <button type="submit" disabled={!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword} className="w-full mt-4 bg-brand-background border border-librarian-primary/50 text-librarian-primary px-4 py-2.5 rounded-lg font-black uppercase tracking-widest text-xs hover:bg-librarian-primary/10 transition-colors disabled:opacity-50 disabled:cursor-not-allowed italic">
-                Update Security Root
+                Update Password
               </button>
           </form>
         </motion.div>
