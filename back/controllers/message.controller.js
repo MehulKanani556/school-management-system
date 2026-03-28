@@ -79,16 +79,16 @@ exports.createNotice = async (req, res) => {
 // Send a direct message to a specific user (e.g. Admin to Teacher)
 exports.sendMessage = async (req, res) => {
     try {
-        const { recipient, subject, content } = req.body;
+        const { recipient, recipientId, subject, content } = req.body;
         const schoolId = req.user.schoolId;
 
         const message = await Message.create({
             schoolId,
             sender: req.user._id,
-            recipient,
+            recipient: recipient || recipientId,
             type: 'DirectMessage',
             targetRole: 'Specific',
-            subject,
+            subject: subject || 'Direct Message',
             content,
             fileUrl: req.file ? req.file.location : null
         });
@@ -99,7 +99,7 @@ exports.sendMessage = async (req, res) => {
         ]);
         
         // Real-time send
-        socketManager.sendToUser(recipient, 'NEW_MESSAGE', {
+        socketManager.sendToUser(recipient || recipientId, 'NEW_MESSAGE', {
             ...populated.toJSON(),
             senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
         });

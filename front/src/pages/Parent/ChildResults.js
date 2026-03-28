@@ -38,7 +38,7 @@ const ChildResults = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Outcome Node</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Academic Outcomes</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide">Standardized assessment logs for <span className="text-white font-bold">{selectedChild?.firstName}</span></p>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide">Standardized assessment logs for <span className="text-white font-bold">{selectedChild?.firstName + " " + selectedChild?.lastName}</span></p>
                     
                     <button 
                         onClick={() => dispatch(downloadReportCard({ studentId: selectedChild?._id, name: selectedChild?.firstName }))}
@@ -126,9 +126,9 @@ const ChildResults = () => {
                     </div>
                 </div>
             </div>
-            <div className="flex items-center justify-center p-12 bg-slate-900/20 border border-dashed border-slate-800 rounded-md">
+            {/* <div className="flex items-center justify-center p-12 bg-slate-900/20 border border-dashed border-slate-800 rounded-md">
                 <p className="text-[10px] font-black uppercase text-slate-600 tracking-[0.5em] text-center max-w-md italic opacity-50">Authorized Guardian Sync // All assessment data and grade transcripts are cryptographically verified by institutional nodes.</p>
-            </div>
+            </div> */}
         </motion.div>
     );
 };

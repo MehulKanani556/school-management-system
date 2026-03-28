@@ -314,8 +314,12 @@ const ParentLayout = () => {
                   <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
                   <p className="text-[9px] font-black text-parent-primary uppercase tracking-[0.4em] mt-1.5 opacity-80 leading-none italic">ID: 00{user?._id.toString().slice(-3)}</p>
                 </div>
-                <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-parent-primary transition-all p-0.5 uppercase">
-                  {user?.firstName[0]}{user?.lastName[0]}
+                <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-parent-primary transition-all p-0.5 uppercase relative group">
+                  {user?.photo ? (
+                    <img src={`${user.photo}?t=${Date.now()}`} className="w-full h-full object-cover rounded-sm group-hover:scale-110 transition-transform" alt="" />
+                  ) : (
+                    <span className="text-[14px] font-black text-slate-400">{user?.firstName?.[0]}{user?.lastName?.[0]}</span>
+                  )}
                 </div>
               </button>
 

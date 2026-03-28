@@ -51,7 +51,8 @@ const ChildAttendance = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Presence Node</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Attendance Logs</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide">Historical participation telemetry for <span className="text-white font-bold">{selectedChild?.firstName}</span></p>
+
+                    <p className="text-slate-500 font-medium text-sm tracking-wide">Historical participation telemetry for <span className="text-white font-bold">{selectedChild?.firstName + " " + selectedChild?.lastName}</span></p>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800 p-6 rounded-md shadow-inner backdrop-blur-sm">
@@ -90,7 +91,6 @@ const ChildAttendance = () => {
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Status</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Subject / Room</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic text-right">Verification</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-brand-border/20">
@@ -119,9 +119,7 @@ const ChildAttendance = () => {
                                                        <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">{record.subjectId?.name || "General Session"}</p>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6 text-right">
-                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">Registry Sync confirmed</span>
-                                                </td>
+                                             
                                             </tr>
                                         );
                                     })

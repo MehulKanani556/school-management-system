@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchChildMeetings } from '../../redux/slice/parent.slice';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -7,6 +7,7 @@ import { Calendar, Users, Clock, Video, MapPin, CheckCircle2, MoreVertical, Mess
 const ChildMeetings = () => {
     const dispatch = useDispatch();
     const { selectedChild, meetings, meetingsLoading: loading } = useSelector((state) => state.parent);
+    const [selectedMeeting, setSelectedMeeting] = useState(null);
 
     useEffect(() => {
         if (selectedChild?._id) {
@@ -18,9 +19,9 @@ const ChildMeetings = () => {
     const pastMeetings = meetings?.filter(m => new Date(m.date) < new Date().setHours(0,0,0,0));
 
     return (
-        <div className="space-y-12 animate-in fade-in duration-1000 pb-20">
+        <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
             {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-10 bg-[#0f0f12] p-12 rounded-md border border-slate-800/80 backdrop-blur-3xl shadow-2xl group relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-[#0f0f12] p-8 rounded-md border border-slate-800/80 backdrop-blur-3xl shadow-2xl group relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-80 h-80 bg-brand-primary/5 rounded-full -mr-40 -mt-40 blur-[120px] opacity-40 group-hover:opacity-60 transition-opacity"></div>
                 
                 <div className="relative z-10 flex items-center gap-6">
@@ -37,20 +38,20 @@ const ChildMeetings = () => {
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2 italic">Active Cluster</p>
                     <div className="flex items-center gap-4 bg-slate-900/60 px-8 py-4 rounded-md border border-slate-800 shadow-inner group">
                         <div className="w-2.5 h-2.5 rounded-full bg-brand-primary shadow-[0_0_15px_rgba(var(--brand-primary-rgb),0.6)] animate-pulse"></div>
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-white italic">{selectedChild?.firstName}'s Academic Node</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em] text-white italic">{selectedChild?.firstName + " " + selectedChild?.lastName}'s Academic Node</span>
                     </div>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Upcoming Meetings */}
-                <div className="lg:col-span-8 space-y-10">
+                <div className="lg:col-span-8 space-y-6">
                     <div className="flex items-center gap-6 px-4">
                         <h2 className="text-[12px] font-black uppercase tracking-[0.5em] text-white italic">Active Synchronizations</h2>
                         <div className="h-0.5 flex-1 bg-gradient-to-r from-brand-primary/40 via-brand-secondary/20 to-transparent"></div>
                     </div>
 
-                    <div className="grid gap-8">
+                    <div className="grid gap-6">
                         <AnimatePresence mode='popLayout'>
                             {upcomingMeetings?.map((m, i) => (
                                 <motion.div 
@@ -58,9 +59,9 @@ const ChildMeetings = () => {
                                     initial={{ opacity: 0, y: 30 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: i * 0.1 }}
-                                    className="bg-[#0f0f12] border border-slate-800/80 rounded-md p-10 hover:border-brand-primary/40 transition-all group relative backdrop-blur-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)]"
+                                    className="bg-[#0f0f12] border border-slate-800/80 rounded-md p-6 hover:border-brand-primary/40 transition-all group relative backdrop-blur-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.4)]"
                                 >
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-10">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
                                         <div className="flex items-center gap-8">
                                             <div className="w-20 h-20 rounded-md bg-slate-900 border-2 border-slate-800/60 flex flex-col items-center justify-center p-3 group-hover:border-brand-primary/30 transition-all shadow-inner">
                                                 <span className="text-[10px] font-black uppercase tracking-[0.1em] text-slate-500">{new Date(m.date).toLocaleDateString('en-US', { month: 'short' })}</span>
@@ -89,7 +90,7 @@ const ChildMeetings = () => {
                                         </div>
                                     </div>
 
-                                    {m.description && <p className="text-[13px] font-medium text-slate-400 italic mb-10 pl-6 border-l-3 border-brand-primary/20 leading-relaxed max-w-2xl">{m.description}</p>}
+                                    {m.description && <p className="text-[13px] font-medium text-slate-400 italic mb-6 pl-6 border-l-3 border-brand-primary/20 leading-relaxed max-w-2xl line-clamp-2">{m.description}</p>}
 
                                     <div className="flex items-center justify-between pt-8 border-t border-slate-800/80">
                                         <div className="flex items-center gap-3 text-slate-500">
@@ -97,12 +98,24 @@ const ChildMeetings = () => {
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] italic">Protocol Status: {m.status}</span>
                                         </div>
                                         {m.meetingType === 'Virtual' ? (
-                                            <button className="flex items-center gap-4 text-parent-primary hover:text-parent-primary text-[11px] font-black uppercase tracking-[0.3em] bg-cyan-900/10 hover:bg-cyan-900/20 px-10 py-4 rounded-md transition-all border border-parent-primary/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]">
+                                            <button 
+                                                onClick={() => {
+                                                    if (m.meetingLink) {
+                                                        window.open(m.meetingLink, '_blank');
+                                                    } else {
+                                                        setSelectedMeeting(m);
+                                                    }
+                                                }}
+                                                className="flex items-center gap-4 text-parent-primary hover:text-parent-primary text-[11px] font-black uppercase tracking-[0.3em] bg-cyan-900/10 hover:bg-cyan-900/20 px-10 py-4 rounded-md transition-all border border-parent-primary/30 shadow-[0_0_20px_rgba(6,182,212,0.1)]"
+                                            >
                                                 INITIALIZE SYNC
                                                 <ChevronRight size={18} />
                                             </button>
                                         ) : (
-                                            <button className="flex items-center gap-4 text-slate-400 hover:text-white text-[11px] font-black uppercase tracking-[0.3em] px-10 py-4 rounded-md transition-all border border-slate-800 hover:border-slate-700 bg-slate-900/40">
+                                            <button 
+                                                onClick={() => setSelectedMeeting(m)}
+                                                className="flex items-center gap-4 text-slate-400 hover:text-white text-[11px] font-black uppercase tracking-[0.3em] px-10 py-4 rounded-md transition-all border border-slate-800 hover:border-slate-700 bg-slate-900/40"
+                                            >
                                                 DETAILED MANIFEST
                                                 <ChevronRight size={18} />
                                             </button>
@@ -123,20 +136,20 @@ const ChildMeetings = () => {
                 </div>
 
                 {/* Historical Registry Sidebar */}
-                <div className="lg:col-span-4 space-y-10">
-                    <div className="bg-slate-950/40 p-1.5 rounded-md border border-slate-800/60 overflow-hidden shadow-2xl">
-                        <div className="p-10 space-y-10 bg-[#0f0f12]">
-                            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 border-b border-white/5 pb-6 flex items-center justify-between font-outfit italic">
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="bg-slate-950/40 p-1 rounded-md border border-slate-800/60 overflow-hidden shadow-2xl">
+                        <div className="p-6 space-y-6 bg-[#0f0f12]">
+                            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-500 border-b border-white/5 pb-4 flex items-center justify-between font-outfit italic">
                                 Institutional Summary
                                 <LayoutGrid size={16} className="text-brand-primary" />
                             </h3>
-                            <div className="grid gap-6">
-                                <div className="bg-slate-900/40 p-8 rounded-md border border-slate-800/80 group">
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 group-hover:text-brand-primary transition-colors italic">Active</p>
+                            <div className="grid gap-3">
+                                <div className="bg-slate-900/40 p-5 rounded-md border border-slate-800/80 group">
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 group-hover:text-brand-primary transition-colors italic">Active</p>
                                     <p className="text-4xl font-black font-outfit text-white group-hover:scale-110 transition-transform origin-left">{upcomingMeetings?.length || 0}</p>
                                 </div>
-                                <div className="bg-slate-900/40 p-8 rounded-md border border-slate-800/80 group">
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-3 group-hover:text-emerald-400 transition-colors italic">Archived</p>
+                                <div className="bg-slate-900/40 p-5 rounded-md border border-slate-800/80 group">
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2 group-hover:text-emerald-400 transition-colors italic">Archived</p>
                                     <p className="text-4xl font-black font-outfit text-white opacity-40 group-hover:opacity-100 transition-opacity origin-left">{pastMeetings?.length || 0}</p>
                                 </div>
                             </div>
@@ -167,6 +180,115 @@ const ChildMeetings = () => {
                     </div>
                 </div>
             </div>
+            {/* Detailed Manifest Modal */}
+            <AnimatePresence>
+                {selectedMeeting && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+                        <motion.div 
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setSelectedMeeting(null)}
+                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                        ></motion.div>
+                        
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-2xl bg-[#0f0f12] border border-slate-800 rounded-md overflow-hidden shadow-2xl"
+                        >
+                            <div className="p-10">
+                                <div className="flex items-center justify-between mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
+                                            <Calendar className="text-brand-primary" size={24} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-2xl font-black text-white uppercase tracking-tighter font-outfit">{selectedMeeting.title}</h2>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">PTM Protocol Manifest</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => setSelectedMeeting(null)}
+                                        className="text-slate-500 hover:text-white transition-colors"
+                                    >
+                                        <MoreVertical size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6 mb-10">
+                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                            <Calendar size={12} />
+                                            Date Session
+                                        </div>
+                                        <p className="text-lg font-black text-white">{new Date(selectedMeeting.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                    </div>
+                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                            <Clock size={12} />
+                                            Temporal Slot
+                                        </div>
+                                        <p className="text-lg font-black text-white">{selectedMeeting.startTime} - {selectedMeeting.endTime}</p>
+                                    </div>
+                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                            <Users size={12} />
+                                            Faculty Anchor
+                                        </div>
+                                        <p className="text-lg font-black text-white">{selectedMeeting.teacherId?.firstName} {selectedMeeting.teacherId?.lastName}</p>
+                                    </div>
+                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                            <MapPin size={12} />
+                                            Location Sector
+                                        </div>
+                                        <p className="text-lg font-black text-white">{selectedMeeting.meetingType} SECTOR</p>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4 mb-10">
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1">Directive Details</label>
+                                    <div className="bg-slate-900/40 p-8 rounded-md border border-brand-primary/20 italic">
+                                        <p className="text-[13px] text-slate-400 leading-relaxed font-outfit">{selectedMeeting.description || "No specific directives provided for this synchronization."}</p>
+                                    </div>
+                                </div>
+
+                                {selectedMeeting.meetingLink && (
+                                    <div className="space-y-4 mb-10">
+                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1 font-outfit">Virtual Access Portal</label>
+                                        <a 
+                                            href={selectedMeeting.meetingLink}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="block p-8 bg-parent-primary/10 border border-parent-primary/40 rounded-md group hover:bg-parent-primary/20 transition-all text-center"
+                                        >
+                                            <p className="text-parent-primary font-black uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-4 group-hover:scale-105 transition-transform">
+                                                <Video size={18} />
+                                                OPEN VIRTUAL COORDINATES
+                                            </p>
+                                        </a>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center justify-between pt-8 border-t border-slate-800/80">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic leading-none">Status: {selectedMeeting.status}</span>
+                                    </div>
+                                    <button 
+                                        onClick={() => setSelectedMeeting(null)}
+                                        className="bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] px-12 py-4 rounded-md shadow-[0_10px_30px_rgba(var(--brand-primary-rgb),0.3)] hover:scale-105 transition-all"
+                                    >
+                                        ACKNOWLEDGE
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

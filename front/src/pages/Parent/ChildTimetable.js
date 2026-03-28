@@ -49,13 +49,14 @@ const ChildTimetable = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Daily Sequence</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Academic Timetable</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Operational schedule for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s current term.</p>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Operational schedule for <span className="text-white font-bold">{selectedChild?.firstName + " " + selectedChild?.lastName}</span>'s current term.</p>
                 </div>
                 <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 px-8 rounded-md shadow-inner opacity-60">
                     <Calendar size={24} className="text-luxury-rose" />
                     <div>
                         <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">Standard</p>
-                        <p className="text-sm font-black text-white">{selectedChild?.standard?.name} // {selectedChild?.classSection?.name}</p>
+                        {console.log(selectedChild)}
+                        <p className="text-sm font-black text-white">{selectedChild?.standard?.level} {selectedChild?.classSection?.sectionLabel}</p>
                     </div>
                 </div>
             </header>
@@ -110,10 +111,7 @@ const ChildTimetable = () => {
                                                                             {session.teacher?.firstName} {session.teacher?.lastName}
                                                                         </span>
                                                                     </div>
-                                                                    <div className="flex items-center gap-2 opacity-40">
-                                                                        <Clock size={11} className="text-slate-500" />
-                                                                        <span className="text-[8px] font-bold text-slate-500 tracking-[0.2em]">{session.startTime} - {session.endTime}</span>
-                                                                    </div>
+                                                                    
                                                                 </div>
                                                             )}
                                                         </div>

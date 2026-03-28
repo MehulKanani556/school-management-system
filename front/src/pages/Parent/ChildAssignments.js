@@ -31,7 +31,7 @@ const ChildAssignments = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Task Registry</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Project Worksheets</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Assigned academic tasks for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s sectors.</p>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Assigned academic tasks for <span className="text-white font-bold">{selectedChild?.firstName + " " + selectedChild?.lastName}</span>'s sectors.</p>
                 </div>
                 <div className="flex items-center gap-4 bg-slate-900 border border-slate-800 p-4 px-8 rounded-md shadow-inner">
                     <ClipboardList size={24} className="text-luxury-rose" />

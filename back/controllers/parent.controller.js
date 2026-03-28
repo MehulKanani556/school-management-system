@@ -287,8 +287,8 @@ exports.getParentProfile = async (req, res) => {
 
 exports.updateParentProfile = async (req, res) => {
     try {
-        const { firstName, lastName, phone, address } = req.body;
-        const updateData = { firstName, lastName, phone, address };
+        const { firstName, lastName, phoneNumber, address } = req.body;
+        const updateData = { firstName, lastName, phoneNumber, address };
         if (req.file) updateData.photo = req.file.location || req.file.path;
 
         const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).select('-password');

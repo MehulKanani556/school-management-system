@@ -1,22 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import axiosInstance from '../../utils/axiosInstance';
 import { motion } from 'framer-motion';
-import { User, Mail, Phone, MapPin, Lock, Camera, CheckCircle, AlertCircle } from 'lucide-react';
+import { User, Mail, Phone, MapPin, Lock, Camera, CheckCircle, AlertCircle, ShieldCheck, Zap } from 'lucide-react';
+import { updateUser } from '../../redux/slice/auth.slice';
 
 const ParentProfile = () => {
     const { user } = useSelector(state => state.auth);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState(null);
     const [error, setError] = useState(null);
+    const fileInputRef = useRef(null);
+    const [previewUrl, setPreviewUrl] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(Date.now());
+
+    const dispatch = useDispatch();
+
+    console.log(user);
 
     const profileFormik = useFormik({
         initialValues: {
             firstName: user?.firstName || '',
             lastName: user?.lastName || '',
-            phone: user?.phone || '',
+            phoneNumber: user?.phoneNumber || '',
             address: user?.address || '',
         },
         validationSchema: Yup.object({
@@ -26,8 +34,22 @@ const ParentProfile = () => {
         onSubmit: async (values) => {
             setLoading(true);
             try {
-                const res = await axiosInstance.put('/parent/profile', values);
-                setMessage('Profile updated successfully');
+                const formData = new FormData();
+                formData.append('firstName', values.firstName);
+                formData.append('lastName', values.lastName);
+                formData.append('phoneNumber', values.phoneNumber);
+                formData.append('address', values.address);
+                if (fileInputRef.current?.files[0]) {
+                    formData.append('photo', fileInputRef.current.files[0]);
+                }
+
+                const res = await axiosInstance.put('/parent/profile', formData, {
+                    headers: { 'Content-Type': 'multipart/form-data' }
+                });
+                dispatch(updateUser(res.data.user));
+                setPreviewUrl(null);
+                setRefreshKey(Date.now());
+                setMessage('Guardian profile synchronized successfully');
                 setLoading(false);
             } catch (err) {
                 setError(err.response?.data?.message || 'Update failed');
@@ -35,6 +57,14 @@ const ParentProfile = () => {
             }
         }
     });
+
+    const handlePhotoClick = () => fileInputRef.current?.click();
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setPreviewUrl(URL.createObjectURL(file));
+        }
+    };
 
     const passFormik = useFormik({
         initialValues: { oldPassword: '', newPassword: '', confirmPassword: '' },
@@ -79,9 +109,22 @@ const ParentProfile = () => {
                     <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8 text-center relative overflow-hidden group">
                         <div className="absolute inset-0 bg-brand-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="relative w-24 h-24 mx-auto mb-6">
-                            <img src={user?.photo || `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random`}
-                                className="w-full h-full rounded-md object-cover border-2 border-brand-primary/20 shadow-xl" alt="" />
-                            <div className="absolute -bottom-2 -right-2 p-2 bg-brand-primary rounded-md text-white shadow-lg cursor-pointer hover:scale-110 transition-transform">
+                            <input 
+                                type="file" 
+                                ref={fileInputRef} 
+                                onChange={handleFileChange} 
+                                className="hidden" 
+                                accept="image/*"
+                            />
+                            <img 
+                                key={refreshKey}
+                                src={previewUrl || (user?.photo ? `${user.photo}?t=${refreshKey}` : `https://ui-avatars.com/api/?name=${user?.firstName}+${user?.lastName}&background=random`)}
+                                className="w-full h-full rounded-md object-cover border-2 border-brand-primary/20 shadow-xl" alt="" 
+                            />
+                            <div 
+                                onClick={handlePhotoClick}
+                                className="absolute -bottom-2 -right-2 p-2 bg-brand-primary rounded-md text-white shadow-lg cursor-pointer hover:scale-110 transition-transform"
+                            >
                                 <Camera size={14} />
                             </div>
                         </div>
@@ -98,11 +141,11 @@ const ParentProfile = () => {
                         </div>
                         <div className="flex items-center gap-4 text-slate-400">
                             <div className="w-8 h-8 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary"><Phone size={14} /></div>
-                            <div className="text-xs">{user?.phone || 'Not provided'}</div>
+                            <div className="text-xs">{user?.phoneNumber || 'Not provided'}</div>
                         </div>
                         <div className="flex items-center gap-4 text-slate-400">
                             <div className="w-8 h-8 rounded-md bg-slate-800/50 flex items-center justify-center text-brand-primary"><MapPin size={14} /></div>
-                            <div className="text-xs truncate">{user?.address || 'City, Country'}</div>
+                            <div className="text-xs truncate">{user?.address || 'Mumbai, Maharashtra'}</div>
                         </div>
                     </div>
                 </div>
@@ -127,7 +170,7 @@ const ParentProfile = () => {
                             </div>
                             <div>
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-outfit">Contact Coordinates</label>
-                                <input {...profileFormik.getFieldProps('phone')} placeholder="e.g. +91 9876543210" className={ic} />
+                                <input {...profileFormik.getFieldProps('phoneNumber')} placeholder="e.g. +91 9876543210" className={ic} />
                             </div>
                             <div>
                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 font-outfit">Residential Vector (Address)</label>
