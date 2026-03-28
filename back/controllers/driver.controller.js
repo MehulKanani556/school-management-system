@@ -76,9 +76,27 @@ exports.startTrip = async (req, res) => {
         const driver = await getDriverDoc(req);
         if (!driver) return res.status(404).json({ message: 'Driver not found' });
 
+        const { routeId, type, date } = req.body;
+        const schoolId = getSchoolId(req);
+
+        // Check if a trip already exists for this specific combination to avoid duplicate key error
+        const existingTrip = await TripLog.findOne({
+            schoolId,
+            routeId,
+            type,
+            date: new Date(date)
+        });
+
+        if (existingTrip) {
+            return res.status(200).json({ 
+                message: 'Trip already exists for this slot. Resuming...', 
+                data: existingTrip 
+            });
+        }
+
         const tripData = { 
             ...req.body, 
-            schoolId: getSchoolId(req), 
+            schoolId, 
             driverId: driver._id,
             status: 'In-Progress',
             actualDepartureTime: new Date()
@@ -101,7 +119,12 @@ exports.startTrip = async (req, res) => {
         }
 
         res.status(201).json({ message: 'Trip started successfully', data: log });
-    } catch (err) { res.status(500).json({ message: err.message }); }
+    } catch (err) { 
+        if (err.code === 11000) {
+            return res.status(409).json({ message: 'This trip has already been started.' });
+        }
+        res.status(500).json({ message: err.message }); 
+    }
 };
 
 exports.getAttendance = async (req, res) => {

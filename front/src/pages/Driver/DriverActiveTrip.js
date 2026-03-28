@@ -28,32 +28,59 @@ const DriverActiveTrip = () => {
         (log.status === 'In-Progress' || log.status === 'Scheduled')
     );
 
-    const handleStartTrip = (id) => {
-        dispatch(updateTripStatusSlice({ id, status: 'In-Progress' }))
-            .then(() => toast.success('Trip Started! (सफर चालू हुआ)'));
+    const requestLocationPermission = () => {
+        return new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                toast.error("Geolocation is not supported by your browser (लोकेशन सपोर्ट नहीं करता)");
+                reject("Not supported");
+            } else {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => resolve(position),
+                    (error) => {
+                        toast.error("Please allow location access to start the trip (सफर शुरू करने के लिए लोकेशन परमिशन दें)");
+                        reject(error);
+                    }
+                );
+            }
+        });
+    };
+
+    const handleStartTrip = async (id) => {
+        try {
+            await requestLocationPermission();
+            dispatch(updateTripStatusSlice({ id, status: 'In-Progress' }))
+                .then(() => toast.success('Trip Started! (सफर चालू हुआ)'));
+        } catch (error) {
+            console.error("Location permission failed:", error);
+        }
     }
 
-    const handleCreateTrip = (e) => {
+    const handleCreateTrip = async (e) => {
         e.preventDefault();
         const route = routes.find(r => r._id === selectedRouteId);
         if (!route) return;
 
-        const formData = {
-            routeId: selectedRouteId,
-            vehicleId: route.vehicleId?._id || '',
-            type: tripType,
-            attendance: route.assignedStudents.map(as => ({
-                studentId: as.studentId._id,
-                boarded: false
-            })),
-            date: new Date().toISOString().split('T')[0]
-        };
+        try {
+            await requestLocationPermission();
+            const formData = {
+                routeId: selectedRouteId,
+                vehicleId: route.vehicleId?._id || '',
+                type: tripType,
+                attendance: route.assignedStudents.map(as => ({
+                    studentId: as.studentId._id,
+                    boarded: false
+                })),
+                date: new Date().toISOString().split('T')[0]
+            };
 
-        dispatch(startDriverTripSlice(formData))
-            .then(() => {
-                toast.success('Duty Shift Commenced! (ड्यूटी शुरू हुई)');
-                dispatch(fetchDriverTripLogsSlice({ date: new Date().toISOString().split('T')[0] }));
-            });
+            dispatch(startDriverTripSlice(formData))
+                .then(() => {
+                    toast.success('Duty Shift Commenced! (ड्यूटी शुरू हुई)');
+                    dispatch(fetchDriverTripLogsSlice({ date: new Date().toISOString().split('T')[0] }));
+                });
+        } catch (error) {
+            console.error("Location permission failed:", error);
+        }
     }
 
     const handleFinishTrip = (e) => {
@@ -133,31 +160,48 @@ const DriverActiveTrip = () => {
                         <div className="p-10 bg-brand-background/20">
                             <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-500 mb-8 border-b border-slate-800/60 pb-4 italic">Student Attendance (उपस्थिति दर्ज करें)</h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                                {activeTrip.attendance?.map((as, idx) => (
-                                    <button
-                                        key={idx}
-                                        disabled={activeTrip.status !== 'In-Progress'}
-                                        onClick={() => handleBoarding(as.studentId?._id, as.boarded)}
-                                        className={`p-5 rounded border transition-all flex items-center justify-between gap-4 text-left italic group ${as.boarded ? 'bg-emerald-600/5 border-emerald-500/30' : 'bg-neutral-950 border-slate-800/60 opacity-60'} ${activeTrip.status === 'In-Progress' ? 'hover:scale-[1.03] active:scale-95 cursor-pointer' : 'cursor-default'}`}
-                                    >
-                                        <div className="overflow-hidden flex-1">
-                                            <p className={`text-xs font-black uppercase tracking-tighter truncate ${as.boarded ? 'text-emerald-400' : 'text-slate-500'}`}>{as.studentId?.firstName} {as.studentId?.lastName}</p>
-                                            <div className="flex items-center gap-2 mt-1 opacity-60">
-                                                <Clock size={10} className="text-slate-600" />
-                                                <p className="text-[9px] font-bold uppercase tracking-widest truncate text-slate-600">
-                                                    {as.boardingTime ? new Date(as.boardingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Waiting...'}
-                                                </p>
+                                {activeTrip.attendance?.map((as, idx) => {
+                                    // Find student stop from route details
+                                    const studentRouteInfo = activeTrip.routeId?.assignedStudents?.find(
+                                        s => (s.studentId?._id || s.studentId) === (as.studentId?._id || as.studentId)
+                                    );
+                                    const assignedStop = activeTrip.type === 'Pickup' ? studentRouteInfo?.pickupStop : studentRouteInfo?.dropoffStop;
+
+                                    return (
+                                        <button
+                                            key={idx}
+                                            disabled={activeTrip.status !== 'In-Progress'}
+                                            onClick={() => handleBoarding(as.studentId?._id, as.boarded)}
+                                            className={`p-5 rounded border transition-all flex items-center justify-between gap-4 text-left italic group ${as.boarded ? 'bg-emerald-600/5 border-emerald-500/30' : 'bg-neutral-950 border-slate-800/60 opacity-60'} ${activeTrip.status === 'In-Progress' ? 'hover:scale-[1.03] active:scale-95 cursor-pointer' : 'cursor-default'}`}
+                                        >
+                                            <div className="overflow-hidden flex-1">
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <p className={`text-xs font-black uppercase tracking-tighter truncate ${as.boarded ? 'text-emerald-400' : 'text-slate-500'}`}>{as.studentId?.firstName} {as.studentId?.lastName}</p>
+                                                    {studentRouteInfo?.seatNumber && <span className="text-[8px] font-black bg-neutral-950 border border-emerald-500/20 px-1.5 py-0.5 rounded text-emerald-500 shrink-0">#{studentRouteInfo.seatNumber}</span>}
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-2 opacity-80">
+                                                    <MapPin size={10} className="text-emerald-500" />
+                                                    <p className="text-[9px] font-bold uppercase tracking-widest truncate text-slate-400">
+                                                        {assignedStop || 'Point Not Set'}
+                                                    </p>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-1 opacity-50">
+                                                    <Clock size={10} className="text-slate-600" />
+                                                    <p className="text-[8px] font-bold uppercase tracking-widest truncate text-slate-600">
+                                                        {as.boardingTime ? new Date(as.boardingTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Ready'}
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
-                                        {as.boarded ? (
-                                            <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-black shadow-lg shadow-emerald-500/20">
-                                                <CheckCircle2 size={14} />
-                                            </div>
-                                        ) : (
-                                            <div className="w-6 h-6 rounded-full border border-slate-800 flex items-center justify-center transition-all group-hover:border-emerald-500/40" />
-                                        )}
-                                    </button>
-                                ))}
+                                            {as.boarded ? (
+                                                <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-black shadow-lg shadow-emerald-500/20">
+                                                    <CheckCircle2 size={14} />
+                                                </div>
+                                            ) : (
+                                                <div className="w-6 h-6 rounded-full border border-slate-800 flex items-center justify-center transition-all group-hover:border-emerald-500/40" />
+                                            )}
+                                        </button>
+                                    );
+                                })}
                             </div>
                         </div>
                     </div>
