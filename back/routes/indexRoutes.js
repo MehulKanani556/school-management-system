@@ -175,6 +175,7 @@ router.delete('/school-admin/timetable-templates/:id', ...schoolAdmin, ttc.delet
 router.get('/school-admin/payroll', ...schoolAdmin, sa.getAllPayroll);
 router.post('/school-admin/payroll', ...schoolAdmin, sa.createPayroll);
 router.post('/school-admin/payroll/bulk', ...schoolAdmin, sa.generateBulkPayroll);
+router.get('/school-admin/payroll/preview', ...schoolAdmin, sa.getPayrollPreview);
 router.put('/school-admin/payroll/:id', ...schoolAdmin, sa.updatePayroll);
 router.delete('/school-admin/payroll/:id', ...schoolAdmin, sa.deletePayroll);
 
@@ -419,6 +420,7 @@ router.get('/accountant/standards', ...accountant, sa.getStandards);
 router.put('/accountant/fees/:id', ...accountant, ac.collectFee);
 router.get('/accountant/fees/:id/receipt', ...accountant, ac.downloadFeeReceipt);
 router.get('/accountant/payroll', ...accountant, ac.getPayroll);
+router.get('/accountant/payroll/preview', ...accountant, ac.getPayrollPreview);
 router.post('/accountant/payroll/generate', ...accountant, ac.generatePayroll);
 router.post('/accountant/payroll/single', ...accountant, ac.createSinglePayroll);
 router.put('/accountant/payroll/:id/process', ...accountant, ac.processPayroll);

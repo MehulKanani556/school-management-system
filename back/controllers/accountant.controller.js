@@ -7,6 +7,7 @@ const Standard = require('../models/standard.model');
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 const User = require('../models/user.model');
+const StaffAttendance = require('../models/staffAttendance.model');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -272,12 +273,64 @@ exports.getPayroll = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
+const calculateDeductionsForStaff = async (schoolId, staffId, basic, isTeacher, month, year) => {
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
+    
+    const attendance = await StaffAttendance.find({
+        schoolId,
+        [isTeacher ? 'teacherId' : 'userId']: staffId,
+        date: { $gte: startDate, $lte: endDate }
+    });
+
+    let absentDays = 0;
+    attendance.forEach(a => {
+        const s = (a.status || '').toLowerCase();
+        if (s.includes('absent') || s.includes('abxent') || s.includes('abzent')) {
+            absentDays += 1;
+        } else if (s === 'half-day') {
+            absentDays += 0.5;
+        } else if (s !== 'present' && s !== 'late' && s !== 'leave' && s !== '') {
+            absentDays += 1;
+        }
+    });
+
+    const deductions = Math.round((basic / 30) * absentDays);
+    const netSalary = Math.max(0, basic - deductions);
+    return { absentDays, deductions, netSalary };
+};
+
+exports.getPayrollPreview = async (req, res) => {
+    try {
+        const { staffId, month, year } = req.query;
+        const schoolId = getSchoolId(req);
+
+        if (!staffId || !month || !year) return res.status(400).json({ message: 'Missing parameters' });
+
+        const teacher = await Teacher.findOne({ _id: staffId, schoolId });
+        const user = !teacher ? await User.findOne({ _id: staffId, schoolId }) : null;
+
+        if (!teacher && !user) return res.status(404).json({ message: 'Staff member not found' });
+
+        const isTeacher = !!teacher;
+        const basic = (teacher || user).baseSalary || 0;
+        const { absentDays, deductions, netSalary } = await calculateDeductionsForStaff(schoolId, staffId, basic, isTeacher, parseInt(month), parseInt(year));
+
+        res.json({
+            basicSalary: basic,
+            deductions,
+            netSalary,
+            absentDays,
+            remarks: absentDays > 0 ? `Predictive sync. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
+        });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
 exports.generatePayroll = async (req, res) => {
     try {
         const { month, year } = req.body;
         const schoolId = getSchoolId(req);
 
-        // Fetch all active teachers AND staff
         const [teachers, otherStaff] = await Promise.all([
             Teacher.find({ schoolId, isActive: true, deletedAt: null }),
             User.find({ 
@@ -289,53 +342,92 @@ exports.generatePayroll = async (req, res) => {
 
         if (!teachers.length && !otherStaff.length) return res.status(404).json({ message: 'No active staff members found' });
 
-        // Check for existing records
         const existing = await Payroll.find({ schoolId, month, year });
-        const existingTeacherIds = new Set(existing.filter(p => p.teacherId).map(p => p.teacherId.toString()));
-        const existingUserIds = new Set(existing.filter(p => p.userId).map(p => p.userId.toString()));
+        const existingRecordsMap = new Map();
+        existing.forEach(p => {
+            const key = p.teacherId ? p.teacherId.toString() : p.userId.toString();
+            existingRecordsMap.set(key, p);
+        });
 
         const payload = [];
-        
+        const updates = [];
+
         // Teachers
         for (const t of teachers) {
-            if (!existingTeacherIds.has(t._id.toString())) {
+            const basic = t.baseSalary || 0;
+            const { absentDays, deductions, netSalary } = await calculateDeductionsForStaff(schoolId, t._id, basic, true, month, year);
+            const key = t._id.toString();
+
+            if (!existingRecordsMap.has(key)) {
                 payload.push({
                     schoolId,
                     teacherId: t._id,
                     month,
                     year,
-                    basicSalary: t.baseSalary || 0,
+                    basicSalary: basic,
                     bonus: 0,
-                    deductions: 0,
-                    netSalary: t.baseSalary || 0,
-                    status: 'unpaid'
+                    deductions,
+                    netSalary,
+                    status: 'unpaid',
+                    remarks: absentDays > 0 ? `Auto-generated. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
                 });
+            } else {
+                const existingRec = existingRecordsMap.get(key);
+                if (existingRec.status === 'unpaid') {
+                    updates.push(Payroll.updateOne(
+                        { _id: existingRec._id },
+                        { 
+                            deductions, 
+                            netSalary: basic + (existingRec.bonus || 0) - deductions,
+                            remarks: absentDays > 0 ? `Auto-updated. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
+                        }
+                    ));
+                }
             }
         }
 
         // Other Staff
         for (const s of otherStaff) {
-            if (!existingUserIds.has(s._id.toString())) {
+            const basic = s.baseSalary || 0;
+            const { absentDays, deductions, netSalary } = await calculateDeductionsForStaff(schoolId, s._id, basic, false, month, year);
+            const key = s._id.toString();
+
+            if (!existingRecordsMap.has(key)) {
                 payload.push({
                     schoolId,
                     userId: s._id,
                     month,
                     year,
-                    basicSalary: s.baseSalary || 0,
+                    basicSalary: basic,
                     bonus: 0,
-                    deductions: 0,
-                    netSalary: s.baseSalary || 0,
-                    status: 'unpaid'
+                    deductions,
+                    netSalary,
+                    status: 'unpaid',
+                    remarks: absentDays > 0 ? `Auto-generated. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
                 });
+            } else {
+                const existingRec = existingRecordsMap.get(key);
+                if (existingRec.status === 'unpaid') {
+                    updates.push(Payroll.updateOne(
+                        { _id: existingRec._id },
+                        { 
+                            deductions, 
+                            netSalary: basic + (existingRec.bonus || 0) - deductions,
+                            remarks: absentDays > 0 ? `Auto-updated. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
+                        }
+                    ));
+                }
             }
         }
 
-        if (!payload.length) return res.status(400).json({ message: 'Payroll cluster already synchronized for this cycle. All staff members are up to date.' });
+        if (!payload.length && !updates.length) return res.status(400).json({ message: 'Payroll cluster already synchronized for this cycle. All staff members are up to date.' });
 
-        await Payroll.insertMany(payload);
-        await logAudit(req, 'GENERATE_PAYROLL', 'Finance', `Generated payroll for ${payload.length} staff members for ${month}/${year}`);
+        if (payload.length) await Payroll.insertMany(payload);
+        if (updates.length) await Promise.all(updates);
+        
+        await logAudit(req, 'GENERATE_PAYROLL', 'Finance', `Generated/Updated payroll for ${payload.length + updates.length} staff members for ${month}/${year}`);
 
-        res.json({ message: `Payroll generated for ${payload.length} staff members.` });
+        res.json({ message: `Payroll optimized for ${payload.length + updates.length} staff members (Subtractions: ${payload.length} New, ${updates.length} Updated).` });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

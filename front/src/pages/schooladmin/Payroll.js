@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll, fetchStaffForAttendance } from '../../redux/slice/schoolAdmin.slice';
+import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll, fetchStaffForAttendance, fetchPayrollPreview, fetchStaffMonthlySummary } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
@@ -42,7 +42,7 @@ const emptyValues = {
 
 const Payroll = () => {
   const dispatch = useDispatch();
-  const { payroll, teachers, loading, error, staffList } = useSelector((s) => s.schoolAdmin);
+  const { payroll, teachers, loading, error, staffList, staffMonthlySummary } = useSelector((s) => s.schoolAdmin);
   const [modal, setModal] = useState(false);
   const [bulkModal, setBulkModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -51,6 +51,8 @@ const Payroll = () => {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+  const [submitting, setSubmitting] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
 
   useEffect(() => { 
     dispatch(fetchPayroll());
@@ -71,12 +73,14 @@ const Payroll = () => {
     validationSchema,
     enableReinitialize: true,
     onSubmit: async (values, { resetForm }) => {
-      const netSalary = (Number(values.basicSalary) || 0) + (Number(values.bonus) || 0) - (Number(values.deductions) || 0);
-      const isTeacher = teachers.some(t => t._id === values.staffId);
+      setSubmitting(true);
+      const { basicSalary, bonus, deductions, staffId } = values;
+      const netSalary = (Number(basicSalary) || 0) + (Number(bonus) || 0) - (Number(deductions) || 0);
+      const isTeacher = teachers.some(t => t._id === staffId);
       const submissionData = { 
         ...values, 
-        teacherId: isTeacher ? values.staffId : undefined,
-        userId: !isTeacher ? values.staffId : undefined,
+        teacherId: isTeacher ? staffId : undefined,
+        userId: !isTeacher ? staffId : undefined,
         netSalary 
       };
       
@@ -84,6 +88,7 @@ const Payroll = () => {
         ? dispatch(updatePayroll({ id: editing, data: submissionData }))
         : dispatch(createPayroll(submissionData));
       const result = await action;
+      setSubmitting(false);
       if (!result.error) {
         setModal(false);
         resetForm();
@@ -131,6 +136,65 @@ const Payroll = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [search]);
+
+  useEffect(() => {
+    const { month, year } = formik.values;
+    if (month && year) {
+        dispatch(fetchStaffMonthlySummary({ month, year }));
+    }
+  }, [formik.values.month, formik.values.year, dispatch]);
+
+  useEffect(() => {
+    const { staffId, month, year } = formik.values;
+    if (staffId && month && year && !editing) {
+      
+      // 1. Attempt local calculation from prefetched summary
+      if (Array.isArray(staffMonthlySummary)) {
+        const summary = staffMonthlySummary.find(s => 
+          (s._id.teacher && s._id.teacher === staffId) || 
+          (s._id.user && s._id.user === staffId)
+        );
+
+        if (summary) {
+          const teacher = (teachers || []).find(t => t._id === staffId);
+          const other = (staffList.otherStaff || []).find(s => s._id === staffId);
+          const basic = (teacher || other)?.baseSalary || 0;
+          
+          const absentDays = (summary.absent || 0) + (summary.miscellaneous || 0) + ((summary.halfDay || 0) * 0.5);
+          const deductions = Math.round((basic / 30) * absentDays);
+          
+          Object.keys({ basicSalary: basic, deductions, remarks: '' }).forEach(f => {
+            if (f === 'remarks') {
+              formik.setFieldValue(f, absentDays > 0 ? `Predictive Sync. Attendance Deduction for ${absentDays} days.` : 'Standard Payroll Cycle.');
+            } else {
+              formik.setFieldValue(f, basic || deductions);
+            }
+          });
+          // Using a single setValues is better
+          formik.setValues({
+            ...formik.values,
+            basicSalary: basic,
+            deductions: deductions,
+            remarks: absentDays > 0 ? `Predictive Sync. Attendance Deduction for ${absentDays} days.` : 'Standard Payroll Cycle.'
+          });
+          return;
+        }
+      }
+
+      // 2. Fallback to API if local data not found
+      const loadPreview = async () => {
+        setPreviewing(true);
+        const res = await dispatch(fetchPayrollPreview({ staffId, month, year }));
+        setPreviewing(false);
+        if (fetchPayrollPreview.fulfilled.match(res)) {
+          formik.setFieldValue('basicSalary', res.payload.basicSalary);
+          formik.setFieldValue('deductions', res.payload.deductions);
+          formik.setFieldValue('remarks', res.payload.remarks);
+        }
+      };
+      loadPreview();
+    }
+  }, [formik.values.staffId, formik.values.month, formik.values.year, editing, staffMonthlySummary, dispatch]);
 
   return (
     <div className="space-y-6">
@@ -303,17 +367,7 @@ const Payroll = () => {
             <select 
               name="staffId"
               value={formik.values.staffId}
-              onChange={(e) => {
-                const sId = e.target.value;
-                formik.setFieldValue('staffId', sId);
-                const teacher = teachers.find(t => t._id === sId);
-                const other = staffList.otherStaff.find(s => s._id === sId);
-                if (teacher) {
-                  formik.setFieldValue('basicSalary', teacher.baseSalary || 0);
-                } else if (other) {
-                  formik.setFieldValue('basicSalary', other.baseSalary || 0);
-                }
-              }}
+              onChange={formik.handleChange}
               className={inputClass(formik.touched.staffId, formik.errors.staffId)}
               disabled={!!editing}
             >
@@ -381,9 +435,10 @@ const Payroll = () => {
             <textarea {...formik.getFieldProps('remarks')} rows={2} className={`${inputClass(formik.touched.remarks, formik.errors.remarks)} resize-none`} placeholder="Optional notes..."></textarea>
           </div>
 
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={submitting || previewing}
             className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-4 flex items-center justify-center gap-2">
-            <Banknote size={16} /> {loading ? 'Processing...' : editing ? 'Update Record' : 'Generate Payroll'}
+            <Banknote size={16} /> 
+            {submitting ? 'Committing Record...' : previewing ? 'Synchronizing Attendance...' : editing ? 'Update Record' : 'Generate Payroll'}
           </button>
         </form>
       </Modal>

@@ -106,9 +106,35 @@ exports.getMonthlySummary = async (req, res) => {
                 $group: {
                     _id: { teacher: '$teacherId', user: '$userId' },
                     present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } },
-                    absent: { $sum: { $cond: [{ $eq: ['$status', 'Absent'] }, 1, 0] } },
+                    absent: { 
+                        $sum: { 
+                            $cond: [
+                                { $regexMatch: { input: { $ifNull: ["$status", ""] }, regex: /absent|abxent|abzent/i } }, 
+                                1, 
+                                0 
+                            ] 
+                        } 
+                    },
                     leave: { $sum: { $cond: [{ $eq: ['$status', 'Leave'] }, 1, 0] } },
                     halfDay: { $sum: { $cond: [{ $eq: ['$status', 'Half-Day'] }, 1, 0] } },
+                    miscellaneous: {
+                        $sum: {
+                            $cond: [
+                                { 
+                                    $and: [
+                                        { $ne: ["$status", "Present"] },
+                                        { $ne: ["$status", "Late"] },
+                                        { $ne: ["$status", "Leave"] },
+                                        { $ne: ["$status", ""] },
+                                        { $not: { $regexMatch: { input: { $ifNull: ["$status", ""] }, regex: /absent|abxent|abzent/i } } },
+                                        { $ne: ["$status", "Half-Day"] }
+                                    ]
+                                },
+                                1,
+                                0
+                            ]
+                        }
+                    }
                 }
             },
             {

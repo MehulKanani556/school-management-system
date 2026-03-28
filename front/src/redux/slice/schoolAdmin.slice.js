@@ -89,6 +89,7 @@ export const fetchTimetable = createAsyncThunk('sa/timetable', async (classId, {
 export const fetchAllTimetables = asyncGet('sa/timetables', '/timetables');
 export const fetchPayroll = asyncGet('sa/payroll', '/payroll');
 export const generateBulkPayroll = post('sa/generateBulkPayroll', '/payroll/bulk');
+export const fetchPayrollPreview = asyncGet('sa/fetchPayrollPreview', '/payroll/preview');
 export const fetchStaffAttendance = createAsyncThunk('sa/fetchStaffAttendance', async (params, { rejectWithValue }) => {
   try { const res = await axiosInstance.get('/staff-attendance/report', { params }); return res.data; }
   catch (e) { return rejectWithValue(e.response?.data); }
@@ -716,7 +717,7 @@ const schoolAdminSlice = createSlice({
       saveAttendance, saveStaffAttendance, toggleTeacherStatus, applyFeeStructure,
       importStudents, importTeachers, promoteStudents, generateRollNumbers, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,
-      fetchFeeSummary, sendFeeReminders, generateBulkPayroll,
+      fetchFeeSummary, sendFeeReminders, generateBulkPayroll, fetchPayrollPreview,
       fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,
       fetchAcademicYears, createAcademicYear, updateAcademicYear, deleteAcademicYear,
       fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,

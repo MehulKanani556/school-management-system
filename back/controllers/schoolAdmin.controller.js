@@ -1879,72 +1879,153 @@ exports.generateBulkPayroll = async (req, res) => {
     const { month, year, bonusPercent = 0 } = req.body;
     const schoolId = getSchoolId(req);
 
-    // Get Teachers
+    // Get Active Personnel
     const teachers = await Teacher.find({ schoolId, isActive: true });
-    
-    // Get Other Staff
     const otherStaff = await User.find({ schoolId, isActive: true, role: { $in: ['Accountant', 'Librarian', 'Transport_Manager'] } });
 
-    // 1. Get attendance summary for the month
-    const start = new Date(year, month - 1, 1);
-    const end = new Date(year, month, 0);
+    // Month boundaries
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0, 23, 59, 59, 999);
 
     const attendance = await StaffAttendance.find({
       schoolId,
+      date: { $gte: startDate, $lte: endDate }
+    });
+
+    const existing = await Payroll.find({ schoolId, month, year });
+    const existingMap = new Map();
+    existing.forEach(p => {
+      const key = p.teacherId ? p.teacherId.toString() : p.userId.toString();
+      existingMap.set(key, p);
+    });
+
+    const payload = [];
+    const updates = [];
+
+    const processMember = async (member, isTeacher) => {
+      const basic = (isTeacher ? member.baseSalary : member.baseSalary) || 0;
+      const key = member._id.toString();
+      
+      const mAttendance = attendance.filter(a => {
+        const id = isTeacher ? a.teacherId : a.userId;
+        return id && id.toString() === key;
+      });
+
+      let absentDays = 0;
+      mAttendance.forEach(a => {
+        const s = (a.status || '').toLowerCase();
+        if (s.includes('absent') || s.includes('abxent') || s.includes('abzent')) {
+          absentDays += 1;
+        } else if (s === 'half-day') {
+          absentDays += 0.5;
+        } else if (s !== 'present' && s !== 'late' && s !== 'leave' && s !== '') {
+          absentDays += 1;
+        }
+      });
+
+      const deductions = Math.round((basic / 30) * absentDays);
+      const bonus = Math.round((basic * (Number(bonusPercent) || 0)) / 100);
+      const netSalary = Math.max(0, basic + bonus - deductions);
+      const remarks = absentDays > 0 ? `Bulk gen. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.';
+
+      if (!existingMap.has(key)) {
+        payload.push({
+          schoolId,
+          [isTeacher ? 'teacherId' : 'userId']: member._id,
+          month, year,
+          basicSalary: basic,
+          bonus, deductions, netSalary,
+          status: 'unpaid',
+          submittedBy: req.user._id,
+          remarks
+        });
+      } else {
+        const rec = existingMap.get(key);
+        if (rec.status === 'unpaid') {
+          updates.push(Payroll.updateOne(
+            { _id: rec._id },
+            { 
+              deductions, 
+              bonus,
+              netSalary: basic + bonus - deductions,
+              remarks: absentDays > 0 ? `Bulk sync. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
+            }
+          ));
+        }
+      }
+    };
+
+    // Process all
+    for (const t of teachers) {
+      processMember(t, true);
+    }
+    for (const s of otherStaff) {
+      processMember(s, false);
+    }
+
+    if (payload.length > 0) await Payroll.insertMany(payload);
+    if (updates.length > 0) await Promise.all(updates);
+
+    res.json({
+      message: `Payroll optimized: ${payload.length} New, ${updates.length} Synced (${payload.length + updates.length} Total Units processed).`,
+      count: payload.length + updates.length
+    });
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// --- Single Payroll Preview ---
+exports.getPayrollPreview = async (req, res) => {
+  try {
+    const { staffId, month, year } = req.query;
+    const schoolId = getSchoolId(req);
+
+    if (!staffId || !month || !year) return res.status(400).json({ message: 'Staff ID, month, and year are mandatory for projection' });
+
+    // Try to find in Teacher first, then User
+    let member = await Teacher.findOne({ _id: staffId, schoolId });
+    let isTeacher = !!member;
+    
+    if (!member) {
+      member = await User.findOne({ _id: staffId, schoolId });
+      isTeacher = false;
+    }
+
+    if (!member) return res.status(404).json({ message: 'Personnel node not found in registry' });
+
+    const basic = member.baseSalary || 0;
+    
+    // Month boundaries
+    const start = new Date(year, month - 1, 1);
+    const end = new Date(year, month, 0, 23, 59, 59, 999);
+
+    const attendance = await StaffAttendance.find({
+      schoolId,
+      [isTeacher ? 'teacherId' : 'userId']: staffId,
       date: { $gte: start, $lte: end }
     });
 
-    const payrolls = [];
-    
-    // Process Teachers
-    for (const t of teachers) {
-      const exists = await Payroll.findOne({ schoolId, teacherId: t._id, month, year });
-      if (exists) continue;
+    let absentDays = 0;
+    attendance.forEach(a => {
+      const s = (a.status || '').toLowerCase();
+      // Use robust detection
+      if (s.includes('absent') || s.includes('abxent') || s.includes('abzent')) {
+        absentDays += 1;
+      } else if (s === 'half-day') {
+        absentDays += 0.5;
+      } else if (s !== 'present' && s !== 'late' && s !== 'leave' && s !== '') {
+        absentDays += 1;
+      }
+    });
 
-      const tAttendance = attendance.filter(a => a.teacherId?.toString() === t._id.toString());
-      const absentCount = tAttendance.filter(a => a.status === 'Absent').length;
-
-      const basicSalary = t.baseSalary || 0;
-      const dailyRate = basicSalary / 30;
-      const deductions = dailyRate * absentCount;
-      const bonus = (basicSalary * bonusPercent) / 100;
-      const netSalary = basicSalary + bonus - deductions;
-
-      payrolls.push({
-        schoolId, teacherId: t._id, month, year,
-        basicSalary, bonus, deductions, netSalary,
-        status: 'unpaid', submittedBy: req.user._id
-      });
-    }
-
-    // Process Other Staff
-    for (const s of otherStaff) {
-      const exists = await Payroll.findOne({ schoolId, userId: s._id, month, year });
-      if (exists) continue;
-
-      const sAttendance = attendance.filter(a => a.userId?.toString() === s._id.toString());
-      const absentCount = sAttendance.filter(a => a.status === 'Absent').length;
-
-      const basicSalary = s.baseSalary || 0;
-      const dailyRate = basicSalary / 30;
-      const deductions = dailyRate * absentCount;
-      const bonus = (basicSalary * bonusPercent) / 100;
-      const netSalary = basicSalary + bonus - deductions;
-
-      payrolls.push({
-        schoolId, userId: s._id, month, year,
-        basicSalary, bonus, deductions, netSalary,
-        status: 'unpaid', submittedBy: req.user._id
-      });
-    }
-
-    if (payrolls.length > 0) {
-      await Payroll.insertMany(payrolls);
-    }
+    const deductions = Math.round((basic / 30) * absentDays);
+    const netSalary = Math.max(0, basic - deductions);
 
     res.json({
-      message: `${payrolls.length} Payroll entries pushed for pedagogical and support staff units`,
-      count: payrolls.length
+      basicSalary: basic,
+      absentDays,
+      deductions,
+      netSalary,
+      remarks: absentDays > 0 ? `Predictive sync. Attendance deduction for ${absentDays} days.` : 'Standard payroll cycle.'
     });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

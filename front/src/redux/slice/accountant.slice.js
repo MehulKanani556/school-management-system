@@ -136,12 +136,27 @@ export const sendFeeReminders = createAsyncThunk(
     }
 );
 
+export const fetchPayrollPreview = createAsyncThunk('accountant/fetchPreview', async (params, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/accountant/payroll/preview', { params });
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
+export const fetchStaffMonthlySummary = createAsyncThunk('accountant/fetchStaffSummary', async (params, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/staff-attendance/monthly-summary', { params });
+        return response.data;
+    } catch (err) { return rejectWithValue(err.response.data); }
+});
+
 const accountantSlice = createSlice({
     name: 'accountant',
     initialState: {
         fees: [],
         feeStructures: [],
         payroll: [],
+        staffMonthlySummary: [],
         report: null,
         pagination: {
             fees: { total: 0, pages: 1, current: 1 },
@@ -235,6 +250,14 @@ const accountantSlice = createSlice({
             .addCase(sendFeeReminders.fulfilled, (state, action) => {
                 state.success = action.payload;
             })
+            .addCase(fetchStaffMonthlySummary.fulfilled, (state, action) => {
+                state.staffMonthlySummary = action.payload;
+                state.loading = false;
+            })
+            .addMatcher(
+                (action) => action.type.endsWith('/pending') && !action.type.includes('fetchPreview'),
+                (state) => { state.loading = true; state.error = null; }
+            )
             .addMatcher(
                 (action) => action.type.endsWith('/rejected'),
                 (state, action) => {

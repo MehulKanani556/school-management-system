@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPayroll, processPayroll, generatePayroll, createSinglePayroll, updatePayroll, deletePayroll, clearStatus } from '../../redux/slice/accountant.slice';
+import { fetchPayroll, processPayroll, generatePayroll, createSinglePayroll, updatePayroll, deletePayroll, clearStatus, fetchPayrollPreview, fetchStaffMonthlySummary } from '../../redux/slice/accountant.slice';
 import axiosInstance from '../../utils/axiosInstance';
 import { DollarSign, Search, ChevronRight, User, Calendar, CreditCard, Loader2, Download, Plus, Calculator, Filter, X, CheckCircle2, ChevronLeft, Hash, Printer, FileText, TrendingUp, TrendingDown, ShieldCheck, Zap, Pencil, Trash2, Banknote, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 
 const PayrollManagement = () => {
     const dispatch = useDispatch();
-    const { payroll, pagination, loading, success, error, totals } = useSelector((state) => state.accountant);
+    const { payroll, pagination, loading, success, error, totals, staffMonthlySummary } = useSelector((state) => state.accountant);
     const [searchTerm, setSearchTerm] = useState('');
     const [monthFilter, setMonthFilter] = useState((new Date().getMonth() + 1).toString());
     const [yearFilter, setYearFilter] = useState(new Date().getFullYear().toString());
@@ -20,6 +20,8 @@ const PayrollManagement = () => {
     const [isGenerateModalOpen, setIsGenerateModalOpen] = useState(false);
     const [isSingleModalOpen, setIsSingleModalOpen] = useState(false);
     const [editingPayroll, setEditingPayroll] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+    const [previewing, setPreviewing] = useState(false);
     
     // Component State
     const [staffData, setStaffData] = useState({ teachers: [], otherStaff: [] });
@@ -61,6 +63,59 @@ const PayrollManagement = () => {
         }
     }, [isSingleModalOpen, editingPayroll]);
 
+    useEffect(() => {
+        if (formData.month && formData.year) {
+            dispatch(fetchStaffMonthlySummary({ month: formData.month, year: formData.year }));
+        }
+    }, [formData.month, formData.year, dispatch]);
+
+    useEffect(() => {
+        const { staffId, month, year } = formData;
+        if (staffId && month && year && !editingPayroll) {
+            
+            // 1. Local Calculation from pre-fetched summary
+            if (Array.isArray(staffMonthlySummary)) {
+                const summary = staffMonthlySummary.find(s => 
+                    (s._id.teacher && s._id.teacher === staffId) || 
+                    (s._id.user && s._id.user === staffId)
+                );
+
+                if (summary) {
+                    const teacher = staffData.teachers.find(t => t._id === staffId);
+                    const other = staffData.otherStaff.find(o => o._id === staffId);
+                    const basic = (teacher || other)?.baseSalary || 0;
+                    
+                    const absentDays = (summary.absent || 0) + (summary.miscellaneous || 0) + ((summary.halfDay || 0) * 0.5);
+                    const deductions = Math.round((basic / 30) * absentDays);
+                    
+                    setFormData(prev => ({
+                        ...prev,
+                        basicSalary: basic,
+                        deductions: deductions,
+                        remarks: absentDays > 0 ? `Predictive Sync. Attendance Deduction for ${absentDays} days.` : 'Standard Payroll Cycle.'
+                    }));
+                    return;
+                }
+            }
+
+            // 2. Fallback to API sync
+            const loadPreview = async () => {
+                setPreviewing(true);
+                const res = await dispatch(fetchPayrollPreview({ staffId, month, year }));
+                setPreviewing(false);
+                if (fetchPayrollPreview.fulfilled.match(res)) {
+                    setFormData(prev => ({
+                        ...prev,
+                        basicSalary: res.payload.basicSalary,
+                        deductions: res.payload.deductions,
+                        remarks: res.payload.remarks
+                    }));
+                }
+            };
+            loadPreview();
+        }
+    }, [formData.staffId, formData.month, formData.year, editingPayroll, staffMonthlySummary, dispatch]);
+
     const handleOpenProcess = (item) => {
         setSelectedPayroll(item);
         setProcessData({
@@ -83,32 +138,41 @@ const PayrollManagement = () => {
         setIsGenerateModalOpen(false);
     };
 
-    const handleSingleSubmit = (e) => {
+    const handleSingleSubmit = async (e) => {
         e.preventDefault();
+        setSubmitting(true);
         const isTeacher = staffData.teachers.some(t => t._id === formData.staffId);
         const submissionData = {
           ...formData,
           teacherId: isTeacher ? formData.staffId : undefined,
           userId: !isTeacher ? formData.staffId : undefined
         };
+        
+        let action;
         if (editingPayroll) {
-          dispatch(updatePayroll({ id: editingPayroll._id, data: submissionData }));
-          setEditingPayroll(null);
+          action = updatePayroll({ id: editingPayroll._id, data: submissionData });
         } else {
-          dispatch(createSinglePayroll(submissionData));
+          action = createSinglePayroll(submissionData);
         }
-        setIsSingleModalOpen(false);
-        setFormData({ 
-            staffId: '', 
-            month: new Date().getMonth() + 1, 
-            year: new Date().getFullYear(), 
-            basicSalary: '', 
-            bonus: 0, 
-            deductions: 0, 
-            status: 'paid',
-            paymentMethod: 'Bank Transfer',
-            remarks: '' 
-        });
+
+        const res = await dispatch(action);
+        setSubmitting(false);
+
+        if (!res.error) {
+            setIsSingleModalOpen(false);
+            setEditingPayroll(null);
+            setFormData({ 
+                staffId: '', 
+                month: new Date().getMonth() + 1, 
+                year: new Date().getFullYear(), 
+                basicSalary: '', 
+                bonus: 0, 
+                deductions: 0, 
+                status: 'paid',
+                paymentMethod: 'Bank Transfer',
+                remarks: '' 
+            });
+        }
     };
 
     const handleEdit = (item) => {
@@ -367,7 +431,10 @@ const PayrollManagement = () => {
                                     <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Entry Status</label><select value={formData.status} onChange={(e) => setFormData({...formData, status: e.target.value})} className={inputClass}><option value="paid">Paid</option><option value="unpaid">Unpaid/Pending</option></select></div>
                                     <div><label className="text-[10px] uppercase tracking-widest text-[#64748b]">Payment Mode</label><select value={formData.paymentMethod} onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})} className={inputClass}><option value="Bank Transfer">Bank Transfer</option><option value="Cash">Cash</option><option value="Online">Online / UPI</option></select></div>
                                 </div>
-                                <button type="submit" className="w-full py-4 bg-white text-black text-xs uppercase tracking-widest rounded-lg shadow-xl shadow-white/5 flex items-center justify-center gap-2 transition-all active:scale-[0.98]"><Banknote size={16} /> Save Payroll Record</button>
+                                <button type="submit" disabled={submitting || previewing} className="w-full py-4 bg-white text-black text-xs uppercase tracking-widest rounded-lg shadow-xl shadow-white/5 flex items-center justify-center gap-2 transition-all active:scale-[0.98]">
+                                    {submitting ? <Loader2 size={16} className="animate-spin" /> : <Banknote size={16} />} 
+                                    {submitting ? 'Committing...' : previewing ? 'Synchronizing...' : 'Save Payroll Record'}
+                                </button>
                             </form>
                         </motion.div>
                     </motion.div>
