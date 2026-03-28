@@ -206,7 +206,21 @@ const superAdminSlice = createSlice({
         clearStatus: (state) => {
             state.error = null;
             state.success = null;
-        }
+        },
+        setNewTicket: (state, action) => {
+            const exists = state.tickets.find(t => t._id === action.payload._id);
+            if (!exists) state.tickets.unshift(action.payload);
+        },
+        updateTicketReply: (state, action) => {
+            const ticket = action.payload;
+            const index = state.tickets.findIndex(t => t._id === ticket._id);
+            if (index !== -1) state.tickets[index] = ticket;
+        },
+        updateTicketStatusRealTime: (state, action) => {
+            const ticket = action.payload;
+            const index = state.tickets.findIndex(t => t._id === ticket._id);
+            if (index !== -1) state.tickets[index] = ticket;
+        },
     },
     extraReducers: (builder) => {
         const setPending = (state) => { state.loading = true; state.error = null; };
@@ -231,6 +245,7 @@ const superAdminSlice = createSlice({
             })
 
             .addCase(updateSystemSetting.fulfilled, (state, action) => {
+                state.loading = false;
                 const index = state.settings.findIndex(s => s.key === action.payload.key);
                 if (index !== -1) state.settings[index] = action.payload;
                 else state.settings.push(action.payload);
@@ -241,6 +256,7 @@ const superAdminSlice = createSlice({
                 state.profile = action.payload.user || action.payload;
             })
             .addCase(updateAdminProfile.fulfilled, (state, action) => {
+                state.loading = false;
                 state.profile = action.payload;
                 state.success = 'Profile updated successfully';
             })
@@ -266,11 +282,13 @@ const superAdminSlice = createSlice({
             })
 
             .addCase(updateTicketStatus.fulfilled, (state, action) => {
+                state.loading = false;
                 const idx = state.tickets.findIndex(t => t._id === action.payload._id);
                 if (idx !== -1) state.tickets[idx] = action.payload;
                 state.success = 'Ticket status updated';
             })
             .addCase(replyToTicket.fulfilled, (state, action) => {
+                state.loading = false;
                 const idx = state.tickets.findIndex(t => t._id === action.payload._id);
                 if (idx !== -1) state.tickets[idx] = action.payload;
                 state.success = 'Reply sent successfully';
@@ -281,6 +299,7 @@ const superAdminSlice = createSlice({
             })
 
             .addCase(triggerBackup.fulfilled, (state, action) => {
+                state.loading = false;
                 state.backups.unshift(action.payload.backup);
                 state.success = action.payload.message;
             })
@@ -289,16 +308,19 @@ const superAdminSlice = createSlice({
                 state.holidays = action.payload.holidays || action.payload.data || [];
             })
             .addCase(createGlobalHoliday.fulfilled, (state, action) => {
+                state.loading = false;
                 state.holidays.push(action.payload.data || action.payload);
                 state.success = 'Holiday created successfully';
             })
             .addCase(updateGlobalHoliday.fulfilled, (state, action) => {
+                state.loading = false;
                 const upd = action.payload.data || action.payload;
                 const i = state.holidays.findIndex(h => h._id === upd._id);
                 if (i !== -1) state.holidays[i] = upd;
                 state.success = 'Holiday updated successfully';
             })
             .addCase(deleteGlobalHoliday.fulfilled, (state, action) => {
+                state.loading = false;
                 state.holidays = state.holidays.filter(h => h._id !== action.payload);
                 state.success = 'Holiday removed';
             })
@@ -350,5 +372,5 @@ const superAdminSlice = createSlice({
     }
 });
 
-export const { clearStatus } = superAdminSlice.actions;
+export const { clearStatus, setNewTicket, updateTicketReply, updateTicketStatusRealTime } = superAdminSlice.actions;
 export default superAdminSlice.reducer;

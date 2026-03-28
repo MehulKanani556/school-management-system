@@ -292,11 +292,25 @@ exports.getSupportTickets = async (req, res) => {
     }
 };
 
+const socketManager = require('../socketManager/socketManager');
+
 exports.updateTicketStatus = async (req, res) => {
     try {
         const { id } = req.params;
         const { status } = req.body;
-        const ticket = await Ticket.findByIdAndUpdate(id, { status }, { new: true });
+        const ticket = await Ticket.findByIdAndUpdate(id, { status }, { new: true })
+            .populate('openedBy', 'firstName lastName role photo')
+            .populate('schoolId', 'name');
+
+        if (ticket) {
+            console.log(`[SUPER_TICKET_SOCKET] Status Change. Notifying user: ${ticket.openedBy._id}`);
+            socketManager.sendToUser(ticket.openedBy._id, 'TICKET_STATUS_CHANGED', ticket);
+            
+            // Notify other admins
+            socketManager.broadcastToRole('School_Admin', 'TICKET_STATUS_CHANGED', ticket);
+            socketManager.broadcastToRole('Super_Admin', 'TICKET_STATUS_CHANGED', ticket);
+        }
+
         res.status(200).json({ success: true, ticket, message: 'Ticket status updated' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
@@ -308,13 +322,35 @@ exports.replyToTicket = async (req, res) => {
         const { id } = req.params;
         const { message } = req.body;
         const ticket = await Ticket.findById(id);
+        
+        if (!ticket) return res.status(404).json({ message: 'Ticket not found' });
+
         ticket.replies.push({
             senderId: req.user._id,
             message,
             createdAt: Date.now()
         });
+
+        // Auto transition if admin replies
+        if (ticket.status === 'Open') {
+            ticket.status = 'In_Progress';
+        }
+
         await ticket.save();
-        res.status(200).json({ success: true, ticket, message: 'Reply sent' });
+
+        const updated = await Ticket.findById(id)
+            .populate('openedBy', 'firstName lastName role photo')
+            .populate('schoolId', 'name')
+            .populate('replies.senderId', 'firstName lastName role photo');
+
+        console.log(`[SUPER_TICKET_SOCKET] Reply. Notifying user: ${updated.openedBy._id}`);
+        socketManager.sendToUser(updated.openedBy._id, 'TICKET_REPLY', updated);
+        
+        // Notify other admins
+        socketManager.broadcastToRole('School_Admin', 'TICKET_REPLY', updated);
+        socketManager.broadcastToRole('Super_Admin', 'TICKET_REPLY', updated);
+
+        res.status(200).json({ success: true, ticket: updated, message: 'Reply sent' });
     } catch (error) {
         res.status(500).json({ success: false, message: error.message });
     }

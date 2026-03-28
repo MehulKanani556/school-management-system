@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchTickets, updateTicketStatus, replyToTicket, clearStatus } from '../../redux/slice/superAdmin.slice';
 import { LifeBuoy, Search, Filter, MessageSquare, Clock, CheckCircle, AlertCircle, ChevronRight, CornerDownRight, Send, User, School } from 'lucide-react';
@@ -12,6 +12,7 @@ const Support = () => {
     const [selectedTicket, setSelectedTicket] = useState(null);
     const [reply, setReply] = useState('');
     const [filterStatus, setFilterStatus] = useState('All');
+    const scrollRef = useRef(null);
 
     useEffect(() => {
         dispatch(fetchTickets());
@@ -24,6 +25,23 @@ const Support = () => {
             setReply('');
         }
     }, [success, dispatch]);
+
+    // Auto scroll to bottom
+    useEffect(() => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+    }, [selectedTicket?.replies]);
+
+    // Synchronize selected ticket with real-time updates from Redux
+    useEffect(() => {
+        if (selectedTicket) {
+            const updatedSelection = tickets.find(t => t._id === selectedTicket._id);
+            if (updatedSelection) {
+                setSelectedTicket(updatedSelection);
+            }
+        }
+    }, [tickets]);
 
     const handleReply = (e) => {
         e.preventDefault();
@@ -131,24 +149,27 @@ const Support = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
-                                    {selectedTicket.replies?.map((r, i) => (
-                                        <div key={i} className={`flex gap-4 ${r.senderId === selectedTicket.openedBy?._id ? '' : 'flex-row-reverse'}`}>
-                                            <div className="w-8 h-8 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center shrink-0">
-                                                {r.senderId === selectedTicket.openedBy?._id ? <User size={14} className="text-slate-600" /> : <LifeBuoy size={14} className="text-superadmin-primary" />}
-                                            </div>
-                                            <div className="flex flex-col gap-2 max-w-[70%]">
-                                                <div className={`p-4 rounded-md border text-[11px] font-medium leading-relaxed italic ${
-                                                    r.senderId === selectedTicket.openedBy?._id ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-superadmin-primary/10 border-superadmin-primary/20 text-superadmin-primary shadow-xl shadow-superadmin-primary/5'
-                                                }`}>
-                                                    {r.message}
+                                <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+                                    {selectedTicket.replies?.map((r, i) => {
+                                        const isOwner = (r.senderId?._id || r.senderId)?.toString() === (selectedTicket.openedBy?._id || selectedTicket.openedBy)?.toString();
+                                        return (
+                                            <div key={i} className={`flex gap-4 ${isOwner ? '' : 'flex-row-reverse'}`}>
+                                                <div className="w-8 h-8 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center shrink-0">
+                                                    {isOwner ? <User size={14} className="text-slate-600" /> : <LifeBuoy size={14} className="text-superadmin-primary" />}
                                                 </div>
-                                                <span className={`text-[8px] font-black uppercase tracking-widest text-slate-600 italic ${r.senderId === selectedTicket.openedBy?._id ? '' : 'text-right'}`}>
-                                                    {moment(r.createdAt).calendar()}
-                                                </span>
+                                                <div className="flex flex-col gap-2 max-w-[70%]">
+                                                    <div className={`p-4 rounded-md border text-[11px] font-medium leading-relaxed italic ${
+                                                        isOwner ? 'bg-white/5 border-white/10 text-slate-200' : 'bg-superadmin-primary/10 border-superadmin-primary/20 text-superadmin-primary shadow-xl shadow-superadmin-primary/5'
+                                                    }`}>
+                                                        {r.message}
+                                                    </div>
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest text-slate-600 italic ${isOwner ? '' : 'text-right'}`}>
+                                                        {moment(r.createdAt).calendar()}
+                                                    </span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="p-8 border-t border-white/5 bg-slate-950/20">

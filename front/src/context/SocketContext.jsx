@@ -2,6 +2,18 @@ import React, { createContext, useContext, useEffect, useState, useRef } from 'r
 import { io } from 'socket.io-client';
 import { useSelector, useDispatch } from 'react-redux';
 import { incrementUnreadCount, addMessage } from '../redux/slice/communication.slice';
+import { 
+    setNewTicket as setSANewTicket, 
+    updateTicketReply as updateSATicketReply, 
+    updateTicketStatusRealTime as updateSATicketStatusRealTime 
+} from '../redux/slice/schoolAdmin.slice';
+
+import { 
+    setNewTicket as setSuperNewTicket, 
+    updateTicketReply as updateSuperTicketReply, 
+    updateTicketStatusRealTime as updateSuperTicketStatusRealTime 
+} from '../redux/slice/superAdmin.slice';
+
 import toast from 'react-hot-toast';
 
 export const SocketContext = createContext(null);
@@ -15,12 +27,23 @@ export const SocketProvider = ({ children }) => {
     const { user, isAuthenticated, token } = useSelector((state) => state.auth);
 
     useEffect(() => {
+        const registerUser = () => {
+            if (socketRef.current && user) {
+                const registrationData = {
+                    userId: user._id,
+                    role: user.role,
+                    classId: user.classSection || user.classSectionId
+                };
+                console.log('📡 Registering user with Socket:', registrationData);
+                socketRef.current.emit('register_user', registrationData);
+            }
+        };
+
         if (isAuthenticated && user && token) {
-            // Initialize socket only if not already initialized
             if (!socketRef.current) {
                 const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
                 socketRef.current = io(apiURL, {
-                    transports: ['websocket'],
+                    transports: ['polling', 'websocket'],
                     reconnection: true,
                     reconnectionAttempts: 10,
                     reconnectionDelay: 2000,
@@ -33,20 +56,16 @@ export const SocketProvider = ({ children }) => {
                 socketRef.current.on('connect', () => {
                     console.log('✅ Socket connected:', socketRef.current.id);
                     setIsConnected(true);
-                    socketRef.current.emit('register_user', {
-                        userId: user._id,
-                        role: user.role,
-                        classId: user.classSection || user.classSectionId // Adjust based on where classId is stored
-                    });
+                    registerUser();
                 });
 
                 socketRef.current.on('connect_error', (error) => {
-                    console.error('❌ Socket connection error:', error.message);
+                    console.error('❌ Socket connection error:', error);
                     setIsConnected(false);
                 });
 
                 socketRef.current.on('disconnect', (reason) => {
-                    console.log('⚠️ Socket disconnected:', reason);
+                    console.log('🔌 Socket disconnected:', reason);
                     setIsConnected(false);
                 });
 
@@ -65,45 +84,51 @@ export const SocketProvider = ({ children }) => {
                     toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
                 });
 
-                // 2b. Notices
-                socketRef.current.on('NEW_NOTICE', (data) => {
-                    dispatch(incrementUnreadCount());
-                    // If shared slice used for notices too, dispatch here
-                    toast.success(`📌 New Notice: ${data.subject}`);
+                // 3. Ticket Support (Real-Time)
+                socketRef.current.on('NEW_TICKET', (data) => {
+                    console.log('🎫 REAL-TIME: NEW_TICKET received', data);
+                    dispatch(setSANewTicket(data));
+                    dispatch(setSuperNewTicket(data));
+                    if (['School_Admin', 'Super_Admin'].includes(user.role)) {
+                        toast.success(`🎫 New Support Ticket: ${data.subject}`, { icon: '🆘', duration: 5000 });
+                    }
                 });
 
-                // 3. Grade Assignments
-                socketRef.current.on('GRADE_ASSIGNED', (data) => {
-                    dispatch(incrementUnreadCount());
-                    toast.success(`📝 New Grade Assigned: ${data.assignmentTitle}`);
+                socketRef.current.on('TICKET_REPLY', (data) => {
+                    console.log('💬 REAL-TIME: TICKET_REPLY received', data);
+                    dispatch(updateSATicketReply(data));
+                    dispatch(updateSuperTicketReply(data));
+                    
+                    // If the last reply is not from current user, show toast
+                    const lastReply = data.replies[data.replies.length - 1];
+                    const currentUserId = user._id.toString();
+                    const senderId = (lastReply?.senderId?._id || lastReply?.senderId)?.toString();
+
+                    if (senderId && senderId !== currentUserId) {
+                        toast.success(`💬 New reply from ${lastReply.senderId?.firstName || 'System'} on ticket: ${data.subject}`);
+                    }
                 });
 
-                // 4. Attendance Marked
-                socketRef.current.on('ATTENDANCE_MARKED', (data) => {
-                    toast.info(`📅 Attendance marked for ${data.date}`);
+                socketRef.current.on('TICKET_STATUS_CHANGED', (data) => {
+                    console.log('🔄 REAL-TIME: TICKET_STATUS_CHANGED received', data);
+                    dispatch(updateSATicketStatusRealTime(data));
+                    dispatch(updateSuperTicketStatusRealTime(data));
+                    toast(`🔄 Ticket Status update: ${data.subject} is now ${data.status}`);
                 });
-
-                // 5. General Notifications
-                socketRef.current.on('NEW_NOTIFICATION', (data) => {
-                    dispatch(incrementUnreadCount());
-                    toast(data.message, { icon: '🔔' });
-                });
+            } else if (socketRef.current.connected) {
+                // Already connected but user/token might have updated, re-register
+                registerUser();
             }
+        }
 
-            return () => {
-                if (socketRef.current) {
-                    socketRef.current.disconnect();
-                    socketRef.current = null;
-                    setIsConnected(false);
-                }
-            };
-        } else {
+        return () => {
             if (socketRef.current) {
+                console.log('🧹 Cleaning up socket connection...');
                 socketRef.current.disconnect();
                 socketRef.current = null;
                 setIsConnected(false);
             }
-        }
+        };
     }, [isAuthenticated, user, token, dispatch]);
 
     const value = {

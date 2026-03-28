@@ -50,6 +50,7 @@ import PersonnelRegistry from './pages/schooladmin/PersonnelRegistry';
 import AcademicYears from './pages/schooladmin/AcademicYear';
 import Admissions from './pages/schooladmin/Admissions';
 import Notifications from './pages/schooladmin/Notifications';
+import SupportTickets from './pages/schooladmin/SupportTickets';
 
 // Super Admin Pages
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
@@ -308,6 +309,7 @@ function AppRoutes() {
             <Route path="notifications" element={<TeacherNotifications />} />
             <Route path="bulk-attendance" element={<BulkAttendance />} />
             <Route path="resources" element={<ResourceLocker />} />
+            <Route path="tickets" element={<SupportTickets />} />
             <Route path="question-bank" element={<QuestionBank />} />
             <Route path="quizzes" element={<TeacherQuizManagement />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
@@ -330,6 +332,7 @@ function AppRoutes() {
             <Route path="announcements" element={<ParentAnnouncements />} />
             <Route path="notifications" element={<ParentNotifications />} />
             <Route path="messages" element={<ParentMessages />} />
+            <Route path="tickets" element={<SupportTickets />} />
             <Route path="holidays" element={<Holidays />} />
             <Route path="profile" element={<ParentProfile />} />
             <Route path="transport" element={<ChildTransport />} />
@@ -368,6 +371,7 @@ function AppRoutes() {
             <Route path="academic-years" element={<AcademicYears />} />
             <Route path="admissions" element={<Admissions />} />
             <Route path="notifications" element={<Notifications />} />
+            <Route path="tickets" element={<SupportTickets />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
             
             {/* Logistics & Fleet Nodes */}

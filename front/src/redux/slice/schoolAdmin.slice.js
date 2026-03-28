@@ -257,6 +257,31 @@ export const toggleNoticePin = createAsyncThunk('sa/toggleNoticePin', async (id,
 });
 
 
+export const fetchTickets = createAsyncThunk('sa/fetchTickets', async (_, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get('/tickets'); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const fetchTicketDetail = createAsyncThunk('sa/fetchTicketDetail', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get(`/tickets/${id}`); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const createTicketAction = createAsyncThunk('sa/createTicket', async (data, { rejectWithValue }) => {
+  try { const res = await axiosInstance.post('/tickets', data); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const addTicketReply = createAsyncThunk('sa/addTicketReply', async ({ id, message }, { rejectWithValue }) => {
+  try { const res = await axiosInstance.post(`/tickets/${id}/reply`, { message }); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
+export const updateTicketStatus = createAsyncThunk('sa/updateTicketStatus', async ({ id, status }, { rejectWithValue }) => {
+  try { const res = await axiosInstance.put(`/tickets/${id}/status`, { status }); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+
 export const downloadReportCard = createAsyncThunk('sa/downloadReportCard', async ({ id, name }, { rejectWithValue }) => {
   try {
     const res = await axiosInstance.get(`/school-admin/students/${id}/report-card`, { responseType: 'blob' });
@@ -313,6 +338,7 @@ const initialState = {
   staffList: { teachers: [], otherStaff: [] },
   staffMonthlySummary: [],
   academicYears: [], announcements: [], admissions: [], notices: [],
+  tickets: [], selectedTicket: null,
   loading: false, error: null, message: null
 };
 
@@ -324,7 +350,23 @@ const schoolAdminSlice = createSlice({
   initialState,
   reducers: {
     clearError: (state) => { state.error = null; },
-    clearMessage: (state) => { state.message = null; }
+    clearMessage: (state) => { state.message = null; },
+    setNewTicket: (state, action) => {
+      const exists = state.tickets.find(t => t._id === action.payload._id);
+      if (!exists) state.tickets.unshift(action.payload);
+    },
+    updateTicketReply: (state, action) => {
+      const ticket = action.payload;
+      const index = state.tickets.findIndex(t => t._id === ticket._id);
+      if (index !== -1) state.tickets[index] = ticket;
+      if (state.selectedTicket?._id === ticket._id) state.selectedTicket = ticket;
+    },
+    updateTicketStatusRealTime: (state, action) => {
+      const ticket = action.payload;
+      const index = state.tickets.findIndex(t => t._id === ticket._id);
+      if (index !== -1) state.tickets[index] = ticket;
+      if (state.selectedTicket?._id === ticket._id) state.selectedTicket = ticket;
+    }
   },
   extraReducers: (builder) => {
     const pending = (state) => { state.loading = true; state.error = null; };
@@ -702,6 +744,32 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchStaffMonthlySummary.fulfilled, (state, a) => {
         state.staffMonthlySummary = a.payload;
         state.loading = false;
+      })
+      .addCase(fetchTickets.fulfilled, (state, a) => {
+        state.tickets = a.payload;
+        state.loading = false;
+      })
+      .addCase(fetchTicketDetail.fulfilled, (state, a) => {
+        state.selectedTicket = a.payload;
+        state.loading = false;
+      })
+      .addCase(createTicketAction.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        state.tickets.unshift(item);
+        state.loading = false;
+        state.message = "Support ticket initialized";
+      })
+      .addCase(addTicketReply.fulfilled, (state, a) => {
+        state.selectedTicket = a.payload.data || a.payload;
+        state.loading = false;
+      })
+      .addCase(updateTicketStatus.fulfilled, (state, a) => {
+        const item = a.payload.data || a.payload;
+        const i = state.tickets.findIndex(t => t._id === item._id);
+        if (i !== -1) state.tickets[i] = item;
+        if (state.selectedTicket?._id === item._id) state.selectedTicket = item;
+        state.loading = false;
+        state.message = `Ticket status pivoted to ${item.status}`;
       });
 
 
@@ -723,12 +791,13 @@ const schoolAdminSlice = createSlice({
       fetchAnnouncements, createAnnouncement, updateAnnouncement, deleteAnnouncement,
       fetchAdmissions, createEnquiry, enrollCandidate,
       fetchNotices, createNotice, updateNotice, deleteNotice, toggleNoticePin,
-      fetchStaffForAttendance, fetchStaffMonthlySummary, exportStaffAttendance
+      fetchStaffForAttendance, fetchStaffMonthlySummary, exportStaffAttendance,
+      fetchTickets, fetchTicketDetail, createTicketAction, addTicketReply, updateTicketStatus
     ].forEach(thunk => {
       builder.addCase(thunk.pending, pending).addCase(thunk.rejected, rejected);
     });
   },
 });
 
-export const { clearError, clearMessage } = schoolAdminSlice.actions;
+export const { clearError, clearMessage, setNewTicket, updateTicketReply, updateTicketStatusRealTime } = schoolAdminSlice.actions;
 export default schoolAdminSlice.reducer;

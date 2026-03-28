@@ -50,6 +50,7 @@ const ParentLayout = () => {
         { to: '/parent/announcements', icon: Megaphone, label: 'Announcements' },
         { to: '/parent/messages', icon: MessageSquare, label: 'Messages' },
         { to: '/parent/notifications', icon: Bell, label: 'Notifications' },
+        { to: '/parent/tickets', icon: Shield, label: 'Support Center' },
         { to: '/parent/holidays', icon: Sun, label: 'Holidays' },
       ]
     },

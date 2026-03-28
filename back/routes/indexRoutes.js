@@ -28,7 +28,9 @@ const trc = require('../controllers/transport.controller');
 const drc = require('../controllers/driver.controller');
 const mc = require('../controllers/message.controller');
 const staffAttendanceRoutes = require('./staffAttendance.routes');
+const ticketRoutes = require('./ticket.routes');
 
+router.use('/tickets', ticketRoutes);
 
 // Auth Routes
 router.post('/register', upload.single("photo"), createUser);

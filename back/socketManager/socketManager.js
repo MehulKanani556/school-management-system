@@ -24,15 +24,16 @@ function initializeSocket(io) {
         const idStr = userId.toString();
         userSocketMap.set(idStr, socket.id);
         socketUserMap.set(socket.id, idStr);
-        console.log(`User ${idStr} registered to socket ${socket.id}`);
+        console.log(`[SOCKET] User ${idStr} registered to socket ${socket.id}`);
         
         // Join a private room for this user
         socket.join(idStr);
+        console.log(`[SOCKET] User ${idStr} joined private room: ${idStr}`);
 
         // Join role room if provided
         if (role) {
             socket.join(`role_${role}`);
-            console.log(`User ${idStr} joined role room: role_${role}`);
+            console.log(`[SOCKET] User ${idStr} joined role room: role_${role}`);
         }
 
         // Join class rooms if provided

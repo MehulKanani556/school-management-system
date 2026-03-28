@@ -100,6 +100,7 @@ const TeacherLayout = () => {
                 { to: '/teacher/profile', icon: User, label: 'My Profile' },
                 { to: '/teacher/noticeboard', icon: Layout, label: 'Class Noticeboard' },
                 { to: '/teacher/notifications', icon: Bell, label: 'System Alerts' },
+                { to: '/teacher/tickets', icon: Shield, label: 'Support Helpdesk' },
                 { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'School Calendar' },
                 { to: '/teacher/holidays', icon: Calendar, label: 'List of Holidays' },
             ]

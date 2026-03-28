@@ -14,7 +14,8 @@ import {
   History,
   Truck,
   Map,
-  Library
+  Library,
+  LifeBuoy
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -110,6 +111,7 @@ const navItems = [
       { to: '/school-admin/communication?tab=announcements', icon: Megaphone, label: 'Announcements' },
       { to: '/school-admin/communication?tab=messages', icon: MessageSquare, label: 'Direct Messages' },
       { to: '/school-admin/communication?tab=notices', icon: Layout, label: 'Notice Board' },
+      { to: '/school-admin/tickets', icon: LifeBuoy, label: 'Ticket Support' },
     ]
   },
   { to: '/school-admin/reports', icon: BarChart3, label: 'Analytical Reports' },
