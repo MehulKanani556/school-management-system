@@ -20,7 +20,8 @@ import {
     Mic,
     Paperclip,
     Smile,
-    ArrowLeft
+    ArrowLeft,
+    ChevronDown
 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import axiosInstance from '../../utils/axiosInstance';
@@ -529,17 +530,23 @@ const Communication = () => {
                                                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
                                                     <Users size={11} className="text-brand-primary" /> Target Demographic
                                                 </label>
-                                                <div className="grid grid-cols-2 gap-3 p-1">
-                                                    {['All', 'Student', 'Teacher', 'Parent'].map(role => (
-                                                        <button
-                                                            key={role}
-                                                            type="button"
-                                                            onClick={() => setFormData({ ...formData, targetRole: role })}
-                                                            className={`py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${formData.targetRole === role ? 'bg-brand-primary/10 border-brand-primary text-brand-primary shadow-lg shadow-brand-primary/5 scale-[1.02]' : 'bg-slate-950/60 border-slate-800 text-slate-600 hover:border-slate-700'}`}
-                                                        >
-                                                            {role}
-                                                        </button>
-                                                    ))}
+                                                <div className="relative group/select">
+                                                    <select
+                                                        value={formData.targetRole}
+                                                        onChange={(e) => setFormData({ ...formData, targetRole: e.target.value })}
+                                                        className="w-full bg-slate-950/60 border border-slate-800 rounded-md p-4 pr-10 text-white text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary transition-all appearance-none cursor-pointer hover:border-slate-700"
+                                                    >
+                                                        <option value="All" className="bg-slate-950 text-white">All</option>
+                                                        <option value="Student" className="bg-slate-950 text-white">Students</option>
+                                                        <option value="Teacher" className="bg-slate-950 text-white">Teachers</option>
+                                                        <option value="Parent" className="bg-slate-950 text-white">Parents</option>
+                                                        <option value="Accountant" className="bg-slate-950 text-white">Accountants</option>
+                                                        <option value="Librarian" className="bg-slate-950 text-white">Librarians</option>
+                                                        <option value="Transport_Manager" className="bg-slate-950 text-white">Transport Staff</option>
+                                                    </select>
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover/select:text-brand-primary transition-colors">
+                                                        <ChevronDown size={14} />
+                                                    </div>
                                                 </div>
                                             </div>
                                         )}
@@ -623,7 +630,7 @@ const Communication = () => {
                                                         <h4 className="text-white font-black text-xl uppercase tracking-tighter italic leading-none mb-1.5">{item.subject}</h4>
                                                         <div className="flex items-center gap-3">
                                                             <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-md border italic shadow-inner ${activeTab === 'announcements' ? 'text-brand-primary bg-brand-primary/5 border-brand-primary/10' : 'text-emerald-400 bg-emerald-500/5 border-emerald-500/10'}`}>
-                                                                {activeTab === 'announcements' ? `TARGET: ${item.targetRole}` : 'GLOBAL BULLETIN'}
+                                                                {activeTab === 'announcements' ? `TARGET: ${item.targetRole === 'Transport_Manager' ? 'Transporter' : item.targetRole}` : 'GLOBAL BULLETIN'}
                                                             </span>
                                                             <div className="flex items-center gap-2 text-[8px] font-bold text-slate-600 uppercase tracking-widest italic bg-slate-950/50 px-2.5 py-1 rounded-md border border-white/5">
                                                                 <Calendar size={10} className="text-slate-700" /> {new Date(item.createdAt).toLocaleDateString()}

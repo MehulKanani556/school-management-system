@@ -31,8 +31,12 @@ exports.getAnnouncements = async (req, res) => {
 
 exports.createAnnouncement = async (req, res) => {
     try {
+        const { targetRole, subject, ...rest } = req.body;
         const announcement = new Announcement({
-            ...req.body,
+            ...rest,
+            title: subject || rest.title,
+            targetRole: targetRole || 'All',
+            targetRoles: targetRole ? [targetRole] : ['All'],
             schoolId: getSchoolId(req),
             authorId: req.user._id,
         });

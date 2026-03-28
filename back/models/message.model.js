@@ -5,7 +5,7 @@ const messageSchema = new mongoose.Schema({
   sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   type: { type: String, enum: ['Announcement', 'DirectMessage', 'Notice'], default: 'Announcement' },
-  targetRole: { type: String, enum: ['Student', 'Parent', 'Teacher', 'All', 'Specific'] },
+  targetRole: { type: String, enum: ['Student', 'Parent', 'Teacher', 'Accountant', 'Librarian', 'Transport_Manager', 'All', 'Specific'] },
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
   subject: { type: String, required: true },
   content: { type: String, required: true },

@@ -26,7 +26,7 @@ const AccountantAnnouncements = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const url = activeTab === 'announcements' ? '/announcements' : '/notices';
+            const url = activeTab === 'announcements' ? '/announcements?role=Accountant' : '/notices';
             const res = await axiosInstance.get(url);
             if (activeTab === 'announcements') setAnnouncements(res.data);
             else setNotices(res.data);

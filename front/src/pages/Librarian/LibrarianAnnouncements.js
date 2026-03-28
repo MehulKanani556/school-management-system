@@ -13,7 +13,7 @@ const LibrarianAnnouncements = () => {
 
   const fetchAnnouncements = async () => {
     try {
-      const { data } = await api.get('/announcements');
+      const { data } = await api.get('/announcements?role=Librarian');
       setAnnouncements(Array.isArray(data) ? data : (data.announcements || []));
     } catch (err) {
       console.error(err);
