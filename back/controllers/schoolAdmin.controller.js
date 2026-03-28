@@ -2365,8 +2365,8 @@ exports.sendFeeReminders = async (req, res) => {
           recipient: student.parentId,
           sender: req.user._id,
           type: 'Fee',
-          title: 'Fiscal Alert: Pending Fee',
-          message: `Institutional record for ${student.firstName} shows a pending balance of ₹${pendingAmount} (${fee.category}). Due Date: ${new Date(fee.dueDate).toLocaleDateString()}.`,
+          title: 'Fee Alert: Pending Fee',
+          message: `Institutional record for ${student.firstName} ${student.lastName} shows a pending balance of ₹${pendingAmount} (${fee.category}). Due Date: ${new Date(fee.dueDate).toLocaleDateString()}.`,
           link: '/parent/fees'
         });
       }
