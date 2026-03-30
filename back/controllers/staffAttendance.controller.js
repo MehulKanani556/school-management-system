@@ -226,10 +226,77 @@ exports.getMyAttendanceHistory = async (req, res) => {
         if (teacher) {
             filter.teacherId = teacher._id;
         } else {
-            filter.userId = req.user._id;
+            // Check if it's a driver
+            const Driver = mongoose.model('Driver');
+            const driver = await Driver.findOne({ userId: req.user._id, schoolId });
+            if (driver) filter.driverId = driver._id;
+            else filter.userId = req.user._id;
         }
 
         const records = await StaffAttendance.find(filter).sort({ date: -1 });
         res.json(records);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+// 7. Generic Leave Management for Staff
+const Leave = require('../models/leave.model');
+const nc = require('./notification.controller');
+
+exports.staffApplyLeave = async (req, res) => {
+    try {
+        const { type, startDate, endDate, reason } = req.body;
+        const schoolId = getSchoolId(req);
+        const userId = req.user._id;
+
+        const filter = { schoolId };
+        const teacher = await Teacher.findOne({ userId, schoolId });
+        if (teacher) filter.teacherId = teacher._id;
+        else {
+            const Driver = mongoose.model('Driver');
+            const driver = await Driver.findOne({ userId, schoolId });
+            if (driver) filter.driverId = driver._id;
+            else filter.userId = userId;
+        }
+
+        const leave = await Leave.create({
+            ...filter,
+            type, startDate, endDate, reason
+        });
+
+        // Notify School Admin
+        const admins = await User.find({ schoolId, role: 'School_Admin' });
+        for (const admin of admins) {
+            await nc.sendNotification({
+                schoolId,
+                recipient: admin._id,
+                sender: userId,
+                type: 'Leave',
+                title: 'New Staff Leave Application',
+                message: `${req.user.firstName} ${req.user.lastName} (${req.user.role}) has applied for leave.`,
+                link: '/school-admin/leaves'
+            });
+        }
+
+        res.status(201).json({ message: 'Leave application submitted successfully', leave });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getStaffLeaves = async (req, res) => {
+    try {
+        const schoolId = getSchoolId(req);
+        const userId = req.user._id;
+        const filter = { schoolId };
+
+        const teacher = await Teacher.findOne({ userId, schoolId });
+        if (teacher) filter.teacherId = teacher._id;
+        else {
+            const Driver = mongoose.model('Driver');
+            const driver = await Driver.findOne({ userId, schoolId });
+            if (driver) filter.driverId = driver._id;
+            else filter.userId = userId;
+        }
+
+        const leaves = await Leave.find(filter).sort({ createdAt: -1 });
+        res.json(leaves);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

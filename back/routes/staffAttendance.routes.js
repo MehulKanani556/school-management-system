@@ -26,4 +26,8 @@ router.get('/report', ...superAdminAndSchoolAdmin, staffAttendanceController.get
 // 6. Get My History (Self)
 router.get('/my-history', auth, staffAttendanceController.getMyAttendanceHistory);
 
+// 7. Generic Leave Management
+router.post('/apply-leave', auth, staffAttendanceController.staffApplyLeave);
+router.get('/my-leaves', auth, staffAttendanceController.getStaffLeaves);
+
 module.exports = router;

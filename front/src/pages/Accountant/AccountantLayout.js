@@ -58,6 +58,8 @@ const AccountantLayout = () => {
       icon: User,
       children: [
         { path: '/accountant/profile', icon: User, label: 'My Profile' },
+        { path: '/accountant/attendance', icon: Clock, label: 'My Presence' },
+        { path: '/accountant/leaves', icon: Calendar, label: 'My Leaves' },
       ]
     }
   ];

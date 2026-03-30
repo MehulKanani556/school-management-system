@@ -55,6 +55,8 @@ const LibrarianLayout = () => {
       icon: User,
       children: [
         { to: '/librarian/profile', icon: User, label: 'My Profile' },
+        { to: '/librarian/attendance', icon: Clock, label: 'My Presence' },
+        { to: '/librarian/leaves', icon: Calendar, label: 'My Leaves' },
         { to: '/librarian/holidays', icon: Calendar, label: 'Holidays' },
       ]
     }

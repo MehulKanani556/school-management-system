@@ -214,6 +214,10 @@ const DriverMaintenance = React.lazy(() => import('./pages/Driver/DriverMaintena
 const DriverAttendance = React.lazy(() => import('./pages/Driver/DriverAttendance'));
 const DriverLeaves = React.lazy(() => import('./pages/Driver/DriverLeaves'));
 
+const StaffAttendanceHistory = React.lazy(() => import('./pages/shared/StaffAttendanceHistory'));
+const StaffLeavePortal = React.lazy(() => import('./pages/shared/StaffLeavePortal'));
+
+
 const { store, persistor } = configureStore();
 
 // Guard: only allow if authenticated + has required role
@@ -431,6 +435,8 @@ function AppRoutes() {
             <Route path="notifications" element={<AccountantNotifications />} />
             <Route path="holidays" element={<AccountantHolidays />} />
             <Route path="students" element={<AccountantStudentList />} />
+            <Route path="attendance" element={<StaffAttendanceHistory />} />
+            <Route path="leaves" element={<StaffLeavePortal />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
 
@@ -453,6 +459,8 @@ function AppRoutes() {
             <Route path="holidays" element={<LibrarianHolidays />} />
             <Route path="announcements" element={<LibrarianAnnouncements />} />
             <Route path="reservations" element={<LibrarianReservations />} />
+            <Route path="attendance" element={<StaffAttendanceHistory />} />
+            <Route path="leaves" element={<StaffLeavePortal />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
 
@@ -477,6 +485,8 @@ function AppRoutes() {
             <Route path="profile" element={<TransporterProfile />} />
             <Route path="attendance" element={<TransporterAttendance />} />
             <Route path="leaves" element={<TransporterLeaves />} />
+            <Route path="my-attendance" element={<StaffAttendanceHistory />} />
+            <Route path="my-leaves" element={<StaffLeavePortal />} />
             <Route path="attendance-report" element={<StaffAttendanceReport />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>

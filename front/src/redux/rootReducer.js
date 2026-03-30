@@ -15,6 +15,7 @@ import librarianReducer from './slice/librarian.slice';
 import transportReducer from './slice/transport.slice';
 import verificationReducer from "./slice/verification.slice";
 import uiReducer from './slice/ui.slice';
+import staffReducer from './slice/staff.slice';
 
 
 const rootReducer = combineReducers({
@@ -33,6 +34,7 @@ const rootReducer = combineReducers({
     transport: transportReducer,
     verification: verificationReducer,
     ui: uiReducer,
+    staff: staffReducer
 });
 
 export default rootReducer;

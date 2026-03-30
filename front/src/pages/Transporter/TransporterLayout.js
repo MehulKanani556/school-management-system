@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Truck, Users, MapPin, Map,
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
   LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
-  ClipboardList, Wrench, Megaphone,
+  ClipboardList, Wrench, Megaphone, Database,
   Settings, UserPlus, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -39,9 +39,16 @@ const TransporterLayout = () => {
         icon: Map,
         children: [
             { to: '/transporter/routes', icon: Map, label: 'Route List' },
+            {
+              label: 'Fleet Operations',
+              icon: Database,
+              children: [
+                { to: '/transporter/attendance', icon: ClipboardList, label: 'Driver Attendance' },
+                { to: '/transporter/leaves', icon: Calendar, label: 'Driver Leaves' },
+                { to: '/transporter/logs', icon: Clock, label: 'Trip Registry' },
+              ]
+            },
             { to: '/transporter/drivers', icon: Users, label: 'Driver List' },
-            { to: '/transporter/attendance', icon: ClipboardList, label: 'Driver Attendance' },
-            { to: '/transporter/leaves', icon: Calendar, label: 'Driver Leaves' },
             { to: '/transporter/attendance-report', icon: BookMarked, label: 'Attendance Report' },
             { to: '/transporter/students', icon: UserPlus, label: 'Student List' },
         ]
@@ -56,12 +63,14 @@ const TransporterLayout = () => {
         ]
     },
     {
-        label: 'Account Settings',
-        icon: User,
-        children: [
-            { to: '/transporter/profile', icon: User, label: 'My Profile' },
-            { to: '/transporter/holidays', icon: Calendar, label: 'Holiday List' },
-        ]
+      label: 'Personal Portal',
+      icon: User,
+      children: [
+        { to: '/transporter/profile', icon: User, label: 'My Profile' },
+        { to: '/transporter/my-attendance', icon: Clock, label: 'My Presence' },
+        { to: '/transporter/my-leaves', icon: Calendar, label: 'My Leaves' },
+        { to: '/transporter/holidays', icon: Calendar, label: 'Holidays' },
+      ]
     }
   ];
 
