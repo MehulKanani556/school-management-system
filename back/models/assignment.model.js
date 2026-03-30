@@ -8,6 +8,7 @@ const assignmentSchema = new mongoose.Schema({
   subject: { type: String, required: true },
   fileUrl: { type: String },
   dueDate: { type: Date, required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
 }, { timestamps: true });
 

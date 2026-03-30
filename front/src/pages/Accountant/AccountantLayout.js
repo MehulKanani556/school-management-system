@@ -16,6 +16,7 @@ import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
 import { logout } from '../../redux/slice/auth.slice';
+import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
 
 const AccountantLayout = () => {
   const dispatch = useDispatch();
@@ -216,6 +217,7 @@ const AccountantLayout = () => {
           </div>
 
           <div className="flex items-center gap-6">
+            <AcademicYearSwitcher />
             <div className="relative">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}

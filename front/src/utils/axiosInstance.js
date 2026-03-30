@@ -28,6 +28,10 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = localStorage.getItem("token");
+    const academicYearId = localStorage.getItem("activeAcademicYearId");
+    if (academicYearId) {
+        config.headers['x-academic-year-id'] = academicYearId;
+    }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }

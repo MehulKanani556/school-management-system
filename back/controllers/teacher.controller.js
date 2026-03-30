@@ -205,14 +205,15 @@ exports.markAttendance = async (req, res) => {
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
         const attendance = await Attendance.findOneAndUpdate(
-            { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date) },
+            { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), academicYearId: req.academicYearId },
             { 
                 schoolId: teacher.schoolId._id, 
                 standardId: isAssigned.standardId,
                 classSection: targetClass, 
                 date: new Date(date), 
                 records, 
-                submittedBy: req.user._id 
+                submittedBy: req.user._id,
+                academicYearId: req.academicYearId
             },
             { upsert: true, new: true }
         );
@@ -239,8 +240,8 @@ exports.addMarks = async (req, res) => {
 
         const marks = await Promise.all(studentMarks.map(item =>
             Mark.findOneAndUpdate(
-                { schoolId: teacher.schoolId._id, examId, studentId: item.studentId },
-                { marksObtained: item.score, remarks: item.remarks, submittedBy: req.user._id },
+                { schoolId: teacher.schoolId._id, examId, studentId: item.studentId, academicYearId: req.academicYearId },
+                { marksObtained: item.score, remarks: item.remarks, submittedBy: req.user._id, academicYearId: req.academicYearId },
                 { upsert: true, new: true }
             )
         ));
@@ -281,7 +282,8 @@ exports.uploadAssignment = async (req, res) => {
             classSection, title, description, subject,
             dueDate: new Date(dueDate),
             fileUrl,
-            createdBy: req.user._id
+            createdBy: req.user._id,
+            academicYearId: req.academicYearId
         });
 
         // Notify all students in this class

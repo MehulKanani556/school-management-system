@@ -22,6 +22,7 @@ import { fetchNotifications, receiveNotification } from '../../redux/slice/notif
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
+import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
 
 const navItems = [
   { to: '/school-admin', icon: LayoutDashboard, label: 'Dashboard', end: true },
@@ -282,6 +283,7 @@ const SchoolAdminLayout = () => {
           </div>
 
           <div className="flex items-center gap-6">
+            <AcademicYearSwitcher />
             <div className="relative">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}

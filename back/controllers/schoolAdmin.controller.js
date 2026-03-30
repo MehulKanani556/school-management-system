@@ -18,6 +18,9 @@ const School = require('../models/school.model');
 const Assignment = require('../models/assignment.model');
 const Submission = require('../models/submission.model');
 const StaffAttendance = require('../models/staffAttendance.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
+const AcademicYear = require('../models/academicYear.model');
+const PromotionHistory = require('../models/promotionHistory.model');
 const { sendFeeReminderMail } = require('../utils/mail');
 const nc = require('./notification.controller');
 const bcrypt = require('bcrypt');
@@ -107,11 +110,11 @@ exports.getDashboardStats = async (req, res) => {
     // 1. Basic Stats
     const schoolIdObj = new mongoose.Types.ObjectId(schoolId);
     const [studentsCount, teachersCount, classesCount, pendingFeesCount, examsCount, accountantCount, librarianCount, transportCount] = await Promise.all([
-      Student.countDocuments({ schoolId: schoolIdObj, deletedAt: null }),
+      StudentEnrollment.countDocuments({ schoolId: schoolIdObj, academicYearId: req.academicYearId, status: 'Active' }),
       Teacher.countDocuments({ schoolId: schoolIdObj, deletedAt: null }),
       ClassSection.countDocuments({ schoolId: schoolIdObj }),
-      FeePayment.countDocuments({ schoolId: schoolIdObj, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
-      Exam.countDocuments({ schoolId: schoolIdObj }),
+      FeePayment.countDocuments({ schoolId: schoolIdObj, academicYearId: req.academicYearId, status: { $in: ['pending', 'partially_paid', 'overdue'] } }),
+      Exam.countDocuments({ schoolId: schoolIdObj, academicYearId: req.academicYearId }),
       User.countDocuments({ schoolId: schoolIdObj, role: 'Accountant' }),
       User.countDocuments({ schoolId: schoolIdObj, role: 'Librarian' }),
       User.countDocuments({ schoolId: schoolIdObj, role: 'Transport_Manager' }),
@@ -121,7 +124,7 @@ exports.getDashboardStats = async (req, res) => {
     const [recentStudents, recentTeachers, recentExams] = await Promise.all([
       Student.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
       Teacher.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 }).limit(3).select('firstName lastName createdAt'),
-      Exam.find({ schoolId }).sort({ createdAt: -1 }).limit(3).populate('subject', 'name').select('title createdAt'),
+      Exam.find({ schoolId, academicYearId: req.academicYearId }).sort({ createdAt: -1 }).limit(3).populate('subject', 'name').select('title createdAt'),
     ]);
 
     const activity = [
@@ -131,7 +134,7 @@ exports.getDashboardStats = async (req, res) => {
     ].sort((a, b) => new Date(b.date) - new Date(a.date)).slice(0, 5);
 
     // 3. Attendance Trends (Last 7 records)
-    const last7Attendance = await Attendance.find({ schoolId })
+    const last7Attendance = await Attendance.find({ schoolId, academicYearId: req.academicYearId })
       .sort({ date: -1 })
       .limit(7)
       .select('date records');
@@ -478,6 +481,9 @@ exports.createStudent = async (req, res) => {
       parentId = parentUser._id;
     }
 
+    const { academicYearId, standard, classSection } = req.body;
+    if (!academicYearId) return res.status(400).json({ message: 'Academic Year is required for enrollment' });
+
     const student = await Student.create({
       ...body,
       schoolId: getSchoolId(req),
@@ -487,11 +493,21 @@ exports.createStudent = async (req, res) => {
       parentId
     });
 
+    // Create Enrollment Record
+    await StudentEnrollment.create({
+      schoolId: getSchoolId(req),
+      studentId: student._id,
+      academicYearId,
+      standardId: standard,
+      classSectionId: classSection,
+      status: 'Active'
+    });
+
     const populated = await student.populate([
       { path: 'standard', select: 'level name' },
       { path: 'classSection', select: 'sectionLabel' }
     ]);
-    res.status(201).json({ message: 'Student node provisioned successfully', data: populated });
+    res.status(201).json({ message: 'Student enrolled successfully in chosen Academic Year', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -611,40 +627,53 @@ exports.getStudentDetail = async (req, res) => {
 
 exports.promoteStudents = async (req, res) => {
   try {
-    const { studentIds, fromStandardId, fromClassSectionId, toStandardId, toClassSectionId } = req.body;
+    const { studentIds, toStandardId, toClassSectionId, fromAcademicYearId, toAcademicYearId, status = 'Promoted' } = req.body;
     const schoolId = getSchoolId(req);
 
-    // Build filter for source selection
-    let filter = { schoolId, deletedAt: null };
-    if (Array.isArray(studentIds) && studentIds.length > 0) {
-      filter._id = { $in: studentIds };
-    } else if (fromClassSectionId) {
-      filter.classSection = fromClassSectionId;
-    } else if (fromStandardId) {
-      filter.standard = fromStandardId;
-    } else {
-      return res.status(400).json({ message: 'Please specify students or source class to promote' });
+    if (!fromAcademicYearId || !toAcademicYearId) {
+      return res.status(400).json({ message: 'Source and Target Academic Years are required' });
     }
 
-    // Check target standard existence
-    const targetStandard = await Standard.findOne({ _id: toStandardId, schoolId });
-    if (!targetStandard) return res.status(404).json({ message: 'Target grade level (Standard) not found' });
+    const students = await Student.find({ _id: { $in: studentIds }, schoolId });
+    if (!students.length) return res.status(404).json({ message: 'No students found to promote' });
 
-    // Update students
-    const updateData = { standard: toStandardId };
-    if (toClassSectionId) {
-      updateData.classSection = toClassSectionId;
-    } else {
-      // If moving to next grade but section is not yet decided, clear the old section
-      updateData.classSection = null;
+    let count = 0;
+    for (const student of students) {
+      // 1. Create Promotion History record
+      await PromotionHistory.create({
+        schoolId,
+        studentId: student._id,
+        fromStandard: student.standard,
+        toStandard: toStandardId,
+        fromAcademicYear: fromAcademicYearId,
+        toAcademicYear: toAcademicYearId,
+        promotedBy: req.user._id,
+        status,
+      });
+
+      // 2. Create/Update Student Enrollment for the target year
+      await StudentEnrollment.findOneAndUpdate(
+        { studentId: student._id, academicYearId: toAcademicYearId },
+        {
+          schoolId,
+          studentId: student._id,
+          academicYearId: toAcademicYearId,
+          standardId: toStandardId,
+          classSectionId: toClassSectionId || null,
+          status: 'Active',
+          isPromoted: true
+        },
+        { upsert: true, new: true }
+      );
+
+      // 3. Update active student reference
+      student.standard = toStandardId;
+      student.classSection = toClassSectionId || null;
+      await student.save();
+      count++;
     }
 
-    const result = await Student.updateMany(filter, updateData);
-
-    res.json({
-      message: `Promotion cycle completed. ${result.modifiedCount} records migrated to Level ${targetStandard.level}.`,
-      modifiedCount: result.modifiedCount
-    });
+    res.json({ message: `Promotion Wizard completed. ${count} students migrated and enrollment records preserved.` });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1020,7 +1049,7 @@ exports.getFees = async (req, res) => {
       }
     }
 
-    const fees = await FeePayment.find({ schoolId })
+    const fees = await FeePayment.find({ schoolId, academicYearId: req.academicYearId })
       .sort({ createdAt: -1 })
       .populate({
         path: 'studentId',
@@ -1033,7 +1062,9 @@ exports.getFees = async (req, res) => {
 
 exports.createFee = async (req, res) => {
   try {
-    const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req) });
+    const academicYearId = req.academicYearId || req.body.academicYearId;
+    if (!academicYearId) return res.status(400).json({ message: 'Academic Year context required' });
+    const fee = await FeePayment.create({ ...req.body, schoolId: getSchoolId(req), academicYearId });
     const populated = await FeePayment.findById(fee._id).populate({
       path: 'studentId',
       select: 'firstName lastName admissionNumber standard',
@@ -1102,14 +1133,14 @@ exports.deleteFee = async (req, res) => {
 // ─── Fee Structures ────────────────────────────────────────────────────────────
 exports.getFeeStructures = async (req, res) => {
   try {
-    const structures = await FeeStructure.find({ schoolId: getSchoolId(req) }).populate('standardId', 'level name');
+    const structures = await FeeStructure.find({ schoolId: getSchoolId(req), academicYearId: req.academicYearId }).populate('standardId', 'level name');
     res.json(structures);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createFeeStructure = async (req, res) => {
   try {
-    const sub = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
+    const sub = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req), academicYearId: req.academicYearId });
     const populated = await sub.populate('standardId', 'level name');
     res.status(201).json({ message: 'Fee structure node created successfully', data: sub });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1136,10 +1167,12 @@ exports.deleteFeeStructure = async (req, res) => {
 // Apply structure to students (Generate Fees)
 exports.applyFeeStructure = async (req, res) => {
   try {
-    const { standardId, dueDate, academicYear } = req.body;
+    const { standardId, dueDate, academicYearId } = req.body;
     const schoolId = getSchoolId(req);
 
-    const structure = await FeeStructure.findOne({ schoolId, standardId, academicYear });
+    if (!academicYearId) return res.status(400).json({ message: 'Academic Year is required' });
+
+    const structure = await FeeStructure.findOne({ schoolId, standardId, academicYearId });
     if (!structure) return res.status(404).json({ message: 'No structure found for this standard' });
 
     // find students in this standard
@@ -1147,14 +1180,12 @@ exports.applyFeeStructure = async (req, res) => {
     if (!filtered.length) return res.status(404).json({ message: 'No students found in this grade' });
 
     // Guard against duplicates
-    const existingPayments = await FeePayment.find({ schoolId, academicYear });
+    const existingPayments = await FeePayment.find({ schoolId, academicYearId });
     const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
 
     const payments = [];
     for (const student of filtered) {
-      // Calculate scholarship discount
       const scholarship = student.scholarshipPercentage || 0;
-
       for (const item of structure.feeItems) {
         if (!existingKeys.has(`${student._id}-${item.name}`)) {
           const discount = (item.amount * scholarship) / 100;
@@ -1165,7 +1196,7 @@ exports.applyFeeStructure = async (req, res) => {
             discount: discount,
             totalAmount: item.amount - discount,
             category: item.name,
-            academicYear,
+            academicYearId,
             feeStructureId: structure._id,
             status: 'pending',
             dueDate: new Date(dueDate)
@@ -1184,7 +1215,7 @@ exports.applyFeeStructure = async (req, res) => {
 // ─── Exams ────────────────────────────────────────────────────────────────────
 exports.getExams = async (req, res) => {
   try {
-    const exams = await Exam.find({ schoolId: getSchoolId(req) })
+    const exams = await Exam.find({ schoolId: getSchoolId(req), academicYearId: req.academicYearId })
       .populate('standardId', 'level name')
       .populate('classSection', 'sectionLabel')
       .populate('subject', 'name code');
@@ -1196,7 +1227,7 @@ exports.createExam = async (req, res) => {
   try {
     const body = { ...req.body };
     if (!body.classSection) delete body.classSection; // Handle "whole grade"
-    const exam = await Exam.create({ ...body, schoolId: getSchoolId(req) });
+    const exam = await Exam.create({ ...body, schoolId: getSchoolId(req), academicYearId: req.academicYearId });
     const populated = await exam.populate([
       { path: 'standardId', select: 'level name' },
       { path: 'classSection', select: 'sectionLabel' },
@@ -1467,7 +1498,7 @@ exports.generateReportCard = async (req, res) => {
 exports.getAttendance = async (req, res) => {
   try {
     const { classSection, date } = req.query;
-    const filter = { schoolId: getSchoolId(req) };
+    const filter = { schoolId: getSchoolId(req), academicYearId: req.academicYearId };
     if (classSection) filter.classSection = classSection;
     if (date) filter.date = new Date(date);
     const attendance = await Attendance.find(filter)
@@ -1483,8 +1514,22 @@ exports.saveAttendance = async (req, res) => {
     const { standardId, classSection, date, records } = req.body;
     const schoolId = getSchoolId(req);
     const attendance = await Attendance.findOneAndUpdate(
-      { schoolId, standardId, classSection, date: new Date(date) },
-      { schoolId, standardId, classSection, date: new Date(date), records, submittedBy: req.user._id },
+      { 
+        schoolId, 
+        standardId, 
+        classSection, 
+        date: new Date(date), 
+        academicYearId: req.academicYearId 
+      },
+      { 
+        schoolId, 
+        standardId, 
+        classSection, 
+        date: new Date(date), 
+        records, 
+        submittedBy: req.user._id,
+        academicYearId: req.academicYearId
+      },
       { upsert: true, new: true }
     );
     res.json({ message: 'Attendance registry committed successfully', data: attendance });
@@ -2471,7 +2516,12 @@ exports.getFeeCollectionSummary = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
     const summary = await FeePayment.aggregate([
-      { $match: { schoolId: new mongoose.Types.ObjectId(schoolId) } },
+      { 
+        $match: { 
+          schoolId: new mongoose.Types.ObjectId(schoolId),
+          academicYearId: new mongoose.Types.ObjectId(req.academicYearId)
+        } 
+      },
       {
         $group: {
           _id: null,

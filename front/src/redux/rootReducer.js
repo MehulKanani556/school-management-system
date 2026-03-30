@@ -16,6 +16,7 @@ import transportReducer from './slice/transport.slice';
 import verificationReducer from "./slice/verification.slice";
 import uiReducer from './slice/ui.slice';
 import staffReducer from './slice/staff.slice';
+import academicYearReducer from './slice/academicYear.slice';
 
 
 const rootReducer = combineReducers({
@@ -34,7 +35,8 @@ const rootReducer = combineReducers({
     transport: transportReducer,
     verification: verificationReducer,
     ui: uiReducer,
-    staff: staffReducer
+    staff: staffReducer,
+    academicYear: academicYearReducer
 });
 
 export default rootReducer;

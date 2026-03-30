@@ -24,6 +24,7 @@ const STATUS_COLORS = {
 const Fees = () => {
   const dispatch = useDispatch();
   const { fees, students, feeStructures, standards, feeSummary, loading } = useSelector((s) => s.schoolAdmin);
+  const { activeAcademicYearId } = useSelector((s) => s.academicYear);
   
   const [activeTab, setActiveTab] = useState('records');
   const [modalType, setModalType] = useState(null); // 'fee', 'structure', 'apply', 'receipt'
@@ -117,10 +118,10 @@ const Fees = () => {
 
   // 2. Fee Structure Form
   const structureFormik = useFormik({
-    initialValues: { standardId: '', academicYear: '2024-2025', dueDate: '', feeItems: [{ name: '', amount: 0 }] },
+    initialValues: { standardId: '', academicYearId: activeAcademicYearId || '', dueDate: '', feeItems: [{ name: '', amount: 0 }] },
     validationSchema: Yup.object({
       standardId: Yup.string().required('Required'),
-      academicYear: Yup.string().required('Required'),
+      academicYearId: Yup.string().required('Required'),
       dueDate: Yup.date().required('Due date is required'),
       feeItems: Yup.array().of(
         Yup.object({
@@ -143,10 +144,10 @@ const Fees = () => {
 
   // 3. Apply Structure Form
   const applyFormik = useFormik({
-    initialValues: { standardId: '', academicYear: '2024-2025', dueDate: '' },
+    initialValues: { standardId: '', academicYearId: activeAcademicYearId || '', dueDate: '' },
     validationSchema: Yup.object({
       standardId: Yup.string().required('Required'),
-      academicYear: Yup.string().required('Required'),
+      academicYearId: Yup.string().required('Required'),
       dueDate: Yup.date().required('Billing due date required'),
     }),
     onSubmit: (values) => {
@@ -190,7 +191,7 @@ const Fees = () => {
     setEditing(s._id);
     structureFormik.setValues({
       standardId: s.standardId?._id || s.standardId,
-      academicYear: s.academicYear,
+      academicYearId: s.academicYearId?._id || s.academicYearId,
       dueDate: s.dueDate ? s.dueDate.split('T')[0] : '',
       feeItems: s.feeItems.map(i => ({ name: i.name, amount: i.amount }))
     });
@@ -547,7 +548,7 @@ const Fees = () => {
                       onClick={() => { 
                         applyFormik.setValues({
                           standardId: s.standardId?._id || s.standardId,
-                          academicYear: s.academicYear,
+                          academicYearId: s.academicYearId?._id || s.academicYearId,
                           dueDate: s.dueDate ? s.dueDate.split('T')[0] : ''
                         }); 
                         setModalType('apply'); 
@@ -773,8 +774,8 @@ const Fees = () => {
             </div>
             <div>
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Academic Year</label>
-              <input name="academicYear" placeholder="2024-2025" value={structureFormik.values.academicYear} onChange={structureFormik.handleChange}
-                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3 px-5 text-white outline-none text-sm focus:border-brand-primary" />
+              <input name="academicYearId" readOnly value={structureFormik.values.academicYearId}
+                className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3 px-5 text-slate-400 outline-none text-sm cursor-not-allowed opacity-60" />
             </div>
           </div>
 
@@ -839,8 +840,8 @@ const Fees = () => {
           <div className="space-y-4">
              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Academic Year Context</label>
-                <input name="academicYear" value={applyFormik.values.academicYear} onChange={applyFormik.handleChange}
-                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3.5 px-5 text-white text-sm font-bold" />
+                <input name="academicYearId" readOnly value={applyFormik.values.academicYearId}
+                  className="mt-1.5 w-full bg-slate-800/60 border border-brand-border/40 rounded-md py-3.5 px-5 text-slate-400 text-sm font-bold cursor-not-allowed opacity-60" />
              </div>
              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 px-1">Billing Due Date</label>

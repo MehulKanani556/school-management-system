@@ -14,7 +14,7 @@ const feePaymentSchema = new mongoose.Schema({
   status: { type: String, enum: ['paid', 'pending', 'overdue', 'partially_paid'], default: 'pending' },
   dueDate: { type: Date },
   paidDate: { type: Date },
-  academicYear: { type: String },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   feeStructureId: { type: mongoose.Schema.Types.ObjectId, ref: 'FeeStructure' },
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
@@ -66,7 +66,7 @@ feePaymentSchema.pre('findOneAndUpdate', async function(next) {
 });
 
 
-feePaymentSchema.index({ schoolId: 1, studentId: 1, category: 1, academicYear: 1 }, { unique: true });
+feePaymentSchema.index({ schoolId: 1, studentId: 1, category: 1, academicYearId: 1 }, { unique: true });
 
 // Institutional Revenue Synchronization Protocol
 feePaymentSchema.post('save', async function(doc) {

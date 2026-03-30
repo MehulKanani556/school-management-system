@@ -2,6 +2,7 @@ const AdmissionEnquiry = require('../models/admissionEnquiry.model');
 const Student = require('../models/student.model');
 const User = require('../models/user.model');
 const PromotionHistory = require('../models/promotionHistory.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -85,14 +86,25 @@ exports.admitCandidate = async (req, res) => {
             await AdmissionEnquiry.findByIdAndUpdate(enquiryId, { status: 'Admitted' }, { session });
         }
 
-        // 4. Create Initial Promotion History (Optional record of initial enrollment)
+        // 4. Create StudentEnrollment record for the academic year
+        await StudentEnrollment.create([{
+            schoolId,
+            studentId: student._id,
+            academicYearId,
+            standardId: classId,
+            classSectionId: sectionId || null,
+            status: 'Active',
+            isPromoted: false
+        }], { session });
+
+        // 5. Create Initial Promotion History
         const history = new PromotionHistory({
             schoolId,
             studentId: student._id,
             toStandard: classId,
             toAcademicYear: academicYearId,
             promotedBy: req.user._id,
-            status: 'Promoted' // Using 'Promoted' as initial admission state
+            status: 'Promoted'
         });
         await history.save({ session });
 

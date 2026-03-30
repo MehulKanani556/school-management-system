@@ -22,7 +22,8 @@ const timetableSchema = new mongoose.Schema({
         }
       ]
     }
-  ]
+  ],
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Timetable', timetableSchema);

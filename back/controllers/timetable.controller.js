@@ -21,7 +21,7 @@ exports.getTimetableByClass = async (req, res) => {
             if (!classCheck) return res.status(403).json({ message: 'Unauthorized: Sector access restricted' });
         }
 
-        const timetable = await Timetable.findOne({ classSection: classId })
+        const timetable = await Timetable.findOne({ classSection: classId, academicYearId: req.academicYearId })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');
         res.json(timetable || { classSection: classId, schedule: [] });
@@ -41,7 +41,7 @@ exports.upsertTimetable = async (req, res) => {
         const standardId = section.standardId;
 
         // Conflict detection (Teacher overlap check)
-        const allTimetables = await Timetable.find({ schoolId, classSection: { $ne: classSection } });
+        const allTimetables = await Timetable.find({ schoolId, academicYearId: req.academicYearId, classSection: { $ne: classSection } });
         
         for (const daySchedule of schedule) {
             const day = daySchedule.day;
@@ -73,14 +73,14 @@ exports.upsertTimetable = async (req, res) => {
             }
         }
 
-        let timetable = await Timetable.findOne({ classSection });
+        let timetable = await Timetable.findOne({ classSection, academicYearId: req.academicYearId });
 
         if (timetable) {
             timetable.schedule = schedule;
             timetable.standardId = standardId;
             await timetable.save();
         } else {
-            timetable = new Timetable({ schoolId, standardId, classSection, schedule });
+            timetable = new Timetable({ schoolId, standardId, classSection, schedule, academicYearId: req.academicYearId });
             await timetable.save();
         }
 
@@ -104,7 +104,7 @@ exports.getStudentTimetable = async (req, res) => {
         }
 
         console.log(`[DEBUG] Fetching timetable for student section: ${student.classSection}`);
-        const timetable = await Timetable.findOne({ classSection: student.classSection })
+        const timetable = await Timetable.findOne({ classSection: student.classSection, academicYearId: req.academicYearId })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');
         
@@ -120,7 +120,7 @@ exports.getStudentTimetable = async (req, res) => {
 exports.getAllTimetables = async (req, res) => {
     try {
         const schoolId = req.user.schoolId._id || req.user.schoolId;
-        const timetables = await Timetable.find({ schoolId })
+        const timetables = await Timetable.find({ schoolId, academicYearId: req.academicYearId })
             .populate({ path: 'classSection', populate: { path: 'standardId' } })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');

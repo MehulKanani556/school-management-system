@@ -10,6 +10,7 @@ const examSchema = new mongoose.Schema({
   maxMarks: { type: Number, default: 100 },
   date: { type: Date, required: true },
   isPublished: { type: Boolean, default: false },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Exam', examSchema);

@@ -32,7 +32,7 @@ connectDb(app);
 app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-academic-year-id'],
   credentials: true,
 }));
 app.use(bodyParser.json());

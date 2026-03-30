@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const feeStructureSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   standardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
-  academicYear: { type: String, required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   dueDate: { type: Date },
   feeItems: [
     {
@@ -15,7 +15,7 @@ const feeStructureSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Prevent duplicate structures for same standard/year
-feeStructureSchema.index({ schoolId: 1, standardId: 1, academicYear: 1 }, { unique: true });
+feeStructureSchema.index({ schoolId: 1, standardId: 1, academicYearId: 1 }, { unique: true });
 
 // Auto-calculate totalAmount before saving
 feeStructureSchema.pre('save', function(next) {

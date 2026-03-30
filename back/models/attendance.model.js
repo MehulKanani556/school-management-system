@@ -14,6 +14,7 @@ const attendanceSchema = new mongoose.Schema({
     isEarlyLeave: { type: Boolean, default: false },
     remarks: { type: String }
   }],
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 

@@ -5,6 +5,7 @@ const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePasswo
 const { auth, isSuperAdmin } = require('../middleware/auth');
 const checkMaintenance = require('../middleware/maintenance');
 const { requireRole } = require('../middleware/roleCheck');
+const academicYear = require('../middleware/academicYear');
 
 // Platform Wide Routing Policies
 router.use(checkMaintenance);
@@ -57,7 +58,7 @@ router.delete('/users/:id', auth, deleteUser);
 router.put('/users/:id', auth, updateUser);
 
 // ─── School Admin Routes ───────────────────────────────────────────────────────
-const schoolAdmin = [auth, requireRole('School_Admin')];
+const schoolAdmin = [auth, requireRole('School_Admin'), academicYear];
 
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
@@ -254,7 +255,7 @@ router.delete('/superadmin/holidays/:id', ...superAdmin, sac.deleteGlobalHoliday
 
 
 // ─── Teacher Routes ───────────────────────────────────────────────────────────
-const teacher = [auth, requireRole('Teacher')];
+const teacher = [auth, requireRole('Teacher'), academicYear];
 
 // teacher section
 router.get('/teacher/dashboard', ...teacher, tc.getTeacherDashboard);
@@ -331,7 +332,7 @@ router.patch('/teacher/quizzes/:id/toggle-publish', ...teacher, tc.toggleQuizPub
 router.get('/teacher/quizzes/:id/attempts', ...teacher, tc.getQuizAttempts);
 
 // ─── Student Routes ──────────────────────────────────────────────────────────
-const student = [auth, requireRole('Student')];
+const student = [auth, requireRole('Student'), academicYear];
 
 router.get('/student/profile', ...student, stc.getProfile);
 router.put('/student/profile', ...student, upload.single('photo'), stc.updateProfile);
@@ -358,7 +359,7 @@ router.post('/student/apply-transport', ...student, stc.applyTransport);
 
 
 // ─── Parent Routes ─────────────────────────────────────────────────────────
-const parent = [auth, requireRole('Parent')];
+const parent = [auth, requireRole('Parent'), academicYear];
 
 router.get('/parent/children', ...parent, pc.getMyChildren);
 router.get('/parent/child/:studentId/overview', ...parent, pc.getChildOverview);
@@ -387,7 +388,7 @@ router.post('/parent/apply-transport/:studentId', ...parent, pc.applyForTranspor
 
 
 // ─── Communication Routes ───────────────────────────────────────────────────
-const communicationStaff = [auth, requireRole('School_Admin', 'Super_Admin', 'Transport_Manager', 'Accountant')];
+const communicationStaff = [auth, requireRole('School_Admin', 'Super_Admin', 'Transport_Manager', 'Accountant'), academicYear];
 router.get('/school-admin/announcements', ...communicationStaff, mc.getAnnouncements);
 router.post('/school-admin/announcements', ...communicationStaff, upload.single('file'), mc.createAnnouncement);
 router.get('/school-admin/messages', ...communicationStaff, mc.getMyMessages);
@@ -421,7 +422,7 @@ router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
 router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);
 
 // ─── Accountant Routes ────────────────────────────────────────────────────────
-const accountant = [auth, requireRole('Accountant')];
+const accountant = [auth, requireRole('Accountant'), academicYear];
 
 router.get('/accountant/fees', ...accountant, ac.getFees);
 router.get('/accountant/standards', ...accountant, sa.getStandards);
@@ -456,7 +457,7 @@ router.get('/accountant/holidays', ...accountant, hc.getHolidays);
 
 
 // ─── Librarian Routes ─────────────────────────────────────────────────────────
-const librarian = [auth, requireRole('Librarian', 'School_Admin')];
+const librarian = [auth, requireRole('Librarian', 'School_Admin'), academicYear];
 
 router.get('/librarian/books', ...librarian, lc.getBooks);
 router.post('/librarian/books', ...librarian, upload.single('bookFile'), lc.addBook);
@@ -477,7 +478,7 @@ router.get('/librarian/reservations', ...librarian, lc.getReservations);
 router.put('/librarian/reservations/:id/status', ...librarian, lc.updateReservationStatus);
 
 // ─── Transport Routes ──────────────────────────────────────────────────────────
-const transportManager = [auth, requireRole('Transport_Manager', 'School_Admin')];
+const transportManager = [auth, requireRole('Transport_Manager', 'School_Admin'), academicYear];
 
 router.get('/transport/vehicles', ...transportManager, trc.getVehicles);
 router.post('/transport/vehicles', ...transportManager, trc.addVehicle);
@@ -512,7 +513,7 @@ router.post('/transport/trip-logs', ...transportManager, trc.recordTrip);
 router.put('/transport/trip-logs/:id/status', auth, requireRole('Transport_Manager', 'School_Admin', 'Driver'), trc.updateTripStatus);
 router.put('/transport/trip-logs/:id/toggle-boarding', auth, requireRole('Transport_Manager', 'School_Admin', 'Driver'), trc.toggleBoarding);
 // ─── Driver Routes ─────────────────────────────────────────────────────────────
-const driver = [auth, requireRole('Driver')];
+const driver = [auth, requireRole('Driver'), academicYear];
 
 router.get('/driver/profile', ...driver, drc.getDriverProfile);
 router.get('/driver/routes', ...driver, drc.getMyRoutes);

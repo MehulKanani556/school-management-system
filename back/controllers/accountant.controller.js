@@ -24,6 +24,8 @@ exports.getFees = async (req, res) => {
         const { search, status, startDate, endDate, page = 1, limit = 10, classSection, standard } = req.query;
 
         let query = { schoolId };
+        const academicYearId = req.academicYearId || req.query.academicYearId;
+        if (academicYearId) query.academicYearId = academicYearId;
         
         if (status) query.status = status;
         if (startDate || endDate) {
@@ -118,14 +120,14 @@ exports.collectFee = async (req, res) => {
 // ─── Fee Structures ────────────────────────────────────────────────────────────
 exports.getFeeStructures = async (req, res) => {
     try {
-        const structures = await FeeStructure.find({ schoolId: getSchoolId(req) }).populate('standardId', 'level name');
+        const structures = await FeeStructure.find({ schoolId: getSchoolId(req), academicYearId: req.academicYearId }).populate('standardId', 'level name');
         res.json(structures);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createFeeStructure = async (req, res) => {
     try {
-        const structure = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req) });
+        const structure = await FeeStructure.create({ ...req.body, schoolId: getSchoolId(req), academicYearId: req.academicYearId });
         const populated = await structure.populate('standardId', 'level name');
 
         await logAudit(req, 'CREATE_FEE_STRUCTURE', 'Finance', `Created new fee structure for Standard ${populated.standardId.name || `Grade ${populated.standardId.level}`}`);
@@ -154,17 +156,19 @@ exports.deleteFeeStructure = async (req, res) => {
 
 exports.applyFeeStructure = async (req, res) => {
     try {
-        const { standardId, dueDate, academicYear } = req.body;
-        const schoolId = getSchoolId(req);
+    const { standardId, dueDate, academicYearId } = req.body;
+    const schoolId = getSchoolId(req);
 
-        const structure = await FeeStructure.findOne({ schoolId, standardId, academicYear });
-        if (!structure) return res.status(404).json({ message: 'No structure found for this criteria' });
+    if (!academicYearId) return res.status(400).json({ message: 'Academic Year is required' });
 
-        const students = await Student.find({ schoolId, standard: standardId, deletedAt: null });
-        if (!students.length) return res.status(404).json({ message: 'No students found in this grade' });
+    const structure = await FeeStructure.findOne({ schoolId, standardId, academicYearId });
+    if (!structure) return res.status(404).json({ message: 'No structure found for this criteria' });
 
-        const existingPayments = await FeePayment.find({ schoolId, academicYear });
-        const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
+    const students = await Student.find({ schoolId, standard: standardId, deletedAt: null });
+    if (!students.length) return res.status(404).json({ message: 'No students found in this grade' });
+
+    const existingPayments = await FeePayment.find({ schoolId, academicYearId });
+    const existingKeys = new Set(existingPayments.map(p => `${p.studentId}-${p.category}`));
 
         const payments = [];
         for (const student of students) {
@@ -179,7 +183,7 @@ exports.applyFeeStructure = async (req, res) => {
                         discount: discount,
                         totalAmount: item.amount - discount,
                         category: item.name,
-                        academicYear,
+                        academicYearId,
                         feeStructureId: structure._id,
                         status: 'pending',
                         dueDate: new Date(dueDate)
@@ -194,7 +198,7 @@ exports.applyFeeStructure = async (req, res) => {
         
         const standard = await Standard.findById(standardId);
         const standardName = standard ? (standard.name || `Grade ${standard.level}`) : standardId;
-        await logAudit(req, 'APPLY_FEE_STRUCTURE', 'Finance', `Applied fee structure for Standard ${standardName} for year ${academicYear}`);
+        await logAudit(req, 'APPLY_FEE_STRUCTURE', 'Finance', `Applied fee structure for Standard ${standardName} for session ${academicYearId}`);
 
         res.json({ message: `Fee Inflow Cycle Triggered for ${students.length} students.` });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -519,13 +523,9 @@ exports.getFinancialReport = async (req, res) => {
             if (startDate) match.paidDate.$gte = new Date(startDate);
             if (endDate) match.paidDate.$lte = new Date(endDate);
         }
-        if (academicYear) {
-            match.$or = [
-                { academicYear: academicYear },
-                { academicYear: { $exists: false } },
-                { academicYear: null },
-                { academicYear: "" }
-            ];
+        const ayId = req.academicYearId;
+        if (ayId) {
+            match.academicYearId = new mongoose.Types.ObjectId(ayId);
         }
 
 
