@@ -119,6 +119,28 @@ function initializeSocket(io) {
         }
     });
 
+    socket.on("STOP_DRIVER_TRACKING", async (data) => {
+        const { driverId } = data;
+        if (driverId) {
+            try {
+                const driver = await Driver.findOne({ userId: driverId });
+                if (driver) {
+                    const vehicle = await Vehicle.findOne({ driverId: driver._id });
+                    if (vehicle) {
+                        const vehicleId = vehicle._id.toString();
+                        vehicleLocationMap.delete(vehicleId);
+                        
+                        // Notify fleet management to remove or mark as offline
+                        io.to("fleet_management").emit("fleet_location_removed", { vehicleId });
+                        io.to(`vehicle_${vehicleId}`).emit("vehicle_location_offline", { vehicleId });
+                    }
+                }
+            } catch (err) {
+                console.error("Error stopping tracking for driver:", err);
+            }
+        }
+    });
+
     socket.on("subscribe_to_fleet", () => {
         socket.join("fleet_management");
         console.log(`Socket ${socket.id} subscribed to entire fleet`);

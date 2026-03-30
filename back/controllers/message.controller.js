@@ -1,6 +1,9 @@
 const Message = require('../models/message.model');
 const User = require('../models/user.model');
 const Student = require('../models/student.model');
+const Vehicle = require('../models/vehicle.model');
+const Route = require('../models/route.model');
+const Driver = require('../models/driver.model');
 const socketManager = require('../socketManager/socketManager');
 const nc = require('./notification.controller');
 
@@ -79,18 +82,21 @@ exports.createNotice = async (req, res) => {
 // Send a direct message to a specific user (e.g. Admin to Teacher)
 exports.sendMessage = async (req, res) => {
     try {
-        const { recipient, recipientId, subject, content } = req.body;
+        const { recipient, recipientId, subject, content, type, targetRole, classSection } = req.body;
         const schoolId = req.user.schoolId;
+        const fileUrl = req.file ? req.file.location : null;
 
+        const finalType = recipient || recipientId ? 'DirectMessage' : (type || 'Announcement');
         const message = await Message.create({
             schoolId,
             sender: req.user._id,
-            recipient: recipient || recipientId,
-            type: 'DirectMessage',
-            targetRole: 'Specific',
-            subject: subject || 'Direct Message',
+            recipient: recipient || recipientId || null,
+            type: finalType,
+            targetRole: classSection ? 'Specific' : (targetRole || 'All'),
+            classSection: classSection || null,
+            subject: subject || (finalType === 'DirectMessage' ? 'Direct Message' : 'Announcement'),
             content,
-            fileUrl: req.file ? req.file.location : null
+            fileUrl
         });
 
         const populated = await message.populate([
@@ -98,17 +104,28 @@ exports.sendMessage = async (req, res) => {
             { path: 'recipient', select: 'firstName lastName photo role' }
         ]);
         
-        // Real-time send
-        socketManager.sendToUser(recipient || recipientId, 'NEW_MESSAGE', {
-            ...populated.toJSON(),
-            senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
-        });
+        // Real-time notification logic
+        if (finalType === 'DirectMessage') {
+            socketManager.sendToUser(recipient || recipientId, 'NEW_MESSAGE', {
+                ...populated.toJSON(),
+                senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+            });
+        } else if (finalType === 'Notice') {
+            if (classSection) {
+                socketManager.sendToClass(classSection, 'NEW_NOTICE', populated);
+            } else {
+                socketManager.broadcastNotice('NEW_NOTICE', populated);
+            }
+        } else {
+            socketManager.broadcastToRole(targetRole || 'All', 'NEW_ANNOUNCEMENT', populated);
+        }
 
         res.status(201).json(populated);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 };
+
 
 // Get all announcements for the school (with role-based filtering)
 exports.getAnnouncements = async (req, res) => {
@@ -224,16 +241,44 @@ exports.getChatHistory = async (req, res) => {
 // Get available contacts in the school (excluding self and students for now)
 exports.getContacts = async (req, res) => {
     try {
-        const query = { 
+        let query = { 
             schoolId: req.user.schoolId, 
             _id: { $ne: req.user._id }
         };
         
         // Role-based contact filtering
         if (req.user.role === 'Teacher') {
-            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager'] };
+            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager', 'Driver'] };
         } else if (req.user.role === 'Transport_Manager') {
-            query.role = { $in: ['School_Admin', 'Parent'] };
+            query.role = { $in: ['School_Admin', 'Teacher', 'Parent', 'Driver', 'Accountant', 'Librarian'] };
+        } else if (req.user.role === 'Driver') {
+            // Driver specific logic: assigned students, their parents, plus admin/transporter
+            const driver = await Driver.findOne({ userId: req.user._id });
+            let allowedUserIds = [];
+            if (driver) {
+                const vehicle = await Vehicle.findOne({ driverId: driver._id });
+                if (vehicle) {
+                    const route = await Route.findOne({ vehicleId: vehicle._id }).populate({
+                        path: 'assignedStudents.studentId',
+                        select: 'userId parentId'
+                    });
+                    if (route) {
+                        route.assignedStudents.forEach(item => {
+                            if (item.studentId?.userId) allowedUserIds.push(item.studentId.userId.toString());
+                            if (item.studentId?.parentId) allowedUserIds.push(item.studentId.parentId.toString());
+                        });
+                    }
+                }
+            }
+            // Add fixed target roles
+            query = {
+                schoolId: req.user.schoolId,
+                $or: [
+                    { _id: { $in: allowedUserIds } },
+                    { role: { $in: ['School_Admin', 'Transport_Manager'] } }
+                ],
+                _id: { $ne: req.user._id }
+            };
         } else {
             // Default restricted contacts for other roles
             query.role = { $in: ['School_Admin', 'Teacher', 'Transport_Manager'] };

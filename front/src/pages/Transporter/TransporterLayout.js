@@ -40,6 +40,9 @@ const TransporterLayout = () => {
         children: [
             { to: '/transporter/routes', icon: Map, label: 'Route List' },
             { to: '/transporter/drivers', icon: Users, label: 'Driver List' },
+            { to: '/transporter/attendance', icon: ClipboardList, label: 'Driver Attendance' },
+            { to: '/transporter/leaves', icon: Calendar, label: 'Driver Leaves' },
+            { to: '/transporter/attendance-report', icon: BookMarked, label: 'Attendance Report' },
             { to: '/transporter/students', icon: UserPlus, label: 'Student List' },
         ]
     },
@@ -47,8 +50,8 @@ const TransporterLayout = () => {
         label: 'Messages',
         icon: MessageSquare,
         children: [
-            { to: '/transporter/messages', icon: MessageSquare, label: 'Chat' },
-            { to: '/transporter/announcements', icon: Bell, label: 'Notices' },
+            { to: '/transporter/messages?tab=chat', icon: MessageSquare, label: 'Chat' },
+            { to: '/transporter/messages?tab=notices', icon: Bell, label: 'Notices' },
             { to: '/transporter/notifications', icon: Bell, label: 'Alerts' },
         ]
     },
@@ -118,7 +121,7 @@ const TransporterLayout = () => {
   const isActive = (path) => location.pathname === path;
 
   return (
-    <div className="h-screen bg-brand-background text-slate-100 flex font-outfit antialiased overflow-hidden">
+    <div className="h-screen bg-brand-background text-slate-100 flex font-outfit antialiased overflow-hidden theme-transporter">
       {/* Sidebar - Terminal Aesthetic with Transporter Theme (Orange) */}
       <aside className={`fixed inset-y-0 left-0 z-50 w-72 bg-brand-surface border-r border-brand-border/60 flex flex-col transition-transform duration-300 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 lg:static lg:h-full font-outfit`}>
         <div className="p-8 flex-shrink-0">

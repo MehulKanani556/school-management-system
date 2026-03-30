@@ -29,7 +29,7 @@ import Dashboard from './pages/schooladmin/Dashboard';
 import Students from './pages/schooladmin/Students';
 import StudentDetail from './pages/schooladmin/StudentDetail';
 import StaffAttendance from './pages/schooladmin/StaffAttendance';
-import StaffAttendanceReport from './pages/schooladmin/StaffAttendanceReport';
+// import StaffAttendanceReport from './pages/schooladmin/StaffAttendanceReport';
 import AssignmentOverview from './pages/schooladmin/AssignmentOverview';
 import CertificateHub from './pages/schooladmin/CertificateHub';
 import Teachers from './pages/schooladmin/Teachers';
@@ -201,6 +201,10 @@ const TransporterAnnouncements = React.lazy(() => import('./pages/Transporter/An
 const Maintenancetransport = React.lazy(() => import('./pages/Transporter/Maintenance'));
 const Tracking = React.lazy(() => import('./pages/Transporter/Tracking'));
 const TransporterAnalytics = React.lazy(() => import('./pages/Transporter/Analytics'));
+const TransporterAttendance = React.lazy(() => import('./pages/Transporter/DriverAttendance'));
+const TransporterLeaves = React.lazy(() => import('./pages/Transporter/DriverLeaves'));
+const StaffAttendanceReport = React.lazy(() => import('./pages/schooladmin/StaffAttendanceReport'));
+
 
 const DriverDashboard = React.lazy(() => import('./pages/Driver/DriverDashboard'));
 const DriverActiveTrip = React.lazy(() => import('./pages/Driver/DriverActiveTrip'));
@@ -208,6 +212,7 @@ const DriverTripLogs = React.lazy(() => import('./pages/Driver/DriverTripLogs'))
 const DriverRouteMap = React.lazy(() => import('./pages/Driver/DriverRouteMap'));
 const DriverMaintenance = React.lazy(() => import('./pages/Driver/DriverMaintenance'));
 const DriverAttendance = React.lazy(() => import('./pages/Driver/DriverAttendance'));
+const DriverLeaves = React.lazy(() => import('./pages/Driver/DriverLeaves'));
 
 const { store, persistor } = configureStore();
 
@@ -467,9 +472,12 @@ function AppRoutes() {
             <Route path="analytics" element={<Suspense fallback={<Loader2 className="animate-spin" />}><TransporterAnalytics /></Suspense>} />
             <Route path="notifications" element={<TransporterNotifications />} />
             <Route path="holidays" element={<TransporterHolidays />} />
-            <Route path="announcements" element={<TransporterAnnouncements />} />
+            <Route path="announcements" element={<TransporterMessages />} />
             <Route path="messages" element={<TransporterMessages />} />
             <Route path="profile" element={<TransporterProfile />} />
+            <Route path="attendance" element={<TransporterAttendance />} />
+            <Route path="leaves" element={<TransporterLeaves />} />
+            <Route path="attendance-report" element={<StaffAttendanceReport />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
 
@@ -488,6 +496,7 @@ function AppRoutes() {
             <Route path="profile" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterProfile /></Suspense>} />
             <Route path="holidays" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><TransporterHolidays /></Suspense>} />
             <Route path="attendance" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverAttendance /></Suspense>} />
+            <Route path="leaves" element={<Suspense fallback={<Loader2 className="animate-spin text-emerald-500" />}><DriverLeaves /></Suspense>} />
           </Route>
 
         </Routes>

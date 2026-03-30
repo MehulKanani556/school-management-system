@@ -40,11 +40,26 @@ export const sendMessageSlice = createAsyncThunk(
 const initialState = {
     contacts: [],
     messages: [],
+    notices: [],
     unreadCount: 0,
     lastMessage: null,
     loading: false,
     error: null
 };
+
+export const fetchMyMessages = createAsyncThunk('communication/fetchMessages', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/my-messages');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
+
+export const fetchNotices = createAsyncThunk('communication/fetchNotices', async (_, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/notices');
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response.data.message); }
+});
 
 const communicationSlice = createSlice({
     name: 'communication',
@@ -59,8 +74,13 @@ const communicationSlice = createSlice({
         resetUnreadCount: (state) => {
             state.unreadCount = 0;
         },
-        addMessage: (state, action) => {
-            state.messages.push(action.payload);
+        addCommunicationMessage: (state, action) => {
+            const msg = action.payload;
+            if (msg.type === 'Notice') {
+                state.notices = [msg, ...state.notices];
+            } else if (msg.type === 'Announcement' || msg.type === 'DirectMessage') {
+                state.messages = [msg, ...state.messages];
+            }
         }
     },
     extraReducers: (builder) => {
@@ -73,13 +93,24 @@ const communicationSlice = createSlice({
                 state.contacts = action.payload;
             })
             .addCase(fetchChatHistory.fulfilled, (state, action) => {
-                state.messages = action.payload.reverse(); // Order for UI
+                state.messages = action.payload.reverse(); 
             })
             .addCase(sendMessageSlice.fulfilled, (state, action) => {
-                state.messages.push(action.payload);
+                const msg = action.payload.data || action.payload;
+                if (msg.type === 'Notice') state.notices = [msg, ...state.notices];
+                else state.messages = [msg, ...state.messages];
+            })
+            .addCase(fetchMyMessages.fulfilled, (state, action) => {
+                state.messages = action.payload;
+                state.loading = false;
+            })
+            .addCase(fetchNotices.fulfilled, (state, action) => {
+                state.notices = action.payload;
+                state.loading = false;
             });
     }
 });
 
-export const { setUnreadCount, incrementUnreadCount, resetUnreadCount, addMessage } = communicationSlice.actions;
+export const { setUnreadCount, incrementUnreadCount, resetUnreadCount, addCommunicationMessage } = communicationSlice.actions;
 export default communicationSlice.reducer;
+

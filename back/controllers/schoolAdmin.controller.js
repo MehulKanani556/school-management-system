@@ -1867,18 +1867,21 @@ exports.getStaffAttendance = async (req, res) => {
     const schoolId = getSchoolId(req);
     const targetDate = date ? new Date(new Date(date).setHours(0, 0, 0, 0)) : new Date(new Date().setHours(0, 0, 0, 0));
 
-    // Get all active teachers
-    const teachers = await Teacher.find({ schoolId, isActive: true }).select('firstName lastName employeeId photo');
+    // Get all active personnel (Teachers + Drivers)
+    const [teachers, drivers] = await Promise.all([
+        Teacher.find({ schoolId, isActive: true }).select('firstName lastName employeeId photo'),
+        mongoose.model('Driver').find({ schoolId, status: 'active' }).select('name contact userId')
+    ]);
 
     // Get attendance for this date
     const attendance = await StaffAttendance.find({ schoolId, date: targetDate });
 
-    const combined = teachers.map(t => {
-      const att = attendance.find(a => a.teacherId.toString() === t._id.toString());
+    const teacherRecords = teachers.map(t => {
+      const att = attendance.find(a => a.teacherId && a.teacherId.toString() === t._id.toString());
       return {
         _id: t._id,
-        firstName: t.firstName,
-        lastName: t.lastName,
+        type: 'Teacher',
+        name: `${t.firstName} ${t.lastName}`,
         employeeId: t.employeeId,
         photo: t.photo,
         status: att?.status || 'N/A',
@@ -1889,7 +1892,23 @@ exports.getStaffAttendance = async (req, res) => {
       };
     });
 
-    res.json(combined);
+    const driverRecords = drivers.map(d => {
+        const att = attendance.find(a => a.driverId && a.driverId.toString() === d._id.toString());
+        return {
+          _id: d._id,
+          type: 'Driver',
+          name: d.name,
+          employeeId: d.licenseNumber || 'DRIVER',
+          photo: null, 
+          status: att?.status || 'N/A',
+          arrivalTime: att?.arrivalTime || '',
+          departureTime: att?.departureTime || '',
+          isLate: att?.isLate || false,
+          remarks: att?.remarks || ''
+        };
+      });
+
+    res.json([...teacherRecords, ...driverRecords]);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1899,13 +1918,24 @@ exports.saveStaffAttendance = async (req, res) => {
     const schoolId = getSchoolId(req);
     const targetDate = date ? new Date(new Date(date).setHours(0, 0, 0, 0)) : new Date(new Date().setHours(0, 0, 0, 0));
 
-    const ops = records.map(r => ({
-      updateOne: {
-        filter: { schoolId, teacherId: r.teacherId, date: targetDate },
-        update: { ...r, schoolId, date: targetDate },
-        upsert: true
-      }
-    }));
+    const ops = records.map(r => {
+      const filter = { schoolId, date: targetDate };
+      if (r.type === 'Teacher') filter.teacherId = r._id;
+      else if (r.type === 'Driver') filter.driverId = r._id;
+      else filter.userId = r._id;
+
+      const recordData = { ...r, schoolId, date: targetDate };
+      delete recordData._id;
+      delete recordData.type;
+
+      return {
+        updateOne: {
+          filter,
+          update: { $set: recordData },
+          upsert: true
+        }
+      };
+    });
 
     await StaffAttendance.bulkWrite(ops);
     res.json({ message: 'Staff attendance registry updated' });
@@ -2105,7 +2135,10 @@ exports.getAllAssignments = async (req, res) => {
 // ─── Leave Management ─────────────────────────────────────────────────────────
 exports.getAllLeaves = async (req, res) => {
   try {
-    const leaves = await Leave.find({ schoolId: getSchoolId(req) }).populate('teacherId', 'firstName lastName employeeId').sort({ createdAt: -1 });
+    const leaves = await Leave.find({ schoolId: getSchoolId(req) })
+      .populate('teacherId', 'firstName lastName employeeId')
+      .populate('driverId', 'name contact licenseNumber')
+      .sort({ createdAt: -1 });
     res.json(leaves);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -2121,7 +2154,10 @@ exports.updateLeaveStatus = async (req, res) => {
     leave.actionedAt = new Date();
     await leave.save();
 
-    const populated = await leave.populate('teacherId', 'firstName lastName employeeId');
+    const populated = await leave.populate([
+        { path: 'teacherId', select: 'firstName lastName employeeId' },
+        { path: 'driverId', select: 'name contact licenseNumber' }
+    ]);
     res.json({ message: `Leave application ${status} successfully`, data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

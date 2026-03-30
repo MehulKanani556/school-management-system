@@ -411,6 +411,18 @@ export const fetchDriverAttendanceSlice = createAsyncThunk(
     }
 );
 
+export const markDriverAttendanceSlice = createAsyncThunk(
+    'transport/markDriverAttendance',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/driver/mark-attendance', data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 export const updateDriverLocationAPI = createAsyncThunk(
     'transport/updateDriverLocation',
     async ({ lat, lng }, { rejectWithValue }) => {
@@ -422,6 +434,31 @@ export const updateDriverLocationAPI = createAsyncThunk(
         }
     }
 );
+
+export const applyDriverLeaveSlice = createAsyncThunk(
+    'transport/applyLeave',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.post('/driver/apply-leave', data);
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
+export const fetchDriverLeavesSlice = createAsyncThunk(
+    'transport/fetchLeaves',
+    async (_, { rejectWithValue }) => {
+        try {
+            const response = await axiosInstance.get('/driver/my-leaves');
+            return response.data;
+        } catch (error) {
+            return rejectWithValue(error.response.data.message);
+        }
+    }
+);
+
 
 const transportSlice = createSlice({
     name: 'transport',
@@ -435,6 +472,7 @@ const transportSlice = createSlice({
         driverProfile: null,
         driverVehicle: null,
         driverAttendance: [],
+        driverLeaves: [], // Added driverLeaves
         loading: false,
         error: null,
         message: null
@@ -606,6 +644,17 @@ const transportSlice = createSlice({
             })
             .addCase(fetchDriverAttendanceSlice.fulfilled, (state, action) => {
                 state.driverAttendance = action.payload;
+            })
+            .addCase(markDriverAttendanceSlice.fulfilled, (state, action) => {
+                state.driverAttendance.unshift(action.payload.data);
+                state.message = 'Attendance registered (उपस्थिती दर्ज की गई)';
+            })
+            .addCase(fetchDriverLeavesSlice.fulfilled, (state, action) => {
+                state.driverLeaves = action.payload;
+            })
+            .addCase(applyDriverLeaveSlice.fulfilled, (state, action) => {
+                state.driverLeaves.unshift(action.payload.leave);
+                state.message = "Leave application submitted (छुट्टी का आवेदन भेजा गया)";
             })
             .addMatcher(
                 (action) => action.type.endsWith('/pending'),

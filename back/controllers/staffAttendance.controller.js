@@ -23,6 +23,7 @@ exports.markBulkAttendance = async (req, res) => {
                 schoolId, 
                 date: attendanceDate, 
                 teacherId: rec.teacherId || null, 
+                driverId: rec.driverId || null,
                 userId: rec.userId || null 
             };
             
@@ -85,9 +86,12 @@ exports.getStaffForAttendance = async (req, res) => {
             staffFilter.role = role;
         }
         
+        // Fetch Drivers
+        let drivers = await mongoose.model('Driver').find({ schoolId }).populate('userId').select('name userId licenseNumber');
+        
         const otherStaff = await User.find(staffFilter).select('firstName lastName role');
 
-        res.json({ teachers, otherStaff });
+        res.json({ teachers, otherStaff, drivers });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -104,7 +108,7 @@ exports.getMonthlySummary = async (req, res) => {
             { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), date: { $gte: startDate, $lte: endDate } } },
             {
                 $group: {
-                    _id: { teacher: '$teacherId', user: '$userId' },
+                    _id: { teacher: '$teacherId', user: '$userId', driver: '$driverId' },
                     present: { $sum: { $cond: [{ $eq: ['$status', 'Present'] }, 1, 0] } },
                     absent: { 
                         $sum: { 
@@ -153,8 +157,10 @@ exports.getMonthlySummary = async (req, res) => {
                     as: 'user'
                 }
             },
-            { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
-            { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } }
+                { $lookup: { from: 'drivers', localField: '_id.driver', foreignField: '_id', as: 'driver' } },
+                { $unwind: { path: '$teacher', preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: '$user', preserveNullAndEmptyArrays: true } },
+                { $unwind: { path: '$driver', preserveNullAndEmptyArrays: true } }
         ]);
 
         res.json(summary);
@@ -187,6 +193,7 @@ exports.getAttendanceReport = async (req, res) => {
 
         const records = await StaffAttendance.find(filter)
             .populate('teacherId', 'firstName lastName employeeId')
+            .populate('driverId', 'name contact licenseNumber')
             .populate('userId', 'firstName lastName role')
             .sort({ date: -1 });
 

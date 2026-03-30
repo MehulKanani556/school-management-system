@@ -7,7 +7,7 @@ import {
   MessageSquare, Menu, BookMarked, Clock, Calendar, Bell,
   LogOut, ChevronDown, ChevronRight, User, Globe, Navigation,
   ClipboardList, Wrench, Megaphone,
-  Settings, UserPlus, Activity, Play, Square, Locate
+  Settings, UserPlus, Activity, Play, Square, Locate, CalendarDays
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
@@ -25,37 +25,38 @@ const DriverLayout = () => {
   const navItems = [
     { to: '/driver', icon: LayoutDashboard, label: 'Main Page', end: true },
     {
-        label: 'My Bus Trips',
-        icon: Navigation,
-        children: [
-            { to: '/driver/active-trip', icon: Play, label: 'Start Duty / Trip', desc: 'Click to start your bus trip' },
-            { to: '/driver/trip-history', icon: Activity, label: 'Past Trip History', desc: 'Your finished trips' },
-            { to: '/driver/route-map', icon: MapPin, label: 'My Route Map', desc: 'See stops and roads' },
-        ]
+      label: 'My Bus Trips',
+      icon: Navigation,
+      children: [
+        { to: '/driver/active-trip', icon: Play, label: 'Start Duty / Trip', desc: 'Click to start your bus trip' },
+        { to: '/driver/trip-history', icon: Activity, label: 'Past Trip History', desc: 'Your finished trips' },
+        { to: '/driver/route-map', icon: MapPin, label: 'My Route Map', desc: 'See stops and roads' },
+      ]
     },
     {
-        label: 'Bus & My Health',
-        icon: Truck,
-        children: [
-            { to: '/driver/maintenance', icon: Wrench, label: 'Complain/Fix Bus', desc: 'Report any bus problem' },
-            { to: '/driver/attendance', icon: ClipboardList, label: 'My Day Attendance', desc: 'Daily duty check-in' },
-        ]
+      label: 'Bus & My Health',
+      icon: Truck,
+      children: [
+        { to: '/driver/maintenance', icon: Wrench, label: 'Complain/Fix Bus', desc: 'Report any bus problem' },
+        { to: '/driver/attendance', icon: ClipboardList, label: 'My Day Attendance', desc: 'Daily duty check-in' },
+        { to: '/driver/leaves', icon: CalendarDays, label: 'Apply Leave', desc: 'Request time off' },
+      ]
     },
     {
-        label: 'Messages/Notices',
-        icon: MessageSquare,
-        children: [
-            { to: '/driver/messages', icon: MessageSquare, label: 'Talk to Office', desc: 'Chat with manager' },
-            { to: '/driver/announcements', icon: Bell, label: 'New Notices', desc: 'Important school news' },
-        ]
+      label: 'Messages/Notices',
+      icon: MessageSquare,
+      children: [
+        { to: '/driver/messages', icon: MessageSquare, label: 'Talk to Office', desc: 'Chat with manager' },
+        { to: '/driver/announcements', icon: Bell, label: 'New Notices', desc: 'Important school news' },
+      ]
     },
     {
-        label: 'My Profile',
-        icon: User,
-        children: [
-            { to: '/driver/profile', icon: User, label: 'My Details', desc: 'Your personal info' },
-            { to: '/driver/holidays', icon: Calendar, label: 'Holiday List', desc: 'School off-days' },
-        ]
+      label: 'My Profile',
+      icon: User,
+      children: [
+        { to: '/driver/profile', icon: User, label: 'My Details', desc: 'Your personal info' },
+        { to: '/driver/holidays', icon: Calendar, label: 'Holiday List', desc: 'School off-days' },
+      ]
     }
   ];
 
@@ -73,49 +74,49 @@ const DriverLayout = () => {
   // Auto-start tracking when trip starts, and stop when trip ends
   useEffect(() => {
     if (activeTrip) {
-        setIsTracking(true);
+      setIsTracking(true);
     } else {
-        setIsTracking(false);
+      setIsTracking(false);
     }
   }, [activeTrip]);
 
   // GPS Tracking Logic
   useEffect(() => {
     if (isTracking && socket && user) {
-        if ("geolocation" in navigator) {
-            const id = navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude, speed, heading } = position.coords;
-                    socket.emit('UPDATE_DRIVER_LOCATION', {
-                        driverId: user._id,
-                        schoolId: user.schoolId,
-                        location: { lat: latitude, lng: longitude },
-                        speed,
-                        heading,
-                        timestamp: new Date()
-                    });
-                },
-                (error) => {
-                    console.error("GPS Error:", error);
-                    toast.error("Unable to get GPS location. Please check browser permissions.");
-                    setIsTracking(false);
-                },
-                { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
-            );
-            setWatchId(id);
-        } else {
-            toast.error("GPS is not supported by this phone/browser.");
+      if ("geolocation" in navigator) {
+        const id = navigator.geolocation.watchPosition(
+          (position) => {
+            const { latitude, longitude, speed, heading } = position.coords;
+            socket.emit('UPDATE_DRIVER_LOCATION', {
+              driverId: user._id,
+              schoolId: user.schoolId,
+              location: { lat: latitude, lng: longitude },
+              speed,
+              heading,
+              timestamp: new Date()
+            });
+          },
+          (error) => {
+            console.error("GPS Error:", error);
+            toast.error("Unable to get GPS location. Please check browser permissions.");
             setIsTracking(false);
-        }
+          },
+          { enableHighAccuracy: true, maximumAge: 10000, timeout: 5000 }
+        );
+        setWatchId(id);
+      } else {
+        toast.error("GPS is not supported by this phone/browser.");
+        setIsTracking(false);
+      }
     } else {
-        if (watchId !== null) {
-            navigator.geolocation.clearWatch(watchId);
-            setWatchId(null);
-        }
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        setWatchId(null);
+      }
     }
 
     return () => {
-        if (watchId !== null) navigator.geolocation.clearWatch(watchId);
+      if (watchId !== null) navigator.geolocation.clearWatch(watchId);
     };
   }, [isTracking, socket, user]);
 
@@ -152,6 +153,9 @@ const DriverLayout = () => {
   }, [location.pathname]);
 
   const handleLogout = () => {
+    if (socket && user) {
+      socket.emit('STOP_DRIVER_TRACKING', { driverId: user._id });
+    }
     dispatch(logout());
     navigate('/login');
   };
@@ -179,13 +183,13 @@ const DriverLayout = () => {
         </div>
 
         <div className="px-6 mb-4">
-            <button 
-                onClick={() => setIsTracking(!isTracking)}
-                className={`w-full py-3 rounded-md flex items-center justify-center gap-3 transition-all font-black text-[10px] uppercase tracking-widest ${isTracking ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 shadow-lg shadow-emerald-500/10' : 'bg-brand-background border border-brand-border text-slate-500 hover:text-emerald-500 hover:border-emerald-500/40'}`}
-            >
-                {isTracking ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> : <Locate size={14} />}
-                {isTracking ? 'GPS Running (GPS चालू है)' : 'Start GPS (GPS चालू करें)'}
-            </button>
+          <button
+            onClick={() => setIsTracking(!isTracking)}
+            className={`w-full py-3 rounded-md flex items-center justify-center gap-3 transition-all font-black text-[10px] uppercase tracking-widest ${isTracking ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40 shadow-lg shadow-emerald-500/10' : 'bg-brand-background border border-brand-border text-slate-500 hover:text-emerald-500 hover:border-emerald-500/40'}`}
+          >
+            {isTracking ? <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /> : <Locate size={14} />}
+            {isTracking ? 'GPS Running (GPS चालू है)' : 'Start GPS (GPS चालू करें)'}
+          </button>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">

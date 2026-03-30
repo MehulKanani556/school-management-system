@@ -519,6 +519,18 @@ exports.updateTripStatus = async (req, res) => {
             { new: true }
         ).populate('routeId').populate('vehicleId').populate('driverId').populate('attendance.studentId', 'firstName lastName');
 
+        // Notify socket subscribers
+        const { getIo } = require('../socketManager/socketManager');
+        const io = getIo();
+        if (io) {
+            io.to("fleet_management").emit("trip_updated", { 
+                tripId: log._id, 
+                status: log.status,
+                route: log.routeId?.name,
+                vehicleId: log.vehicleId?._id
+            });
+        }
+
         res.json({ message: `Transit sequence transition: ${status}`, data: log });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

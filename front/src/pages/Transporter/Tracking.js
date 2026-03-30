@@ -44,9 +44,38 @@ const Tracking = () => {
                 }));
             });
 
+            socket.on('fleet_location_removed', (data) => {
+                setFleetLocations(prev => {
+                    const next = { ...prev };
+                    delete next[data.vehicleId];
+                    return next;
+                });
+            });
+
+            socket.on('trip_started', (data) => {
+                toast.success(`Trip Started: ${data.driverName} is on ${data.routeName}`, {
+                    duration: 5000,
+                    icon: '🚀'
+                });
+                dispatch(fetchVehicles()); // Refresh to get active status if needed
+            });
+
+            socket.on('trip_updated', (data) => {
+                if (data.status === 'Completed') {
+                    toast.success(`Trip Completed: Route ${data.route}`, {
+                        duration: 5000,
+                        icon: '🏁'
+                    });
+                }
+                dispatch(fetchVehicles());
+            });
+
             return () => {
                 socket.off('fleet_init');
                 socket.off('fleet_location_updated');
+                socket.off('fleet_location_removed');
+                socket.off('trip_started');
+                socket.off('trip_updated');
             };
         }
     }, [dispatch, socket]);

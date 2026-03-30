@@ -153,13 +153,13 @@ const StaffAttendanceReport = () => {
                                             {(staff.teacher?.firstName || staff.user?.firstName)?.[0]}
                                         </div>
                                         <div>
-                                            <Link to={`/school-admin/profile/${staff.teacher?._id || staff.user?._id}`} className="block">
+                                            <Link to={`/school-admin/profile/${staff.teacher?._id || staff.driver?._id || staff.user?._id}`} className="block">
                                                 <h3 className="text-lg font-black text-white uppercase tracking-tight italic hover:text-schooladmin-primary transition-colors cursor-pointer">
-                                                    {staff.teacher ? `${staff.teacher.firstName} ${staff.teacher.lastName}` : `${staff.user?.firstName} ${staff.user?.lastName}`}
+                                                    {staff.teacher ? `${staff.teacher.firstName} ${staff.teacher.lastName}` : staff.driver ? staff.driver.name : `${staff.user?.firstName} ${staff.user?.lastName}`}
                                                 </h3>
                                             </Link>
                                             <p className="text-[10px] font-black text-slate-600 font-mono tracking-widest mt-1 uppercase">
-                                                ID: {staff.teacher?.employeeId || `${staff.user?.role}-${staff.user?._id?.slice(-4)}`}
+                                                ID: {staff.teacher?.employeeId || staff.driver?.licenseNumber || `${staff.user?.role}-${staff.user?._id?.slice(-4)}`}
                                             </p>
                                         </div>
                                     </div>

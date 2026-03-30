@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Link } from 'react-router-dom';
 import { fetchStaffForAttendance, saveStaffAttendance, fetchStaffAttendance } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -11,50 +10,41 @@ import {
 import moment from 'moment';
 import toast from 'react-hot-toast';
 
-const StaffAttendance = () => {
+const DriverAttendance = () => {
     const dispatch = useDispatch();
     const { staffList, loading, staffAttendance } = useSelector((state) => state.schoolAdmin);
     const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedRole, setSelectedRole] = useState('All');
     const [localRecords, setLocalRecords] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchStaffForAttendance());
+        dispatch(fetchStaffForAttendance({ role: 'Driver' }));
         dispatch(fetchStaffAttendance({ date: selectedDate }));
     }, [dispatch, selectedDate]);
 
     useEffect(() => {
-        // Build unified list from staffList and staffAttendance
-        const teachers = (staffList.teachers || []).map(t => ({ ...t, role: 'Teacher', type: 'teacher' }));
-        const others = (staffList.otherStaff || []).map(s => ({ ...s, type: 'user' }));
-        const drivers = (staffList.drivers || []).map(d => ({ ...d, firstName: d.name, lastName: '', role: 'Driver', type: 'driver', employeeId: d.licenseNumber }));
-        const allStaff = [...teachers, ...others, ...drivers];
-
-        const records = allStaff.map(staff => {
-            const existing = staffAttendance.find(a => 
-                (a.teacherId?._id || a.teacherId) === staff._id || 
-                (a.userId?._id || a.userId) === staff._id ||
-                (a.driverId?._id || a.driverId) === staff._id
-            );
+        // Build unified list from staffList.drivers and staffAttendance
+        const drivers = (staffList.drivers || []).map(d => ({ ...d, role: 'Driver', type: 'driver' }));
+        
+        const records = drivers.map(driver => {
+            const existing = staffAttendance.find(a => (a.driverId?._id || a.driverId) === driver._id);
             return {
-                _id: staff._id,
-                firstName: staff.firstName,
-                lastName: staff.lastName,
-                role: staff.role,
-                employeeId: staff.employeeId || 'STF-' + staff._id.slice(-4),
+                _id: driver._id,
+                name: driver.name,
+                role: 'Driver',
+                employeeId: driver.licenseNumber || 'DRV-' + driver._id.slice(-4),
                 status: existing?.status || 'Present',
-                arrivalTime: existing?.arrivalTime || '09:00',
-                departureTime: existing?.departureTime || '17:00',
+                arrivalTime: existing?.arrivalTime || '08:00',
+                departureTime: existing?.departureTime || '16:00',
                 remarks: existing?.remarks || '',
-                type: staff.type
+                type: 'driver'
             };
         });
         setLocalRecords(records);
-        // Automatically enable editing if no records exist for the new date context
+        
         if (!loading) {
-            if (staffAttendance.length > 0) setIsEditing(false);
+            if (staffAttendance.filter(a => a.driverId).length > 0) setIsEditing(false);
             else setIsEditing(true); 
         }
     }, [staffList, staffAttendance, loading]);
@@ -69,7 +59,8 @@ const StaffAttendance = () => {
 
     const handleSave = async () => {
         const records = localRecords.map(r => ({
-            ...(r.type === 'teacher' ? { teacherId: r._id } : r.type === 'driver' ? { driverId: r._id } : { userId: r._id }),
+            driverId: r._id,
+            type: 'Driver',
             status: r.status,
             arrivalTime: r.arrivalTime,
             departureTime: r.departureTime,
@@ -78,16 +69,26 @@ const StaffAttendance = () => {
 
         const res = await dispatch(saveStaffAttendance({ records, date: selectedDate }));
         if (saveStaffAttendance.fulfilled.match(res)) {
-            toast.success('Workforce Registry Synchronized');
+            toast.success('Driver Attendance Synchronized', {
+                icon: '🚛',
+                style: {
+                    borderRadius: '1.5rem',
+                    background: '#0f172a',
+                    color: '#fff',
+                    border: '1px solid #f97316',
+                    fontWeight: 900,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    fontSize: '11px'
+                }
+            });
             setIsEditing(false);
         }
     };
 
     const filteredRecords = localRecords.filter(r => {
-        const matchesSearch = `${r.firstName} ${r.lastName}`.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                             r.employeeId?.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesRole = selectedRole === 'All' || r.role === selectedRole;
-        return matchesSearch && matchesRole;
+        return r.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+               r.employeeId.toLowerCase().includes(searchQuery.toLowerCase());
     });
 
     const stats = {
@@ -98,27 +99,27 @@ const StaffAttendance = () => {
     };
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 font-outfit">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black uppercase tracking-tighter text-white">Workforce Presence Node</h1>
-                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1 italic">Atmospheric Monitoring of Personnel Availability</p>
+                    <h1 className="text-2xl font-black uppercase tracking-tighter text-white">Driver Attendance Node</h1>
+                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest mt-1 italic">Atmospheric Monitoring of Logistics Personnel</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
-                        <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-schooladmin-primary" />
+                        <Calendar size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-transporter-primary" />
                         <input 
                             type="date" 
                             value={selectedDate} 
                             onChange={(e) => setSelectedDate(e.target.value)}
-                            className="bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-6 text-white text-sm outline-none focus:border-schooladmin-primary transition-all font-bold shadow-inner"
+                            className="bg-slate-900 border border-white/5 rounded-xl py-3 pl-12 pr-6 text-white text-sm outline-none focus:border-transporter-primary transition-all font-bold shadow-inner"
                         />
                     </div>
                     {isEditing ? (
                         <button 
                             onClick={handleSave} 
                             disabled={loading}
-                            className="flex items-center gap-2 px-6 py-3 bg-schooladmin-primary text-slate-950 hover:bg-schooladmin-primary/90 disabled:opacity-50 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95"
+                            className="flex items-center gap-2 px-6 py-3 bg-transporter-primary text-black hover:bg-transporter-primary/90 disabled:opacity-50 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl active:scale-95"
                         >
                             {loading ? <Clock className="animate-spin" size={14} /> : <Save size={14} />}
                             Sync Data
@@ -128,7 +129,7 @@ const StaffAttendance = () => {
                             onClick={() => setIsEditing(true)}
                             className="flex items-center gap-2 px-6 py-3 bg-white/5 border border-white/10 text-white hover:bg-white/10 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95"
                         >
-                            <FileText size={14} className="text-schooladmin-primary" />
+                            <FileText size={14} className="text-transporter-primary" />
                             Edit Registry
                         </button>
                     )}
@@ -137,7 +138,7 @@ const StaffAttendance = () => {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[
-                    { label: 'Total Workforce', val: stats.total, icon: Users, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/5' },
+                    { label: 'Total Drivers', val: stats.total, icon: Users, color: 'text-transporter-primary', bg: 'bg-transporter-primary/5' },
                     { label: 'Active Signals', val: stats.present, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
                     { label: 'Signal Loss', val: stats.absent, icon: XCircle, color: 'text-rose-400', bg: 'bg-rose-400/5' },
                     { label: 'Delayed Sync', val: stats.late, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/5' },
@@ -164,33 +165,21 @@ const StaffAttendance = () => {
                             <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" />
                             <input 
                                 type="text" 
-                                placeholder="Search by name or serial..." 
+                                placeholder="Search by name or license..." 
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-950/50 border border-white/5 py-3.5 pl-12 pr-6 rounded-2xl outline-none text-sm text-white focus:border-schooladmin-primary placeholder:text-slate-700 font-bold transition-all"
+                                className="w-full bg-slate-950/50 border border-white/5 py-3.5 pl-12 pr-6 rounded-2xl outline-none text-sm text-white focus:border-transporter-primary placeholder:text-slate-700 font-bold transition-all font-outfit"
                             />
                         </div>
-                        <select 
-                            value={selectedRole}
-                            onChange={(e) => setSelectedRole(e.target.value)}
-                            className="bg-slate-950/50 border border-white/5 px-4 rounded-xl text-xs font-black uppercase tracking-widest text-slate-400 outline-none focus:border-schooladmin-primary h-[48px]"
-                        >
-                            <option value="All">All Sectors</option>
-                            <option value="Teacher">Academic</option>
-                            <option value="Accountant">Financial</option>
-                            <option value="Librarian">Archive</option>
-                            <option value="Transport_Manager">Logistics Manager</option>
-                            <option value="Driver">Drivers</option>
-                        </select>
                     </div>
                 </div>
 
                 <div className="overflow-x-auto">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left font-outfit">
                         <thead>
                             <tr className="bg-slate-950/40">
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5">Personnel Identity</th>
-                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5">Sector</th>
+                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5">Driver Identity</th>
+                                <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5">License / ID</th>
                                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5 text-center">Status Matrix</th>
                                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5">Arrival</th>
                                 <th className="px-6 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-white/5 text-right">Remarks</th>
@@ -198,22 +187,22 @@ const StaffAttendance = () => {
                         </thead>
                         <tbody className="divide-y divide-white/5">
                             {filteredRecords.map((r, i) => (
-                                <tr key={r._id} className="hover:bg-schooladmin-primary/[0.02] transition-colors group">
+                                <tr key={r._id} className="hover:bg-transporter-primary/[0.02] transition-colors group">
                                     <td className="px-6 py-4">
                                         <div className="flex items-center gap-4">
-                                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-schooladmin-primary border border-white/10 group-hover:border-schooladmin-primary/30 transition-all shadow-inner">
-                                                {r.firstName[0]}
+                                            <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center font-black text-transporter-primary border border-white/10 group-hover:border-transporter-primary/30 transition-all shadow-inner">
+                                                {r.name[0]}
                                             </div>
                                             <div>
-                                                <Link to={`/school-admin/profile/${r._id}`} className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-schooladmin-primary transition-colors cursor-pointer block">
-                                                    {r.firstName} {r.lastName}
-                                                </Link>
-                                                <p className="text-[10px] font-black text-slate-600 font-mono">ID: {r.employeeId}</p>
+                                                <span className="text-sm font-black text-white uppercase tracking-tight italic group-hover:text-transporter-primary transition-colors block">
+                                                    {r.name}
+                                                </span>
+                                                <p className="text-[10px] font-black text-slate-600 font-mono">SECTOR: LOGISTICS</p>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4">
-                                        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-slate-950 border border-white/5 text-slate-400 group-hover:text-white transition-colors">{r.role}</span>
+                                        <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg bg-slate-950 border border-white/5 text-slate-400 group-hover:text-white transition-colors">{r.employeeId}</span>
                                     </td>
                                     <td className="px-6 py-4">
                                         <div className="flex items-center justify-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-white/5 w-fit mx-auto shadow-inner">
@@ -221,7 +210,8 @@ const StaffAttendance = () => {
                                                 { id: 'Present', color: 'bg-emerald-500', label: 'P' },
                                                 { id: 'Absent', color: 'bg-rose-500', label: 'A' },
                                                 { id: 'Late', color: 'bg-amber-500', label: 'L' },
-                                                { id: 'Half-Day', color: 'bg-schooladmin-primary', label: 'H' }
+                                                { id: 'Half-Day', color: 'bg-transporter-primary', label: 'H' },
+                                                { id: 'Leave', color: 'bg-blue-500', label: 'LV' }
                                             ].map(s => (
                                                 <button 
                                                     key={s.id}
@@ -230,7 +220,7 @@ const StaffAttendance = () => {
                                                     onClick={() => handleStatusChange(r._id, s.id)}
                                                     className={`w-9 py-2 rounded-lg text-[10px] font-black transition-all ${
                                                         r.status === s.id 
-                                                            ? `${s.color} text-slate-950 shadow-lg scale-110 z-10` 
+                                                            ? `${s.color} text-black shadow-lg scale-110 z-10` 
                                                             : 'text-slate-700 hover:text-slate-400'
                                                     } ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 >
@@ -246,7 +236,7 @@ const StaffAttendance = () => {
                                                 value={r.arrivalTime}
                                                 disabled={!isEditing}
                                                 onChange={(e) => handleTimeChange(r._id, 'arrivalTime', e.target.value)}
-                                                className={`bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-schooladmin-primary outline-none focus:border-schooladmin-primary shadow-inner ${!isEditing ? 'opacity-40' : ''}`}
+                                                className={`bg-slate-950 border border-white/5 rounded-lg py-2 px-3 text-[10px] font-black text-transporter-primary outline-none focus:border-transporter-primary shadow-inner ${!isEditing ? 'opacity-40' : ''}`}
                                             />
                                         </div>
                                     </td>
@@ -257,7 +247,7 @@ const StaffAttendance = () => {
                                             value={r.remarks}
                                             disabled={!isEditing}
                                             onChange={(e) => handleTimeChange(r._id, 'remarks', e.target.value)}
-                                            className={`bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-schooladmin-primary/30 max-w-[150px] ${!isEditing ? 'cursor-default' : ''}`}
+                                            className={`bg-transparent border-b border-transparent text-right text-[10px] font-bold text-slate-500 px-1 py-1 outline-none focus:border-transporter-primary/30 max-w-[150px] ${!isEditing ? 'cursor-default' : ''}`}
                                         />
                                     </td>
                                 </tr>
@@ -269,7 +259,7 @@ const StaffAttendance = () => {
                 {filteredRecords.length === 0 && (
                     <div className="py-32 text-center border-t border-white/5 bg-slate-950/20">
                         <UserCircle size={48} className="text-slate-800 mx-auto mb-6 opacity-30 animate-pulse" />
-                        <p className="text-slate-600 font-black uppercase tracking-[0.3em] text-[10px]">No personnel matches established parameters</p>
+                        <p className="text-slate-600 font-black uppercase tracking-[0.3em] text-[10px]">No drivers matches established parameters</p>
                     </div>
                 )}
             </div>
@@ -277,4 +267,4 @@ const StaffAttendance = () => {
     );
 };
 
-export default StaffAttendance;
+export default DriverAttendance;

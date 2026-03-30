@@ -7,7 +7,7 @@ const checkMaintenance = require('../middleware/maintenance');
 const { requireRole } = require('../middleware/roleCheck');
 
 // Platform Wide Routing Policies
-router.use(checkMaintenance); 
+router.use(checkMaintenance);
 const { getAllUsers, getSingleUser, deleteUser, updateUser, getUniversalProfile } = require('../controllers/user.controller');
 
 const sa = require('../controllers/schoolAdmin.controller');
@@ -255,7 +255,7 @@ router.delete('/superadmin/holidays/:id', ...superAdmin, sac.deleteGlobalHoliday
 
 // ─── Teacher Routes ───────────────────────────────────────────────────────────
 const teacher = [auth, requireRole('Teacher')];
- 
+
 // teacher section
 router.get('/teacher/dashboard', ...teacher, tc.getTeacherDashboard);
 router.get('/teacher/assigned-classes', ...teacher, tc.getAssignedClasses);
@@ -387,16 +387,17 @@ router.post('/parent/apply-transport/:studentId', ...parent, pc.applyForTranspor
 
 
 // ─── Communication Routes ───────────────────────────────────────────────────
-router.get('/school-admin/announcements', ...schoolAdmin, mc.getAnnouncements);
-router.post('/school-admin/announcements', ...schoolAdmin, upload.single('file'), mc.createAnnouncement);
-router.get('/school-admin/messages', ...schoolAdmin, mc.getMyMessages);
-router.post('/school-admin/messages', ...schoolAdmin, upload.single('file'), mc.sendMessage);
-router.delete('/school-admin/messages/:id', ...schoolAdmin, mc.deleteMessage);
+const communicationStaff = [auth, requireRole('School_Admin', 'Super_Admin', 'Transport_Manager', 'Accountant')];
+router.get('/school-admin/announcements', ...communicationStaff, mc.getAnnouncements);
+router.post('/school-admin/announcements', ...communicationStaff, upload.single('file'), mc.createAnnouncement);
+router.get('/school-admin/messages', ...communicationStaff, mc.getMyMessages);
+router.post('/school-admin/messages', ...communicationStaff, upload.single('file'), mc.sendMessage);
+router.delete('/school-admin/messages/:id', ...communicationStaff, mc.deleteMessage);
 
 // Notice Board
-router.get('/school-admin/notices', ...schoolAdmin, mc.getNotices);
-router.post('/school-admin/notices', ...schoolAdmin, upload.single('file'), mc.createNotice);
-router.patch('/school-admin/notices/:id/toggle-pin', ...schoolAdmin, mc.toggleNoticePin);
+router.get('/school-admin/notices', ...communicationStaff, mc.getNotices);
+router.post('/school-admin/notices', ...communicationStaff, upload.single('file'), mc.createNotice);
+router.patch('/school-admin/notices/:id/toggle-pin', ...communicationStaff, mc.toggleNoticePin);
 
 // Global (for teachers/students/parents to see)
 router.get('/announcements', auth, mc.getAnnouncements);
@@ -519,6 +520,8 @@ router.put('/driver/trip-logs/:id/status', ...driver, trc.updateTripStatus);
 router.put('/driver/trip-logs/:id/toggle-boarding', ...driver, trc.toggleBoarding);
 router.post('/driver/report-issue', ...driver, drc.reportBusIssue);
 router.get('/driver/attendance', ...driver, drc.getAttendance);
+router.post('/driver/apply-leave', ...driver, drc.applyLeave);
+router.get('/driver/my-leaves', ...driver, drc.getMyLeaves);
 router.patch('/driver/location', ...driver, (req, res) => {
     // Reuse vehicle location update but automatically find driver's vehicle
     // Handled mostly by sockets, but this is for direct API update

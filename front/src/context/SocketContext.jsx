@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
 import { useSelector, useDispatch } from 'react-redux';
-import { incrementUnreadCount, addMessage } from '../redux/slice/communication.slice';
+import { incrementUnreadCount, addMessage,addCommunicationMessage } from '../redux/slice/communication.slice';
 import { 
     setNewTicket as setSANewTicket, 
     updateTicketReply as updateSATicketReply, 
@@ -74,13 +74,14 @@ export const SocketProvider = ({ children }) => {
                 // 1. Announcements
                 socketRef.current.on('NEW_ANNOUNCEMENT', (data) => {
                     dispatch(incrementUnreadCount());
+                    dispatch(addCommunicationMessage(data));
                     toast.success(`📢 New Announcement: ${data.subject || data.title}`);
                 });
 
                 // 2. Direct Messages
                 socketRef.current.on('NEW_MESSAGE', (data) => {
                     dispatch(incrementUnreadCount());
-                    dispatch(addMessage(data));
+                    dispatch(addCommunicationMessage(data));
                     toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
                 });
 
@@ -92,6 +93,12 @@ export const SocketProvider = ({ children }) => {
                     if (['School_Admin', 'Super_Admin'].includes(user.role)) {
                         toast.success(`🎫 New Support Ticket: ${data.subject}`, { icon: '🆘', duration: 5000 });
                     }
+                });
+                // 2b. Notices
+                socketRef.current.on('NEW_NOTICE', (data) => {
+                    dispatch(incrementUnreadCount());
+                    dispatch(addCommunicationMessage(data));
+                    toast.success(`📌 New Notice: ${data.subject}`);
                 });
 
                 socketRef.current.on('TICKET_REPLY', (data) => {

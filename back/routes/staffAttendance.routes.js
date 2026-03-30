@@ -6,7 +6,7 @@ const { requireRole } = require('../middleware/roleCheck');
 
 const schoolAdmin = [auth, requireRole('School_Admin')];
 const teacher = [auth, requireRole('Teacher')];
-const superAdminAndSchoolAdmin = [auth, requireRole('Super_Admin', 'School_Admin', 'Accountant')];
+const superAdminAndSchoolAdmin = [auth, requireRole('Super_Admin', 'School_Admin', 'Accountant', 'Transport_Manager')];
 
 // 1. Bulk mark by admin
 router.post('/bulk-mark', ...superAdminAndSchoolAdmin, staffAttendanceController.markBulkAttendance);
