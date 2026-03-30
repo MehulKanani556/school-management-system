@@ -136,6 +136,14 @@ const Messages = () => {
         };
     }, [socket, currentUser]);
 
+    const markAsRead = async (partnerId) => {
+        try {
+            await axiosInstance.put(`/messages/read/${partnerId}`);
+        } catch (err) {
+            console.error('Silently failed to sync read status', err);
+        }
+    };
+
     const fetchData = () => {
         dispatch(fetchMyMessages());
         dispatch(fetchContacts());
@@ -173,10 +181,28 @@ const Messages = () => {
             setChatPage(1);
             setChatMessages([]);
             setHasMore(true);
-            setUnreadCounts(prev => ({ ...prev, [selectedChat]: 0 }));
+            setUnreadCounts(prev => {
+                if (prev[selectedChat] > 0) {
+                    markAsRead(selectedChat);
+                    return { ...prev, [selectedChat]: 0 };
+                }
+                return prev;
+            });
             fetchChatHistoryLocal(selectedChat, 1);
         }
     }, [selectedChat]);
+
+    // Initial population of unread counts from fetched messages
+    useEffect(() => {
+        if (sentMessages.length > 0 && Object.keys(unreadCounts).length === 0) {
+            const counts = {};
+            sentMessages.filter(m => m.type === 'DirectMessage' && !m.isRead && m.recipient?._id?.toString() === currentUser?._id?.toString()).forEach(msg => {
+                const partnerId = (msg.sender?._id || msg.sender).toString();
+                counts[partnerId] = (counts[partnerId] || 0) + 1;
+            });
+            if (Object.keys(counts).length > 0) setUnreadCounts(counts);
+        }
+    }, [sentMessages, currentUser]);
 
     useEffect(() => {
         if (lastScrollHeightRef.current && chatContainerRef.current) {
@@ -282,7 +308,7 @@ const Messages = () => {
     const filteredConversations = useMemo(() => {
         return conversations.filter(c => {
             const role = c.partner.role;
-            if (chatSubTab === 'Staff') return ['Teacher', 'Accountant', 'Librarian', 'School_Admin'].includes(role);
+            if (chatSubTab === 'Staff') return ['Teacher', 'Accountant', 'Librarian', 'School_Admin', 'Transport_Manager'].includes(role);
             if (chatSubTab === 'Drivers') return role === 'Driver';
             if (chatSubTab === 'Parents') return role === 'Parent' || role === 'Student';
             return true;
@@ -293,7 +319,7 @@ const Messages = () => {
         return contacts.filter(t => {
             if (conversations.some(c => (c.partner._id || c.partner) === t._id)) return false;
             const role = t.role;
-            if (chatSubTab === 'Staff') return ['Teacher', 'Accountant', 'Librarian', 'School_Admin'].includes(role);
+            if (chatSubTab === 'Staff') return ['Teacher', 'Accountant', 'Librarian', 'School_Admin', 'Transport_Manager'].includes(role);
             if (chatSubTab === 'Drivers') return role === 'Driver';
             if (chatSubTab === 'Parents') return role === 'Parent' || role === 'Student';
             return true;
@@ -304,7 +330,7 @@ const Messages = () => {
         return conversations.reduce((acc, conv) => {
             const role = conv.partner.role;
             let isMatch = false;
-            if (tabName === 'Staff') isMatch = ['Teacher', 'Accountant', 'Librarian', 'School_Admin'].includes(role);
+            if (tabName === 'Staff') isMatch = ['Teacher', 'Accountant', 'Librarian', 'School_Admin', 'Transport_Manager'].includes(role);
             else if (tabName === 'Drivers') isMatch = role === 'Driver';
             else if (tabName === 'Parents') isMatch = (role === 'Parent' || role === 'Student');
             
@@ -312,6 +338,8 @@ const Messages = () => {
             return acc;
         }, 0);
     };
+
+    const getTotalUnreadCount = () => Object.values(unreadCounts).reduce((a, b) => a + b, 0);
 
     return (
         <div className="h-[calc(100vh-140px)] text-slate-300 font-outfit overflow-hidden flex flex-col p-4 lg:p-5">
@@ -348,10 +376,15 @@ const Messages = () => {
                             <button
                                 key={t.id}
                                 onClick={() => setActiveTab(t.id)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all text-[9px] font-black uppercase tracking-widest italic ${activeTab === t.id ? 'bg-transporter-primary text-white shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all text-[9px] font-black uppercase tracking-widest italic relative ${activeTab === t.id ? 'bg-transporter-primary text-white shadow-lg' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
                             >
                                 <t.icon size={13} />
                                 <span className="hidden sm:inline">{t.label}</span>
+                                {t.id === 'chat' && getTotalUnreadCount() > 0 && (
+                                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded bg-red-500 flex items-center justify-center text-[8px] font-black text-white shadow-lg shadow-red-500/20 animate-bounce">
+                                        {getTotalUnreadCount()}
+                                    </div>
+                                )}
                             </button>
                         ))}
                     </div>

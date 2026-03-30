@@ -241,51 +241,47 @@ exports.getChatHistory = async (req, res) => {
 // Get available contacts in the school (excluding self and students for now)
 exports.getContacts = async (req, res) => {
     try {
-        let query = { 
-            schoolId: req.user.schoolId, 
-            _id: { $ne: req.user._id }
-        };
-        
-        // Role-based contact filtering
-        if (req.user.role === 'Teacher') {
-            query.role = { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager', 'Driver'] };
-        } else if (req.user.role === 'Transport_Manager') {
-            query.role = { $in: ['School_Admin', 'Teacher', 'Parent', 'Driver', 'Accountant', 'Librarian'] };
+        const schoolId = req.user.schoolId;
+        const currentUserId = req.user._id;
+        let contacts = [];
+
+        if (req.user.role === 'School_Admin' || req.user.role === 'Super_Admin') {
+            // Admins see everyone in the school
+            contacts = await User.find({ 
+                schoolId, 
+                _id: { $ne: currentUserId } 
+            }).select('firstName lastName role photo');
+        } else if (req.user.role === 'Teacher' || req.user.role === 'Transport_Manager') {
+            // Strategic staff see all stakeholders
+            contacts = await User.find({ 
+                schoolId, 
+                _id: { $ne: currentUserId },
+                role: { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager', 'Driver', 'Accountant', 'Librarian'] } 
+            }).select('firstName lastName role photo');
         } else if (req.user.role === 'Driver') {
-            // Driver specific logic: assigned students, their parents, plus admin/transporter
-            const driver = await Driver.findOne({ userId: req.user._id });
-            let allowedUserIds = [];
-            if (driver) {
-                const vehicle = await Vehicle.findOne({ driverId: driver._id });
-                if (vehicle) {
-                    const route = await Route.findOne({ vehicleId: vehicle._id }).populate({
-                        path: 'assignedStudents.studentId',
-                        select: 'userId parentId'
-                    });
-                    if (route) {
-                        route.assignedStudents.forEach(item => {
-                            if (item.studentId?.userId) allowedUserIds.push(item.studentId.userId.toString());
-                            if (item.studentId?.parentId) allowedUserIds.push(item.studentId.parentId.toString());
-                        });
-                    }
-                }
-            }
-            // Add fixed target roles
-            query = {
-                schoolId: req.user.schoolId,
-                $or: [
-                    { _id: { $in: allowedUserIds } },
-                    { role: { $in: ['School_Admin', 'Transport_Manager'] } }
-                ],
-                _id: { $ne: req.user._id }
-            };
+            // Drivers see transport team and admin
+            contacts = await User.find({
+                schoolId,
+                _id: { $ne: currentUserId },
+                role: { $in: ['School_Admin', 'Transport_Manager', 'Driver'] }
+            }).select('firstName lastName role photo');
+        } else if (req.user.role === 'Student' || req.user.role === 'Parent') {
+            // Students/Parents see Faculty and Management
+            contacts = await User.find({
+                schoolId,
+                _id: { $ne: currentUserId },
+                role: { $in: ['School_Admin', 'Teacher', 'Transport_Manager', 'Accountant', 'Librarian'] }
+            }).select('firstName lastName role photo');
         } else {
-            // Default restricted contacts for other roles
-            query.role = { $in: ['School_Admin', 'Teacher', 'Transport_Manager'] };
+            // Accountants/Librarians see other staff
+            contacts = await User.find({
+                schoolId,
+                _id: { $ne: currentUserId },
+                role: { $in: ['School_Admin', 'Teacher', 'Accountant', 'Librarian', 'Transport_Manager'] }
+            }).select('firstName lastName role photo');
         }
 
-        const users = await User.find(query).select('firstName lastName photo role');
-        res.json(users);
+        res.json(contacts);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -309,6 +305,24 @@ exports.toggleNoticePin = async (req, res) => {
         notice.isPinned = !notice.isPinned;
         await notice.save();
         res.json({ message: `Notice ${notice.isPinned ? 'pinned' : 'unpinned'}`, data: notice });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+// Mark all messages from a specific partner as read
+exports.markMessagesAsRead = async (req, res) => {
+    try {
+        const { partnerId } = req.params;
+        await Message.updateMany(
+            { 
+                schoolId: req.user.schoolId,
+                sender: partnerId,
+                recipient: req.user._id,
+                isRead: false
+            },
+            { isRead: true }
+        );
+        res.json({ message: 'Messages marked as read' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

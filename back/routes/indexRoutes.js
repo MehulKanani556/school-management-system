@@ -408,6 +408,8 @@ router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
 router.post('/my-messages', auth, mc.sendMessage);
 router.get('/contacts', auth, mc.getContacts);
+router.put('/messages/read/:partnerId', auth, mc.markMessagesAsRead);
+
 router.get('/notifications', auth, nc.getNotifications);
 router.put('/notifications/:id/read', auth, nc.markAsRead);
 router.put('/notifications/read-all', auth, nc.markAllAsRead);
