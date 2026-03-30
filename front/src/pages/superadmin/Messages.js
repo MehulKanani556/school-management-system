@@ -95,20 +95,13 @@ const Messages = () => {
                     content: newMessage,
                     schoolId: selectedContact.schoolId?._id || selectedContact.schoolId || null
                 });
-                // Optimistic update
-                setMessages(prev => [...prev, {
-                    _id: Date.now(),
-                    sender: { _id: currentUser._id, firstName: currentUser.firstName, lastName: currentUser.lastName },
-                    recipient: { _id: selectedContact._id },
-                    content: newMessage,
-                    createdAt: new Date()
-                }]);
             } else {
                 // Fallback to REST
                 const res = await axiosInstance.post('/my-messages', {
                     recipient: selectedContact._id,
                     subject: 'Direct Message',
-                    content: newMessage
+                    content: newMessage,
+                    schoolId: selectedContact.schoolId?._id || selectedContact.schoolId || null
                 });
                 setMessages(prev => [...prev, res.data]);
             }

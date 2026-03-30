@@ -1503,6 +1503,16 @@ exports.getAttendanceReport = async (req, res) => {
       filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
+    // Specialized query for calendar view 'marked' status
+    if (req.query.type === 'marked-dates') {
+      const markedDates = await Attendance.aggregate([
+        { $match: filter },
+        { $group: { _id: '$date' } },
+        { $project: { date: '$_id', marked: { $literal: true }, _id: 0 } }
+      ]);
+      return res.json(markedDates);
+    }
+
     const attendanceData = await Attendance.find(filter).lean();
     const studentQuery = { schoolId };
     if (classSection) studentQuery.classSection = classSection;

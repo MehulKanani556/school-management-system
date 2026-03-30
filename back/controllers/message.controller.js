@@ -10,8 +10,8 @@ const nc = require('./notification.controller');
 // Create an announcement
 exports.createAnnouncement = async (req, res) => {
     try {
-        const { targetRole, classSection, subject, content } = req.body;
-        const schoolId = req.user.schoolId;
+        const { targetRole, classSection, subject, content, schoolId: providedSchoolId } = req.body;
+        const schoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
 
         const announcement = await Message.create({
             schoolId,
@@ -82,8 +82,8 @@ exports.createNotice = async (req, res) => {
 // Send a direct message to a specific user (e.g. Admin to Teacher)
 exports.sendMessage = async (req, res) => {
     try {
-        const { recipient, recipientId, subject, content, type, targetRole, classSection } = req.body;
-        const schoolId = req.user.schoolId;
+        const { recipient, recipientId, subject, content, type, targetRole, classSection, schoolId: providedSchoolId } = req.body;
+        const schoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
         const fileUrl = req.file ? req.file.location : null;
 
         const finalType = recipient || recipientId ? 'DirectMessage' : (type || 'Announcement');

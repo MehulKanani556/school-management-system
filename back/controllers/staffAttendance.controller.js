@@ -95,11 +95,26 @@ exports.getStaffForAttendance = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// (getMonthlySummary) 
+// 4. Monthly summary aggregation
 exports.getMonthlySummary = async (req, res) => {
     try {
-        const { month, year } = req.query;
+        const { month, year, startDate: qStart, endDate: qEnd, type } = req.query;
         const schoolId = getSchoolId(req);
+
+        // If type is 'dates', return list of dates that have attendance marked
+        if (type === 'dates' || (qStart && qEnd)) {
+            const rangeStart = new Date(qStart);
+            const rangeEnd = new Date(qEnd);
+            rangeStart.setHours(0, 0, 0, 0);
+            rangeEnd.setHours(23, 59, 59, 999);
+
+            const markedDates = await StaffAttendance.aggregate([
+                { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), date: { $gte: rangeStart, $lte: rangeEnd } } },
+                { $group: { _id: '$date' } },
+                { $project: { date: '$_id', marked: { $literal: true }, _id: 0 } }
+            ]);
+            return res.json(markedDates);
+        }
 
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0);

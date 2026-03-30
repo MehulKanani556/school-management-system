@@ -401,9 +401,9 @@ export const reportDriverIssueSlice = createAsyncThunk(
 
 export const fetchDriverAttendanceSlice = createAsyncThunk(
     'transport/fetchDriverAttendance',
-    async (_, { rejectWithValue }) => {
+    async (params, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get('/driver/attendance');
+            const response = await axiosInstance.get('/driver/attendance', { params });
             return response.data;
         } catch (error) {
             return rejectWithValue(error.response.data.message);

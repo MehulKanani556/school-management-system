@@ -149,9 +149,9 @@ export const deleteAssignment = createAsyncThunk('teacher/deleteAssignment', asy
     }
 });
 
-export const fetchTeacherAttendance = createAsyncThunk('teacher/fetchAttendance', async ({ classId, date }, { rejectWithValue }) => {
+export const fetchTeacherAttendance = createAsyncThunk('teacher/fetchAttendance', async (params, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get(`/teacher/attendance?classId=${classId}&date=${date}`);
+        const response = await axiosInstance.get(`/teacher/attendance`, { params });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);

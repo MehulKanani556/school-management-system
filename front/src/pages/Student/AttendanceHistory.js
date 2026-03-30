@@ -1,144 +1,211 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentAttendance } from '../../redux/slice/student.slice';
-import { motion } from 'framer-motion';
-import { CheckCircle, XCircle, Clock, Calendar, Search, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { CheckCircle, XCircle, Clock, Calendar as CalendarIcon, Activity, ChevronLeft, ChevronRight, Info } from 'lucide-react';
+import moment from 'moment';
 
 const AttendanceHistory = () => {
     const dispatch = useDispatch();
     const { attendance, loading } = useSelector((state) => state.student);
-    const [search, setSearch] = useState('');
+    
+    const [currentMonth, setCurrentMonth] = useState(moment());
+    const [selectedDate, setSelectedDate] = useState(null);
 
     useEffect(() => {
-        dispatch(fetchStudentAttendance());
-    }, [dispatch]);
+        const startOfMonth = currentMonth.clone().startOf('month').format('YYYY-MM-DD');
+        const endOfMonth = currentMonth.clone().endOf('month').format('YYYY-MM-DD');
+        dispatch(fetchStudentAttendance({ startDate: startOfMonth, endDate: endOfMonth }));
+    }, [currentMonth, dispatch]);
 
-    const stats = {
-        total: attendance.length,
-        present: attendance.filter(a => ['Present', 'Late', 'Half-Day'].includes(a.status)).length,
-        absent: attendance.filter(a => a.status === 'Absent').length,
-        late: attendance.filter(a => a.status === 'Late').length,
-    };
-    const percentage = stats.total > 0 ? (((stats.present) / stats.total) * 100).toFixed(1) : '0.0';
-
-    const filtered = attendance.filter(a => {
-        const q = search.toLowerCase();
-        return (
-            new Date(a.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).toLowerCase().includes(q) ||
-            (a.status || '').toLowerCase().includes(q)
-        );
-    });
+    const stats = useMemo(() => {
+        const total = attendance.length;
+        const present = attendance.filter(a => ['Present', 'Late', 'Half-Day'].includes(a.status)).length;
+        const absent = attendance.filter(a => a.status === 'Absent').length;
+        const late = attendance.filter(a => a.status === 'Late').length;
+        const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : '0.0';
+        return { total, present, absent, late, percentage };
+    }, [attendance]);
 
     const statusConfig = {
-        'Present': { icon: CheckCircle, color: 'text-luxury-emerald', bg: 'bg-luxury-emerald/10', border: 'border-luxury-emerald/20' },
-        'Absent': { icon: XCircle, color: 'text-luxury-rose', bg: 'bg-luxury-rose/10', border: 'border-luxury-rose/20' },
-        'Late': { icon: Clock, color: 'text-luxury-amber', bg: 'bg-luxury-amber/10', border: 'border-luxury-amber/20' },
-        'Half-Day': { icon: Clock, color: 'text-luxury-blue', bg: 'bg-luxury-blue/10', border: 'border-luxury-blue/20' },
+        'Present': { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', shadow: 'shadow-emerald-500/20' },
+        'Absent': { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', shadow: 'shadow-rose-500/20' },
+        'Late': { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20', shadow: 'shadow-amber-500/20' },
+        'Half-Day': { icon: Clock, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20', shadow: 'shadow-blue-500/20' },
     };
 
+    const calendarGrid = useMemo(() => {
+        const startOfMonth = currentMonth.clone().startOf('month');
+        const endOfMonth = currentMonth.clone().endOf('month');
+        const startDay = startOfMonth.day();
+        const daysInMonth = currentMonth.daysInMonth();
+        
+        const grid = [];
+        let day = 1;
+        for (let i = 0; i < 6; i++) {
+            const week = [];
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < startDay) {
+                    week.push(null);
+                } else if (day <= daysInMonth) {
+                    week.push(startOfMonth.clone().date(day));
+                    day++;
+                } else {
+                    week.push(null);
+                }
+            }
+            if (week.some(d => d !== null)) grid.push(week);
+        }
+        return grid;
+    }, [currentMonth]);
+
     return (
-        <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-8 font-outfit"
-        >
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8 bg-slate-900/40 p-10 rounded-md border border-slate-800/60 shadow-2xl backdrop-blur-xl group font-outfit">
-                <div className="space-y-2 font-outfit">
-                    <div className="flex items-center gap-3 mb-2 font-outfit">
-                        <span className="w-12 h-[2px] bg-luxury-emerald rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-emerald">Attendance Status</span>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-10 font-outfit">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 bg-slate-900/40 p-12 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4 mb-4">
+                        <span className="w-16 h-[2px] bg-emerald-500 rounded-full"></span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-emerald-500">Student Terminal</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none text-shadow-glow">Attendance Records</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic leading-none">View your daily school attendance and punctuality records.</p>
+                    <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none">Attendance Center</h1>
+                    <div className="flex items-center gap-4 py-2 px-6 bg-white/[0.03] rounded-2xl border border-white/5 w-fit group hover:border-emerald-500/30 transition-all duration-500">
+                        <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                            <Activity size={20} className="animate-pulse" />
+                        </div>
+                        <p className="text-slate-500 font-bold text-sm tracking-wide italic">Monitoring daily school-participation telemetry</p>
+                    </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 bg-black/40 border border-slate-800/80 p-6 rounded-md shadow-inner backdrop-blur-sm font-outfit">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                     {[
-                        { label: 'Attendance %', val: `${percentage}%`, color: 'text-luxury-emerald' },
-                        { label: 'Present', val: stats.present, color: 'text-luxury-emerald' },
-                        { label: 'Late Arrivals', val: stats.late, color: 'text-luxury-amber' },
-                        { label: 'Absent', val: stats.absent, color: 'text-luxury-rose' },
+                        { label: 'Sync Rate', val: `${stats.percentage}%`, color: 'text-emerald-400' },
+                        { label: 'Success', val: stats.present, color: 'text-emerald-400' },
+                        { label: 'Delayed', val: stats.getLate || stats.late, color: 'text-amber-400' },
+                        { label: 'Loss', val: stats.absent, color: 'text-rose-500' },
                     ].map((st, i) => (
-                        <div key={i} className="flex flex-col items-center px-6 border-r border-slate-800/40 last:border-0 min-w-[100px] font-outfit">
-                            <p className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 mb-2">{st.label}</p>
-                            <p className={`text-2xl font-black ${st.color} italic`}>{st.val}</p>
+                        <div key={i} className="flex flex-col items-center justify-center px-10 py-6 bg-slate-950/40 border border-white/5 rounded-2xl shadow-2xl group transition-all duration-500 hover:border-white/10">
+                            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2">{st.label}</p>
+                            <p className={`text-4xl font-black italic tracking-tighter ${st.color}`}>{st.val}</p>
                         </div>
                     ))}
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 gap-6 font-outfit">
-                <div className="bg-[#0f0f12] border border-slate-800/60 rounded-md overflow-hidden shadow-2xl font-outfit">
-                    <div className="p-8 border-b border-slate-800/50 flex items-center justify-between bg-black/20 font-outfit">
-                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Attendance History</h3>
-                        <div className="relative group font-outfit">
-                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-luxury-emerald transition-colors" />
-                            <input 
-                                type="text" 
-                                placeholder="Search by date or status..." 
-                                value={search}
-                                onChange={e => setSearch(e.target.value)}
-                                className="bg-slate-900/50 border border-slate-800 rounded-md py-2 pl-12 pr-4 text-[10px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:border-luxury-emerald/50 transition-all w-48 h-[36px] italic"
-                            />
+            <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-3xl p-12 shadow-2xl ring-1 ring-white/10">
+                <div className="flex items-center justify-between mb-16">
+                    <div className="flex items-center gap-10">
+                        <div className="w-24 h-24 rounded-3xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-2xl shadow-emerald-500/10 ring-1 ring-emerald-500/20 group hover:scale-105 transition-all duration-700">
+                            <CalendarIcon size={48} className="drop-shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+                        </div>
+                        <div className="space-y-3">
+                            <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none">{currentMonth.format('MMMM YYYY')}</h2>
+                            <div className="flex items-center gap-4">
+                                <span className="w-10 h-[1px] bg-slate-700"></span>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em]">Academic Participation Ledger</p>
+                            </div>
                         </div>
                     </div>
-
-                    <div className="overflow-x-auto font-outfit">
-                        <table className="w-full text-left border-collapse font-outfit">
-                            <thead>
-                                <tr className="bg-slate-900/30">
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Date</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Status</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Timing (In / Out)</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-slate-800/40 font-outfit">
-                                {filtered.length > 0 ? (
-                                    filtered.map((record, idx) => {
-                                        const config = statusConfig[record.status] || statusConfig['Absent'];
-                                        const Icon = config.icon;
-                                        return (
-                                            <tr key={idx} className="hover:bg-white/[0.02] transition-colors group font-outfit">
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="p-3 bg-slate-900 rounded-md group-hover:bg-slate-800 transition-colors">
-                                                            <Calendar size={18} className="text-slate-400" />
-                                                        </div>
-                                                        <span className="font-bold text-slate-200 tracking-tight">{new Date(record.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</span>
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-md text-[10px] font-black uppercase tracking-widest italic ${config.bg} ${config.color} border ${config.border}`}>
-                                                        <Icon size={14} />
-                                                        {record.status}
-                                                    </div>
-                                                </td>
-                                                <td className="px-8 py-6">
-                                                    <div className="flex items-center gap-3">
-                                                        <span className="text-xs font-bold text-slate-400 uppercase italic leading-none">{record.arrivalTime || '—'}</span>
-                                                        <ChevronRight size={10} className="text-slate-700" />
-                                                        <span className="text-xs font-bold text-slate-400 uppercase italic leading-none">{record.departureTime || '—'}</span>
-                                                    </div>
-                                                </td>
-                                                
-                                            </tr>
-                                        );
-                                    })
-                                ) : (
-                                    <tr>
-                                        <td colSpan="4" className="px-8 py-20 text-center font-outfit">
-                                            <div className="opacity-20 mb-4 inline-block font-outfit"><Calendar size={48} /></div>
-                                            <p className="text-slate-500 font-bold italic uppercase tracking-widest text-[10px]">
-                                                {search ? 'No records match your filter' : 'No attendance records found for this period.'}
-                                            </p>
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                    <div className="flex items-center gap-4 bg-slate-950/80 p-4 rounded-3xl border border-white/10 shadow-3xl backdrop-blur-2xl">
+                        <button onClick={() => setCurrentMonth(currentMonth.clone().subtract(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronLeft size={28} className="group-active:-translate-x-1 transition-transform" /></button>
+                        <button onClick={() => setCurrentMonth(moment())} className="px-12 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase text-white transition-all tracking-[0.4em] border border-white/5">Go to Today</button>
+                        <button onClick={() => setCurrentMonth(currentMonth.clone().add(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronRight size={28} className="group-active:translate-x-1 transition-transform" /></button>
                     </div>
                 </div>
+
+                <div className="grid grid-cols-7 gap-6">
+
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.6em] text-slate-600 pb-4 border-b border-white/5 mb-6">{d}</div>
+                    ))}
+                    {calendarGrid.flat().map((date, i) => {
+                        if (!date) return <div key={i} className="aspect-square opacity-0 pointer-events-none" />;
+                        
+                        const isToday = date.isSame(moment(), 'day');
+                        const record = attendance.find(a => moment(a.date).isSame(date, 'day'));
+                        const config = record ? statusConfig[record.status] : null;
+                        const Icon = config?.icon;
+
+                        return (
+                            <motion.div 
+                                key={i} 
+                                whileHover={{ scale: 1.02, y: -4 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => record && setSelectedDate(record)}
+                                className={`relative aspect-square rounded-2xl p-6 cursor-pointer transition-all duration-500 group border flex flex-col items-center justify-center overflow-hidden font-outfit ${isToday ? 'bg-emerald-500/5 border-emerald-500/30 ring-2 ring-emerald-500/20 shadow-2xl' : 'bg-slate-950/40 border-white/5 hover:border-white/10'} ${config ? `${config.bg.replace('/10', '/5')} ${config.border.replace('/20', '/30')} ${config.shadow}` : ''}`}
+                            >
+                                <span className={`absolute top-6 left-6 text-sm font-black tracking-tighter ${config ? config.color : 'text-slate-600 group-hover:text-slate-400'}`}>{date.date()}</span>
+                                
+                                <div className="flex flex-col items-center gap-6">
+                                    {config ? (
+                                        <>
+                                            <div className={`w-16 h-16 rounded-2xl ${config.bg} border ${config.border} flex items-center justify-center ${config.color} shadow-2xl transition-all duration-700`}>
+                                                <Icon size={24} strokeWidth={2.5} />
+                                            </div>
+                                            <div className="text-center space-y-1">
+                                                <p className={`text-[12px] font-black uppercase tracking-widest font-outfit ${config.color}`}>{record.status}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{record.arrivalTime || 'Entry Signal OK'}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="flex flex-col items-center gap-6">
+                                            <div className="w-16 h-16 rounded-2xl bg-black/20 border border-white/5 flex items-center justify-center text-slate-800 opacity-20 group-hover:opacity-40 transition-opacity">
+                                                <Activity size={24} strokeWidth={1.5} />
+                                            </div>
+                                            <p className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-700/40 group-hover:text-slate-500 transition-colors font-outfit italic">Pending</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        );
+
+                    })}
+                </div>
             </div>
+
+            <AnimatePresence>
+                {selectedDate && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedDate(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" />
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="relative bg-slate-900 border border-white/10 rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] ring-1 ring-white/10">
+                            <div className="p-16 space-y-12">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.6em] text-emerald-500">Node Chronicle</p>
+                                        <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">{moment(selectedDate.date).format('MMMM DD, YYYY')}</h3>
+                                    </div>
+                                    <div className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] ${statusConfig[selectedDate.status]?.bg} ${statusConfig[selectedDate.status]?.color} border-2 ${statusConfig[selectedDate.status]?.border} shadow-2xl`}>
+                                        {selectedDate.status}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-10">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 text-slate-500">
+                                            <div className="p-3 bg-white/5 rounded-xl"><Clock size={16} /></div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Temporal Delta</p>
+                                        </div>
+                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                            <p className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">{selectedDate.arrivalTime || '09:00 AM'}</p>
+                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic">Entry Signal Logic</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 text-slate-500">
+                                            <div className="p-3 bg-white/5 rounded-xl"><Info size={16} /></div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Operational Remark</p>
+                                        </div>
+                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                            <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '-- Standard Operational Cycle --'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500 font-outfit">Synchronize Registry</button>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 };

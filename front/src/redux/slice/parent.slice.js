@@ -28,9 +28,9 @@ export const fetchChildOverview = createAsyncThunk('parent/fetchChildOverview', 
     }
 });
 
-export const fetchChildAttendance = createAsyncThunk('parent/fetchChildAttendance', async (studentId, { rejectWithValue }) => {
+export const fetchChildAttendance = createAsyncThunk('parent/fetchChildAttendance', async ({ studentId, ...params }, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get(`/parent/child/${studentId}/attendance`);
+        const response = await axiosInstance.get(`/parent/child/${studentId}/attendance`, { params });
         return response.data;
     } catch (err) {
         return rejectWithValue(err.response.data);

@@ -206,7 +206,14 @@ exports.markAttendance = async (req, res) => {
 
         const attendance = await Attendance.findOneAndUpdate(
             { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date) },
-            { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), records, submittedBy: req.user._id },
+            { 
+                schoolId: teacher.schoolId._id, 
+                standardId: isAssigned.standardId,
+                classSection: targetClass, 
+                date: new Date(date), 
+                records, 
+                submittedBy: req.user._id 
+            },
             { upsert: true, new: true }
         );
         res.json({ message: 'Attendance registry synchronized', attendance });
@@ -461,11 +468,32 @@ exports.getAttendanceByClassAndDate = async (req, res) => {
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-        const att = await Attendance.find({
-            schoolId: teacher.schoolId._id,
-            classSection: targetRef,
-            date: new Date(date)
-        });
+        const mongoose = require('mongoose');
+        const filter = {
+            schoolId: new mongoose.Types.ObjectId(teacher.schoolId._id),
+            classSection: new mongoose.Types.ObjectId(targetRef)
+        };
+
+        const { startDate, endDate, type } = req.query;
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999); // Ensure full inclusion of the end date
+            filter.date = { $gte: start, $lte: end };
+        } else if (date) {
+            filter.date = new Date(date);
+        }
+
+        if (type === 'marked-dates') {
+            const markedDates = await Attendance.aggregate([
+                { $match: filter },
+                { $group: { _id: { $dateToString: { format: "%Y-%m-%d", date: "$date" } } } },
+                { $project: { date: '$_id', marked: { $literal: true }, _id: 0 } }
+            ]);
+            return res.json(markedDates);
+        }
+
+        const att = await Attendance.find(filter);
         res.json(att);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

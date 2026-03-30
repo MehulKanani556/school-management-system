@@ -31,7 +31,7 @@ const Support = () => {
         if (scrollRef.current) {
             scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
         }
-    }, [selectedTicket?.replies]);
+    }, [selectedTicket?.replies, selectedTicket?._id]);
 
     // Synchronize selected ticket with real-time updates from Redux
     useEffect(() => {

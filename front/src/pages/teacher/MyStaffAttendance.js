@@ -1,138 +1,208 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchMyStaffAttendance } from '../../redux/slice/teacher.slice';
 import { 
-    Calendar, CheckCircle, XCircle, Clock, 
-    AlertCircle, Activity, Filter
+    Calendar as CalendarIcon, CheckCircle, XCircle, Clock, 
+    AlertCircle, Activity, ChevronLeft, ChevronRight, Info
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
 const MyStaffAttendance = () => {
     const dispatch = useDispatch();
     const { myStaffAttendance, loading } = useSelector((state) => state.teacher);
+    const [currentMonth, setCurrentMonth] = useState(moment());
+    const [selectedDate, setSelectedDate] = useState(null);
 
     useEffect(() => {
         dispatch(fetchMyStaffAttendance());
     }, [dispatch]);
 
-    const stats = {
-        total: myStaffAttendance?.length || 0,
-        present: myStaffAttendance?.filter(a => a.status === 'Present').length || 0,
-        late: myStaffAttendance?.filter(a => a.status === 'Late').length || 0,
-        absent: myStaffAttendance?.filter(a => a.status === 'Absent').length || 0
+    const stats = useMemo(() => {
+        const total = myStaffAttendance?.length || 0;
+        const present = myStaffAttendance?.filter(a => a.status === 'Present').length || 0;
+        const late = myStaffAttendance?.filter(a => a.status === 'Late').length || 0;
+        const absent = myStaffAttendance?.filter(a => a.status === 'Absent').length || 0;
+        const percentage = total > 0 ? ((present / total) * 100).toFixed(1) : '0.0';
+        return { total, present, late, absent, percentage };
+    }, [myStaffAttendance]);
+
+    const statusConfig = {
+        'Present': { icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', shadow: 'shadow-emerald-500/20' },
+        'Absent': { icon: XCircle, color: 'text-rose-500', bg: 'bg-rose-500/10', border: 'border-rose-500/20', shadow: 'shadow-rose-500/20' },
+        'Late': { icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20', shadow: 'shadow-amber-500/20' },
+        'Half-Day': { icon: Clock, color: 'text-teacher-primary', bg: 'bg-teacher-primary/10', border: 'border-teacher-primary/20', shadow: 'shadow-teacher-primary/20' },
     };
 
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Present': return 'text-emerald-400 bg-emerald-400/10 border-emerald-400/20';
-            case 'Absent': return 'text-rose-400 bg-rose-400/10 border-rose-400/20';
-            case 'Late': return 'text-amber-400 bg-amber-400/10 border-amber-400/20';
-            case 'Half-Day': return 'text-teacher-primary bg-teacher-primary/10 border-teacher-primary/20';
-            default: return 'text-slate-400 bg-slate-400/10 border-slate-400/20';
+    const calendarGrid = useMemo(() => {
+        const startOfMonth = currentMonth.clone().startOf('month');
+        const endOfMonth = currentMonth.clone().endOf('month');
+        const startDay = startOfMonth.day();
+        const daysInMonth = currentMonth.daysInMonth();
+        
+        const grid = [];
+        let day = 1;
+        for (let i = 0; i < 6; i++) {
+            const week = [];
+            for (let j = 0; j < 7; j++) {
+                if (i === 0 && j < startDay) {
+                    week.push(null);
+                } else if (day <= daysInMonth) {
+                    week.push(startOfMonth.clone().date(day));
+                    day++;
+                } else {
+                    week.push(null);
+                }
+            }
+            if (week.some(d => d !== null)) grid.push(week);
         }
-    };
+        return grid;
+    }, [currentMonth]);
 
     return (
-        <div className="space-y-6">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-black uppercase tracking-tighter text-white font-outfit">Staff Attendance Node</h1>
-                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest mt-1 italic">Personal Presence Vector & Arrival Logs</p>
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-10 bg-slate-900/40 p-12 rounded-3xl border border-white/5 shadow-2xl backdrop-blur-3xl ring-1 ring-white/10">
+                <div className="space-y-4">
+                    <div className="flex items-center gap-4 mb-4">
+                        <span className="w-16 h-[2px] bg-teacher-primary rounded-full"></span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-teacher-primary font-outfit">Workforce Node</span>
+                    </div>
+                    <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">My Presence Log</h1>
+                    <div className="flex items-center gap-4 py-2 px-6 bg-white/[0.03] rounded-2xl border border-white/5 w-fit group">
+                        <div className="w-10 h-10 rounded-full bg-teacher-primary/10 flex items-center justify-center text-teacher-primary">
+                            <Activity size={20} className="animate-pulse" />
+                        </div>
+                        <p className="text-slate-500 font-bold text-sm tracking-wide italic">Institutional participation telemetry & personal arrival logs.</p>
+                    </div>
                 </div>
-            </div>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                    { label: 'Total Records', val: stats.total, icon: Calendar, color: 'text-teacher-primary', bg: 'bg-teacher-primary/5' },
-                    { label: 'Active Signals', val: stats.present, icon: CheckCircle, color: 'text-emerald-400', bg: 'bg-emerald-400/5' },
-                    { label: 'Delayed Sync', val: stats.late, icon: Clock, color: 'text-amber-400', bg: 'bg-amber-400/5' },
-                    { label: 'Signal Loss', val: stats.absent, icon: XCircle, color: 'text-rose-400', bg: 'bg-rose-400/5' },
-                ].map((s, i) => (
-                    <div key={i} className="bg-brand-surface border border-brand-border/40 rounded-2xl p-6 relative overflow-hidden group">
-                        <div className={`absolute top-0 right-0 w-24 h-24 ${s.bg} rounded-full blur-3xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700`}></div>
-                        <div className="flex items-center gap-4 relative z-10">
-                            <div className={`w-12 h-12 rounded-xl ${s.bg} flex items-center justify-center ${s.color} border border-white/5`}>
-                                <s.icon size={22} />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">{s.label}</p>
-                                <p className="text-2xl font-black text-white mt-1 font-outfit">{s.val}</p>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+                    {[
+                        { label: 'Signal Ratio', val: `${stats.percentage}%`, color: 'text-emerald-400' },
+                        { label: 'Active', val: stats.present, color: 'text-emerald-400' },
+                        { label: 'Delayed', val: stats.late, color: 'text-amber-400' },
+                        { label: 'Absent', val: stats.absent, color: 'text-rose-500' },
+                    ].map((st, i) => (
+                        <div key={i} className="flex flex-col items-center justify-center px-10 py-6 bg-slate-950/40 border border-white/5 rounded-2xl shadow-2xl transition-all duration-500 hover:border-white/10">
+                            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-500 mb-2 font-outfit">{st.label}</p>
+                            <p className={`text-4xl font-black italic tracking-tighter ${st.color}`}>{st.val}</p>
+                        </div>
+                    ))}
+                </div>
+            </header>
+
+            <div className="bg-slate-900/40 backdrop-blur-3xl border border-white/5 rounded-[3rem] p-12 shadow-2xl ring-1 ring-white/10">
+                <div className="flex items-center justify-between mb-16">
+                    <div className="flex items-center gap-10">
+                        <div className="w-24 h-24 rounded-[2rem] bg-teacher-primary/10 border border-teacher-primary/20 flex items-center justify-center text-teacher-primary shadow-2xl shadow-teacher-primary/10 ring-1 ring-teacher-primary/20">
+                            <CalendarIcon size={48} className="drop-shadow-[0_0_15px_rgba(var(--teacher-primary),0.5)]" />
+                        </div>
+                        <div className="space-y-3">
+                            <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none font-outfit">{currentMonth.format('MMMM YYYY')}</h2>
+                            <div className="flex items-center gap-4">
+                                <span className="w-10 h-[1px] bg-slate-700"></span>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] font-outfit">Operational Presence Matrix</p>
                             </div>
                         </div>
                     </div>
-                ))}
-            </div>
-
-            <div className="bg-brand-surface border border-brand-border/40 rounded-3xl overflow-hidden shadow-2xl">
-                <div className="px-8 py-6 border-b border-brand-border/40 flex items-center justify-between bg-white/[0.02]">
-                    <div className="flex items-center gap-3">
-                        <Activity className="text-teacher-primary" size={20} />
-                        <h2 className="text-sm font-black uppercase tracking-widest text-white italic">Attendance Ledger</h2>
+                    <div className="flex items-center gap-4 bg-slate-950/80 p-4 rounded-3xl border border-white/10 shadow-3xl">
+                        <button onClick={() => setCurrentMonth(currentMonth.clone().subtract(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronLeft size={28} className="group-active:-translate-x-1 transition-transform" /></button>
+                        <button onClick={() => setCurrentMonth(moment())} className="px-12 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase text-white transition-all tracking-[0.4em] font-outfit border border-white/5">Sync Today</button>
+                        <button onClick={() => setCurrentMonth(currentMonth.clone().add(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronRight size={28} className="group-active:translate-x-1 transition-transform" /></button>
                     </div>
                 </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-brand-background/40">
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-brand-border/40">Temporal Marker</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-brand-border/40 text-center">Status Signal</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-brand-border/40">Time Logs</th>
-                                <th className="px-8 py-5 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 border-b border-brand-border/40 text-right">Remarks</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-brand-border/20">
-                            {myStaffAttendance?.map((rec) => (
-                                <tr key={rec._id} className="hover:bg-white/[0.02] transition-colors group">
-                                    <td className="px-8 py-5">
-                                        <div>
-                                            <p className="text-sm font-black text-white tracking-tighter uppercase font-outfit mb-0.5">
-                                                {moment(rec.date).format('DD MMMM YYYY')}
-                                            </p>
-                                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest italic">
-                                                {moment(rec.date).format('dddd')}
-                                            </p>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex justify-center">
-                                            <span className={`px-4 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-[0.2em] border ${getStatusColor(rec.status)} shadow-lg shadow-black/20`}>
-                                                {rec.status}
-                                            </span>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Arrival</span>
-                                                <span className="text-xs font-black text-teacher-primary tracking-widest">{rec.arrivalTime || '09:00'}</span>
-                                            </div>
-                                            <div className="h-8 w-px bg-brand-border/40"></div>
-                                            <div className="flex flex-col">
-                                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Departure</span>
-                                                <span className="text-xs font-black text-slate-400 tracking-widest">{rec.departureTime || '17:00'}</span>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td className="px-8 py-5 text-right">
-                                        <p className="text-[11px] font-black text-slate-500 italic uppercase">
-                                            {rec.remarks || '-- Registry Clear --'}
-                                        </p>
-                                    </td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                <div className="grid grid-cols-7 gap-10">
+                    {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => (
+                        <div key={d} className="text-center text-[10px] font-black uppercase tracking-[0.6em] text-slate-600 pb-4 font-outfit border-b border-white/5 mb-6">{d}</div>
+                    ))}
+                    {calendarGrid.flat().map((date, i) => {
+                        if (!date) return <div key={i} className="aspect-square opacity-0 pointer-events-none" />;
+                        
+                        const isToday = date.isSame(moment(), 'day');
+                        const record = myStaffAttendance?.find(a => moment(a.date).isSame(date, 'day'));
+                        const config = record ? statusConfig[record.status] : null;
+                        const Icon = config?.icon;
 
-                {(!myStaffAttendance || myStaffAttendance.length === 0) && !loading && (
-                    <div className="py-32 text-center border-t border-brand-border/40 bg-brand-background/20">
-                        <AlertCircle size={48} className="text-slate-800 mx-auto mb-6 opacity-30 animate-pulse" />
-                        <p className="text-slate-600 font-black uppercase tracking-[0.3em] text-[10px]">No presence signals detected in history ledger</p>
+                        return (
+                            <motion.div 
+                                key={i} 
+                                whileHover={{ scale: 1.02, y: -4 }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => record && setSelectedDate(record)}
+                                className={`relative aspect-square rounded-2xl p-6 cursor-pointer transition-all duration-500 group border flex flex-col items-center justify-center overflow-hidden font-outfit ${isToday ? 'bg-teacher-primary/5 border-teacher-primary/30 ring-2 ring-teacher-primary/20 shadow-2xl' : 'bg-slate-950/40 border-white/5 hover:border-white/10'} ${config ? `${config.bg.replace('/10', '/5')} ${config.border.replace('/20', '/30')} ${config.shadow}` : ''}`}
+                            >
+                                <span className={`absolute top-6 left-6 text-sm font-black tracking-tighter ${config ? config.color : 'text-slate-600 group-hover:text-slate-400'}`}>{date.date()}</span>
+                                
+                                <div className="flex flex-col items-center gap-6">
+                                    {config ? (
+                                        <>
+                                            <div className={`w-16 h-16 rounded-2xl ${config.bg} border ${config.border} flex items-center justify-center ${config.color} shadow-2xl transition-all duration-700`}>
+                                                <Icon size={24} strokeWidth={2.5} />
+                                            </div>
+                                            <div className="text-center space-y-1">
+                                                <p className={`text-[12px] font-black uppercase tracking-widest font-outfit ${config.color}`}>{record.status}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{record.arrivalTime || 'Signal Active'}</p>
+                                            </div>
+                                        </>
+                                    ) : (
+                                        <div className="w-16 h-16 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-800 opacity-20 group-hover:opacity-40 transition-opacity">
+                                            <Activity size={24} />
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+
+                        );
+                    })}
+                </div>
+            </div>
+
+            <AnimatePresence>
+                {selectedDate && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8">
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedDate(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" />
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="relative bg-slate-900 border border-white/10 rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)] ring-1 ring-white/10">
+                            <div className="p-16 space-y-12">
+                                <div className="flex items-center justify-between">
+                                    <div className="space-y-3">
+                                        <p className="text-[10px] font-black uppercase tracking-[0.6em] text-teacher-primary font-outfit">Presence Signal</p>
+                                        <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none font-outfit">{moment(selectedDate.date).format('MMMM DD, YYYY')}</h3>
+                                    </div>
+                                    <div className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] font-outfit ${statusConfig[selectedDate.status]?.bg} ${statusConfig[selectedDate.status]?.color} border-2 ${statusConfig[selectedDate.status]?.border} shadow-2xl`}>
+                                        {selectedDate.status}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-10">
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 text-slate-500">
+                                            <div className="p-3 bg-white/5 rounded-xl"><Clock size={16} /></div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Temporal Marker</p>
+                                        </div>
+                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                            <p className="text-3xl font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{selectedDate.arrivalTime || '--:--'}</p>
+                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic font-outfit">Arrival Timestamp</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-6">
+                                        <div className="flex items-center gap-4 text-slate-500">
+                                            <div className="p-3 bg-white/5 rounded-xl"><Info size={16} /></div>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Operational Log</p>
+                                        </div>
+                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                            <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '-- No Exceptions Logged --'}</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500 font-outfit">Dismiss Terminal</button>
+                            </div>
+                        </motion.div>
                     </div>
                 )}
-            </div>
-        </div>
+            </AnimatePresence>
+        </motion.div>
     );
 };
 

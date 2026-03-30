@@ -158,10 +158,17 @@ exports.startTrip = async (req, res) => {
 
 exports.getAttendance = async (req, res) => {
     try {
-        const attendance = await StaffAttendance.find({
+        const { startDate, endDate } = req.query;
+        const filter = {
             userId: req.user._id,
             schoolId: getSchoolId(req)
-        }).sort({ date: -1 }).limit(100); // Increased limit for calendar
+        };
+
+        if (startDate && endDate) {
+            filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const attendance = await StaffAttendance.find(filter).sort({ date: -1 });
         res.json(attendance);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

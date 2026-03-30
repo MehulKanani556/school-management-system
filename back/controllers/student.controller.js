@@ -47,16 +47,32 @@ exports.getProfile = async (req, res) => {
 // 2. Check Attendance
 exports.getAttendance = async (req, res) => {
     try {
+        const { startDate, endDate } = req.query;
         const student = await getStudent(req.user._id);
-        const attendance = await Attendance.find({
+
+        const filter = {
             classSection: student.classSection._id,
             'records.studentId': student._id
-        }).select('date records.$').sort({ date: -1 });
+        };
+
+        if (startDate && endDate) {
+            filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const attendance = await Attendance.find(filter)
+            .select('date records.$')
+            .sort({ date: -1 });
 
         // Format to only show this student's status for each date
         const formatted = attendance.map(a => {
             const myRecord = a.records.find(r => r.studentId.toString() === student._id.toString());
-            return { date: a.date, status: myRecord?.status || 'N/A', arrivalTime: myRecord?.arrivalTime, departureTime: myRecord?.departureTime };
+            return { 
+                date: a.date, 
+                status: myRecord?.status || 'N/A', 
+                arrivalTime: myRecord?.arrivalTime, 
+                departureTime: myRecord?.departureTime,
+                remarks: myRecord?.remarks
+            };
         });
         res.json(formatted);
     } catch (err) { res.status(500).json({ message: err.message }); }

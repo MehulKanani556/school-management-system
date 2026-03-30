@@ -87,7 +87,14 @@ exports.getChildOverview = async (req, res) => {
 exports.getChildAttendance = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const attendanceRecords = await Attendance.find({ 'records.studentId': studentId })
+        const { startDate, endDate } = req.query;
+
+        const filter = { 'records.studentId': studentId };
+        if (startDate && endDate) {
+            filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+        }
+
+        const attendanceRecords = await Attendance.find(filter)
             .sort({ date: -1 })
             .lean();
 
@@ -95,7 +102,9 @@ exports.getChildAttendance = async (req, res) => {
             const myRecord = record.records.find(r => r.studentId.toString() === studentId);
             return {
                 ...record,
-                status: myRecord?.status || 'N/A'
+                status: myRecord?.status || 'N/A',
+                arrivalTime: myRecord?.arrivalTime,
+                remarks: myRecord?.remarks
             };
         });
 

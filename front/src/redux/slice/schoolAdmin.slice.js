@@ -597,6 +597,7 @@ const schoolAdminSlice = createSlice({
       })
       .addCase(fetchStaffAttendance.fulfilled, handleList('staffAttendance'))
       .addCase(fetchStaffAttendance.rejected, rejected)
+      .addCase(fetchStaffMonthlySummary.fulfilled, handleList('staffMonthlySummary'))
       .addCase(saveStaffAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(fetchAssignmentsOverview.fulfilled, handleList('assignments'))
       .addCase(createPayroll.fulfilled, (state, a) => {
@@ -739,10 +740,6 @@ const schoolAdminSlice = createSlice({
       })
       .addCase(fetchStaffForAttendance.fulfilled, (state, a) => {
         state.staffList = a.payload;
-        state.loading = false;
-      })
-      .addCase(fetchStaffMonthlySummary.fulfilled, (state, a) => {
-        state.staffMonthlySummary = a.payload;
         state.loading = false;
       })
       .addCase(fetchTickets.fulfilled, (state, a) => {
