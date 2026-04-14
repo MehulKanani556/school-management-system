@@ -18,6 +18,7 @@ const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
 const nc = require('./notification.controller');
 const { Cashfree, CFEnvironment } = require('cashfree-pg');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 // Institutional Global Gateway Registry (v5/v6 Instance Mode)
 const cashfree = new Cashfree();
@@ -89,7 +90,7 @@ exports.getChildAttendance = async (req, res) => {
         const { studentId } = req.params;
         const { startDate, endDate } = req.query;
 
-        const filter = { 'records.studentId': studentId };
+        const filter = addAcademicYearFilter({ 'records.studentId': studentId }, req.academicYearId);
         if (startDate && endDate) {
             filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
         }
@@ -115,7 +116,7 @@ exports.getChildAttendance = async (req, res) => {
 exports.getChildResults = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const marks = await Mark.find({ studentId })
+        const marks = await Mark.find(addAcademicYearFilter({ studentId }, req.academicYearId))
             .populate({
                 path: 'examId',
                 populate: { path: 'subject' }
@@ -140,7 +141,7 @@ exports.getChildResults = async (req, res) => {
 exports.getChildFees = async (req, res) => {
     try {
         const { studentId } = req.params;
-        const fees = await FeePayment.find({ studentId }).sort({ dueDate: 1 }).lean();
+        const fees = await FeePayment.find(addAcademicYearFilter({ studentId }, req.academicYearId)).sort({ dueDate: 1 }).lean();
         res.status(200).json(fees);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -165,7 +166,7 @@ exports.getChildAssignments = async (req, res) => {
         const student = await Student.findById(studentId);
         if (!student) return res.status(404).json({ message: "Child link inactive" });
 
-        const assignments = await Assignment.find({ classSection: student.classSection })
+        const assignments = await Assignment.find(addAcademicYearFilter({ classSection: student.classSection }, req.academicYearId))
             .populate('subject', 'name')
             .sort({ dueDate: 1 })
             .lean();
@@ -191,10 +192,12 @@ exports.getChildExams = async (req, res) => {
         const student = await Student.findById(studentId);
         if (!student) return res.status(404).json({ message: "Child link inactive" });
 
-        const exams = await Exam.find({
+        const schoolId = student.schoolId;
+        const exams = await Exam.find(addAcademicYearFilter({
             standardId: student.standard,
+            schoolId: schoolId,
             isPublished: true
-        }).populate('subject', 'name').sort({ date: 1 }).lean();
+        }, req.academicYearId)).populate('subject', 'name').sort({ date: 1 }).lean();
 
         res.json(exams);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -344,10 +347,10 @@ exports.getChildBehaviorLogs = async (req, res) => {
         const student = await Student.findOne({ _id: studentId, parentId: req.user._id });
         if (!student) return res.status(403).json({ message: 'Child link unauthorized' });
 
-        const logs = await BehaviorLog.find({ 
+        const logs = await BehaviorLog.find(addAcademicYearFilter({ 
             studentId, 
             schoolId: student.schoolId._id // Enforce school-wide isolation
-        })
+        }, req.academicYearId))
             .populate('teacherId', 'firstName lastName')
             .sort({ date: -1 })
             .lean();

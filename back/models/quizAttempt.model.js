@@ -4,6 +4,7 @@ const quizAttemptSchema = new mongoose.Schema({
   quizId: { type: mongoose.Schema.Types.ObjectId, ref: 'Quiz', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   answers: [{
     questionId: { type: mongoose.Schema.Types.ObjectId, ref: 'Question' },
     selectedOption: { type: Number }, // Index of the selected option

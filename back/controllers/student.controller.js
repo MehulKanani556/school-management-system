@@ -17,6 +17,7 @@ const Teacher = require('../models/teacher.model');
 const Subject = require('../models/subject.model');
 const Timetable = require('../models/timetable.model');
 const nc = require('./notification.controller');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
@@ -50,17 +51,17 @@ exports.getAttendance = async (req, res) => {
         const { startDate, endDate } = req.query;
         const student = await getStudent(req.user._id);
 
-        const filter = {
+        const filter = addAcademicYearFilter({
             classSection: student.classSection._id,
             'records.studentId': student._id
-        };
+        }, req.academicYearId);
 
         if (startDate && endDate) {
             filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
         }
 
         const attendance = await Attendance.find(filter)
-            .select('date records.$')
+            .select('date records')
             .sort({ date: -1 });
 
         // Format to only show this student's status for each date
@@ -82,7 +83,7 @@ exports.getAttendance = async (req, res) => {
 exports.getResults = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const marks = await Mark.find({ studentId: student._id })
+        const marks = await Mark.find(addAcademicYearFilter({ studentId: student._id }, req.academicYearId))
             .populate({
                 path: 'examId',
                 populate: { path: 'subject', select: 'name' }
@@ -95,7 +96,8 @@ exports.getResults = async (req, res) => {
 exports.getAssignments = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const assignments = await Assignment.find({ classSection: student.classSection._id }).populate('createdBy', 'firstName lastName');
+        const assignments = await Assignment.find(addAcademicYearFilter({ classSection: student.classSection._id }, req.academicYearId))
+            .populate('createdBy', 'firstName lastName');
         res.json(assignments);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -107,7 +109,7 @@ exports.getTimetable = async (req, res) => {
         if (!student.classSection) {
             return res.json([]);
         }
-        const timetable = await Timetable.findOne({ classSection: student.classSection._id })
+        const timetable = await Timetable.findOne(addAcademicYearFilter({ classSection: student.classSection._id }, req.academicYearId))
             .populate({
                 path: 'schedule.periods.subject',
                 select: 'name'
@@ -138,6 +140,7 @@ exports.submitAssignment = async (req, res) => {
                 schoolId: student.schoolId._id,
                 assignmentId,
                 studentId: student._id,
+                academicYearId: req.academicYearId,
                 fileUrl,
                 comments,
                 submittedAt: new Date(),
@@ -165,7 +168,8 @@ exports.submitAssignment = async (req, res) => {
 exports.getMySubmissions = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const submissions = await Submission.find({ studentId: student._id }).populate('assignmentId', 'title subject');
+        const submissions = await Submission.find(addAcademicYearFilter({ studentId: student._id }, req.academicYearId))
+            .populate('assignmentId', 'title subject');
         res.json(submissions);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -174,7 +178,7 @@ exports.getMySubmissions = async (req, res) => {
 exports.getFees = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const fees = await FeePayment.find({ studentId: student._id })
+        const fees = await FeePayment.find(addAcademicYearFilter({ studentId: student._id }, req.academicYearId))
             .populate('studentId', 'firstName lastName')
             .sort({ month: -1 });
         res.json(fees);
@@ -222,7 +226,7 @@ exports.changePassword = async (req, res) => {
 exports.getExams = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const exams = await Exam.find({
+        const exams = await Exam.find(addAcademicYearFilter({
             standardId: student.standard,
             schoolId: student.schoolId._id,
             isPublished: true,
@@ -230,7 +234,7 @@ exports.getExams = async (req, res) => {
                 { classSection: student.classSection._id },
                 { classSection: null }
             ]
-        }).populate('subject').sort({ date: 1 });
+        }, req.academicYearId)).populate('subject').sort({ date: 1 });
         res.json(exams);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -247,7 +251,7 @@ exports.downloadReportCard = async (req, res) => {
         const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
         if (!student) return res.status(404).json({ message: 'Student not found' });
 
-        const marks = await Mark.find({ studentId: id, schoolId })
+        const marks = await Mark.find(addAcademicYearFilter({ studentId: id, schoolId }, req.academicYearId))
             .populate({
                 path: 'examId',
                 match: { isPublished: true },
@@ -483,11 +487,11 @@ exports.getMyReservations = async (req, res) => {
 exports.getQuizzes = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const quizzes = await Quiz.find({
+        const quizzes = await Quiz.find(addAcademicYearFilter({
             schoolId: student.schoolId._id,
             standardId: student.standard,
             isPublished: true
-        }).populate('subjectId', 'name').populate('questions');
+        }, req.academicYearId)).populate('subjectId', 'name').populate('questions');
         res.json(quizzes);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -522,6 +526,7 @@ exports.submitQuiz = async (req, res) => {
             quizId,
             studentId: student._id,
             schoolId: student.schoolId._id,
+            academicYearId: req.academicYearId,
             answers: results,
             score,
             totalPoints,
@@ -547,7 +552,7 @@ exports.submitQuiz = async (req, res) => {
 exports.getQuizHistory = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const attempts = await QuizAttempt.find({ studentId: student._id })
+        const attempts = await QuizAttempt.find(addAcademicYearFilter({ studentId: student._id }, req.academicYearId))
             .populate({
                 path: 'quizId',
                 populate: { path: 'subjectId', select: 'name' }
@@ -574,6 +579,7 @@ exports.getStudentResources = async (req, res) => {
         res.json(resources);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
+
 // 17. Transport Logistics
 exports.getTransport = async (req, res) => {
     try {

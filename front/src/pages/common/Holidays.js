@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 const Holidays = () => {
     const dispatch = useDispatch();
     const { holidays, loading, error } = useSelector((state) => state.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
     const { user } = useSelector((state) => state.auth);
     const isAdmin = user?.role === 'School_Admin';
 
@@ -20,6 +21,14 @@ const Holidays = () => {
     useEffect(() => {
         dispatch(fetchHolidays());
     }, [dispatch]);
+
+    // Refetch holidays when academic year changes
+    useEffect(() => {
+        if (activeAcademicYearId) {
+            console.log('🎄 Holidays Page - Academic Year Changed:', activeAcademicYearId);
+            dispatch(fetchHolidays());
+        }
+    }, [activeAcademicYearId, dispatch]);
 
     useEffect(() => {
         if (error) {

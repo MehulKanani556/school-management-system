@@ -63,7 +63,7 @@ const schoolAdmin = [auth, requireRole('School_Admin'), academicYear];
 router.get('/school-admin/dashboard', ...schoolAdmin, sa.getDashboardStats);
 
 // Students
-router.get('/school-admin/students', auth, requireRole('School_Admin', 'Transport_Manager', 'Teacher', 'Accountant', 'Librarian'), sa.getStudents);
+router.get('/school-admin/students', ...schoolAdmin, sa.getStudents);
 router.post('/school-admin/students', ...schoolAdmin, upload.single('photo'), sa.createStudent);
 router.put('/school-admin/students/:id', ...schoolAdmin, upload.single('photo'), sa.updateStudent);
 router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
@@ -416,7 +416,7 @@ router.put('/notifications/:id/read', auth, nc.markAsRead);
 router.put('/notifications/read-all', auth, nc.markAllAsRead);
 router.delete('/notifications/:id', auth, nc.deleteNotification);
 
-router.get('/holidays', auth, hc.getHolidays); // Read-only for all authenticated
+router.get('/holidays', auth, academicYear, hc.getHolidays); // Read-only for all authenticated with academic year filter
 router.post('/school-admin/holidays', ...schoolAdmin, hc.createHoliday);
 router.put('/school-admin/holidays/:id', ...schoolAdmin, hc.updateHoliday);
 router.delete('/school-admin/holidays/:id', ...schoolAdmin, hc.deleteHoliday);

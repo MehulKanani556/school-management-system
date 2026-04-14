@@ -23,6 +23,7 @@ const Quiz = require('../models/quiz.model');
 const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
 const bcrypt = require('bcrypt');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 // Helper to get teacher record by user ID
 const getTeacher = async (userId) => {
@@ -527,7 +528,7 @@ exports.getMarksByExam = async (req, res) => {
 // 10. Homework (Assignment) Lifecycle Controls ──────────────────────────────────
 exports.getAssignments = async (req, res) => {
     try {
-        const assignments = await Assignment.find({ createdBy: req.user._id })
+        const assignments = await Assignment.find(addAcademicYearFilter({ createdBy: req.user._id }, req.academicYearId))
             .populate({
                 path: 'classSection',
                 select: 'sectionLabel standardId',
@@ -550,7 +551,8 @@ exports.getAssignmentSubmissions = async (req, res) => {
             return res.status(403).json({ message: 'Access denied: You are not the author of this assignment' });
         }
 
-        const submissions = await Submission.find({ assignmentId: id }).populate('studentId', 'firstName lastName studentId');
+        const submissions = await Submission.find(addAcademicYearFilter({ assignmentId: id }, req.academicYearId))
+            .populate('studentId', 'firstName lastName studentId');
         res.json(submissions);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1083,7 +1085,7 @@ exports.getExamsByClass = async (req, res) => {
 exports.getLessonPlans = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const plans = await LessonPlan.find({ teacherId: teacher._id })
+        const plans = await LessonPlan.find(addAcademicYearFilter({ teacherId: teacher._id }, req.academicYearId))
             .populate('classSection', 'sectionLabel')
             .populate('subject', 'name')
             .sort({ date: -1 });
@@ -1094,7 +1096,12 @@ exports.getLessonPlans = async (req, res) => {
 exports.createLessonPlan = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const newPlan = new LessonPlan({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        const newPlan = new LessonPlan({ 
+            ...req.body, 
+            teacherId: teacher._id, 
+            schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId
+        });
         await newPlan.save();
         const populated = await newPlan.populate([
             { path: 'classSection', select: 'sectionLabel' },
@@ -1122,7 +1129,12 @@ exports.deleteLessonPlan = async (req, res) => {
 exports.logBehavior = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const log = new BehaviorLog({ ...req.body, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        const log = new BehaviorLog({ 
+            ...req.body, 
+            teacherId: teacher._id, 
+            schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId
+        });
         await log.save();
         res.status(201).json({ message: 'Conduct vector localized to student registry' });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1132,7 +1144,7 @@ exports.getBehaviorLogs = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         const { studentId, classId } = req.query;
-        let query = { schoolId: teacher.schoolId._id };
+        let query = addAcademicYearFilter({ schoolId: teacher.schoolId._id }, req.academicYearId);
         
         if (studentId) query.studentId = studentId;
         if (classId) {
@@ -1350,7 +1362,10 @@ exports.generateExam = async (req, res) => {
 exports.getMyQuizzes = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const quizzes = await Quiz.find({ createdBy: req.user._id, schoolId: teacher.schoolId._id })
+        const quizzes = await Quiz.find(addAcademicYearFilter({ 
+            createdBy: req.user._id, 
+            schoolId: teacher.schoolId._id 
+        }, req.academicYearId))
             .populate('subjectId', 'name')
             .populate('standardId', 'level')
             .populate('questions')
@@ -1359,7 +1374,7 @@ exports.getMyQuizzes = async (req, res) => {
 
         // Calculate stats for each quiz
         const quizzesWithStats = await Promise.all(quizzes.map(async (quiz) => {
-            const attempts = await QuizAttempt.find({ quizId: quiz._id });
+            const attempts = await QuizAttempt.find(addAcademicYearFilter({ quizId: quiz._id }, req.academicYearId));
             const total = attempts.length;
             const passed = attempts.filter(a => a.status === 'Passed').length;
             const avgScore = total > 0 ? (attempts.reduce((acc, a) => acc + a.score, 0) / attempts.reduce((acc, a) => acc + a.totalPoints, 0)) * 100 : 0;
@@ -1383,6 +1398,7 @@ exports.createQuiz = async (req, res) => {
         const quiz = await Quiz.create({
             title, description, subjectId, standardId,
             schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId,
             createdBy: req.user._id,
             duration: duration || 30,
             passingScore: passingScore || 40,
@@ -1450,7 +1466,7 @@ exports.getQuizAttempts = async (req, res) => {
         const { id } = req.params;
         const quiz = await Quiz.findOne({ _id: id, createdBy: req.user._id });
         if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-        const attempts = await QuizAttempt.find({ quizId: id })
+        const attempts = await QuizAttempt.find(addAcademicYearFilter({ quizId: id }, req.academicYearId))
             .populate('studentId', 'firstName lastName admissionNumber')
             .sort({ createdAt: -1 });
         res.json(attempts);

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const staffAttendanceSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher' },
   driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -13,7 +14,7 @@ const staffAttendanceSchema = new mongoose.Schema({
   remarks: { type: String }
 }, { timestamps: true });
 
-staffAttendanceSchema.index({ schoolId: 1, date: 1, teacherId: 1, userId: 1, driverId: 1 }, { unique: true });
-staffAttendanceSchema.index({ schoolId: 1, date: 1 }); // Performance index for quick daily lookups
+staffAttendanceSchema.index({ schoolId: 1, academicYearId: 1, date: 1, teacherId: 1, userId: 1, driverId: 1 }, { unique: true });
+staffAttendanceSchema.index({ schoolId: 1, academicYearId: 1, date: 1 }); // Performance index for quick daily lookups
 
 module.exports = mongoose.model('StaffAttendance', staffAttendanceSchema);

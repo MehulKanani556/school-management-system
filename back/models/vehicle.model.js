@@ -39,8 +39,8 @@ const vehicleSchema = new mongoose.Schema(
       default: 'active' 
     },
     driverId: { type: mongoose.Schema.Types.ObjectId, ref: 'Driver' },
-    gpsDeviceId: { type: String, trim: true, sparse: true },
-    gpsApiKey: { type: String, trim: true, sparse: true },
+    gpsDeviceId: { type: String, trim: true },
+    gpsApiKey: { type: String, trim: true },
   },
   { timestamps: true }
 );

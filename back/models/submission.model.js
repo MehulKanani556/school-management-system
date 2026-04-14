@@ -4,6 +4,7 @@ const submissionSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   assignmentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Assignment', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   fileUrl: { type: String, required: true },
   status: { type: String, enum: ['Submitted', 'Late', 'Graded'], default: 'Submitted' },
   marks: { type: Number },

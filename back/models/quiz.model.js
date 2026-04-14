@@ -7,6 +7,7 @@ const quizSchema = new mongoose.Schema({
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' }, // If null, open to all sections of that standard? Actually section-specific is better for control.
   standardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   questions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
   duration: { type: Number, default: 30 }, // in minutes
   passingScore: { type: Number, default: 40 }, // percentage

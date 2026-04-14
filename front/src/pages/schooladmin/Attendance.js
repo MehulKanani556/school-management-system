@@ -18,6 +18,7 @@ const statusColor = {
 const Attendance = () => {
     const dispatch = useDispatch();
     const { classes, students, attendance, standards, loading } = useSelector((s) => s.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((s) => s.academicYear);
     const [selectedStandard, setSelectedStandard] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
 
@@ -42,26 +43,28 @@ const Attendance = () => {
         dispatch(fetchStandards());
     }, [dispatch]);
 
-    // Fetch Marked Dates for the selected class/month
+    // Refetch marked dates when academic year, class, or month changes
     useEffect(() => {
-        if (selectedClass) {
+        console.log('📅 Attendance Page - Academic Year Changed:', activeAcademicYearId, '| Class:', selectedClass);
+        if (selectedClass && activeAcademicYearId) {
             const startOfMonth = currentMonth.clone().startOf('month').format('YYYY-MM-DD');
             const endOfMonth = currentMonth.clone().endOf('month').format('YYYY-MM-DD');
+            console.log('🔄 Fetching marked dates for:', selectedClass, 'from', startOfMonth, 'to', endOfMonth);
             dispatch(fetchAttendanceReport({
                 classSection: selectedClass,
                 startDate: startOfMonth,
                 endDate: endOfMonth,
                 type: 'marked-dates'
             })).then(res => {
+                console.log('✅ Marked dates received:', res.payload);
                 if (res.payload) setMarkedDates(res.payload);
             });
-
         }
-    }, [selectedClass, currentMonth, dispatch]);
+    }, [selectedClass, currentMonth, activeAcademicYearId, dispatch]);
 
     // Fetch details for specific marking date
     useEffect(() => {
-        if (selectedStandard && selectedClass && viewDate && showMarking) {
+        if (selectedStandard && selectedClass && viewDate && showMarking && activeAcademicYearId) {
             dispatch(fetchAttendance({ standardId: selectedStandard, classSection: selectedClass, date: viewDate })).then((res) => {
                 const existing = res.payload?.[0];
                 const currentStudents = students.filter(s => (s.classSection?._id || s.classSection) === selectedClass);
@@ -96,7 +99,7 @@ const Attendance = () => {
                 setRecords(newRecords);
             });
         }
-    }, [selectedStandard, selectedClass, viewDate, showMarking, dispatch, students]);
+    }, [selectedStandard, selectedClass, viewDate, showMarking, activeAcademicYearId, dispatch, students]);
 
     const handleDateClick = (date) => {
         const formattedDate = date.format('YYYY-MM-DD');

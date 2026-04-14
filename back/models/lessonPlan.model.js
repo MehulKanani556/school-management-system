@@ -5,6 +5,7 @@ const lessonPlanSchema = new mongoose.Schema({
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
   classSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection', required: true },
   subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
   topic: { type: String, required: true },
   subTopics: [{ type: String }],
   date: { type: Date, required: true },

@@ -31,6 +31,7 @@ axiosInstance.interceptors.request.use(
     const academicYearId = localStorage.getItem("activeAcademicYearId");
     if (academicYearId) {
         config.headers['x-academic-year-id'] = academicYearId;
+        console.log('🔵 Axios Request:', config.url, '| Academic Year:', academicYearId);
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;

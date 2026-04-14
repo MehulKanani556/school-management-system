@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 const StaffAttendance = () => {
     const dispatch = useDispatch();
     const { staffList, loading, staffAttendance, staffMonthlySummary } = useSelector((state) => state.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
     const [view, setView] = useState('calendar'); // 'calendar' or 'records'
     const [selectedDate, setSelectedDate] = useState(moment().format('YYYY-MM-DD'));
     const [currentMonth, setCurrentMonth] = useState(moment());
@@ -25,6 +26,17 @@ const StaffAttendance = () => {
     useEffect(() => {
         dispatch(fetchStaffForAttendance());
     }, [dispatch]);
+
+    // Refetch when academic year changes (optional - staff attendance is usually not year-specific)
+    useEffect(() => {
+        if (activeAcademicYearId) {
+            console.log('👥 Staff Attendance - Academic Year Changed:', activeAcademicYearId);
+            dispatch(fetchStaffForAttendance());
+            const startOfMonth = currentMonth.clone().startOf('month').format('YYYY-MM-DD');
+            const endOfMonth = currentMonth.clone().endOf('month').format('YYYY-MM-DD');
+            dispatch(fetchStaffMonthlySummary({ startDate: startOfMonth, endDate: endOfMonth }));
+        }
+    }, [activeAcademicYearId, dispatch, currentMonth]);
 
     useEffect(() => {
         const startOfMonth = currentMonth.clone().startOf('month').format('YYYY-MM-DD');

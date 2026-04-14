@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const holidaySchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School' },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear' },
   title: { type: String, required: true },
   startDate: { type: Date, required: true },
   endDate: { type: Date, required: true },

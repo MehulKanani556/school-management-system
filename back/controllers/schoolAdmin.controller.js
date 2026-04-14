@@ -22,6 +22,7 @@ const StudentEnrollment = require('../models/studentEnrollment.model');
 const AcademicYear = require('../models/academicYear.model');
 const PromotionHistory = require('../models/promotionHistory.model');
 const { sendFeeReminderMail } = require('../utils/mail');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 const nc = require('./notification.controller');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
@@ -407,13 +408,83 @@ exports.deleteStandard = async (req, res) => {
 exports.getStudents = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
+    const academicYearId = req.academicYearId;
+
+    // If academic year is specified, get students enrolled in that year
+    if (academicYearId) {
+      // Get enrollments for the selected academic year
+      const enrollments = await StudentEnrollment.find({ 
+        schoolId, 
+        academicYearId 
+      })
+        .populate({
+          path: 'studentId',
+          match: { deletedAt: null },
+          populate: [
+            { path: 'standard', select: 'level name' },
+            { path: 'classSection', select: 'sectionLabel' },
+            { path: 'parentId', select: 'firstName lastName' }
+          ]
+        })
+        .populate('standardId', 'level name')
+        .populate('classSectionId', 'sectionLabel')
+        .lean();
+
+      // Filter out null students (deleted ones) and map to student objects
+      const students = enrollments
+        .filter(e => e.studentId)
+        .map(e => ({
+          ...e.studentId,
+          // Override with enrollment data for this year
+          standard: e.standardId,
+          classSection: e.classSectionId,
+          enrollmentStatus: e.status,
+          enrollmentId: e._id
+        }));
+
+      // Fetch fee summaries for the selected academic year
+      const feeSummary = await FeePayment.aggregate([
+        { 
+          $match: { 
+            schoolId: new mongoose.Types.ObjectId(schoolId), 
+            academicYearId: new mongoose.Types.ObjectId(academicYearId),
+            status: { $ne: 'paid' } 
+          } 
+        },
+        { 
+          $group: {
+            _id: '$studentId',
+            pendingAmount: { $sum: { $subtract: ['$totalAmount', '$paidAmount'] } },
+            unpaidCount: { $sum: 1 }
+          }
+        }
+      ]);
+
+      const feeMap = feeSummary.reduce((map, item) => {
+        map[item._id.toString()] = item;
+        return map;
+      }, {});
+
+      const enrichedStudents = students.map(s => {
+        const summary = feeMap[s._id.toString()];
+        return {
+          ...s,
+          pendingFees: summary ? summary.pendingAmount : 0,
+          isPaid: !summary || summary.unpaidCount === 0
+        };
+      });
+
+      return res.json(enrichedStudents);
+    }
+
+    // Fallback: If no academic year, show all students (legacy behavior)
     const students = await Student.find({ schoolId, deletedAt: null }).sort({ createdAt: -1 })
       .populate('standard', 'level name')
       .populate('classSection', 'sectionLabel')
       .populate('parentId', 'firstName lastName')
       .lean();
 
-    // Fetch all unpaid fee record summaries for the school to join with students
+    // Fetch all unpaid fee record summaries for the school
     const feeSummary = await FeePayment.aggregate([
       { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), status: { $ne: 'paid' } } },
       { $group: {
@@ -482,7 +553,14 @@ exports.createStudent = async (req, res) => {
     }
 
     const { academicYearId, standard, classSection } = req.body;
-    if (!academicYearId) return res.status(400).json({ message: 'Academic Year is required for enrollment' });
+    // Use academicYearId from body if provided, otherwise use from middleware
+    const finalAcademicYearId = academicYearId || req.academicYearId;
+    
+    if (!finalAcademicYearId) {
+      return res.status(400).json({ 
+        message: 'Academic Year is required for enrollment. Please ensure an academic year is set as current in the system.' 
+      });
+    }
 
     const student = await Student.create({
       ...body,
@@ -497,7 +575,7 @@ exports.createStudent = async (req, res) => {
     await StudentEnrollment.create({
       schoolId: getSchoolId(req),
       studentId: student._id,
-      academicYearId,
+      academicYearId: finalAcademicYearId,
       standardId: standard,
       classSectionId: classSection,
       status: 'Active'
@@ -1030,12 +1108,12 @@ exports.getFees = async (req, res) => {
     const schoolId = getSchoolId(req);
     const today = new Date();
 
-    // Auto-check overdue and calculate late fees (e.g., 10 per day)
-    const overduePayments = await FeePayment.find({
+    // Auto-check overdue and calculate late fees (e.g., 10 per day) - filter by academic year
+    const overduePayments = await FeePayment.find(addAcademicYearFilter({
       schoolId,
       status: { $in: ['pending', 'overdue', 'partially_paid'] },
       dueDate: { $lt: today }
-    });
+    }, req.academicYearId));
 
     for (const payment of overduePayments) {
       const daysLate = Math.floor((today - new Date(payment.dueDate)) / (1000 * 60 * 60 * 24));
@@ -1049,7 +1127,7 @@ exports.getFees = async (req, res) => {
       }
     }
 
-    const fees = await FeePayment.find({ schoolId, academicYearId: req.academicYearId })
+    const fees = await FeePayment.find(addAcademicYearFilter({ schoolId }, req.academicYearId))
       .sort({ createdAt: -1 })
       .populate({
         path: 'studentId',
@@ -1541,7 +1619,7 @@ exports.getAttendanceReport = async (req, res) => {
   try {
     const { classSection, startDate, endDate } = req.query;
     const schoolId = getSchoolId(req);
-    const filter = { schoolId };
+    const filter = addAcademicYearFilter({ schoolId }, req.academicYearId);
     if (classSection) filter.classSection = new mongoose.Types.ObjectId(classSection);
 
     if (startDate && endDate) {
@@ -1600,7 +1678,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
   try {
     const { type, classSection } = req.query; // type: 'weekly' or 'monthly'
     const schoolId = getSchoolId(req);
-    const filter = { schoolId };
+    const filter = addAcademicYearFilter({ schoolId }, req.academicYearId);
     if (classSection) filter.classSection = new mongoose.Types.ObjectId(classSection);
 
     const matchStage = { $match: filter };
@@ -1626,7 +1704,7 @@ exports.getLowAttendanceAlerts = async (req, res) => {
     const students = await Student.find({ schoolId, isActive: true })
       .select('firstName lastName classSection admissionNumber photo')
       .populate('classSection', 'sectionLabel');
-    const attendanceData = await Attendance.find({ schoolId }).lean();
+    const attendanceData = await Attendance.find(addAcademicYearFilter({ schoolId }, req.academicYearId)).lean();
 
     const alerts = [];
     students.forEach(student => {
@@ -2160,7 +2238,7 @@ exports.getPayrollPreview = async (req, res) => {
 exports.getAllAssignments = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const assignments = await Assignment.find({ schoolId })
+    const assignments = await Assignment.find(addAcademicYearFilter({ schoolId }, req.academicYearId))
       .populate('classSection', 'sectionLabel')
       .populate('createdBy', 'firstName lastName')
       .lean();

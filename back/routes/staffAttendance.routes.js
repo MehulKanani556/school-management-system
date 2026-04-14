@@ -3,10 +3,12 @@ const router = express.Router();
 const staffAttendanceController = require('../controllers/staffAttendance.controller');
 const { auth, isSuperAdmin } = require('../middleware/auth');
 const { requireRole } = require('../middleware/roleCheck');
+const academicYear = require('../middleware/academicYear');
 
-const schoolAdmin = [auth, requireRole('School_Admin')];
-const teacher = [auth, requireRole('Teacher')];
-const superAdminAndSchoolAdmin = [auth, requireRole('Super_Admin', 'School_Admin', 'Accountant', 'Transport_Manager')];
+const schoolAdmin = [auth, requireRole('School_Admin'), academicYear];
+const teacher = [auth, requireRole('Teacher'), academicYear];
+const superAdminAndSchoolAdmin = [auth, requireRole('Super_Admin', 'School_Admin', 'Accountant', 'Transport_Manager'), academicYear];
+const authWithYear = [auth, academicYear];
 
 // 1. Bulk mark by admin
 router.post('/bulk-mark', ...superAdminAndSchoolAdmin, staffAttendanceController.markBulkAttendance);
@@ -24,10 +26,10 @@ router.get('/monthly-summary', ...superAdminAndSchoolAdmin, staffAttendanceContr
 router.get('/report', ...superAdminAndSchoolAdmin, staffAttendanceController.getAttendanceReport);
 
 // 6. Get My History (Self)
-router.get('/my-history', auth, staffAttendanceController.getMyAttendanceHistory);
+router.get('/my-history', ...authWithYear, staffAttendanceController.getMyAttendanceHistory);
 
 // 7. Generic Leave Management
-router.post('/apply-leave', auth, staffAttendanceController.staffApplyLeave);
-router.get('/my-leaves', auth, staffAttendanceController.getStaffLeaves);
+router.post('/apply-leave', ...authWithYear, staffAttendanceController.staffApplyLeave);
+router.get('/my-leaves', ...authWithYear, staffAttendanceController.getStaffLeaves);
 
 module.exports = router;

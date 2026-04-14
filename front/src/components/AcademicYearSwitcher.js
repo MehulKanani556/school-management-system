@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAcademicYears, setActiveYear } from '../redux/slice/academicYear.slice';
-import { fetchFees, fetchFeeStructures, fetchStudents, fetchAttendance, fetchExams, fetchDashboard } from '../redux/slice/schoolAdmin.slice';
+import { fetchFees, fetchFeeStructures, fetchStudents, fetchExams, fetchDashboard } from '../redux/slice/schoolAdmin.slice';
 import { Calendar, ChevronDown, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -24,7 +24,8 @@ const AcademicYearSwitcher = () => {
     dispatch(fetchFees());
     dispatch(fetchFeeStructures());
     dispatch(fetchStudents());
-    dispatch(fetchAttendance());
+    // Note: fetchAttendance requires specific params (standardId, classSection, date)
+    // Individual pages will refetch attendance data via useEffect watching activeAcademicYearId
     dispatch(fetchExams());
   };
 
@@ -58,7 +59,7 @@ const AcademicYearSwitcher = () => {
               initial={{ opacity: 0, y: 10, scale: 0.95 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 10, scale: 0.95 }}
-              className="absolute right-0 top-[calc(100%+12px)] z-20 w-56 p-2 rounded-md bg-brand-surface border border-brand-border shadow-3xl backdrop-blur-xl"
+              className="absolute right-0 top-[calc(100%+12px)] z-[999] w-56 p-2 rounded-md bg-brand-surface border border-brand-border shadow-3xl backdrop-blur-xl"
             >
               <div className="px-4 py-3 border-b border-brand-border mb-1">
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Temporal Shifting</p>

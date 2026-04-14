@@ -2,6 +2,8 @@ const mongoose = require('mongoose');
 const StaffAttendance = require('../models/staffAttendance.model');
 const Teacher = require('../models/teacher.model');
 const User = require('../models/user.model');
+const Leave = require('../models/leave.model');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 const getSchoolId = (req) => req.user.schoolId;
 
@@ -10,9 +12,14 @@ exports.markBulkAttendance = async (req, res) => {
     try {
         const { date, records } = req.body; // records: [{ teacherId/userId, status, remarks }]
         const schoolId = getSchoolId(req);
+        const academicYearId = req.academicYearId;
 
         if (!date || !records || !Array.isArray(records)) {
             return res.status(400).json({ message: 'Invalid data provided' });
+        }
+
+        if (!academicYearId) {
+            return res.status(400).json({ message: 'Academic year is required' });
         }
 
         const attendanceDate = new Date(date);
@@ -20,7 +27,8 @@ exports.markBulkAttendance = async (req, res) => {
 
         const bulkOps = records.map(rec => {
             const filter = { 
-                schoolId, 
+                schoolId,
+                academicYearId,
                 date: attendanceDate, 
                 teacherId: rec.teacherId || null, 
                 driverId: rec.driverId || null,
@@ -53,7 +61,12 @@ exports.teacherSelfAttendance = async (req, res) => {
     try {
         const { status, arrivalTime } = req.body;
         const schoolId = getSchoolId(req);
+        const academicYearId = req.academicYearId;
         
+        if (!academicYearId) {
+            return res.status(400).json({ message: 'Academic year is required' });
+        }
+
         // Find teacher record for this user
         const teacher = await Teacher.findOne({ userId: req.user._id, schoolId });
         if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
@@ -62,7 +75,7 @@ exports.teacherSelfAttendance = async (req, res) => {
         date.setHours(0, 0, 0, 0);
 
         const attendance = await StaffAttendance.findOneAndUpdate(
-            { schoolId, teacherId: teacher._id, date },
+            { schoolId, academicYearId, teacherId: teacher._id, date },
             { status, arrivalTime, isLate: false }, // Simple logic for now
             { upsert: true, new: true }
         );
@@ -100,6 +113,7 @@ exports.getMonthlySummary = async (req, res) => {
     try {
         const { month, year, startDate: qStart, endDate: qEnd, type } = req.query;
         const schoolId = getSchoolId(req);
+        const academicYearId = req.academicYearId;
 
         // If type is 'dates', return list of dates that have attendance marked
         if (type === 'dates' || (qStart && qEnd)) {
@@ -108,8 +122,15 @@ exports.getMonthlySummary = async (req, res) => {
             rangeStart.setHours(0, 0, 0, 0);
             rangeEnd.setHours(23, 59, 59, 999);
 
+            let matchFilter = { 
+                schoolId: new mongoose.Types.ObjectId(schoolId), 
+                date: { $gte: rangeStart, $lte: rangeEnd } 
+            };
+            matchFilter = addAcademicYearFilter(matchFilter, academicYearId);
+
+            console.log('🔍 FETCH DATES - matchFilter:', JSON.stringify(matchFilter, null, 2));
             const markedDates = await StaffAttendance.aggregate([
-                { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), date: { $gte: rangeStart, $lte: rangeEnd } } },
+                { $match: matchFilter },
                 { $group: { _id: '$date' } },
                 { $project: { date: '$_id', marked: { $literal: true }, _id: 0 } }
             ]);
@@ -119,8 +140,15 @@ exports.getMonthlySummary = async (req, res) => {
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0);
 
+        let matchFilter = { 
+            schoolId: new mongoose.Types.ObjectId(schoolId), 
+            date: { $gte: startDate, $lte: endDate } 
+        };
+        matchFilter = addAcademicYearFilter(matchFilter, academicYearId);
+
+        console.log('🔍 MONTHLY SUMMARY - matchFilter:', JSON.stringify(matchFilter, null, 2));
         const summary = await StaffAttendance.aggregate([
-            { $match: { schoolId: new mongoose.Types.ObjectId(schoolId), date: { $gte: startDate, $lte: endDate } } },
+            { $match: matchFilter },
             {
                 $group: {
                     _id: { teacher: '$teacherId', user: '$userId', driver: '$driverId' },
@@ -187,8 +215,10 @@ exports.getAttendanceReport = async (req, res) => {
     try {
         const { startDate, endDate, teacherId, userId, date } = req.query;
         const schoolId = getSchoolId(req);
+        const academicYearId = req.academicYearId;
 
         const filter = { schoolId };
+        Object.assign(filter, addAcademicYearFilter({}, academicYearId));
         
         if (startDate && endDate) {
             filter.date = { 
@@ -220,7 +250,9 @@ exports.getAttendanceReport = async (req, res) => {
 exports.getMyAttendanceHistory = async (req, res) => {
     try {
         const schoolId = getSchoolId(req);
+        const academicYearId = req.academicYearId;
         const filter = { schoolId };
+        Object.assign(filter, addAcademicYearFilter({}, academicYearId));
 
         const teacher = await Teacher.findOne({ userId: req.user._id, schoolId });
         if (teacher) {
@@ -239,9 +271,6 @@ exports.getMyAttendanceHistory = async (req, res) => {
 };
 
 // 7. Generic Leave Management for Staff
-const Leave = require('../models/leave.model');
-const nc = require('./notification.controller');
-
 exports.staffApplyLeave = async (req, res) => {
     try {
         const { type, startDate, endDate, reason } = req.body;
@@ -264,9 +293,10 @@ exports.staffApplyLeave = async (req, res) => {
         });
 
         // Notify School Admin
+        const Notification = require('../models/notification.model');
         const admins = await User.find({ schoolId, role: 'School_Admin' });
         for (const admin of admins) {
-            await nc.sendNotification({
+            await Notification.create({
                 schoolId,
                 recipient: admin._id,
                 sender: userId,

@@ -1,13 +1,15 @@
 const Holiday = require('../models/holiday.model');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 // Helper to get schoolId for School Admin
-const getSchoolId = (user) => user.schoolId; // I'll check how schoolId is stored on the user object.
+const getSchoolId = (user) => user.schoolId;
 
 exports.createHoliday = async (req, res) => {
   try {
     const { title, startDate, endDate, description } = req.body;
     const holiday = await Holiday.create({
       schoolId: req.user.schoolId,
+      academicYearId: req.academicYearId,
       title, startDate, endDate, description
     });
     res.status(201).json(holiday);
@@ -16,7 +18,13 @@ exports.createHoliday = async (req, res) => {
 
 exports.getHolidays = async (req, res) => {
   try {
-    const query = req.user.role === 'Super_Admin' ? {} : { schoolId: req.user.schoolId };
+    let query = req.user.role === 'Super_Admin' ? {} : { schoolId: req.user.schoolId };
+    
+    // Add academic year filter for non-super admins
+    if (req.user.role !== 'Super_Admin' && req.academicYearId) {
+      query = addAcademicYearFilter(query, req.academicYearId);
+    }
+    
     const holidays = await Holiday.find(query).sort({ startDate: 1 });
     res.json({ holidays });
   } catch (err) { res.status(500).json({ message: err.message }); }

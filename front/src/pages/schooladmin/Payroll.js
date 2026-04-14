@@ -43,6 +43,7 @@ const emptyValues = {
 const Payroll = () => {
   const dispatch = useDispatch();
   const { payroll, teachers, loading, error, staffList, staffMonthlySummary } = useSelector((s) => s.schoolAdmin);
+  const { activeAcademicYearId, academicYears } = useSelector((s) => s.academicYear);
   const [modal, setModal] = useState(false);
   const [bulkModal, setBulkModal] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -59,6 +60,14 @@ const Payroll = () => {
     dispatch(fetchTeachers());
     dispatch(fetchStaffForAttendance());
   }, [dispatch]);
+
+  // Refetch payroll when academic year changes
+  useEffect(() => {
+    if (activeAcademicYearId) {
+      console.log('💰 Payroll Page - Academic Year Changed:', activeAcademicYearId);
+      dispatch(fetchPayroll());
+    }
+  }, [activeAcademicYearId, dispatch]);
 
   const handleBulkGenerate = async () => {
     const res = await dispatch(generateBulkPayroll(bulkValues));

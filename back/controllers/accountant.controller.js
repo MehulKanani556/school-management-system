@@ -14,6 +14,7 @@ const bcrypt = require('bcrypt');
 const logAudit = require('../utils/auditLogger');
 const PDFDocument = require('pdfkit');
 const nc = require('./notification.controller');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 const getSchoolId = (req) => req.user.schoolId;
 
@@ -23,9 +24,7 @@ exports.getFees = async (req, res) => {
         const schoolId = getSchoolId(req);
         const { search, status, startDate, endDate, page = 1, limit = 10, classSection, standard } = req.query;
 
-        let query = { schoolId };
-        const academicYearId = req.academicYearId || req.query.academicYearId;
-        if (academicYearId) query.academicYearId = academicYearId;
+        let query = addAcademicYearFilter({ schoolId }, req.academicYearId);
         
         if (status) query.status = status;
         if (startDate || endDate) {
