@@ -55,6 +55,7 @@ const Students = () => {
     dispatch(exportStudents());
   };
   const { students, classes, standards, loading } = useSelector((s) => s.schoolAdmin);
+  const { activeAcademicYearId } = useSelector((s) => s.academicYear);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -87,10 +88,13 @@ const Students = () => {
   const itemsPerPage = 10;
 
   useEffect(() => {
-    dispatch(fetchStudents());
-    dispatch(fetchClasses());
-    dispatch(fetchStandards());
-  }, [dispatch]);
+    if (activeAcademicYearId) {
+      console.log('👨‍🎓 Students Page - Academic Year Changed:', activeAcademicYearId);
+      dispatch(fetchStudents());
+      dispatch(fetchClasses());
+      dispatch(fetchStandards());
+    }
+  }, [dispatch, activeAcademicYearId]);
 
   const formik = useFormik({
     initialValues: formValues,

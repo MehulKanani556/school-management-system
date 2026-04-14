@@ -15,13 +15,17 @@ const ClassStudents = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { students, studentDetail, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
 
     const [selectedStudent, setSelectedStudent] = useState(null);
     const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchClassStudents(classId));
-    }, [dispatch, classId]);
+        if (activeAcademicYearId) {
+            console.log('👥 Class Students - Academic Year Changed:', activeAcademicYearId);
+            dispatch(fetchClassStudents(classId));
+        }
+    }, [dispatch, classId, activeAcademicYearId]);
 
     const handleViewDetail = (studentId) => {
         dispatch(fetchStudentDetail(studentId));

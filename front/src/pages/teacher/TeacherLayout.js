@@ -15,6 +15,7 @@ import { fetchNotifications, receiveNotification } from '../../redux/slice/notif
 import { fetchDashboard } from '../../redux/slice/teacher.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
+import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
 
 const TeacherLayout = () => {
     const dispatch = useDispatch();
@@ -261,6 +262,8 @@ const TeacherLayout = () => {
                     </div>
 
                     <div className="flex items-center gap-6">
+                        <AcademicYearSwitcher />
+                        
                         <div className="relative">
                             <button
                                 onClick={() => setIsNotifOpen(!isNotifOpen)}

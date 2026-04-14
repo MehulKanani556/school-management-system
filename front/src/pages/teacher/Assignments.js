@@ -22,6 +22,7 @@ import Modal from '../../components/Modal';
 const Assignments = () => {
     const dispatch = useDispatch();
     const { classes, assignments, submissions, loading, message } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
 
     const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'submissions'
     const [editMode, setEditMode] = useState(null);
@@ -38,9 +39,12 @@ const Assignments = () => {
     });
 
     useEffect(() => {
-        dispatch(fetchAssignedClasses());
-        dispatch(fetchAssignments());
-    }, [dispatch]);
+        if (activeAcademicYearId) {
+            console.log('📝 Assignments - Academic Year Changed:', activeAcademicYearId);
+            dispatch(fetchAssignedClasses());
+            dispatch(fetchAssignments());
+        }
+    }, [dispatch, activeAcademicYearId]);
 
     useEffect(() => {
         if (message) {

@@ -1,6 +1,7 @@
 const Teacher = require('../models/teacher.model');
 const Timetable = require('../models/timetable.model');
 const Student = require('../models/student.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
 const TimetableTemplate = require('../models/timetableTemplate.model');
 const nc = require('./notification.controller');
 const ClassSection = require('../models/classSection.model');
@@ -351,6 +352,7 @@ exports.getAssignedClassStudents = async (req, res) => {
     try {
         const { classId } = req.params;
         const teacher = await getTeacher(req.user._id);
+        const academicYearId = req.academicYearId;
 
         const isAssigned = await ClassSection.findOne({
             _id: classId,
@@ -359,7 +361,26 @@ exports.getAssignedClassStudents = async (req, res) => {
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
-        const students = await Student.find({ classSection: classId });
+        // Filter students by enrollment in the active academic year
+        if (academicYearId) {
+            const enrollments = await StudentEnrollment.find({
+                classSectionId: classId,
+                academicYearId: academicYearId,
+                status: 'Active'
+            }).populate({
+                path: 'studentId',
+                match: { deletedAt: null }
+            }).lean();
+
+            const students = enrollments
+                .filter(e => e.studentId)
+                .map(e => e.studentId);
+
+            return res.json(students);
+        }
+
+        // Fallback: show all students if no academic year
+        const students = await Student.find({ classSection: classId, deletedAt: null });
         res.json(students);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -369,6 +390,7 @@ exports.generateRollNumbers = async (req, res) => {
     try {
         const { classId } = req.params;
         const teacher = await getTeacher(req.user._id);
+        const academicYearId = req.academicYearId;
 
         const isAssigned = await ClassSection.findOne({
             _id: classId,
@@ -377,7 +399,24 @@ exports.generateRollNumbers = async (req, res) => {
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this sectors population' });
 
-        const students = await Student.find({ classSection: classId, deletedAt: null });
+        // Get students enrolled in the active academic year
+        let students;
+        if (academicYearId) {
+            const enrollments = await StudentEnrollment.find({
+                classSectionId: classId,
+                academicYearId: academicYearId,
+                status: 'Active'
+            }).populate({
+                path: 'studentId',
+                match: { deletedAt: null }
+            }).lean();
+
+            students = enrollments
+                .filter(e => e.studentId)
+                .map(e => e.studentId);
+        } else {
+            students = await Student.find({ classSection: classId, deletedAt: null });
+        }
         
         // Sorting logic: Girls first, then Boys, then others
         // Within each group, sort by name ascending

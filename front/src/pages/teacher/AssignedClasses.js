@@ -8,10 +8,14 @@ import { Link } from 'react-router-dom';
 const AssignedClasses = () => {
     const dispatch = useDispatch();
     const { classes, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
 
     useEffect(() => {
-        dispatch(fetchAssignedClasses());
-    }, [dispatch]);
+        if (activeAcademicYearId) {
+            console.log('📚 Assigned Classes - Academic Year Changed:', activeAcademicYearId);
+            dispatch(fetchAssignedClasses());
+        }
+    }, [dispatch, activeAcademicYearId]);
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
