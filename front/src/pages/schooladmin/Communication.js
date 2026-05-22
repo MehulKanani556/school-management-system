@@ -28,6 +28,7 @@ import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 import { useSocket } from '../../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import EmojiPicker from 'emoji-picker-react';
 
 const Communication = () => {
     const [searchParams, setSearchParams] = useSearchParams();
@@ -39,6 +40,13 @@ const Communication = () => {
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedChat, setSelectedChat] = useState(null); // userId of the other person
+    const [searchQuery, setSearchQuery] = useState(''); // Search query for contacts
+    const [chatSearchQuery, setChatSearchQuery] = useState(''); // Search query for chat messages
+    const [showChatSearch, setShowChatSearch] = useState(false); // Toggle chat search bar
+    const [showChatInfo, setShowChatInfo] = useState(false); // Toggle chat info panel
+    const [isMuted, setIsMuted] = useState(false); // Mute notifications for this chat
+    const [showClearChatModal, setShowClearChatModal] = useState(false); // Show clear chat confirmation modal
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false); // Show emoji picker
 
     // Paginated Chat History
     const [chatMessages, setChatMessages] = useState([]);
@@ -48,10 +56,30 @@ const Communication = () => {
     const chatContainerRef = React.useRef(null);
     const lastScrollHeightRef = React.useRef(0);
     const selectedChatRef = React.useRef(null);
+    const searchInputRef = React.useRef(null);
+    const chatSearchInputRef = React.useRef(null);
+    const emojiPickerRef = React.useRef(null);
 
     useEffect(() => {
         selectedChatRef.current = selectedChat;
     }, [selectedChat]);
+
+    // Close emoji picker when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (emojiPickerRef.current && !emojiPickerRef.current.contains(event.target)) {
+                setShowEmojiPicker(false);
+            }
+        };
+
+        if (showEmojiPicker) {
+            document.addEventListener('mousedown', handleClickOutside);
+        }
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [showEmojiPicker]);
 
     // Sync activeTab with URL params
     useEffect(() => {
@@ -266,6 +294,44 @@ const Communication = () => {
         }
     };
 
+    const handleMuteToggle = () => {
+        setIsMuted(!isMuted);
+        if (!isMuted) {
+            toast.success('Notifications muted for this conversation');
+        } else {
+            toast.success('Notifications enabled for this conversation');
+        }
+    };
+
+    const handleClearChatHistory = async () => {
+        try {
+            // Call backend API to delete chat history
+            await axiosInstance.delete(`/school-admin/chat-history/${selectedChat}`);
+            
+            // Clear local state for immediate UI update
+            setChatMessages([]);
+            
+            // Also remove from messages list
+            setMessages(prev => prev.filter(m => {
+                const senderId = (m.sender?._id || m.sender)?.toString();
+                const recipientId = (m.recipient?._id || m.recipient)?.toString();
+                const meId = currentUser?._id?.toString();
+                const partnerId = senderId === meId ? recipientId : senderId;
+                return partnerId !== selectedChat;
+            }));
+            
+            toast.success('Chat history cleared successfully');
+            setShowChatInfo(false);
+            setShowClearChatModal(false);
+        } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to clear chat history');
+        }
+    };
+
+    const handleEmojiClick = (emojiObject) => {
+        setFormData({ ...formData, content: formData.content + emojiObject.emoji });
+    };
+
     // Chat Logic: group messages by conversation partner
     const conversations = useMemo(() => {
         if (!messages.length) return [];
@@ -286,6 +352,40 @@ const Communication = () => {
     const activeConversation = useMemo(() => {
         return conversations.find(c => (c.partner._id || c.partner) === selectedChat);
     }, [conversations, selectedChat]);
+
+    // Filtered conversations and contacts based on search query
+    const filteredConversations = useMemo(() => {
+        if (!searchQuery.trim()) return conversations;
+        const query = searchQuery.toLowerCase();
+        return conversations.filter(conv => {
+            const partner = conv.partner;
+            const fullName = `${partner.firstName || ''} ${partner.lastName || ''}`.toLowerCase();
+            const role = (partner.role || '').toLowerCase();
+            return fullName.includes(query) || role.includes(query);
+        });
+    }, [conversations, searchQuery]);
+
+    const filteredContacts = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return contacts.filter(t => !conversations.some(c => (c.partner._id || c.partner) === t._id));
+        }
+        const query = searchQuery.toLowerCase();
+        return contacts.filter(t => {
+            const fullName = `${t.firstName || ''} ${t.lastName || ''}`.toLowerCase();
+            const role = (t.role || '').toLowerCase();
+            const hasConversation = conversations.some(c => (c.partner._id || c.partner) === t._id);
+            return !hasConversation && (fullName.includes(query) || role.includes(query));
+        });
+    }, [contacts, conversations, searchQuery]);
+
+    // Filtered chat messages based on chat search query
+    const filteredChatMessages = useMemo(() => {
+        if (!chatSearchQuery.trim()) return chatMessages;
+        const query = chatSearchQuery.toLowerCase();
+        return chatMessages.filter(msg => 
+            msg.content?.toLowerCase().includes(query)
+        );
+    }, [chatMessages, chatSearchQuery]);
 
     return (
         <div className="h-[calc(100vh-130px)] lg:h-[calc(100vh-130px)] text-slate-300 font-outfit p-2 lg:p-4 selection:bg-brand-primary/30 selection:text-white overflow-hidden flex flex-col">
@@ -326,57 +426,93 @@ const Communication = () => {
                             <div className="bg-slate-900/30 border border-slate-800/60 rounded-md flex flex-col min-h-0 backdrop-blur-3xl">
                                 <div className="p-4 border-b border-slate-800/60">
                                     <div className="relative group">
-                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-hover:text-brand-primary transition-colors" size={16} />
+                                        <button
+                                            type="button"
+                                            onClick={() => searchInputRef.current?.focus()}
+                                            className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-brand-primary transition-colors cursor-pointer z-10"
+                                        >
+                                            <Search size={16} />
+                                        </button>
                                         <input
+                                            ref={searchInputRef}
+                                            type="text"
                                             placeholder="SCAN DATABASE..."
-                                            className="w-full bg-slate-950/50 border border-slate-800 h-10 pl-11 pr-4 rounded-md text-[9px] font-black uppercase tracking-widest text-white outline-none focus:border-brand-primary placeholder:text-slate-700 italic"
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="w-full bg-slate-950/50 border border-slate-800 h-10 pl-11 pr-10 rounded-md text-[9px] font-black uppercase tracking-widest text-white outline-none focus:border-brand-primary placeholder:text-slate-700 italic"
                                         />
+                                        {searchQuery && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setSearchQuery('')}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-brand-primary transition-colors"
+                                            >
+                                                <span className="text-xs">✕</span>
+                                            </button>
+                                        )}
                                     </div>
+                                    {searchQuery && (
+                                        <div className="mt-2 text-[8px] font-black text-slate-500 uppercase tracking-widest italic">
+                                            Found: {filteredConversations.length} conversations, {filteredContacts.length} contacts
+                                        </div>
+                                    )}
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
                                     <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mb-4 italic">Active Conversations</p>
-                                    {conversations.map(conv => {
-                                        const p = conv.partner;
-                                        const isActive = selectedChat === (p._id || p);
-                                        return (
-                                            <button
-                                                key={p._id || p}
-                                                onClick={() => setSelectedChat(p._id || p)}
-                                                className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border group ${isActive ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
-                                            >
-                                                <div className="w-11 h-11 rounded-md bg-slate-800 border border-white/5 overflow-hidden shadow-lg relative shrink-0">
-                                                    {p.photo ? <img src={p.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
-                                                    <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-md border-2 border-slate-900 shadow-xl"></div>
-                                                </div>
-                                                <div className="text-left min-w-0 flex-1">
-                                                    <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{p.firstName} {p.lastName}</h4>
-                                                    <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1">{conv.messages[0].content}</p>
-                                                </div>
-                                                <div className="flex flex-col items-end gap-1.5">
-                                                    <span className="text-[7px] font-bold text-slate-600">2M</span>
-                                                    {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-luxury-rose animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
-                                                </div>
-                                            </button>
-                                        );
-                                    })}
+                                    {filteredConversations.length > 0 ? (
+                                        filteredConversations.map(conv => {
+                                            const p = conv.partner;
+                                            const isActive = selectedChat === (p._id || p);
+                                            return (
+                                                <button
+                                                    key={p._id || p}
+                                                    onClick={() => setSelectedChat(p._id || p)}
+                                                    className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border group ${isActive ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
+                                                >
+                                                    <div className="w-11 h-11 rounded-md bg-slate-800 border border-white/5 overflow-hidden shadow-lg relative shrink-0">
+                                                        {p.photo ? <img src={p.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
+                                                        <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-md border-2 border-slate-900 shadow-xl"></div>
+                                                    </div>
+                                                    <div className="text-left min-w-0 flex-1">
+                                                        <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{p.firstName} {p.lastName}</h4>
+                                                        <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1">{conv.messages[0].content}</p>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1.5">
+                                                        <span className="text-[7px] font-bold text-slate-600">2M</span>
+                                                        {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-luxury-rose animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
+                                                    </div>
+                                                </button>
+                                            );
+                                        })
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">No conversations found</p>
+                                        </div>
+                                    )}
 
                                     <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mt-8 mb-4 italic">Available Contacts</p>
-                                    {contacts.filter(t => !conversations.some(c => (c.partner._id || c.partner) === t._id)).map(t => (
-                                        <button
-                                            key={t._id}
-                                            onClick={() => setSelectedChat(t._id)}
-                                            className="w-full flex items-center gap-3 p-3 rounded-md transition-all border border-transparent hover:bg-slate-800/30 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-md bg-slate-800/50 border border-white/5 overflow-hidden flex items-center justify-center grayscale group-hover:grayscale-0 transition-all shrink-0">
-                                                {t.photo ? <img src={t.photo} alt="" className="w-full h-full object-cover" /> : <User size={16} className="text-slate-600" />}
-                                            </div>
-                                            <div className="text-left">
-                                                <h4 className="text-slate-500 group-hover:text-white font-black text-[10px] uppercase tracking-tighter italic transition-colors">{t.firstName} {t.lastName}</h4>
-                                                <p className="text-[7px] text-slate-600 font-black uppercase tracking-widest">Role: {t.role}</p>
-                                            </div>
-                                            <ArrowUpRight size={12} className="ml-auto text-slate-800 group-hover:text-brand-primary" />
-                                        </button>
-                                    ))}
+                                    {filteredContacts.length > 0 ? (
+                                        filteredContacts.map(t => (
+                                            <button
+                                                key={t._id}
+                                                onClick={() => setSelectedChat(t._id)}
+                                                className="w-full flex items-center gap-3 p-3 rounded-md transition-all border border-transparent hover:bg-slate-800/30 group"
+                                            >
+                                                <div className="w-10 h-10 rounded-md bg-slate-800/50 border border-white/5 overflow-hidden flex items-center justify-center grayscale group-hover:grayscale-0 transition-all shrink-0">
+                                                    {t.photo ? <img src={t.photo} alt="" className="w-full h-full object-cover" /> : <User size={16} className="text-slate-600" />}
+                                                </div>
+                                                <div className="text-left">
+                                                    <h4 className="text-slate-500 group-hover:text-white font-black text-[10px] uppercase tracking-tighter italic transition-colors">{t.firstName} {t.lastName}</h4>
+                                                    <p className="text-[7px] text-slate-600 font-black uppercase tracking-widest">Role: {t.role}</p>
+                                                </div>
+                                                <ArrowUpRight size={12} className="ml-auto text-slate-800 group-hover:text-brand-primary" />
+                                            </button>
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8">
+                                            <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">No contacts found</p>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -402,26 +538,76 @@ const Communication = () => {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button className="p-3 rounded-md border border-slate-800 text-slate-500 hover:text-white hover:bg-slate-800/50 transition-all"><Search size={16} /></button>
-                                            <button className="p-3 rounded-md border border-slate-800 text-slate-500 hover:text-white hover:bg-slate-800/50 transition-all"><AlertCircle size={16} /></button>
+                                            <button 
+                                                onClick={() => {
+                                                    setShowChatSearch(!showChatSearch);
+                                                    if (!showChatSearch) {
+                                                        setTimeout(() => chatSearchInputRef.current?.focus(), 100);
+                                                    } else {
+                                                        setChatSearchQuery('');
+                                                    }
+                                                }}
+                                                className={`p-3 rounded-md border transition-all ${showChatSearch ? 'border-brand-primary text-brand-primary bg-brand-primary/10' : 'border-slate-800 text-slate-500 hover:text-white hover:bg-slate-800/50'}`}
+                                            >
+                                                <Search size={16} />
+                                            </button>
+                                            <button 
+                                                onClick={() => setShowChatInfo(!showChatInfo)}
+                                                className={`p-3 rounded-md border transition-all ${showChatInfo ? 'border-brand-primary text-brand-primary bg-brand-primary/10' : 'border-slate-800 text-slate-500 hover:text-white hover:bg-slate-800/50'}`}
+                                                title="Chat Info"
+                                            >
+                                                <AlertCircle size={16} />
+                                            </button>
                                         </div>
                                     </div>
 
-                                    {/* Chat Messages */}
-                                    <div
-                                        ref={chatContainerRef}
-                                        onScroll={handleScroll}
-                                        className="flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar bg-slate-950/20 flex flex-col"
-                                    >
+                                    {/* Chat Search Bar */}
+                                    {showChatSearch && (
+                                        <div className="p-4 border-b border-white/5 bg-slate-900/50">
+                                            <div className="relative">
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+                                                <input
+                                                    ref={chatSearchInputRef}
+                                                    type="text"
+                                                    placeholder="SEARCH IN CONVERSATION..."
+                                                    value={chatSearchQuery}
+                                                    onChange={(e) => setChatSearchQuery(e.target.value)}
+                                                    className="w-full bg-slate-950/50 border border-slate-800 h-9 pl-10 pr-10 rounded-md text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-brand-primary placeholder:text-slate-700 italic"
+                                                />
+                                                {chatSearchQuery && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setChatSearchQuery('')}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-brand-primary transition-colors"
+                                                    >
+                                                        <span className="text-xs">✕</span>
+                                                    </button>
+                                                )}
+                                            </div>
+                                            {chatSearchQuery && (
+                                                <div className="mt-2 text-[8px] font-black text-slate-500 uppercase tracking-widest italic">
+                                                    Found: {filteredChatMessages.length} messages
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
+                                    <div className="flex-1 flex min-h-0 relative">
+                                        {/* Chat Messages */}
+                                        <div
+                                            ref={chatContainerRef}
+                                            onScroll={handleScroll}
+                                            className={`flex-1 overflow-y-auto p-4 lg:p-6 space-y-4 custom-scrollbar bg-slate-950/20 flex flex-col transition-all ${showChatInfo ? 'lg:mr-80' : ''}`}
+                                        >
                                         {fetchingChat && hasMore && (
                                             <div className="flex justify-center py-2">
                                                 <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse"></div>
                                             </div>
                                         )}
 
-                                        {chatMessages.map((msg, i) => {
+                                        {filteredChatMessages.map((msg, i) => {
                                             const isMe = msg.sender?._id === currentUser?._id;
-                                            const showDate = i === 0 || new Date(chatMessages[i - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
+                                            const showDate = i === 0 || new Date(filteredChatMessages[i - 1].createdAt).toDateString() !== new Date(msg.createdAt).toDateString();
 
                                             return (
                                                 <React.Fragment key={msg._id}>
@@ -441,7 +627,18 @@ const Communication = () => {
                                                     >
                                                         <div className={`max-w-[85%] lg:max-w-[75%] relative ${isMe ? 'items-end' : 'items-start'} flex flex-col group`}>
                                                             <div className={`px-4 py-2.5 rounded-md text-[12px] font-bold shadow-xl relative transition-all hover:shadow-2xl ${isMe ? 'bg-brand-primary text-white rounded-tr-none' : 'bg-slate-800 text-slate-200 rounded-tl-none border border-white/5'}`}>
-                                                                <p className="italic leading-relaxed whitespace-pre-wrap">{msg.content}</p>
+                                                                <p className="italic leading-relaxed whitespace-pre-wrap">
+                                                                    {chatSearchQuery ? (
+                                                                        // Highlight search term
+                                                                        msg.content.split(new RegExp(`(${chatSearchQuery})`, 'gi')).map((part, idx) => 
+                                                                            part.toLowerCase() === chatSearchQuery.toLowerCase() ? 
+                                                                                <mark key={idx} className="bg-yellow-400/30 text-white">{part}</mark> : 
+                                                                                part
+                                                                        )
+                                                                    ) : (
+                                                                        msg.content
+                                                                    )}
+                                                                </p>
                                                                 {/* Triangle/Tail (WhatsApp Style) */}
                                                                 <div className={`absolute top-0 w-3 h-3 ${isMe ? '-right-1.5 bg-brand-primary clip-path-right' : '-left-1.5 bg-slate-800 clip-path-left border-t border-l border-white/5'}`}></div>
                                                             </div>
@@ -465,12 +662,145 @@ const Communication = () => {
                                                 <p className="text-[9px] font-black uppercase tracking-[0.4em] italic leading-none">Establishing Secure Link...</p>
                                             </div>
                                         )}
+
+                                        {chatMessages.length > 0 && filteredChatMessages.length === 0 && chatSearchQuery && (
+                                            <div className="h-full flex flex-col items-center justify-center opacity-30 gap-6">
+                                                <div className="w-16 h-16 rounded-md border-2 border-dashed border-slate-700 flex items-center justify-center">
+                                                    <Search size={24} className="text-slate-700" />
+                                                </div>
+                                                <p className="text-[9px] font-black uppercase tracking-[0.4em] italic leading-none">No Messages Found</p>
+                                            </div>
+                                        )}
                                     </div>
 
+                                    {/* Chat Info Panel - Slides in from right */}
+                                    <AnimatePresence>
+                                        {showChatInfo && (
+                                            <motion.div
+                                                initial={{ x: '100%' }}
+                                                animate={{ x: 0 }}
+                                                exit={{ x: '100%' }}
+                                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                                className="absolute top-0 right-0 w-80 h-full bg-slate-900/95 backdrop-blur-xl border-l border-slate-800/60 shadow-2xl overflow-y-auto custom-scrollbar z-20"
+                                            >
+                                                <div className="p-6 space-y-6">
+                                                    {/* Close Button */}
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Chat Info</h3>
+                                                        <button
+                                                            onClick={() => setShowChatInfo(false)}
+                                                            className="p-2 rounded-md text-slate-500 hover:text-white hover:bg-slate-800/50 transition-all"
+                                                        >
+                                                            <span className="text-lg">✕</span>
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Partner Info */}
+                                                    <div className="flex flex-col items-center text-center space-y-4 pb-6 border-b border-slate-800/60">
+                                                        <div className="w-24 h-24 rounded-md bg-slate-800 overflow-hidden border-2 border-brand-primary/20 shadow-xl">
+                                                            {activeConversation?.partner.photo ? (
+                                                                <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover" />
+                                                            ) : (
+                                                                <User className="w-full h-full p-6 text-slate-600" />
+                                                            )}
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-lg font-black text-white uppercase tracking-tighter italic">
+                                                                {activeConversation?.partner.firstName} {activeConversation?.partner.lastName}
+                                                            </h4>
+                                                            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">
+                                                                {activeConversation?.partner.role || 'User'}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Stats */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Conversation Stats</h4>
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="bg-slate-950/50 border border-slate-800 rounded-md p-4 text-center">
+                                                                <div className="text-2xl font-black text-brand-primary italic">{chatMessages.length}</div>
+                                                                <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-1">Messages</div>
+                                                            </div>
+                                                            <div className="bg-slate-950/50 border border-slate-800 rounded-md p-4 text-center">
+                                                                <div className="text-2xl font-black text-emerald-500 italic">
+                                                                    {chatMessages.filter(m => m.sender?._id === currentUser?._id).length}
+                                                                </div>
+                                                                <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mt-1">Sent</div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Contact Info */}
+                                                    {activeConversation?.partner.email && (
+                                                        <div className="space-y-3">
+                                                            <h4 className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Contact Details</h4>
+                                                            <div className="bg-slate-950/50 border border-slate-800 rounded-md p-4 space-y-2">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Mail size={12} className="text-slate-600" />
+                                                                    <span className="text-[10px] font-bold text-slate-400 italic">{activeConversation.partner.email}</span>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Actions */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Actions</h4>
+                                                        <div className="space-y-2">
+                                                            <button 
+                                                                onClick={handleMuteToggle}
+                                                                className={`w-full p-3 rounded-md border transition-all text-[10px] font-black uppercase tracking-widest italic text-left flex items-center justify-between ${
+                                                                    isMuted 
+                                                                        ? 'bg-brand-primary/10 border-brand-primary/30 text-brand-primary' 
+                                                                        : 'bg-slate-950/50 border-slate-800 text-slate-400 hover:text-white hover:border-brand-primary/30'
+                                                                }`}
+                                                            >
+                                                                <span>{isMuted ? 'Unmute' : 'Mute'} Notifications</span>
+                                                                {isMuted && <span className="text-xs">🔕</span>}
+                                                            </button>
+                                                            <button 
+                                                                onClick={() => setShowClearChatModal(true)}
+                                                                className="w-full p-3 rounded-md bg-slate-950/50 border border-slate-800 text-slate-400 hover:text-schooladmin-primary hover:border-schooladmin-primary/30 transition-all text-[10px] font-black uppercase tracking-widest italic text-left"
+                                                            >
+                                                                Clear Chat History
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+
                                     {/* Chat Input */}
-                                    <div className="p-5 border-t border-white/5 bg-slate-900 shadow-[0_-20px_50px_rgba(0,0,0,0.5)]">
+                                    <div className="p-5 border-t border-white/5 bg-slate-900 shadow-[0_-20px_50px_rgba(0,0,0,0.5)] relative">
+                                        {/* Emoji Picker */}
+                                        <AnimatePresence>
+                                            {showEmojiPicker && (
+                                                <motion.div
+                                                    ref={emojiPickerRef}
+                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    className="absolute bottom-full right-5 mb-2 shadow-2xl z-50"
+                                                >
+                                                    <EmojiPicker
+                                                        onEmojiClick={handleEmojiClick}
+                                                        theme="dark"
+                                                        width={350}
+                                                        height={400}
+                                                        searchPlaceHolder="Search emoji..."
+                                                        previewConfig={{
+                                                            showPreview: false
+                                                        }}
+                                                    />
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
                                         <form onSubmit={(e) => { e.preventDefault(); handleSend(null, selectedChat); }} className="flex items-center gap-3 bg-slate-950/50 border border-slate-800 rounded-md p-1.5 focus-within:border-brand-primary transition-all">
-                                            <button type="button" className="p-3 rounded-md text-slate-600 hover:text-white transition-colors"><Paperclip size={18} /></button>
+                                            {/* <button type="button" className="p-3 rounded-md text-slate-600 hover:text-white transition-colors"><Paperclip size={18} /></button> */}
                                             <input
                                                 required
                                                 placeholder="COMMAND INPUT..."
@@ -478,7 +808,13 @@ const Communication = () => {
                                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                                 className="flex-1 bg-transparent h-11 px-3 text-[13px] font-black text-white outline-none italic placeholder:text-slate-800 uppercase tracking-tighter"
                                             />
-                                            <button type="button" className="p-3 rounded-md text-slate-600 hover:text-white transition-colors"><Smile size={18} /></button>
+                                            <button 
+                                                type="button" 
+                                                onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                                                className={`p-3 rounded-md transition-colors ${showEmojiPicker ? 'text-brand-primary' : 'text-slate-600 hover:text-white'}`}
+                                            >
+                                                <Smile size={18} />
+                                            </button>
                                             <button
                                                 type="submit"
                                                 className="bg-brand-primary text-white p-3 rounded-md shadow-lg shadow-brand-primary/20 hover:scale-105 transition-all group active:scale-95"
@@ -519,7 +855,7 @@ const Communication = () => {
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-black text-white uppercase italic tracking-tight flex items-center gap-4">
                                             <Send className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} size={20} />
-                                            New {activeTab === 'announcements' ? 'Broad Dispatch' : 'Public Notice'}
+                                            New {activeTab === 'announcements' ? 'Broadcast Dispatch' : 'Public Notice'}
                                         </h2>
                                         <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50 italic">SECURE DISPATCH</div>
                                     </div>
@@ -651,7 +987,7 @@ const Communication = () => {
                                                     <span>AUTHORITY: {item.sender?.firstName} {item.sender?.lastName} [ADMIN]</span>
                                                 </div>
                                                 <span className={activeTab === 'announcements' ? 'text-brand-primary/60' : 'text-emerald-400/60'}>
-                                                    {activeTab === 'announcements' ? 'Broadcast Protcol' : 'Bulletin Relay'}
+                                                    {activeTab === 'announcements' ? 'Broadcast Protocol' : 'Bulletin Relay'}
                                                 </span>
                                             </div>
                                         </motion.div>
@@ -682,6 +1018,61 @@ const Communication = () => {
                     </>
                 )}
             </div>
+
+            {/* Clear Chat History Confirmation Modal */}
+            <AnimatePresence>
+                {showClearChatModal && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                        onClick={() => setShowClearChatModal(false)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-slate-900 border border-slate-800 rounded-lg p-8 max-w-md w-full shadow-2xl"
+                        >
+                            {/* Icon */}
+                            <div className="flex justify-center mb-6">
+                                <div className="w-16 h-16 rounded-full bg-schooladmin-primary/10 border-2 border-schooladmin-primary/30 flex items-center justify-center">
+                                    <AlertCircle size={32} className="text-schooladmin-primary" />
+                                </div>
+                            </div>
+
+                            {/* Title */}
+                            <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic text-center mb-3">
+                                Clear Chat History?
+                            </h3>
+
+                            {/* Description */}
+                            <p className="text-slate-400 text-sm text-center mb-8 leading-relaxed">
+                                Are you sure you want to clear all messages in this conversation? This action cannot be undone and all chat history will be permanently deleted.
+                            </p>
+
+                            {/* Buttons */}
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowClearChatModal(false)}
+                                    className="flex-1 py-3 px-4 rounded-md bg-slate-800 border border-slate-700 text-white font-black text-sm uppercase tracking-widest hover:bg-slate-700 transition-all"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleClearChatHistory}
+                                    className="flex-1 py-3 px-4 rounded-md bg-schooladmin-primary text-white font-black text-sm uppercase tracking-widest hover:bg-schooladmin-primary/90 transition-all shadow-lg shadow-schooladmin-primary/20"
+                                >
+                                    Clear
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };

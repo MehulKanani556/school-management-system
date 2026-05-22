@@ -407,6 +407,7 @@ router.get('/notices', auth, mc.getNotices);
 // Institutional Alerts (Notifications)
 router.get('/my-messages', auth, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
+router.delete('/school-admin/chat-history/:otherUserId', ...communicationStaff, mc.deleteChatHistory);
 router.post('/my-messages', auth, mc.sendMessage);
 router.get('/contacts', auth, mc.getContacts);
 router.put('/messages/read/:partnerId', auth, mc.markMessagesAsRead);

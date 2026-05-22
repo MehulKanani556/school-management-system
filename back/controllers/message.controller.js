@@ -327,3 +327,27 @@ exports.markMessagesAsRead = async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 };
+
+// Delete all chat history with a specific user
+exports.deleteChatHistory = async (req, res) => {
+    try {
+        const { otherUserId } = req.params;
+        
+        // Delete all messages between current user and the other user
+        const result = await Message.deleteMany({
+            schoolId: req.user.schoolId,
+            type: 'DirectMessage',
+            $or: [
+                { sender: req.user._id, recipient: otherUserId },
+                { sender: otherUserId, recipient: req.user._id }
+            ]
+        });
+
+        res.json({ 
+            message: 'Chat history cleared successfully',
+            deletedCount: result.deletedCount 
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
