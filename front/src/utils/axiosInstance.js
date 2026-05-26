@@ -1,6 +1,6 @@
 import axios from "axios";
-    import { BASE_URL } from "./BASE_URL";
-import { logoutUser } from "../redux/slice/auth.slice";
+import { BASE_URL } from "./BASE_URL";
+import { getActiveAcademicYearId, setActiveAcademicYearId } from "./academicYearContext";
 
 const userId = localStorage.getItem("userId");
 
@@ -28,10 +28,9 @@ const processQueue = (error, token = null) => {
 axiosInstance.interceptors.request.use(
   async (config) => {
     const token = localStorage.getItem("token");
-    const academicYearId = localStorage.getItem("activeAcademicYearId");
+    const academicYearId = getActiveAcademicYearId();
     if (academicYearId) {
-        config.headers['x-academic-year-id'] = academicYearId;
-        console.log('🔵 Axios Request:', config.url, '| Academic Year:', academicYearId);
+      config.headers['x-academic-year-id'] = academicYearId;
     }
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -110,6 +109,13 @@ axiosInstance.interceptors.response.use(
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
+      }
+    }
+
+    if (error.response?.data?.code === 'INVALID_ACADEMIC_YEAR') {
+      setActiveAcademicYearId(null);
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('academic-year-invalid'));
       }
     }
 

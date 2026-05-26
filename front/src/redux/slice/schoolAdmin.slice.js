@@ -216,6 +216,7 @@ export const deleteTimetableTemplate = del('sa/deleteTimetableTemplate', '/timet
 export const importStudents = post('sa/importStudents', '/import-students');
 export const importTeachers = post('sa/importTeachers', '/import-teachers');
 export const promoteStudents = post('sa/promoteStudents', '/promote-students');
+export const promoteAllStudents = post('sa/promoteAllStudents', '/promote-all-students');
 export const generateRollNumbers = createAsyncThunk('sa/generateRollNumbers', async (classId, { rejectWithValue }) => {
   try {
     const res = await axiosInstance.post(`${BASE}/generate-roll-numbers/${classId}`);
@@ -349,6 +350,23 @@ const schoolAdminSlice = createSlice({
   name: 'schoolAdmin',
   initialState,
   reducers: {
+    clearYearSensitiveData: (state) => {
+      state.dashboard = null;
+      state.students = [];
+      state.fees = [];
+      state.feeStructures = [];
+      state.exams = [];
+      state.attendance = [];
+      state.attendanceReport = [];
+      state.attendanceAnalytics = [];
+      state.holidays = [];
+      state.timetable = null;
+      state.timetables = [];
+      state.assignments = [];
+      state.feeSummary = null;
+      state.examAnalytics = null;
+      state.classes = [];
+    },
     clearError: (state) => { state.error = null; },
     clearMessage: (state) => { state.message = null; },
     setNewTicket: (state, action) => {
@@ -480,6 +498,7 @@ const schoolAdminSlice = createSlice({
       .addCase(importStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(importTeachers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(promoteStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
+      .addCase(promoteAllStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(generateRollNumbers.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(fetchExamAnalytics.fulfilled, (state, a) => { state.examAnalytics = a.payload; state.loading = false; })
       .addCase(exportStudents.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
@@ -780,7 +799,7 @@ const schoolAdminSlice = createSlice({
       updateStudent, updateTeacher, updateClass, updateStandard, updateSubject, updateFeeStructure, updateFee, updateExam, updateHoliday,
       deleteStudent, deleteTeacher, deleteClass, deleteStandard, deleteSubject, deleteFeeStructure, deleteFee, deleteExam, deleteHoliday, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate, deleteTimetable,
       saveAttendance, saveStaffAttendance, toggleTeacherStatus, applyFeeStructure,
-      importStudents, importTeachers, promoteStudents, generateRollNumbers, exportStudents, exportTeachers,
+      importStudents, importTeachers, promoteStudents, promoteAllStudents, generateRollNumbers, exportStudents, exportTeachers,
       fetchExamAnalytics, toggleExamPublishStatus, downloadReportCard, fetchStudentDetail,
       fetchFeeSummary, sendFeeReminders, generateBulkPayroll, fetchPayrollPreview,
       fetchSchoolProfile, updateSchoolProfile, changeAdminPassword,
@@ -796,5 +815,5 @@ const schoolAdminSlice = createSlice({
   },
 });
 
-export const { clearError, clearMessage, setNewTicket, updateTicketReply, updateTicketStatusRealTime } = schoolAdminSlice.actions;
+export const { clearYearSensitiveData, clearError, clearMessage, setNewTicket, updateTicketReply, updateTicketStatusRealTime } = schoolAdminSlice.actions;
 export default schoolAdminSlice.reducer;

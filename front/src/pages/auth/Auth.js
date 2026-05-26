@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, studentLogin, clearAuthError, clearAuthMessage } from '../../redux/slice/auth.slice';
+import { login, studentLogin, verifyLogin2FA, clearAuthError, clearAuthMessage } from '../../redux/slice/auth.slice';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight, LogIn, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -10,8 +10,9 @@ import { motion } from 'framer-motion';
 const Auth = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { loading, error, message, isAuthenticated } = useSelector((state) => state.auth);
+    const { loading, error, message, isAuthenticated, pending2FAEmail } = useSelector((state) => state.auth);
     const [showPassword, setShowPassword] = useState(false);
+    const [otpCode, setOtpCode] = useState('');
 
     // Auto-detected role based on input: 'Student' or 'Other'
     const [detectedRole, setDetectedRole] = useState('Other');
@@ -92,7 +93,31 @@ const Auth = () => {
                         </p>
                     </div>
 
-                    {/* Unified Login Form */}
+                    {pending2FAEmail ? (
+                        <form
+                            onSubmit={(e) => {
+                                e.preventDefault();
+                                dispatch(verifyLogin2FA({ email: pending2FAEmail, otp: otpCode }));
+                            }}
+                            className="space-y-8"
+                        >
+                            <p className="text-center text-slate-400 text-sm">
+                                Enter the 6-digit code sent to <span className="text-white font-bold">{pending2FAEmail}</span>
+                            </p>
+                            <input
+                                type="text"
+                                maxLength={6}
+                                value={otpCode}
+                                onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                                className="w-full bg-slate-900/40 border-2 border-brand-border/40 rounded-md py-5 px-6 text-white text-center text-2xl tracking-[0.5em] outline-none"
+                                placeholder="000000"
+                            />
+                            {error && <p className="text-[11px] text-luxury-rose text-center font-black uppercase">{error}</p>}
+                            <button type="submit" disabled={loading || otpCode.length < 4} className="w-full bg-brand-primary text-white py-5 rounded-md font-black uppercase tracking-widest disabled:opacity-50">
+                                {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Verify & Sign In'}
+                            </button>
+                        </form>
+                    ) : (
                     <form onSubmit={loginFormik.handleSubmit} className="space-y-10">
                         <div className="space-y-4 text-left">
                             <label className="text-xs text-slate-400 ml-2 tracking-[0.3em] uppercase font-black opacity-70 font-outfit">Identity Pointer</label>
@@ -160,6 +185,7 @@ const Auth = () => {
                             </button>
                         </div>
                     </form>
+                    )}
                 </div>
 
                 <p className="text-center text-slate-600 mt-12 font-black uppercase tracking-[0.4em] text-[10px] opacity-40">Protected by Institutional Security Systems</p>

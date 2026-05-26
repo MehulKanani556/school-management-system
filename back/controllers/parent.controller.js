@@ -13,6 +13,8 @@ const Meeting = require('../models/meeting.model');
 const BehaviorLog = require('../models/behaviorLog.model');
 const Route = require('../models/route.model');
 const Vehicle = require('../models/vehicle.model');
+const Book = require('../models/book.model');
+const BookReservation = require('../models/bookReservation.model');
 const mongoose = require('mongoose');
 const PDFDocument = require('pdfkit');
 const bcrypt = require('bcrypt');
@@ -421,6 +423,17 @@ exports.payFee = async (req, res) => {
             return res.status(403).json({ message: 'Unauthorized transaction' });
         }
 
+        if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
+            return res.status(503).json({ message: 'Online payments are not configured on this server' });
+        }
+
+        const customerPhone = req.user.phone || req.user.contact;
+        if (!customerPhone) {
+            return res.status(400).json({
+                message: 'Add a valid phone number to your profile before paying online',
+            });
+        }
+
         // Creating Cashfree Order
         const orderId = `ORDER-${fee._id}-${Date.now()}`;
         const request = {
@@ -431,7 +444,7 @@ exports.payFee = async (req, res) => {
                 "customer_id": req.user._id.toString(),
                 "customer_name": `${req.user.firstName} ${req.user.lastName}`,
                 "customer_email": req.user.email,
-                "customer_phone": req.user.phone || req.user.contact || "9999999999"
+                "customer_phone": String(customerPhone)
             },
             "order_meta": {
                 "return_url": `${process.env.CLIENT_URL || 'http://localhost:3000'}/parent/fees?order_id={order_id}`
@@ -507,6 +520,56 @@ exports.verifyFeePayment = async (req, res) => {
 
         res.status(400).json({ success: false, message: 'Transaction pending or verification failed.' });
 
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+const assertParentChild = async (parentUserId, studentId) => {
+    return Student.findOne({ _id: studentId, parentId: parentUserId, isActive: true });
+};
+
+exports.getChildLibraryBooks = async (req, res) => {
+    try {
+        const student = await assertParentChild(req.user._id, req.params.studentId);
+        if (!student) return res.status(403).json({ message: 'Child not found' });
+        const books = await Book.find({ schoolId: student.schoolId }).sort({ title: 1 });
+        res.json(books);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getChildLibraryReservations = async (req, res) => {
+    try {
+        const student = await assertParentChild(req.user._id, req.params.studentId);
+        if (!student) return res.status(403).json({ message: 'Child not found' });
+        const reservations = await BookReservation.find({ studentId: student._id })
+            .populate('bookId', 'title author category type')
+            .sort({ requestDate: -1 });
+        res.json(reservations);
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.reserveBookForChild = async (req, res) => {
+    try {
+        const { bookId } = req.body;
+        const student = await assertParentChild(req.user._id, req.params.studentId);
+        if (!student) return res.status(403).json({ message: 'Child not found' });
+
+        const book = await Book.findOne({ _id: bookId, schoolId: student.schoolId });
+        if (!book) return res.status(404).json({ message: 'Book not found' });
+
+        const existing = await BookReservation.findOne({
+            schoolId: student.schoolId,
+            bookId,
+            studentId: student._id,
+            status: 'pending',
+        });
+        if (existing) return res.status(400).json({ message: 'Reservation already pending' });
+
+        const reservation = await BookReservation.create({
+            schoolId: student.schoolId,
+            bookId,
+            studentId: student._id,
+        });
+        res.status(201).json({ message: 'Reservation placed for your child', data: reservation });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

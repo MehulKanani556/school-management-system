@@ -1,4 +1,5 @@
 const Ticket = require('../models/ticket.model');
+const User = require('../models/user.model');
 const mongoose = require('mongoose');
 const socketManager = require('../socketManager/socketManager');
 
@@ -111,15 +112,48 @@ exports.addReply = async (req, res) => {
         
         if (isAdminReplier) {
             const recipientId = updated.openedBy._id;
-            console.log(`[TICKET_SOCKET] Admin Reply. Notifying user: ${recipientId}`);
             socketManager.sendToUser(recipientId, 'TICKET_REPLY', updated);
-            // Also notify other admins so their UI stays in sync if they have it open
             socketManager.broadcastToRole('School_Admin', 'TICKET_REPLY', updated);
             socketManager.broadcastToRole('Super_Admin', 'TICKET_REPLY', updated);
+
+            const nc = require('./notification.controller');
+            const openerRole = updated.openedBy?.role;
+            const ticketLink =
+                openerRole === 'Teacher' ? '/teacher/tickets'
+                : openerRole === 'Parent' ? '/parent/tickets'
+                : '/school-admin/tickets';
+            await nc.sendNotification({
+                schoolId: ticket.schoolId,
+                recipient: recipientId,
+                sender: req.user._id,
+                type: 'General',
+                title: 'Support ticket reply',
+                message: `New reply on: ${ticket.subject}`,
+                link: ticketLink,
+            });
         } else {
-            console.log(`[TICKET_SOCKET] User Reply. Notifying Admins.`);
             socketManager.broadcastToRole('School_Admin', 'TICKET_REPLY', updated);
             socketManager.broadcastToRole('Super_Admin', 'TICKET_REPLY', updated);
+
+            const nc = require('./notification.controller');
+            const admins = await User.find({
+                $or: [
+                    { schoolId: ticket.schoolId, role: 'School_Admin', isActive: true },
+                    { role: 'Super_Admin', isActive: true },
+                ],
+            }).select('_id role');
+
+            for (const admin of admins) {
+                await nc.sendNotification({
+                    schoolId: ticket.schoolId,
+                    recipient: admin._id,
+                    sender: req.user._id,
+                    type: 'General',
+                    title: 'Support ticket update',
+                    message: `${updated.openedBy?.firstName || 'User'} replied on: ${ticket.subject}`,
+                    link: admin.role === 'Super_Admin' ? '/superadmin/support' : '/school-admin/tickets',
+                });
+            }
         }
 
         res.json({ message: 'Reply registered', data: updated });

@@ -2,56 +2,55 @@ const AcademicYear = require('../models/academicYear.model');
 const mongoose = require('mongoose');
 
 module.exports = async (req, res, next) => {
-  const ayId = req.headers['x-academic-year-id'];
-  
+  const headerId = req.headers['x-academic-year-id'];
+  const queryId = req.query.academicYearId;
+  const ayId = headerId || queryId;
+
   try {
+    const schoolId = req.user?.schoolId
+      ? new mongoose.Types.ObjectId(req.user.schoolId)
+      : null;
+
     if (ayId) {
-      // Validate the provided academic year ID
       if (!mongoose.Types.ObjectId.isValid(ayId)) {
-        return res.status(400).json({ message: 'Invalid Academic Year ID format' });
+        return res.status(400).json({ message: 'Invalid academic year ID format' });
       }
 
-      const academicYear = await AcademicYear.findOne({ 
-        _id: ayId, 
-        schoolId: req.user?.schoolId 
-      }).select('_id');
+      const filter = { _id: new mongoose.Types.ObjectId(ayId) };
+      if (schoolId) filter.schoolId = schoolId;
+
+      const academicYear = await AcademicYear.findOne(filter).select('_id name');
 
       if (!academicYear) {
-        return res.status(404).json({ message: 'Academic Year not found or does not belong to your school' });
+        return res.status(400).json({
+          message: 'Invalid or expired academic session. Please refresh the page and select a session again.',
+          code: 'INVALID_ACADEMIC_YEAR',
+        });
       }
 
-      req.academicYearId = new mongoose.Types.ObjectId(ayId);
+      req.academicYearId = academicYear._id;
+      req.academicYearName = academicYear.name;
       return next();
     }
 
-    // Fallback: resolve the current active year for the school
-    if (req.user?.schoolId) {
-      const current = await AcademicYear.findOne({ 
-        schoolId: req.user.schoolId, 
-        isCurrent: true 
-      }).select('_id');
-      
+    if (schoolId) {
+      const current = await AcademicYear.findOne({ schoolId, isCurrent: true }).select('_id name');
       if (current) {
         req.academicYearId = current._id;
+        req.academicYearName = current.name;
         return next();
       }
-      
-      // If no current year, try to get the most recent one
-      const mostRecent = await AcademicYear.findOne({ 
-        schoolId: req.user.schoolId 
-      }).sort({ startDate: -1 }).select('_id');
-      
+
+      const mostRecent = await AcademicYear.findOne({ schoolId }).sort({ startDate: -1 }).select('_id name');
       if (mostRecent) {
         req.academicYearId = mostRecent._id;
-        console.warn(`No current academic year set for school ${req.user.schoolId}. Using most recent: ${mostRecent._id}`);
+        req.academicYearName = mostRecent.name;
         return next();
       }
     }
 
-    // No academic year found - log warning but continue
-    // The controller will handle the missing academic year appropriately
-    console.warn('No academic year found for request:', req.path);
     req.academicYearId = null;
+    req.academicYearName = null;
     next();
   } catch (err) {
     console.error('Academic Year Middleware Error:', err);

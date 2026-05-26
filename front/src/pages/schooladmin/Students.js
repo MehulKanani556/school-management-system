@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, downloadReportCard, generateRollNumbers } from '../../redux/slice/schoolAdmin.slice';
+import { fetchStudents, createStudent, updateStudent, deleteStudent, fetchClasses, fetchStandards, exportStudents, importStudents, promoteStudents, promoteAllStudents, downloadReportCard, generateRollNumbers } from '../../redux/slice/schoolAdmin.slice';
 
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft, Eye, RotateCcw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Search, Upload, X, Download, ArrowUpCircle, FileText, ChevronRight, LayoutGrid, List, Users, GraduationCap, School, ArrowLeft, Eye, RotateCcw, ChevronDown } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 import Pagination from '../../components/Pagination';
@@ -55,7 +55,7 @@ const Students = () => {
     dispatch(exportStudents());
   };
   const { students, classes, standards, loading } = useSelector((s) => s.schoolAdmin);
-  const { activeAcademicYearId } = useSelector((s) => s.academicYear);
+  const { activeAcademicYearId, activeAcademicYear } = useSelector((s) => s.academicYear);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [search, setSearch] = useState('');
@@ -66,16 +66,23 @@ const Students = () => {
   const [selectedSection, setSelectedSection] = useState(null);
 
   const [promoteModal, setPromoteModal] = useState(false);
+  const [promoteAllModal, setPromoteAllModal] = useState(false);
+  const [promoteDropdownOpen, setPromoteDropdownOpen] = useState(false);
+  const academicYears = useSelector((s) => s.academicYear.academicYears);
+  
   const promoteFormik = useFormik({
     initialValues: {
       fromStandardId: '', fromClassSectionId: '',
-      toStandardId: '', toClassSectionId: ''
+      toStandardId: '', toClassSectionId: '',
+      fromAcademicYearId: '', toAcademicYearId: ''
     },
     validationSchema: Yup.object({
       fromStandardId: Yup.string().required('Source standard is required'),
+      fromAcademicYearId: Yup.string().required('Source academic year is required'),
       toStandardId: Yup.string()
         .required('Target standard is required')
         .notOneOf([Yup.ref('fromStandardId')], 'Cannot promote to the same grade'),
+      toAcademicYearId: Yup.string().required('Target academic year is required'),
     }),
     onSubmit: async (values) => {
       await dispatch(promoteStudents(values));
@@ -84,12 +91,47 @@ const Students = () => {
       promoteFormik.resetForm();
     }
   });
+
+  const promoteAllFormik = useFormik({
+    initialValues: {
+      fromAcademicYearId: '',
+      toAcademicYearId: ''
+    },
+    validationSchema: Yup.object({
+      fromAcademicYearId: Yup.string().required('Source academic year is required'),
+      toAcademicYearId: Yup.string()
+        .required('Target academic year is required')
+        .notOneOf([Yup.ref('fromAcademicYearId')], 'Cannot promote to the same year'),
+    }),
+    onSubmit: async (values) => {
+      const fromYear = academicYears.find(y => y._id === values.fromAcademicYearId);
+      const toYear = academicYears.find(y => y._id === values.toAcademicYearId);
+      
+      if (!window.confirm(`This will promote ALL students from ALL grades in ${fromYear?.name} to the next grade in ${toYear?.name}. Continue?`)) {
+        return;
+      }
+
+      try {
+        // Single API call for bulk promotion
+        const result = await dispatch(promoteAllStudents(values)).unwrap();
+        toast.success(result.message || 'All students promoted successfully!');
+        dispatch(fetchStudents());
+        setPromoteAllModal(false);
+        promoteAllFormik.resetForm();
+      } catch (err) {
+        toast.error(err?.message || 'Failed to promote all students');
+      }
+    }
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
   useEffect(() => {
     if (activeAcademicYearId) {
-      console.log('👨‍🎓 Students Page - Academic Year Changed:', activeAcademicYearId);
+      setViewMode('standards');
+      setSelectedStandard(null);
+      setSelectedSection(null);
+      setCurrentPage(1);
       dispatch(fetchStudents());
       dispatch(fetchClasses());
       dispatch(fetchStandards());
@@ -241,6 +283,11 @@ const Students = () => {
               {viewMode === 'sections' && `Grade ${selectedStandard?.level} Classrooms`}
               {viewMode === 'students' && `Students - ${selectedSection?.sectionLabel}`}
             </h1>
+            {activeAcademicYear && (
+              <p className="text-[10px] font-black uppercase tracking-widest text-schooladmin-primary mt-1">
+                Session {activeAcademicYear.name}
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -253,9 +300,58 @@ const Students = () => {
               <RotateCcw size={14} className={loading ? 'animate-spin' : ''} /> Sync Roll sequence
             </button>
           )}
-          <button onClick={() => setPromoteModal(true)} className="flex items-center gap-2 px-4 py-3 bg-schooladmin-primary/10 hover:bg-schooladmin-primary/20 border border-schooladmin-primary/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-schooladmin-primary hover:text-schooladmin-primary group">
-            <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Promote Students
-          </button>
+          <div className="relative">
+            <button 
+              onClick={() => setPromoteDropdownOpen(!promoteDropdownOpen)}
+              className="flex items-center gap-2 px-4 py-3 bg-schooladmin-primary/10 hover:bg-schooladmin-primary/20 border border-schooladmin-primary/20 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-schooladmin-primary hover:text-schooladmin-primary group"
+            >
+              <ArrowUpCircle size={14} className="group-hover:-translate-y-0.5 transition-transform" /> 
+              Promote Students
+              <ChevronDown size={12} className={`transition-transform ${promoteDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+            
+            <AnimatePresence>
+              {promoteDropdownOpen && (
+                <>
+                  <div className="fixed inset-0 z-10" onClick={() => setPromoteDropdownOpen(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    className="absolute right-0 top-full mt-2 w-56 bg-brand-surface border border-brand-border rounded-md shadow-xl z-20 overflow-hidden"
+                  >
+                    <button
+                      onClick={() => {
+                        setPromoteModal(true);
+                        setPromoteDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 transition-colors text-left"
+                    >
+                      <ArrowUpCircle size={14} className="text-schooladmin-primary" />
+                      <div>
+                        <div className="text-xs font-bold text-white">Promote Selected</div>
+                        <div className="text-[10px] text-slate-500">Promote specific grade/section</div>
+                      </div>
+                    </button>
+                    <div className="border-t border-brand-border" />
+                    <button
+                      onClick={() => {
+                        setPromoteAllModal(true);
+                        setPromoteDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-800/50 transition-colors text-left"
+                    >
+                      <GraduationCap size={14} className="text-emerald-500" />
+                      <div>
+                        <div className="text-xs font-bold text-white">Promote All</div>
+                        <div className="text-[10px] text-slate-500">Bulk promote all grades</div>
+                      </div>
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
           <button onClick={handleExport} className="flex items-center gap-2 px-4 py-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md font-black text-[10px] uppercase tracking-wider transition-all font-outfit text-slate-400 hover:text-white group">
             <Download size={14} className="group-hover:-translate-y-0.5 transition-transform" /> Export Data
           </button>
@@ -597,6 +693,19 @@ const Students = () => {
             <div className="grid grid-cols-2 gap-4 p-4 bg-slate-900/40 rounded-md border border-slate-800">
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-2">Source Class (From)</div>
               <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Academic Year</label>
+                <select
+                  className={ic(promoteFormik.touched.fromAcademicYearId, promoteFormik.errors.fromAcademicYearId)}
+                  {...promoteFormik.getFieldProps('fromAcademicYearId')}
+                >
+                  <option value="">Select Year</option>
+                  {academicYears.map(ay => (
+                    <option key={ay._id} value={ay._id}>{ay.name}</option>
+                  ))}
+                </select>
+                <Err touched={promoteFormik.touched.fromAcademicYearId} error={promoteFormik.errors.fromAcademicYearId} />
+              </div>
+              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
                 <select
                   className={ic(promoteFormik.touched.fromStandardId, promoteFormik.errors.fromStandardId)}
@@ -611,7 +720,7 @@ const Students = () => {
                 </select>
                 <Err touched={promoteFormik.touched.fromStandardId} error={promoteFormik.errors.fromStandardId} />
               </div>
-              <div>
+              <div className="col-span-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Optional)</label>
                 <select
                   className={ic()}
@@ -632,6 +741,19 @@ const Students = () => {
             <div className="grid grid-cols-2 gap-4 p-4 bg-brand-primary/5 rounded-md border border-brand-primary/10">
               <div className="col-span-2 text-[10px] font-black uppercase tracking-widest text-brand-primary border-b border-brand-primary/10 pb-2 mb-2">Target Grade (To)</div>
               <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Academic Year</label>
+                <select
+                  className={ic(promoteFormik.touched.toAcademicYearId, promoteFormik.errors.toAcademicYearId)}
+                  {...promoteFormik.getFieldProps('toAcademicYearId')}
+                >
+                  <option value="">Select Year</option>
+                  {academicYears.map(ay => (
+                    <option key={ay._id} value={ay._id}>{ay.name}</option>
+                  ))}
+                </select>
+                <Err touched={promoteFormik.touched.toAcademicYearId} error={promoteFormik.errors.toAcademicYearId} />
+              </div>
+              <div>
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Standard</label>
                 <select
                   className={ic(promoteFormik.touched.toStandardId, promoteFormik.errors.toStandardId)}
@@ -646,7 +768,7 @@ const Students = () => {
                 </select>
                 <Err touched={promoteFormik.touched.toStandardId} error={promoteFormik.errors.toStandardId} />
               </div>
-              <div>
+              <div className="col-span-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Section (Recommended)</label>
                 <select
                   className={ic()}
@@ -665,6 +787,80 @@ const Students = () => {
             className="w-full py-4 bg-schooladmin-primary hover:bg-schooladmin-primary disabled:opacity-50 text-white rounded-md font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-schooladmin-primary/20"
           >
             {loading ? 'Processing cycle...' : 'Execute Promotion Cycle'}
+          </button>
+        </form>
+      </Modal>
+
+      {/* Promote All Modal */}
+      <Modal open={promoteAllModal} onClose={() => setPromoteAllModal(false)} title="Promote All Students">
+        <form onSubmit={promoteAllFormik.handleSubmit} className="space-y-6">
+          <div className="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-md">
+            <p className="text-xs text-emerald-400 leading-relaxed font-medium mb-2">
+              ⚠️ <strong>Bulk Promotion:</strong> This will automatically promote ALL students from ALL grades to the next grade level.
+            </p>
+            <ul className="text-xs text-slate-400 space-y-1 ml-4 list-disc">
+              <li>Grade 1 → Grade 2</li>
+              <li>Grade 2 → Grade 3</li>
+              <li>... and so on</li>
+              <li>Grade 12 students will NOT be promoted (graduation)</li>
+              <li>Students will be automatically distributed across sections</li>
+            </ul>
+          </div>
+
+          <div className="space-y-4">
+            <div className="p-4 bg-slate-900/40 rounded-md border border-slate-800">
+              <div className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-slate-800 pb-2 mb-4">Source Academic Year</div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">From Year</label>
+                <select
+                  className={ic(promoteAllFormik.touched.fromAcademicYearId, promoteAllFormik.errors.fromAcademicYearId)}
+                  {...promoteAllFormik.getFieldProps('fromAcademicYearId')}
+                >
+                  <option value="">Select Source Year</option>
+                  {academicYears.map(ay => (
+                    <option key={ay._id} value={ay._id}>{ay.name}</option>
+                  ))}
+                </select>
+                <Err touched={promoteAllFormik.touched.fromAcademicYearId} error={promoteAllFormik.errors.fromAcademicYearId} />
+              </div>
+            </div>
+
+            <div className="flex justify-center">
+              <div className="w-10 h-10 rounded-md bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
+                <GraduationCap size={20} className="text-emerald-500" />
+              </div>
+            </div>
+
+            <div className="p-4 bg-emerald-500/5 rounded-md border border-emerald-500/10">
+              <div className="text-[10px] font-black uppercase tracking-widest text-emerald-500 border-b border-emerald-500/10 pb-2 mb-4">Target Academic Year</div>
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">To Year</label>
+                <select
+                  className={ic(promoteAllFormik.touched.toAcademicYearId, promoteAllFormik.errors.toAcademicYearId)}
+                  {...promoteAllFormik.getFieldProps('toAcademicYearId')}
+                >
+                  <option value="">Select Target Year</option>
+                  {academicYears.map(ay => (
+                    <option key={ay._id} value={ay._id}>{ay.name}</option>
+                  ))}
+                </select>
+                <Err touched={promoteAllFormik.touched.toAcademicYearId} error={promoteAllFormik.errors.toAcademicYearId} />
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-yellow-500/5 border border-yellow-500/10 rounded-md">
+            <p className="text-xs text-yellow-400 leading-relaxed font-medium">
+              💡 <strong>Tip:</strong> This operation may take a few moments to complete. Please do not close this window.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={!promoteAllFormik.isValid || loading}
+            className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-white rounded-md font-black text-sm uppercase tracking-widest transition-all shadow-lg shadow-emerald-500/20"
+          >
+            {loading ? 'Promoting All Students...' : 'Promote All Students'}
           </button>
         </form>
       </Modal>

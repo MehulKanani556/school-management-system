@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { upload, localUpload } = require('../middleware/upload');
-const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePassword, generateNewToken } = require('../auth/auth');
+const { upload, patchUploadLocation, localUpload } = require('../middleware/upload');
+const { createUser, login, studentLogin, forgotPassword, verifyOtp, changePassword, generateNewToken, verifyLogin2FA } = require('../auth/auth');
 const { auth, isSuperAdmin } = require('../middleware/auth');
 const checkMaintenance = require('../middleware/maintenance');
 const { requireRole } = require('../middleware/roleCheck');
@@ -30,15 +30,17 @@ const drc = require('../controllers/driver.controller');
 const mc = require('../controllers/message.controller');
 const staffAttendanceRoutes = require('./staffAttendance.routes');
 const ticketRoutes = require('./ticket.routes');
+const rateLimiter = require('../middleware/rateLimiter');
 
 router.use('/tickets', ticketRoutes);
 
 // Auth Routes
-router.post('/register', upload.single("photo"), createUser);
-router.post('/login', login);
-router.post('/student-login', studentLogin);
-router.post('/forgot-password', forgotPassword);
-router.post('/verify', verifyOtp);
+router.post('/register', rateLimiter, upload.single("photo"), createUser);
+router.post('/login', rateLimiter, login);
+router.post('/login-verify-2fa', rateLimiter, verifyLogin2FA);
+router.post('/student-login', rateLimiter, studentLogin);
+router.post('/forgot-password', rateLimiter, forgotPassword);
+router.post('/verify', rateLimiter, verifyOtp);
 router.post('/change-password', changePassword);
 router.post('/generatenewtoken', auth, generateNewToken);
 
@@ -57,6 +59,9 @@ router.get('/users/:id/profile', auth, getUniversalProfile);
 router.delete('/users/:id', auth, deleteUser);
 router.put('/users/:id', auth, updateUser);
 
+// Academic sessions — all school staff (header context for year-scoped data)
+router.get('/academic-years', auth, ayc.getAcademicYears);
+
 // ─── School Admin Routes ───────────────────────────────────────────────────────
 const schoolAdmin = [auth, requireRole('School_Admin'), academicYear];
 
@@ -70,6 +75,7 @@ router.delete('/school-admin/students/:id', ...schoolAdmin, sa.deleteStudent);
 router.get('/school-admin/export-students', ...schoolAdmin, sa.exportStudents);
 router.post('/school-admin/import-students', ...schoolAdmin, localUpload.single('file'), sa.importStudents);
 router.post('/school-admin/promote-students', ...schoolAdmin, sa.promoteStudents);
+router.post('/school-admin/promote-all-students', ...schoolAdmin, sa.promoteAllStudents);
 router.post('/school-admin/generate-roll-numbers/:classId', ...schoolAdmin, sa.generateRollNumbers);
 router.get('/school-admin/students/:id', ...schoolAdmin, sa.getStudentDetail);
 router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generateReportCard);
@@ -87,14 +93,14 @@ router.get('/school-admin/export-teachers', ...schoolAdmin, sa.exportTeachers);
 router.post('/school-admin/import-teachers', ...schoolAdmin, localUpload.single('file'), sa.importTeachers);
 
 // Standards
-router.get('/school-admin/standards', auth, requireRole('School_Admin', 'Accountant'), sa.getStandards);
+router.get('/school-admin/standards', auth, requireRole('School_Admin', 'Accountant'), academicYear, sa.getStandards);
 
 router.post('/school-admin/standards', ...schoolAdmin, sa.createStandard);
 router.put('/school-admin/standards/:id', ...schoolAdmin, sa.updateStandard);
 router.delete('/school-admin/standards/:id', ...schoolAdmin, sa.deleteStandard);
 
 // Classes
-router.get('/school-admin/classes', auth, requireRole('School_Admin', 'Accountant'), sa.getClasses);
+router.get('/school-admin/classes', auth, requireRole('School_Admin', 'Accountant'), academicYear, sa.getClasses);
 
 router.post('/school-admin/classes', ...schoolAdmin, sa.createClass);
 router.put('/school-admin/classes/:id', ...schoolAdmin, sa.updateClass);
@@ -303,6 +309,8 @@ router.delete('/teacher/resources/:id', ...teacher, tc.deleteResource);
 router.post('/teacher/questions', ...teacher, upload.single('file'), tc.addQuestion);
 router.post('/teacher/bulk-questions', ...teacher, tc.bulkAddQuestions);
 router.get('/teacher/questions', ...teacher, tc.getQuestions);
+router.get('/teacher/question-types', ...teacher, tc.getCustomQuestionTypes);
+router.put('/teacher/question-types', ...teacher, tc.saveCustomQuestionTypes);
 router.post('/teacher/generate-exam', ...teacher, tc.generateExam);
 
 // Behavior Log
@@ -382,6 +390,9 @@ router.get('/parent/profile', ...parent, pc.getParentProfile);
 router.put('/parent/profile', ...parent, upload.single('photo'), pc.updateParentProfile);
 router.post('/parent/change-password', ...parent, pc.changeParentPassword);
 router.get('/parent/child/:studentId/transport', ...parent, pc.getChildTransport);
+router.get('/parent/child/:studentId/library/books', ...parent, pc.getChildLibraryBooks);
+router.get('/parent/child/:studentId/library/reservations', ...parent, pc.getChildLibraryReservations);
+router.post('/parent/child/:studentId/library/reserve', ...parent, pc.reserveBookForChild);
 router.post('/parent/pay-fee/:feeId', ...parent, pc.payFee);
 router.post('/parent/verify-fee/:orderId', ...parent, pc.verifyFeePayment);
 router.post('/parent/apply-transport/:studentId', ...parent, pc.applyForTransport);
@@ -539,7 +550,6 @@ router.patch('/driver/location', ...driver, (req, res) => {
 });
 router.put('/superadmin/users/:id/status', ...superAdmin, sac.updateUserStatus);
 router.delete('/superadmin/users/:id', ...superAdmin, sac.deletePlatformUser);
-router.get('/superadmin/messages/:recipientId', ...superAdmin, sac.getPlatformMessages);
 
 router.use('/staff-attendance', staffAttendanceRoutes);
 

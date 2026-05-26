@@ -6,8 +6,28 @@ const TripLog = require('../models/tripLog.model');
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const mongoose = require('mongoose');
+const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
 const getSchoolId = (req) => req.user.schoolId;
+
+async function syncTransportFeeForStudent({ schoolId, studentId, route, academicYearId }) {
+    if (!route.fee || route.fee <= 0 || !academicYearId) return;
+    const FeePayment = require('../models/feePayment.model');
+    const feeQuery = addAcademicYearFilter({ studentId, category: 'Transport', schoolId }, academicYearId);
+    const existingFee = await FeePayment.findOne(feeQuery);
+    if (!existingFee) {
+        await FeePayment.create({
+            schoolId,
+            studentId,
+            amount: route.fee,
+            totalAmount: route.fee,
+            category: 'Transport',
+            academicYearId,
+            status: 'pending',
+            dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
+        });
+    }
+}
 
 // Vehicle CRUD
 exports.getVehicles = async (req, res) => {
@@ -245,27 +265,15 @@ exports.assignStudent = async (req, res) => {
         student.transportRouteId = route._id;
         await student.save();
 
-        // 4. Financial Reconciliation (Auto-Add Fee)
-        if (route.fee > 0) {
-            const FeePayment = require('../models/feePayment.model');
-            const currentYear = new Date().getFullYear().toString();
-
-            // Only create transport fee if one doesn't already exist for this student/year
-            // (avoids duplicates when re-assigning a student who already has a paid fee)
-            const existingFee = await FeePayment.findOne({ studentId, category: 'Transport', academicYear: currentYear });
-            if (!existingFee) {
-                await FeePayment.create({
-                    schoolId,
-                    studentId,
-                    amount: route.fee,
-                    totalAmount: route.fee,
-                    category: 'Transport',
-                    academicYear: currentYear,
-                    status: 'pending',
-                    dueDate: new Date(new Date().setMonth(new Date().getMonth() + 1))
-                });
-            }
+        if (!req.academicYearId) {
+            return res.status(400).json({ message: 'Active academic year required to assign transport fees' });
         }
+        await syncTransportFeeForStudent({
+            schoolId,
+            studentId,
+            route,
+            academicYearId: req.academicYearId,
+        });
 
         // 5. Parent Uplink
         if (student.parentId) {
@@ -619,7 +627,10 @@ exports.bulkAssignStudents = async (req, res) => {
             return res.status(400).json({ message: `Bulk allocation exceeds unit capacity (${route.vehicleId.capacity}). Current: ${currentCount}, Requested New: ${newUnassigned.length}` });
         }
 
-        // Processing
+        if (!req.academicYearId) {
+            return res.status(400).json({ message: 'Active academic year required for bulk transport assignment' });
+        }
+
         const nc = require('./notification.controller');
         for (const studentId of studentIds) {
             const index = route.assignedStudents.findIndex(s => s.studentId.toString() === studentId);
@@ -629,20 +640,29 @@ exports.bulkAssignStudents = async (req, res) => {
                 route.assignedStudents.push({ studentId, pickupStop, dropoffStop });
             }
 
-            // Notify Parent (Background process)
-            Student.findById(studentId).then(student => {
-                if (student && student.parentId) {
-                    nc.sendNotification({
+            const student = await Student.findById(studentId);
+            if (student) {
+                student.transportStatus = 'Active';
+                student.transportRouteId = route._id;
+                await student.save();
+                await syncTransportFeeForStudent({
+                    schoolId,
+                    studentId,
+                    route,
+                    academicYearId: req.academicYearId,
+                });
+                if (student.parentId) {
+                    await nc.sendNotification({
                         schoolId,
                         recipient: student.parentId,
                         sender: req.user._id,
                         type: 'Transport',
-                        title: 'Bulk Logistical Synchronization',
-                        message: `Transport route assignments for ${student.firstName} have been updated during a bulk matrix re-allocation.`,
-                        link: '/parent/transport'
+                        title: 'Bulk transport assignment',
+                        message: `${student.firstName} was assigned to route ${route.name}.`,
+                        link: '/parent/transport',
                     });
                 }
-            }).catch(e => console.error(e));
+            }
         }
 
         await route.save();

@@ -8,7 +8,8 @@ const initialState = {
     isAuthenticated: !!localStorage.getItem('token'),
     loading: false,
     error: null,
-    message: null
+    message: null,
+    pending2FAEmail: null,
 };
 
 const handleErrors = (error, rejectWithValue) => {
@@ -21,6 +22,26 @@ export const login = createAsyncThunk(
     async (data, { rejectWithValue }) => {
         try {
             const response = await axios.post(`${BASE_URL}/login`, data);
+            if (response.data.requires2FA) {
+                return response.data;
+            }
+            if (response.data.token) {
+                localStorage.setItem('token', response.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.user));
+                localStorage.setItem('userId', response.data.user._id);
+            }
+            return response.data;
+        } catch (error) {
+            return handleErrors(error, rejectWithValue);
+        }
+    }
+);
+
+export const verifyLogin2FA = createAsyncThunk(
+    'auth/verifyLogin2FA',
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/login-verify-2fa`, data);
             if (response.data.token) {
                 localStorage.setItem('token', response.data.token);
                 localStorage.setItem('user', JSON.stringify(response.data.user));
@@ -164,12 +185,36 @@ export const authSlice = createSlice({
                 state.message = null;
             })
             .addCase(login.fulfilled, (state, action) => {
+                if (action.payload?.requires2FA) {
+                    state.loading = false;
+                    state.isAuthenticated = false;
+                    state.pending2FAEmail = action.payload.email;
+                    state.message = action.payload.message;
+                    return;
+                }
+                state.user = action.payload?.user || null;
+                state.token = action.payload?.token || null;
+                state.isAuthenticated = !!action.payload?.token;
+                state.loading = false;
+                state.error = null;
+                state.pending2FAEmail = null;
+                state.message = action.payload?.message || "Login successfully";
+            })
+            .addCase(verifyLogin2FA.fulfilled, (state, action) => {
                 state.user = action.payload?.user || null;
                 state.token = action.payload?.token || null;
                 state.isAuthenticated = true;
                 state.loading = false;
+                state.pending2FAEmail = null;
+                state.message = action.payload?.message || 'Login successful';
+            })
+            .addCase(verifyLogin2FA.pending, (state) => {
+                state.loading = true;
                 state.error = null;
-                state.message = action.payload?.message || "Login successfully";
+            })
+            .addCase(verifyLogin2FA.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload?.message || 'Invalid verification code';
             })
             .addCase(login.rejected, (state, action) => {
                 state.loading = false;

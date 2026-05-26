@@ -11,6 +11,7 @@ const FeeCollection = () => {
 
     const dispatch = useDispatch();
     const { fees, pagination, loading, success, error } = useSelector((state) => state.accountant);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState('');
     const [dateRange, setDateRange] = useState({ start: '', end: '' });
@@ -46,7 +47,7 @@ const FeeCollection = () => {
             }));
         }, 500);
         return () => clearTimeout(delaySearch);
-    }, [dispatch, searchTerm, statusFilter, dateRange, currentPage, success]);
+    }, [dispatch, searchTerm, statusFilter, dateRange, currentPage, success, activeAcademicYearId]);
 
     const handleOpenModal = (fee) => {
         // Auto-calculate late fees if overdue (e.g., ₹10 per week late, or flat ₹50 if overdue)

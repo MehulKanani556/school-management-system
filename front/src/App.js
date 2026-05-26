@@ -107,6 +107,7 @@ import ParentNotifications from './pages/Parent/ParentNotifications';
 import ParentMessages from './pages/Parent/Messages';
 import ChildProfile from './pages/Parent/ChildProfile';
 import ChildTransport from './pages/Parent/ChildTransport';
+import ChildLibrary from './pages/Parent/ChildLibrary';
 import ParentAnnouncements from './pages/Parent/ParentAnnouncements';
 
 
@@ -242,6 +243,7 @@ function AppRoutes() {
     if (user?.role === 'Librarian') return <Navigate to="/librarian" />;
     if (user?.role === 'Transport_Manager') return <Navigate to="/transporter" />;
     if (user?.role === 'Driver') return <Navigate to="/driver" />;
+    if (user?.role === 'Super_Admin') return <Navigate to="/superadmin" />;
     return <Home />;
   };
 
@@ -345,6 +347,7 @@ function AppRoutes() {
             <Route path="holidays" element={<Holidays />} />
             <Route path="profile" element={<ParentProfile />} />
             <Route path="transport" element={<ChildTransport />} />
+            <Route path="library" element={<ChildLibrary />} />
             <Route path="profile/:id" element={<ProfileDetail />} />
           </Route>
 
@@ -356,7 +359,7 @@ function AppRoutes() {
           }>
             <Route index element={<Dashboard />} />
             <Route path="students" element={<Students />} />
-            <Route path="students/:id" element={<ProfileDetail />} />
+            <Route path="students/:id" element={<StudentDetail />} />
             <Route path="staff-attendance" element={<StaffAttendance />} />
             <Route path="staff-attendance-report" element={<StaffAttendanceReport />} />
             <Route path="teachers" element={<Teachers />} />

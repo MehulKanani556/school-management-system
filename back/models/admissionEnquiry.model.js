@@ -8,6 +8,7 @@ const admissionEnquirySchema = new mongoose.Schema(
     contactNumber: { type: String, required: true },
     email: { type: String },
     standardApplied: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
+    academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
     previousSchool: { type: String },
     source: { 
       type: String, 

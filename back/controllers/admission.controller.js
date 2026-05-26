@@ -3,6 +3,7 @@ const Student = require('../models/student.model');
 const User = require('../models/user.model');
 const PromotionHistory = require('../models/promotionHistory.model');
 const StudentEnrollment = require('../models/studentEnrollment.model');
+const AcademicYear = require('../models/academicYear.model');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
@@ -10,7 +11,11 @@ const getSchoolId = (req) => req.user.schoolId;
 
 exports.getEnquiries = async (req, res) => {
     try {
-        const enquiries = await AdmissionEnquiry.find({ schoolId: getSchoolId(req) })
+        const query = { schoolId: getSchoolId(req) };
+        if (req.academicYearId) {
+            query.academicYearId = req.academicYearId;
+        }
+        const enquiries = await AdmissionEnquiry.find(query)
             .populate('standardApplied', 'level name')
             .populate('admissionAssignedTo', 'firstName lastName')
             .sort({ createdAt: -1 });
@@ -23,6 +28,7 @@ exports.addEnquiry = async (req, res) => {
         const enquiry = new AdmissionEnquiry({
             ...req.body,
             schoolId: getSchoolId(req),
+            academicYearId: req.body.academicYearId || req.academicYearId,
         });
         await enquiry.save();
         res.status(201).json(enquiry);
@@ -47,15 +53,21 @@ exports.admitCandidate = async (req, res) => {
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
-        const { enquiryId, admissionNumber, firstName, lastName, gender, dateOfBirth, guardianName, guardianPhone, guardianEmail, address, classId, sectionId, academicYearId, password } = req.body;
+        let { enquiryId, admissionNumber, firstName, lastName, gender, dateOfBirth, guardianName, guardianPhone, guardianEmail, address, classId, sectionId, academicYearId, password } = req.body;
         const schoolId = getSchoolId(req);
+
+        if (academicYearId === 'current') {
+            const currentYear = await AcademicYear.findOne({ schoolId, isCurrent: true }).session(session);
+            if (!currentYear) throw new Error('No active academic year found in the system');
+            academicYearId = currentYear._id;
+        }
 
         // 1. Create User Account
         const hashedPassword = await bcrypt.hash(password || 'password', 10);
         const newUser = new User({
             firstName,
             lastName,
-            email: guardianEmail || `${admissionNumber}@school.com`,
+            email: guardianEmail || `${firstName.toLowerCase()}${Date.now().toString().slice(-5)}@school.com`,
             password: hashedPassword,
             role: 'Student',
             schoolId
@@ -66,10 +78,11 @@ exports.admitCandidate = async (req, res) => {
         const student = new Student({
             _id: newUser._id,
             schoolId,
+            createdBy: req.user._id,
             firstName,
             lastName,
             admissionNumber,
-            gender,
+            gender: gender ? gender.toLowerCase() : 'male',
             dateOfBirth,
             guardianName,
             guardianPhone,

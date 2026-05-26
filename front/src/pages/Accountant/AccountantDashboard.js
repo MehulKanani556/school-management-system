@@ -17,16 +17,18 @@ import { BASE_URL } from '../../utils/BASE_URL';
 const AccountantDashboard = () => {
     const dispatch = useDispatch();
     const { report, loading, error } = useSelector((state) => state.accountant);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
     const [filterRange, setFilterRange] = useState({ start: '', end: '', year: '' });
     const [showFilterModal, setShowFilterModal] = useState(false);
 
     useEffect(() => {
-        dispatch(fetchFinancialReport({ 
-            startDate: filterRange.start, 
+        if (!activeAcademicYearId) return;
+        dispatch(fetchFinancialReport({
+            startDate: filterRange.start,
             endDate: filterRange.end,
-            academicYear: filterRange.year 
+            academicYear: filterRange.year,
         }));
-    }, [dispatch, filterRange]);
+    }, [dispatch, filterRange, activeAcademicYearId]);
 
     const COLORS = ['#38bdf8', '#f43f5e', '#fbbf24', '#10b981'];
 

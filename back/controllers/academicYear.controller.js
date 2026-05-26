@@ -5,7 +5,9 @@ const getSchoolId = (req) => req.user.schoolId;
 
 exports.getAcademicYears = async (req, res) => {
     try {
-        const years = await AcademicYear.find({ schoolId: getSchoolId(req) }).sort({ startDate: -1 });
+        const schoolId = getSchoolId(req);
+        if (!schoolId) return res.json([]);
+        const years = await AcademicYear.find({ schoolId }).sort({ startDate: -1 });
         res.json(years);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

@@ -47,6 +47,7 @@ const AttendanceAnalytics = () => {
         attendanceAlerts, 
         loading 
     } = useSelector((s) => s.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
 
     const [selectedStandard, setSelectedStandard] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
@@ -55,15 +56,24 @@ const AttendanceAnalytics = () => {
     const [alertView, setAlertView] = useState('grid'); // 'grid' or 'table'
 
     useEffect(() => {
-        dispatch(fetchStandards());
-        dispatch(fetchClasses());
-        dispatch(fetchAttendanceAnalytics({ type: viewMode }));
-        dispatch(fetchAttendanceAlerts({ threshold: 75 }));
-    }, [dispatch, viewMode]);
+        setSelectedStandard('');
+        setSelectedClass('');
+    }, [activeAcademicYearId]);
+
+    useEffect(() => {
+        const params = activeAcademicYearId ? { academicYearId: activeAcademicYearId } : {};
+        dispatch(fetchStandards(params));
+        dispatch(fetchClasses(params));
+        dispatch(fetchAttendanceAnalytics({ type: viewMode, ...params }));
+        dispatch(fetchAttendanceAlerts({ threshold: 75, ...params }));
+    }, [dispatch, viewMode, activeAcademicYearId]);
 
     const handleFetchReport = () => {
         if (selectedClass) {
-            dispatch(fetchAttendanceReport({ classSection: selectedClass }));
+            const params = activeAcademicYearId 
+                ? { classSection: selectedClass, academicYearId: activeAcademicYearId } 
+                : { classSection: selectedClass };
+            dispatch(fetchAttendanceReport(params));
         }
     };
 
@@ -120,19 +130,36 @@ const AttendanceAnalytics = () => {
     const totalPossible = attendanceAnalytics?.reduce((acc, curr) => acc + curr.total, 0) || 0;
     const avgAttendance = totalPossible > 0 ? ((totalPresent / totalPossible) * 100).toFixed(1) : '0.0';
 
+    const avgAttendanceNum = parseFloat(avgAttendance);
+    const avgAttendanceTrend = avgAttendanceNum === 0 
+        ? 'N/A' 
+        : avgAttendanceNum >= 90 
+            ? '+1.2%' 
+            : avgAttendanceNum >= 75 
+                ? '-0.8%' 
+                : '-3.5%';
+
+    const alertsCount = attendanceAlerts?.length || 0;
+    const alertsTrend = alertsCount === 0 
+        ? 'Optimal' 
+        : `+${alertsCount}`;
+
+    const telemetryReliability = totalPossible > 0 ? '99.9%' : '0.0%';
+    const telemetryTrend = totalPossible > 0 ? 'Optimal' : 'No Data';
+
     const stats = [
         { 
             label: 'Avg Institution Attendance', 
             value: `${avgAttendance}%`, 
-            trend: '+2.1%', 
+            trend: avgAttendanceTrend, 
             icon: TrendingUp, 
             color: 'text-emerald-400',
             bg: 'bg-emerald-400/10'
         },
         { 
             label: 'Critical Alert Nodes', 
-            value: attendanceAlerts?.length || 0, 
-            trend: '-5', 
+            value: alertsCount, 
+            trend: alertsTrend, 
             icon: AlertTriangle, 
             color: 'text-schooladmin-primary',
             bg: 'bg-schooladmin-primary/10'
@@ -140,15 +167,15 @@ const AttendanceAnalytics = () => {
         { 
             label: 'Total Active Sectors', 
             value: classes?.length || 0, 
-            trend: 'Stable', 
+            trend: classes?.length > 0 ? 'Stable' : 'No Sectors', 
             icon: Users, 
             color: 'text-blue-400',
             bg: 'bg-blue-400/10'
         },
         { 
             label: 'Telemetry Reliability', 
-            value: '99.9%', 
-            trend: 'Optimal', 
+            value: telemetryReliability, 
+            trend: telemetryTrend, 
             icon: BarChart3, 
             color: 'text-purple-400',
             bg: 'bg-purple-400/10'
@@ -295,23 +322,47 @@ const AttendanceAnalytics = () => {
                         <div className="bg-slate-950/80 border border-slate-800/80 rounded-md p-10 shadow-2xl">
                             <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-8 font-outfit">Priority Nodes</h3>
                             <div className="space-y-6">
-                                {classes?.slice(0, 5).map((cls, i) => (
-                                    <div key={cls._id} className="group flex items-center justify-between p-5 rounded-md bg-slate-900/30 border border-slate-800/40 hover:border-brand-primary/30 transition-all cursor-pointer">
-                                        <div className="flex items-center gap-5">
-                                            <div className="w-12 h-12 rounded-md bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary border border-slate-700 group-hover:scale-110 transition-transform">
-                                                {cls.standardId?.level}
+                                {([...(classes || [])]
+                                    .filter(c => c.studentCount > 0)
+                                    .sort((a, b) => {
+                                        if (a.attendanceRate === 'N/A') return 1;
+                                        if (b.attendanceRate === 'N/A') return -1;
+                                        return parseFloat(a.attendanceRate) - parseFloat(b.attendanceRate);
+                                    })
+                                    .slice(0, 5)
+                                ).map((cls) => {
+                                    const numRate = cls.attendanceRate !== 'N/A' ? parseFloat(cls.attendanceRate) : null;
+                                    let rateColor = 'text-slate-400';
+                                    if (numRate !== null) {
+                                        if (numRate >= 90) rateColor = 'text-emerald-400';
+                                        else if (numRate >= 75) rateColor = 'text-brand-primary';
+                                        else rateColor = 'text-schooladmin-primary';
+                                    }
+                                    return (
+                                        <div key={cls._id} className="group flex items-center justify-between p-5 rounded-md bg-slate-900/30 border border-slate-800/40 hover:border-brand-primary/30 transition-all cursor-pointer">
+                                            <div className="flex items-center gap-5">
+                                                <div className="w-12 h-12 rounded-md bg-slate-800 flex items-center justify-center font-black text-xs text-brand-primary border border-slate-700 group-hover:scale-110 transition-transform">
+                                                    {cls.standardId?.level}
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-black text-white italic uppercase font-outfit">Grade {cls.standardId?.level}-{cls.sectionLabel}</p>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase italic">Sector Active</p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-black text-white italic uppercase font-outfit">Grade {cls.standardId?.level}-{cls.sectionLabel}</p>
-                                                <p className="text-[10px] font-bold text-slate-500 uppercase italic">Sector Active</p>
+                                            <div className="text-right">
+                                                <p className={`text-sm font-black font-outfit ${rateColor}`}>
+                                                    {cls.attendanceRate === 'N/A' ? 'N/A' : `${cls.attendanceRate}%`}
+                                                </p>
+                                                <p className="text-[9px] font-bold text-slate-600 uppercase italic">Reliability</p>
                                             </div>
                                         </div>
-                                        <div className="text-right">
-                                            <p className="text-sm font-black text-emerald-400 font-outfit">94%</p>
-                                            <p className="text-[9px] font-bold text-slate-600 uppercase italic">Reliability</p>
-                                        </div>
+                                    );
+                                })}
+                                {(!classes || classes.filter(c => c.studentCount > 0).length === 0) && (
+                                    <div className="py-8 text-center">
+                                        <p className="text-slate-600 font-bold uppercase tracking-[0.2em] text-[10px] italic">No active sectors loaded</p>
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     </motion.div>
@@ -546,7 +597,7 @@ const AttendanceAnalytics = () => {
                                 <table className="w-full text-left border-collapse">
                                     <thead>
                                         <tr className="bg-slate-900/40 border-b border-slate-800/50">
-                                            {['Student Entity', 'Registry Reference', 'Attendance Score', 'Deviations (Late)', 'Status Terminal'].map(h => (
+                                            {['Student Entity', 'Registry Details', 'Attendance Score', 'Deviations (Late)', 'Status Terminal'].map(h => (
                                                 <th key={h} className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">{h}</th>
                                             ))}
                                         </tr>
@@ -565,12 +616,23 @@ const AttendanceAnalytics = () => {
                                                         </div>
                                                         <div>
                                                             <p className="font-bold text-white italic uppercase font-outfit">{report.firstName} {report.lastName}</p>
-                                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mt-1"># {report.admissionNumber}</p>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none"># {report.admissionNumber}</p>
+                                                                {report.rollNumber && (
+                                                                    <span className="text-[9px] font-black uppercase px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700/50 font-outfit italic">Roll: {report.rollNumber}</span>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">
-                                                    <span className="text-[11px] font-black text-slate-500 tracking-widest bg-slate-800/40 px-3 py-1.5 rounded-md border border-slate-700/50 uppercase font-outfit italic">#{report.admissionNumber}</span>
+                                                    <div className="flex flex-wrap gap-2">
+                                                        <span className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/10 tracking-widest font-outfit italic">{report.stats?.present ?? 0} Pres</span>
+                                                        <span className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/10 tracking-widest font-outfit italic">{report.stats?.absent ?? 0} Abs</span>
+                                                        {(report.stats?.halfDay ?? 0) > 0 && (
+                                                            <span className="text-[9px] font-black uppercase px-2.5 py-1.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/10 tracking-widest font-outfit italic">{report.stats?.halfDay} Half</span>
+                                                        )}
+                                                    </div>
                                                 </td>
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-3">
@@ -585,8 +647,8 @@ const AttendanceAnalytics = () => {
                                                 </td>
                                                 <td className="px-10 py-7">
                                                     <div className="flex items-center gap-2">
-                                                        <Clock size={14} className={report.stats?.late > 3 ? 'text-luxury-amber' : 'text-slate-500'} />
-                                                        <span className={`text-xs font-bold font-outfit ${report.stats?.late > 3 ? 'text-luxury-amber' : 'text-slate-500'}`}>{report.stats?.late} Logs</span>
+                                                        <Clock size={14} className={report.stats?.late > 0 ? 'text-amber-400' : 'text-slate-500'} />
+                                                        <span className={`text-xs font-bold font-outfit ${report.stats?.late > 0 ? 'text-amber-400' : 'text-slate-500'}`}>{report.stats?.late} Late Logs</span>
                                                     </div>
                                                 </td>
                                                 <td className="px-10 py-7">

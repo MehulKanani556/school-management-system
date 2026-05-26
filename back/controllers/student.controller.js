@@ -15,7 +15,6 @@ const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
 const Teacher = require('../models/teacher.model');
 const Subject = require('../models/subject.model');
-const Timetable = require('../models/timetable.model');
 const nc = require('./notification.controller');
 const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
@@ -102,28 +101,7 @@ exports.getAssignments = async (req, res) => {
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
-// 5. View Timetable (from ClassSection)
-exports.getTimetable = async (req, res) => {
-    try {
-        const student = await getStudent(req.user._id);
-        if (!student.classSection) {
-            return res.json([]);
-        }
-        const timetable = await Timetable.findOne(addAcademicYearFilter({ classSection: student.classSection._id }, req.academicYearId))
-            .populate({
-                path: 'schedule.periods.subject',
-                select: 'name'
-            })
-            .populate({
-                path: 'schedule.periods.teacher',
-                select: 'firstName lastName'
-            });
-            
-        res.json(timetable || { schedule: [] });
-    } catch (err) { res.status(500).json({ message: err.message }); }
-};
-
-// 6. Submit Assignment
+// 5. Submit Assignment (timetable: GET /student/timetable → timetable.controller.getStudentTimetable)
 exports.submitAssignment = async (req, res) => {
     try {
         const { assignmentId, comments } = req.body;

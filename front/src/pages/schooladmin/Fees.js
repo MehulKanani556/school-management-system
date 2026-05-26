@@ -38,14 +38,15 @@ const Fees = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
-  useEffect(() => { 
-    dispatch(fetchFees()); 
-    dispatch(fetchStudents()); 
+  useEffect(() => {
+    if (!activeAcademicYearId) return;
+    dispatch(fetchFees());
+    dispatch(fetchStudents());
     dispatch(fetchFeeStructures());
     dispatch(fetchStandards());
     dispatch(fetchClasses());
     dispatch(fetchFeeSummary());
-  }, [dispatch]);
+  }, [dispatch, activeAcademicYearId]);
 
   const showReceipt = (data) => {
     setReceiptData(data);

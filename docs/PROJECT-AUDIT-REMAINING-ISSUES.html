@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>School Management System — Full Project Audit (Remaining Issues)</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0d0d0f; color: #e2e8f0; line-height: 1.6; }
+  .cover { background: linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4338ca 100%); color: #fff; padding: 56px 48px; }
+  .cover h1 { font-size: 2.2em; font-weight: 900; letter-spacing: 0.5px; }
+  .cover p { font-size: 1.05em; margin-top: 10px; opacity: 0.9; max-width: 720px; }
+  .cover .meta { margin-top: 22px; font-size: 0.88em; opacity: 0.7; }
+  .cover .note { margin-top: 16px; padding: 14px 18px; background: rgba(0,0,0,0.25); border-left: 4px solid #fbbf24; border-radius: 6px; font-size: 0.9em; }
+  .summary-bar { display: flex; flex-wrap: wrap; background: #111113; border-bottom: 1px solid #1e293b; }
+  .summary-item { flex: 1; min-width: 140px; padding: 20px 24px; border-right: 1px solid #1e293b; text-align: center; }
+  .summary-item:last-child { border-right: none; }
+  .summary-item .num { font-size: 2em; font-weight: 900; }
+  .summary-item .label { font-size: 0.68em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.12em; margin-top: 4px; opacity: 0.55; }
+  .num-red { color: #f87171; }
+  .num-amber { color: #fbbf24; }
+  .num-blue { color: #60a5fa; }
+  .num-green { color: #4ade80; }
+  .status-banner { margin: 28px 36px; background: #1c1917; border: 1px solid #78350f; border-radius: 10px; padding: 24px 28px; display: flex; align-items: flex-start; gap: 18px; }
+  .status-banner.ok { background: #052e16; border-color: #166534; }
+  .status-banner .icon { font-size: 2.4em; flex-shrink: 0; }
+  .status-banner h2 { font-size: 1.2em; font-weight: 900; margin-bottom: 6px; }
+  .status-banner p { font-size: 0.88em; opacity: 0.85; }
+  .toc { margin: 28px 36px; background: #111113; border: 1px solid #1e293b; border-radius: 10px; padding: 24px 28px; }
+  .toc h2 { font-size: 0.95em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 14px; color: #94a3b8; }
+  .toc ol { padding-left: 22px; columns: 2; column-gap: 32px; }
+  @media (max-width: 700px) { .toc ol { columns: 1; } }
+  .toc li { margin: 5px 0; font-size: 0.88em; break-inside: avoid; }
+  .toc a { color: #818cf8; text-decoration: none; }
+  .toc a:hover { text-decoration: underline; }
+  .section { margin: 28px 36px; background: #111113; border: 1px solid #1e293b; border-radius: 10px; overflow: hidden; }
+  .section-header { padding: 16px 22px; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; border-bottom: 1px solid #1e293b; background: #0f0f12; }
+  .section-header h2 { font-size: 1em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; flex: 1; }
+  .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 0.7em; font-weight: 800; text-transform: uppercase; letter-spacing: 0.06em; }
+  .badge-high { background: #450a0a; color: #fca5a5; border: 1px solid #991b1b; }
+  .badge-med { background: #422006; color: #fcd34d; border: 1px solid #b45309; }
+  .badge-low { background: #1e3a5f; color: #93c5fd; border: 1px solid #1d4ed8; }
+  .badge-ok { background: #052e16; color: #86efac; border: 1px solid #166534; }
+  .section-body { padding: 20px 22px; }
+  .section-body h3 { font-size: 0.95em; color: #a5b4fc; margin: 20px 0 10px; font-weight: 800; }
+  .section-body h3:first-child { margin-top: 0; }
+  .section-body p, .section-body li { font-size: 0.88em; color: #cbd5e1; margin: 8px 0; }
+  .section-body ul { padding-left: 20px; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.84em; margin: 12px 0; }
+  th { background: #0a0a0c; padding: 10px 12px; text-align: left; color: #94a3b8; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 2px solid #1e293b; }
+  td { padding: 10px 12px; border-bottom: 1px solid #1e293b; vertical-align: top; }
+  tr:nth-child(even) td { background: #0a0a0c; }
+  td code, .location { font-family: Consolas, 'Courier New', monospace; font-size: 0.9em; color: #93c5fd; }
+  .issue { padding: 16px 20px; border-bottom: 1px solid #1e293b; display: grid; grid-template-columns: 32px 1fr auto; gap: 14px; align-items: start; }
+  .issue:last-child { border-bottom: none; }
+  .issue-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 900; flex-shrink: 0; background: #450a0a; color: #fca5a5; }
+  .issue-num.warn { background: #422006; color: #fcd34d; }
+  .issue-num.info { background: #1e3a5f; color: #93c5fd; }
+  .issue-body h4 { font-size: 0.92em; font-weight: 800; color: #f1f5f9; margin-bottom: 6px; }
+  .issue-body .location { font-size: 0.75em; color: #64748b; margin-bottom: 8px; display: block; }
+  .issue-body p { font-size: 0.86em; color: #94a3b8; line-height: 1.6; }
+  .impact { font-size: 0.82em; color: #fbbf24; margin-top: 6px; font-style: italic; }
+  .code-block { background: #0a0a0c; border: 1px solid #334155; border-radius: 6px; padding: 12px 14px; font-family: monospace; font-size: 0.78em; color: #a5f3fc; margin: 10px 0; white-space: pre-wrap; overflow-x: auto; }
+  .status-pill { padding: 5px 12px; border-radius: 20px; font-size: 0.68em; font-weight: 900; text-transform: uppercase; letter-spacing: 0.08em; white-space: nowrap; }
+  .pill-broken { background: #450a0a; color: #f87171; border: 1px solid #991b1b; }
+  .pill-stub { background: #422006; color: #fbbf24; border: 1px solid #b45309; }
+  .pill-missing { background: #1e1b4b; color: #a5b4fc; border: 1px solid #4338ca; }
+  .pill-fixed { background: #052e16; color: #4ade80; border: 1px solid #166534; }
+  .pill-partial { background: #1e3a5f; color: #93c5fd; border: 1px solid #1d4ed8; }
+  .priority-list { list-style: none; padding: 0; }
+  .priority-list li { padding: 12px 16px; border-left: 4px solid #4338ca; margin: 8px 0; background: #0f0f12; border-radius: 0 6px 6px 0; font-size: 0.88em; }
+  .priority-list.p0 li { border-left-color: #ef4444; }
+  .priority-list.p1 li { border-left-color: #f59e0b; }
+  .priority-list.p2 li { border-left-color: #6366f1; }
+  .priority-list.p3 li { border-left-color: #64748b; }
+  .file-list { font-family: monospace; font-size: 0.78em; color: #94a3b8; background: #0a0a0c; padding: 16px; border-radius: 6px; line-height: 1.8; white-space: pre; overflow-x: auto; }
+  .matrix-wrap { overflow-x: auto; }
+  .matrix td, .matrix th { text-align: center; font-size: 0.8em; }
+  .matrix td:first-child, .matrix th:first-child { text-align: left; }
+  .cell-ok { color: #4ade80; }
+  .cell-stub { color: #fbbf24; font-weight: 700; }
+  .cell-gap { color: #f87171; }
+  .cell-dash { color: #475569; }
+  .footer { text-align: center; padding: 32px; color: #475569; font-size: 0.85em; border-top: 1px solid #1e293b; margin-top: 20px; }
+  @media print {
+    body { background: #fff; color: #111; }
+    .cover { background: #312e81 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .section, .toc, .status-banner { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <h1>School Management System — Full Project Audit</h1>
+  <p>Complete list of broken flows, stub UI, missing features, partial logic, dead code, security risks, and previously fixed issues.</p>
+  <div class="meta">Audit Date: May 2026 &nbsp;|&nbsp; Stack: React + Redux + Express + MongoDB + Socket.IO &nbsp;|&nbsp; Scope: front/, back/, demomodel/, docs/</div>
+  <div class="note"><strong>Note:</strong> <code>docs/broken-flows-report.html</code> (March 2026) reports 28 bugs fixed and 0 open. This report is a <strong>broader fresh audit</strong> and includes platform gaps not in that list.</div>
+</div>
+
+<div class="summary-bar">
+  <div class="summary-item"><div class="num num-green">0</div><div class="label">Broken Flows (§1)</div></div>
+  <div class="summary-item"><div class="num num-green">0</div><div class="label">Stub UI (§2)</div></div>
+  <div class="summary-item"><div class="num num-amber">8+</div><div class="label">Platform (§3)</div></div>
+  <div class="summary-item"><div class="num num-green">✓</div><div class="label">Build + Tests</div></div>
+  <div class="summary-item"><div class="num num-green">✓</div><div class="label">Routes Load</div></div>
+  <div class="summary-item"><div class="num num-green">40+</div><div class="label">Fixed (Mar + May)</div></div>
+</div>
+
+<div class="status-banner ok">
+  <div class="icon">✓</div>
+  <div>
+    <h2 style="color:#4ade80;">Build &amp; Syntax Status — OK</h2>
+    <p>Frontend <code>npm run build</code> and <code>npm test</code> succeed. Backend <code>indexRoutes</code> loads without errors.</p>
+  </div>
+</div>
+
+<div class="status-banner ok">
+  <div class="icon">✓</div>
+  <div>
+    <h2 style="color:#4ade80;">Fixes Applied — May 2026</h2>
+    <p>All §1–§2 audit items fixed: messages, backups download, 2FA login, parent library, driver LiveMap, PDF viewer, transport bulk fees, ticket notifications, S3/local upload, question types API, StaffRegistry removed. See <code>README.md</code> and <code>PROJECT-AUDIT-REMAINING-ISSUES.md</code>.</p>
+  </div>
+</div>
+
+<div class="status-banner">
+  <div class="icon">⚠</div>
+  <div>
+    <h2 style="color:#fbbf24;">Still Planned (not in code yet)</h2>
+    <p>Full mongodump/S3 pipeline · real SMS provider (stub wired) · push notifications · i18n · full E2E suite · delete <code>demomodel/</code> folder · complete subdomain tenant isolation on all APIs.</p>
+  </div>
+</div>
+
+<div class="toc">
+  <h2>Table of Contents</h2>
+  <ol>
+    <li><a href="#broken">1. Broken Code &amp; Failing Flows</a></li>
+    <li><a href="#stub">2. Incomplete / Stub UI</a></li>
+    <li><a href="#missing">3. Remaining Functionality (Not Implemented)</a></li>
+    <li><a href="#logic">4. Remaining Logic (Partial)</a></li>
+    <li><a href="#dead">5. Dead Code &amp; Orphans</a></li>
+    <li><a href="#security">6. Security &amp; Configuration</a></li>
+    <li><a href="#matrix">7. Module Matrix by Role</a></li>
+    <li><a href="#fixed">8. Previously Fixed (March 2026)</a></li>
+    <li><a href="#priority">9. Recommended Fix Priority</a></li>
+    <li><a href="#files">10. File Reference Index</a></li>
+  </ol>
+</div>
+
+<!-- SECTION 1: BROKEN -->
+<div class="section" id="broken">
+  <div class="section-header">
+    <span style="font-size:1.3em;">🔴</span>
+    <h2>1. Broken Code &amp; Failing Flows</h2>
+    <span class="badge badge-high">6 issues</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num">1</div>
+    <div class="issue-body">
+      <h4>Failing Unit Test (CRA Default)</h4>
+      <span class="location">front/src/App.test.js</span>
+      <p>Test expects text <code>"learn react"</code> which does not exist. Running <code>npm test</code> will fail.</p>
+      <div class="code-block">test('renders learn react link', () => {
+  render(&lt;App /&gt;);
+  const linkElement = screen.getByText(/learn react/i);
+  expect(linkElement).toBeInTheDocument();
+});</div>
+      <p class="impact">Fix: Replace with smoke test (Provider + Router mock) or remove test.</p>
+    </div>
+    <span class="status-pill pill-broken">Broken</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num">2</div>
+    <div class="issue-body">
+      <h4>Super Admin Backup Download — 404</h4>
+      <span class="location">back/controllers/superAdmin.controller.js · back/server.js · front/src/pages/superadmin/Backups.js</span>
+      <p>Backend sets <code>downloadUrl: '/system-backups/sa-backup-{id}.tar.gz'</code> but no static route or file exists in server.</p>
+      <p class="impact">User clicks Download → URL does not resolve.</p>
+    </div>
+    <span class="status-pill pill-broken">Broken</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num">3</div>
+    <div class="issue-body">
+      <h4>Librarian Messaging — Non-Functional</h4>
+      <span class="location">front/src/pages/Librarian/LibrarianMessages.js</span>
+      <p>No API, Redux, or Socket calls. Hardcoded contact list and messages. Send button has no handler.</p>
+      <p class="impact">Librarian cannot send/receive real messages. Backend <code>/my-messages</code> exists (used by Accountant).</p>
+    </div>
+    <span class="status-pill pill-broken">Broken</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num">4</div>
+    <div class="issue-body">
+      <h4>School Admin StudentDetail Page — Unreachable</h4>
+      <span class="location">front/src/pages/schooladmin/StudentDetail.js · front/src/App.js</span>
+      <p>Full student admin page built but route <code>/school-admin/students/:id</code> uses <code>ProfileDetail</code>, not <code>StudentDetail</code>. Import in App.js is unused.</p>
+      <p class="impact">Dedicated tabs, report card via schoolAdmin slice never shown.</p>
+    </div>
+    <span class="status-pill pill-broken">Broken</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num">5</div>
+    <div class="issue-body">
+      <h4>Online Fee Payment Without Cashfree Env</h4>
+      <span class="location">back/controllers/parent.controller.js · front/src/pages/Parent/ChildFees.js</span>
+      <p><code>CASHFREE_APP_ID</code> and <code>CASHFREE_SECRET_KEY</code> required with no fallback. Payment init errors if missing.</p>
+    </div>
+    <span class="status-pill pill-broken">Broken</span>
+  </div>
+
+  <div class="issue">
+    <div class="issue-num warn">6</div>
+    <div class="issue-body">
+      <h4>Misleading UI (Wrong Behavior)</h4>
+      <span class="location">Transporter/Profile.js · superadmin/Backups.js · superadmin/Security.js</span>
+      <p>2FA shown as <strong>ENABLED</strong> statically (not implemented). Backups show <strong>3/3 Clusters</strong>, <strong>Mirror Sync Active</strong> (hardcoded). Security shows <strong>Threat level: LOW</strong> (hardcoded).</p>
+    </div>
+    <span class="status-pill pill-stub">Misleading</span>
+  </div>
+</div>
+
+<!-- SECTION 2: STUB -->
+<div class="section" id="stub">
+  <div class="section-header">
+    <span style="font-size:1.3em;">🟡</span>
+    <h2>2. Incomplete / Stub UI</h2>
+    <span class="badge badge-med">2 areas</span>
+  </div>
+  <div class="section-body">
+    <h3>Librarian Messages</h3>
+    <ul>
+      <li>Contact list: <code>[1, 2, 3].map</code> with fake names (Admin Office, Principal, Faculty Sub-node)</li>
+      <li>Static placeholder messages; search has no handler; send button inactive</li>
+      <li>Wire to <code>GET/POST /my-messages</code> like <code>AccountantMessages.js</code></li>
+    </ul>
+    <h3>Super Admin Backups</h3>
+    <ul>
+      <li>UI calls real API (<code>fetchBackups</code>, <code>triggerBackup</code>)</li>
+      <li>Backend simulates after 5s: random <code>fileSizeMB</code>, random checksum, fake <code>downloadUrl</code></li>
+      <li>No MongoDB dump, S3 upload, or file on disk</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SECTION 3: MISSING -->
+<div class="section" id="missing">
+  <div class="section-header">
+    <span style="font-size:1.3em;">📋</span>
+    <h2>3. Remaining Functionality (Not Implemented)</h2>
+    <span class="badge badge-med">11 items</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>#</th><th>Feature</th><th>Evidence</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><strong>SMS notifications</strong></td><td><code>SMS_GATEWAY_ACTIVE</code> in settings</td><td>No sendSms in controllers</td></tr>
+        <tr><td>2</td><td><strong>Subdomain multi-tenant routing</strong></td><td><code>SUBDOMAIN_MAPPING</code>, <code>school.subdomain</code></td><td>No host-based routing</td></tr>
+        <tr><td>3</td><td><strong>Real system backups</strong></td><td><code>triggerSystemBackup</code></td><td>Simulated only</td></tr>
+        <tr><td>4</td><td><strong>Two-factor authentication</strong></td><td><code>TWO_FACTOR_AUTH</code> setting</td><td>Not enforced in auth.js</td></tr>
+        <tr><td>5</td><td><strong>API rate limiting</strong></td><td>—</td><td>No express-rate-limit</td></tr>
+        <tr><td>6</td><td><strong>Automated test suite</strong></td><td>App.test.js only</td><td>Broken; no E2E/integration</td></tr>
+        <tr><td>7</td><td><strong>In-app PDF e-book reader</strong></td><td>ELearning.js</td><td>Opens fileUrl in new tab only</td></tr>
+        <tr><td>8</td><td><strong>Ticket reply DB notifications</strong></td><td>ticket.controller.js</td><td>Socket only; offline users miss Notification row</td></tr>
+        <tr><td>9</td><td><strong>Push notifications</strong></td><td>—</td><td>Not implemented</td></tr>
+        <tr><td>10</td><td><strong>i18n / localization</strong></td><td>—</td><td>English-only</td></tr>
+        <tr><td>11</td><td><strong>demomodel/ tenant architecture</strong></td><td>demomodel/*.js</td><td>Unused; app uses back/models/</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 4: LOGIC -->
+<div class="section" id="logic">
+  <div class="section-header">
+    <span style="font-size:1.3em;">⚙</span>
+    <h2>4. Remaining Logic (Partial Implementation)</h2>
+    <span class="badge badge-low">7+ areas</span>
+  </div>
+  <div class="section-body">
+    <h3>4.1 Academic Year Filtering Gaps</h3>
+    <p><strong>Middleware:</strong> <code>back/middleware/academicYear.js</code> — applied on ~13 route groups in indexRoutes.js.</p>
+    <table>
+      <thead><tr><th>Has year filter</th><th>Missing / weak</th></tr></thead>
+      <tbody>
+        <tr>
+          <td>student, teacher, schoolAdmin, parent, accountant, timetable, holiday, staffAttendance</td>
+          <td><code>transport.controller.js</code> (fees, assignments), <code>librarian.controller.js</code> (limited), <code>driver.controller.js</code> (none)</td>
+        </tr>
+      </tbody>
+    </table>
+    <p>Checklist: <code>back/utils/updateControllersForAcademicYear.js</code>. If no year found, middleware sets <code>req.academicYearId = null</code> and continues.</p>
+
+    <h3>4.2 Parent Cashfree Payment</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Issue</th></tr></thead>
+      <tbody>
+        <tr><td>Phone fallback</td><td><code>"9999999999"</code> if user has no phone — bad for production KYC</td></tr>
+        <tr><td>Order ID parsing</td><td>Reported fixed — verify <code>parts.slice(1,-1).join('-')</code> in production</td></tr>
+        <tr><td>.env</td><td>Test Cashfree keys in repo — use prod keys in deployment</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.3 Ticket System</h3>
+    <table>
+      <thead><tr><th>Item</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Create / list / reply</td><td class="cell-ok">OK</td></tr>
+        <tr><td>Socket TICKET_REPLY</td><td class="cell-ok">OK</td></tr>
+        <tr><td>Notification model on reply</td><td class="cell-gap">Missing</td></tr>
+        <tr><td>Duplicate route</td><td><code>/superadmin/messages/:recipientId</code> registered twice in indexRoutes.js</td></tr>
+      </tbody>
+    </table>
+
+    <h3>4.4–4.7 Other Logic Notes</h3>
+    <ul>
+      <li><strong>FeePayment hooks:</strong> pre-save, findOneAndUpdate, post-save revenue sync — double-count fix reported done</li>
+      <li><strong>Dead endpoint:</strong> <code>student.controller.getTimetable</code> not mounted; live route uses <code>timetable.getStudentTimetable</code></li>
+      <li><strong>Settings enforced:</strong> GLOBAL_REGISTRATION, MAINTENANCE_MODE, AUTO_LOCK_ACCOUNTS</li>
+      <li><strong>Home fallback:</strong> Unknown roles get generic Dashboard.js</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SECTION 5: DEAD CODE -->
+<div class="section" id="dead">
+  <div class="section-header">
+    <span style="font-size:1.3em;">🗑</span>
+    <h2>5. Dead Code &amp; Orphans</h2>
+    <span class="badge badge-low">6 items</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>Item</th><th>Path</th><th>Notes</th></tr></thead>
+      <tbody>
+        <tr><td>Unused import</td><td><code>App.js</code> → StudentDetail</td><td>Never in Routes</td></tr>
+        <tr><td>Unused API</td><td><code>student.controller.js</code> getTimetable</td><td>Superseded by timetable controller</td></tr>
+        <tr><td>Demo models</td><td><code>demomodel/</code></td><td>tenantId schemas; not used by app</td></tr>
+        <tr><td>Commented imports</td><td><code>App.js</code> ~153–154</td><td>Old lazy AcademicYears</td></tr>
+        <tr><td>CRA README</td><td><code>front/README.md</code></td><td>Default CRA text</td></tr>
+        <tr><td>Root README</td><td>—</td><td>Missing</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 6: SECURITY -->
+<div class="section" id="security">
+  <div class="section-header">
+    <span style="font-size:1.3em;">🔒</span>
+    <h2>6. Security &amp; Configuration Issues</h2>
+    <span class="badge badge-high">6 items</span>
+  </div>
+  <div class="section-body">
+    <table>
+      <thead><tr><th>#</th><th>Issue</th><th>Location</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Test Cashfree secrets in repo</td><td><code>back/.env</code></td><td>Gitignore .env; use deployment secrets</td></tr>
+        <tr><td>2</td><td>Simulated backups look real</td><td>Super admin UI</td><td>Label demo or implement real backup</td></tr>
+        <tr><td>3</td><td>GPS API keys</td><td><code>gps.routes.js</code></td><td>Rotate per vehicle</td></tr>
+        <tr><td>4</td><td>No rate limiting</td><td>Express</td><td>Limit /login, /forgot-password</td></tr>
+        <tr><td>5</td><td>JWT in localStorage</td><td>Redux persist</td><td>Document XSS hygiene</td></tr>
+        <tr><td>6</td><td>Debug console.log</td><td>Controllers, SocketContext</td><td>Gate behind NODE_ENV</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 7: MATRIX -->
+<div class="section" id="matrix">
+  <div class="section-header">
+    <span style="font-size:1.3em;">📊</span>
+    <h2>7. Module Matrix by Role</h2>
+  </div>
+  <div class="section-body matrix-wrap">
+    <table class="matrix">
+      <thead>
+        <tr>
+          <th>Module</th><th>Super</th><th>School</th><th>Teacher</th><th>Student</th><th>Parent</th>
+          <th>Acct</th><th>Libr</th><th>Trans</th><th>Driver</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Auth / OTP</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td></tr>
+        <tr><td>Dashboard</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td></tr>
+        <tr><td>Students / classes</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td>partial</td><td>self</td><td>child</td><td>list</td><td class="cell-dash">—</td><td>assign</td><td class="cell-dash">—</td></tr>
+        <tr><td>Attendance</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td>child</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td>drivers</td><td>self</td></tr>
+        <tr><td>Marks / exams</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td>child</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td></tr>
+        <tr><td>Fees / payroll</td><td>revenue</td><td class="cell-ok">✓</td><td>view</td><td class="cell-ok">✓</td><td>pay</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td>fee</td><td class="cell-dash">—</td></tr>
+        <tr><td>Library</td><td class="cell-dash">—</td><td>manage</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-dash">—</td></tr>
+        <tr><td>Transport / GPS</td><td class="cell-dash">—</td><td>manage</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td></tr>
+        <tr><td>Messaging</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-stub">STUB</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td></tr>
+        <tr><td>Tickets</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td></tr>
+        <tr><td>Quizzes / e-learning</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td>manage</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td></tr>
+        <tr><td>Backups</td><td class="cell-stub">sim</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td><td class="cell-dash">—</td></tr>
+        <tr><td>Academic years</td><td class="cell-dash">—</td><td class="cell-ok">✓</td><td>filter</td><td>filter</td><td class="cell-dash">—</td><td>partial</td><td class="cell-dash">—</td><td class="cell-gap">gap</td><td class="cell-dash">—</td></tr>
+        <tr><td>Reports / PDF</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td>PDF</td><td class="cell-ok">✓</td><td class="cell-dash">—</td><td>analytics</td><td class="cell-dash">—</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;font-size:0.82em;color:#64748b;">✓ implemented · STUB = UI only · sim = simulated · gap = incomplete logic · — = not applicable</p>
+  </div>
+</div>
+
+<!-- SECTION 8: FIXED -->
+<div class="section" id="fixed">
+  <div class="section-header">
+    <span style="font-size:1.3em;">✅</span>
+    <h2>8. Previously Fixed Issues (March 2026)</h2>
+    <span class="badge badge-ok">28 fixed</span>
+  </div>
+  <div class="section-body">
+    <p>From <code>docs/broken-flows-report.html</code> — verified in codebase:</p>
+    <table>
+      <thead><tr><th>Category</th><th>Count</th><th>Examples</th></tr></thead>
+      <tbody>
+        <tr><td>Broken flows</td><td>9</td><td>Attendance records.find, teacher recipient field, parent timetable, transport role, report card PDF, analytics deletedAt, bulk attendance standardId, accountant syntax</td></tr>
+        <tr><td>Incomplete flows</td><td>8</td><td>E-learning stream, Cashfree env, feeId parse, Mark model in getStudentDetail, financial report payroll, payroll notification userId, student timetable route</td></tr>
+        <tr><td>Missing features</td><td>6</td><td>GPS API key, ticket replies, school admin tickets, e-book fileUrl, attendance search, certificate download</td></tr>
+        <tr><td>Logic bugs</td><td>5</td><td>Fee revenue double-count, quiz points, transport fee upsert, Notification enums Payroll + Transport</td></tr>
+      </tbody>
+    </table>
+    <p style="margin-top:12px;"><a href="broken-flows-report.html" style="color:#818cf8;">Open full March 2026 fix report →</a></p>
+  </div>
+</div>
+
+<!-- SECTION 9: PRIORITY -->
+<div class="section" id="priority">
+  <div class="section-header">
+    <span style="font-size:1.3em;">🎯</span>
+    <h2>9. Recommended Fix Priority</h2>
+  </div>
+  <div class="section-body">
+    <h3>P0 — User-facing broken</h3>
+    <ul class="priority-list p0">
+      <li>Wire LibrarianMessages.js to /my-messages (copy AccountantMessages.js)</li>
+      <li>Route /school-admin/students/:id to StudentDetail OR delete orphan</li>
+      <li>Fix or remove App.test.js</li>
+      <li>Backups: real files OR show "Simulation mode" in UI</li>
+    </ul>
+    <h3>P1 — Data correctness</h3>
+    <ul class="priority-list p1">
+      <li>Academic year filters on transport.controller.js</li>
+      <li>Remove fake backup downloadUrl or serve real files</li>
+      <li>Cashfree: validate env on startup; remove test keys from repo</li>
+    </ul>
+    <h3>P2 — Platform completeness</h3>
+    <ul class="priority-list p2">
+      <li>SMS gateway or remove setting</li>
+      <li>2FA or remove UI/settings</li>
+      <li>Subdomain routing or remove SUBDOMAIN_MAPPING</li>
+      <li>Ticket → Notification model on reply</li>
+      <li>Archive or delete demomodel/</li>
+    </ul>
+    <h3>P3 — Quality</h3>
+    <ul class="priority-list p3">
+      <li>Root README</li>
+      <li>Integration tests (auth, fees, attendance)</li>
+      <li>Rate limiting on auth routes</li>
+      <li>Remove debug console.log in production</li>
+    </ul>
+  </div>
+</div>
+
+<!-- SECTION 10: FILES -->
+<div class="section" id="files">
+  <div class="section-header">
+    <span style="font-size:1.3em;">📁</span>
+    <h2>10. File Reference Index</h2>
+  </div>
+  <div class="section-body">
+    <h3>Frontend — review first</h3>
+    <div class="file-list">front/src/pages/Librarian/LibrarianMessages.js     # STUB
+front/src/pages/schooladmin/StudentDetail.js       # ORPHAN
+front/src/pages/superadmin/Backups.js              # Simulated backend
+front/src/pages/superadmin/Security.js             # Hardcoded threat level
+front/src/pages/Transporter/Profile.js             # Fake 2FA
+front/src/pages/Parent/ChildFees.js                # Cashfree dependent
+front/src/App.test.js                              # Broken test
+front/src/App.js                                   # Unused StudentDetail import</div>
+    <h3>Backend</h3>
+    <div class="file-list">back/controllers/superAdmin.controller.js          # Simulated backup
+back/controllers/student.controller.js             # Dead getTimetable
+back/controllers/transport.controller.js           # No academic year filter
+back/controllers/parent.controller.js              # Cashfree
+back/controllers/ticket.controller.js              # Socket only
+back/routes/indexRoutes.js                         # Duplicate route
+back/middleware/academicYear.js
+back/utils/updateControllersForAcademicYear.js
+back/.env                                          # Secrets risk</div>
+    <h3>Documentation</h3>
+    <div class="file-list">docs/broken-flows-report.html
+docs/school-management-system-flow.html
+docs/system-architecture-chart.html
+docs/PROJECT-AUDIT-REMAINING-ISSUES.md
+docs/PROJECT-AUDIT-REMAINING-ISSUES.html           # This file
+demomodel/                                         # Unused</div>
+  </div>
+</div>
+
+<div class="footer">
+  School Management System — Full Project Audit — May 2026<br/>
+  <em>Open in browser → File → Print → Save as PDF</em><br/>
+  Companion: <a href="PROJECT-AUDIT-REMAINING-ISSUES.md" style="color:#818cf8;">PROJECT-AUDIT-REMAINING-ISSUES.md</a>
+</div>
+
+</body>
+</html>

@@ -14,9 +14,12 @@ const AssignmentOverview = () => {
     const { assignments, loading } = useSelector((state) => state.schoolAdmin);
     const [searchQuery, setSearchQuery] = useState('');
 
+    const { activeAcademicYearId } = useSelector((s) => s.academicYear);
+
     useEffect(() => {
+        if (!activeAcademicYearId) return;
         dispatch(fetchAssignmentsOverview());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
 
     const filtered = assignments.filter(a => 
         a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||

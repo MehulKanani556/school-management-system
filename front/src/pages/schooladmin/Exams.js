@@ -23,17 +23,19 @@ const validationSchema = Yup.object({
 const Exams = () => {
     const dispatch = useDispatch();
     const { exams, classes, subjects, standards, loading, examAnalytics } = useSelector((s) => s.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((s) => s.academicYear);
     const [modal, setModal] = useState(false);
     const [editing, setEditing] = useState(null);
     const [analyticsModal, setAnalyticsModal] = useState(false);
     const [activeTab, setActiveTab] = useState('insights');
 
     useEffect(() => {
+        if (!activeAcademicYearId) return;
         dispatch(fetchExams());
         dispatch(fetchClasses());
         dispatch(fetchSubjects());
         dispatch(fetchStandards());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
 
     const formik = useFormik({
         initialValues: { name: '', type: 'unit_test', standardId: '', classSection: '', subject: '', maxMarks: 100, date: '' },

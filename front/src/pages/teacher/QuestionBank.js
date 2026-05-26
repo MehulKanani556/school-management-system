@@ -31,17 +31,26 @@ const QuestionBank = () => {
     const [newTypeName, setNewTypeName] = useState('');
 
     useEffect(() => {
-        const storedTypes = localStorage.getItem('sms_custom_question_types');
-        if (storedTypes) setCustomTypes(JSON.parse(storedTypes));
+        axiosInstance.get('/teacher/question-types')
+            .then((res) => setCustomTypes(Array.isArray(res.data) ? res.data : []))
+            .catch(() => {
+                const stored = localStorage.getItem('sms_custom_question_types');
+                if (stored) setCustomTypes(JSON.parse(stored));
+            });
     }, []);
 
-    const addCustomType = () => {
+    const addCustomType = async () => {
         if (!newTypeName.trim()) return;
         const updated = [...customTypes, newTypeName.trim()];
         setCustomTypes(updated);
-        localStorage.setItem('sms_custom_question_types', JSON.stringify(updated));
-        setNewTypeName('');
-        toast.success(`'${newTypeName}' added to persistent formats`);
+        try {
+            await axiosInstance.put('/teacher/question-types', { types: updated });
+            localStorage.setItem('sms_custom_question_types', JSON.stringify(updated));
+            setNewTypeName('');
+            toast.success(`'${newTypeName}' saved to school question types`);
+        } catch {
+            toast.error('Failed to save question type');
+        }
     };
 
     const allTypes = [...defaultTypes, ...customTypes];

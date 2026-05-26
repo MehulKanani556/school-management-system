@@ -33,14 +33,17 @@ const AdminTimetable = () => {
     const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
     const [sourceDay, setSourceDay] = useState('');
     const { classes, subjects, teachers, timetable, timetables, timetableTemplates, loading, error } = useSelector((state) => state.schoolAdmin);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
 
     useEffect(() => {
+        if (!activeAcademicYearId) return;
         dispatch(fetchClasses());
         dispatch(fetchSubjects());
         dispatch(fetchTeachers());
         dispatch(fetchAllTimetables());
         dispatch(fetchTimetableTemplates());
-    }, [dispatch]);
+        if (selectedClass) dispatch(fetchTimetable(selectedClass));
+    }, [dispatch, activeAcademicYearId]);
 
     const cascadePeriods = (periods, durations, startIndex = 0) => {
         const updated = periods.map(p => ({ ...p }));

@@ -33,6 +33,7 @@ const ParentLayout = () => {
         { to: '/parent/timetable', icon: Clock, label: 'Class Timetable' },
         { to: '/parent/exams', icon: Calendar, label: 'Exam Schedule' },
         { to: '/parent/assignments', icon: FileText, label: 'Assignments' },
+        { to: '/parent/library', icon: BookOpen, label: 'Library' },
       ]
     },
     {

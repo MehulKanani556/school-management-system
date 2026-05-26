@@ -5,6 +5,7 @@ import { Database, Shield, Download, RefreshCw, HardDrive, Lock, FileText } from
 import { motion } from 'framer-motion';
 import moment from 'moment';
 import toast from 'react-hot-toast';
+import { BASE_URL } from '../../utils/BASE_URL';
 
 const Backups = () => {
     const dispatch = useDispatch();
@@ -33,10 +34,12 @@ const Backups = () => {
         dispatch(triggerBackup({ type }));
     };
 
-    const handleDownload = (url) => {
-        if (!url) return toast.error('DATA CLUSTER NOT READY');
-        toast.success('DECRYPTION INITIATED');
-        // In a real app we'd trigger a real download
+    const handleDownload = (backup) => {
+        if (!backup?.downloadUrl) {
+            return toast.error('Simulation mode — no downloadable archive file');
+        }
+        const origin = BASE_URL.replace(/\/api\/?$/, '');
+        const url = backup.downloadUrl.startsWith('http') ? backup.downloadUrl : `${origin}${backup.downloadUrl}`;
         window.open(url, '_blank');
     };
 
@@ -44,10 +47,11 @@ const Backups = () => {
     const storageDisplay = totalStorageMB > 1024 ? `${(totalStorageMB / 1024).toFixed(2)} GB` : `${totalStorageMB} MB`;
     const lastBackupTime = Array.isArray(backups) && backups.length > 0 ? moment(backups[0].createdAt).fromNow() : 'NEVER';
 
+    const relayedCount = Array.isArray(backups) ? backups.filter((b) => b.status === 'Relayed').length : 0;
     const stats = [
-        { label: 'Aggregate Storage', value: storageDisplay, icon: HardDrive, note: `Last sync: ${lastBackupTime}`, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20' },
-        { label: 'Node Redundancy', value: '3/3 Clusters', icon: Shield, note: 'Mirror Sync Active', color: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20' },
-        { label: 'Security Layer', value: 'SHA-256', icon: Lock, note: 'End-to-End Encrypted', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' }
+        { label: 'Recorded Archives', value: String(Array.isArray(backups) ? backups.length : 0), icon: HardDrive, note: `Last run: ${lastBackupTime}`, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20' },
+        { label: 'Completed Runs', value: String(relayedCount), icon: Shield, note: 'Simulation metadata only', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20' },
+        { label: 'Storage Tracked', value: storageDisplay, icon: Lock, note: 'No physical files yet', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20' }
     ];
 
     return (
@@ -55,7 +59,7 @@ const Backups = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 font-inter">Backups & Disaster Recovery</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-70">Global institutional data archival & redundancy controller.</p>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-70">Exports JSON metadata snapshots to uploads/backups (full DB dump can be added later).</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
@@ -155,13 +159,18 @@ const Backups = () => {
                                     <td className="px-8 py-5 text-right">
                                         {b.status === 'Relayed' && (
                                             <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-all">
-                                                <button 
-                                                    onClick={() => handleDownload(b.downloadUrl)}
-                                                    className="h-10 px-4 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-superadmin-primary/20"
-                                                >
-                                                    <Download size={14} />
-                                                    <span className="text-[9px] font-black uppercase italic tracking-widest">Download Node Archive</span>
-                                                </button>
+                                                {b.downloadUrl ? (
+                                                    <button 
+                                                        type="button"
+                                                        onClick={() => handleDownload(b)}
+                                                        className="h-10 px-4 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-2 hover:scale-105 active:scale-95 transition-all shadow-xl shadow-superadmin-primary/20"
+                                                    >
+                                                        <Download size={14} />
+                                                        <span className="text-[9px] font-black uppercase italic tracking-widest">Download</span>
+                                                    </button>
+                                                ) : (
+                                                    <span className="text-[9px] font-black uppercase italic text-amber-500/80 tracking-widest">Simulated</span>
+                                                )}
                                             </div>
                                         )}
                                     </td>

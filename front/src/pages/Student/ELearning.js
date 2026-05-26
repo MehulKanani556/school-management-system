@@ -35,6 +35,7 @@ const ELearning = () => {
     const [quizComplete, setQuizComplete] = useState(false);
     const [userAnswers, setUserAnswers] = useState({});
     const [timeLeft, setTimeLeft] = useState(null);
+    const [pdfViewerUrl, setPdfViewerUrl] = useState(null);
 
     React.useEffect(() => {
         dispatch(fetchStudentQuizzes());
@@ -135,8 +136,14 @@ const ELearning = () => {
 
     const handleAccessStream = (url) => {
         if (!url) return toast.error("File link not found.");
-        const fullUrl = url.startsWith('http') ? url : `${BASE_URL.replace('/api', '')}/${url}`;
-        window.open(fullUrl, '_blank');
+        const origin = BASE_URL.replace(/\/api\/?$/, '');
+        const fullUrl = url.startsWith('http') ? url : `${origin}${url.startsWith('/') ? '' : '/'}${url}`;
+        const isPdf = /\.pdf($|\?)/i.test(fullUrl);
+        if (isPdf) {
+            setPdfViewerUrl(fullUrl);
+        } else {
+            window.open(fullUrl, '_blank');
+        }
     };
 
     const handleAnswerSelect = (index) => {
@@ -695,6 +702,26 @@ const ELearning = () => {
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            {pdfViewerUrl && (
+                <div className="fixed inset-0 z-[200] bg-black/90 flex flex-col p-4 md:p-8">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-white font-black uppercase tracking-widest text-sm">Document Reader</h3>
+                        <button
+                            type="button"
+                            onClick={() => setPdfViewerUrl(null)}
+                            className="px-4 py-2 bg-slate-800 text-white rounded-md text-xs font-black uppercase"
+                        >
+                            Close
+                        </button>
+                    </div>
+                    <iframe
+                        title="E-book reader"
+                        src={pdfViewerUrl}
+                        className="flex-1 w-full rounded-md bg-white border border-slate-700"
+                    />
+                </div>
+            )}
         </motion.div>
     );
 };

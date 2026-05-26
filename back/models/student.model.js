@@ -68,7 +68,7 @@ studentSchema.pre('save', async function (next) {
       if (!isNaN(lastNum)) nextNum = lastNum + 1;
     }
 
-    this.admissionNumber = `${prefix}${String(nextNum).padStart(3, '0')}`;
+    this.admissionNumber = `${prefix}${String(nextNum).padStart(4, '0')}`;
     next();
   } catch (error) {
     next(error);

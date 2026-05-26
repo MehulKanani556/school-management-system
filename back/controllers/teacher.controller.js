@@ -23,6 +23,7 @@ const QuestionBank = require('../models/questionBank.model');
 const Quiz = require('../models/quiz.model');
 const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
+const SystemSetting = require('../models/systemSetting.model');
 const bcrypt = require('bcrypt');
 const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
@@ -1584,6 +1585,26 @@ module.exports = {
     updateQuiz: exports.updateQuiz,
     deleteQuiz: exports.deleteQuiz,
     toggleQuizPublish: exports.toggleQuizPublish,
-    getQuizAttempts: exports.getQuizAttempts
+    getQuizAttempts: exports.getQuizAttempts,
+    getCustomQuestionTypes: async (req, res) => {
+        try {
+            const key = `QUESTION_TYPES_${req.user.schoolId}`;
+            const row = await SystemSetting.findOne({ key });
+            const defaults = ['MCQ', 'FillInBlank', 'OneWord', 'TrueFalse', 'ShortAnswer', 'LongAnswer'];
+            res.json(row?.value || defaults);
+        } catch (err) { res.status(500).json({ message: err.message }); }
+    },
+    saveCustomQuestionTypes: async (req, res) => {
+        try {
+            const { types } = req.body;
+            const key = `QUESTION_TYPES_${req.user.schoolId}`;
+            await SystemSetting.findOneAndUpdate(
+                { key },
+                { key, value: types, description: 'Custom question types for school' },
+                { upsert: true }
+            );
+            res.json(types);
+        } catch (err) { res.status(500).json({ message: err.message }); }
+    },
 };
 

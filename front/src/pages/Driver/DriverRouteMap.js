@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchDriverRoutesSlice } from '../../redux/slice/transport.slice';
-import { MapPin, Bus, User, Navigation, List, Map as MapIcon, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Navigation, List, Map as MapIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
+import LiveMap from '../../components/Transport/LiveMap.jsx';
 
 const DriverRouteMap = () => {
     const dispatch = useDispatch();
@@ -60,6 +61,12 @@ const DriverRouteMap = () => {
                             </div>
 
                             <div className="flex-1 space-y-4">
+                                <div className="aspect-video rounded-md overflow-hidden border border-slate-800/60 mb-6">
+                                    <LiveMap
+                                        vehicleLocation={route.vehicleId?.currentLocation}
+                                        stops={route.stops || []}
+                                    />
+                                </div>
                                 <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/60 mb-6 flex items-center gap-3 italic">
                                     <List size={14} /> My Road Points & Stops (रास्ता और स्टॉप)
                                 </h4>

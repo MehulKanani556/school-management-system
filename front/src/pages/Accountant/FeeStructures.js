@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const FeeStructures = () => {
     const dispatch = useDispatch();
     const { feeStructures, loading } = useSelector((state) => state.accountant);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
     const [selectedStructure, setSelectedStructure] = useState(null);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -29,9 +30,10 @@ const FeeStructures = () => {
     });
 
     useEffect(() => {
+        if (!activeAcademicYearId) return;
         dispatch(fetchFeeStructures());
         fetchStandards();
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
 
     const fetchStandards = async () => {
         try {

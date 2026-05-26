@@ -62,8 +62,13 @@ const Dashboard = () => {
   const dispatch = useDispatch();
   const { dashboard, loading } = useSelector((s) => s.schoolAdmin);
   const { user } = useSelector((s) => s.auth);
+  const { activeAcademicYear } = useSelector((s) => s.academicYear);
 
-  useEffect(() => { dispatch(fetchDashboard()); }, [dispatch]);
+  const { activeAcademicYearId } = useSelector((s) => s.academicYear);
+
+  useEffect(() => {
+    if (activeAcademicYearId) dispatch(fetchDashboard());
+  }, [dispatch, activeAcademicYearId]);
 
   const stats = [
     { icon: Users, label: 'Total Students', value: dashboard?.students, color: 'from-schooladmin-primary to-indigo-600', delay: 0, subtext: `${dashboard?.metrics?.studentGrowth >= 0 ? '+' : ''}${dashboard?.metrics?.studentGrowth || 0}% this month` },
@@ -90,6 +95,15 @@ const Dashboard = () => {
         </motion.div>
 
         <div className="flex gap-3">
+          {activeAcademicYear && (
+            <div className="bg-schooladmin-primary/10 border border-schooladmin-primary/30 rounded-md px-5 py-3 flex items-center gap-3">
+              <CalendarIcon size={18} className="text-schooladmin-primary" />
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Active Session</p>
+                <p className="text-sm font-bold text-schooladmin-primary">{activeAcademicYear.name}</p>
+              </div>
+            </div>
+          )}
           <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/30 rounded-md px-5 py-3 flex items-center gap-4">
             <div className="text-right">
               <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Current Time</p>

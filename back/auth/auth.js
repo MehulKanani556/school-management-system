@@ -5,6 +5,26 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 
+const MFA_ROLES = ['Super_Admin', 'School_Admin', 'Accountant'];
+
+async function sendLoginOtpEmail(user, otp) {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+        console.warn('[2FA] Email not configured — OTP logged for dev only');
+        if (process.env.NODE_ENV !== 'production') console.info(`[2FA OTP] ${user.email}: ${otp}`);
+        return;
+    }
+    const transport = nodemailer.createTransport({
+        service: 'Gmail',
+        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+    await transport.sendMail({
+        from: process.env.EMAIL_USER,
+        to: user.email,
+        subject: 'Login verification code',
+        text: `Your login verification code is: ${otp}. It expires in 10 minutes.`,
+    });
+}
+
 const generateToken = async (id, role = 'User') => {
     const accessToken = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     const refreshToken = jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: '7d' });
@@ -167,10 +187,55 @@ exports.login = async (req, res) => {
             await checkUser.save();
         }
 
+        if (req.tenantSchoolId && checkUser.role !== 'Super_Admin') {
+            if (checkUser.schoolId?.toString() !== req.tenantSchoolId.toString()) {
+                return res.status(403).json({ message: 'This account does not belong to this school portal' });
+            }
+        }
+
+        const twoFaSetting = await SystemSetting.findOne({ key: 'TWO_FACTOR_AUTH' });
+        const twoFaOn = twoFaSetting?.value === true || twoFaSetting?.value === 'true';
+        if (twoFaOn && MFA_ROLES.includes(checkUser.role)) {
+            const otp = String(Math.floor(100000 + Math.random() * 900000));
+            checkUser.otp = otp;
+            checkUser.otpExpires = Date.now() + 10 * 60 * 1000;
+            await checkUser.save();
+            await sendLoginOtpEmail(checkUser, otp);
+            return res.status(200).json({
+                requires2FA: true,
+                email: checkUser.email,
+                message: 'Verification code sent to your email',
+            });
+        }
+
         const { accessToken, refreshToken } = await generateToken(checkUser._id, checkUser.role);
         return res
             .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
             .status(200).json({ user: checkUser, message: "Login successfully", token: accessToken });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+}
+
+exports.verifyLogin2FA = async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+        if (!user.otp || user.otp !== String(otp)) {
+            return res.status(401).json({ message: 'Invalid verification code' });
+        }
+        if (user.otpExpires && user.otpExpires < Date.now()) {
+            return res.status(401).json({ message: 'Verification code expired' });
+        }
+        user.otp = undefined;
+        user.otpExpires = undefined;
+        await user.save();
+
+        const { accessToken, refreshToken } = await generateToken(user._id, user.role);
+        return res
+            .cookie("accessToken", accessToken, { httpOnly: true, secure: true, maxAge: 7 * 60 * 60 * 1000, sameSite: "Strict" })
+            .status(200).json({ user, message: 'Login successful', token: accessToken });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }

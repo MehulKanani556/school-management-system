@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const classSectionSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
   
+  // Academic Year - sections are now year-specific
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
+  
   // Link to the Parent Standard (Grade Level)
   standardId: { type: mongoose.Schema.Types.ObjectId, ref: 'Standard', required: true },
   
@@ -22,10 +25,10 @@ const classSectionSchema = new mongoose.Schema({
   subjects: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Subject' }],
 }, { timestamps: true });
 
-// Ensure Standard + Section combo is unique per school (e.g., Only one "Standard 1 - A")
-classSectionSchema.index({ schoolId: 1, standardId: 1, sectionLabel: 1 }, { unique: true });
+// Ensure Standard + Section combo is unique per school per academic year
+classSectionSchema.index({ schoolId: 1, academicYearId: 1, standardId: 1, sectionLabel: 1 }, { unique: true });
 
-// Ensure a teacher is only a Class Teacher for one section at a time
-classSectionSchema.index({ schoolId: 1, classTeacher: 1 }, { unique: true });
+// Ensure a teacher is only a Class Teacher for one section at a time per academic year
+classSectionSchema.index({ schoolId: 1, academicYearId: 1, classTeacher: 1 }, { unique: true });
 
 module.exports = mongoose.model('ClassSection', classSectionSchema);

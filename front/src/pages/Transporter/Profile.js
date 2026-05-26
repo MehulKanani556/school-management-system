@@ -234,15 +234,15 @@ const Profile = () => {
                                     </div>
                                     <button type="button" className="px-4 py-2 border border-slate-800 text-[9px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md h-[42px]">Reset</button>
                                 </div>
-                                <div className="flex items-center justify-between p-5 bg-neutral-950/60 border border-slate-800/40 rounded-md group hover:border-emerald-600/20 transition-all">
-                                    <div className="flex items-center gap-4 text-emerald-500/80">
+                                <div className="flex items-center justify-between p-5 bg-neutral-950/60 border border-slate-800/40 rounded-md group hover:border-emerald-600/20 transition-all opacity-80">
+                                    <div className="flex items-center gap-4 text-slate-500">
                                         <Layers size={20} />
                                         <div>
                                             <p className="text-[11px] font-black uppercase italic tracking-tighter text-slate-200">Two-Factor Authentication</p>
-                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Status: Active</p>
+                                            <p className="text-[9px] font-bold uppercase italic text-slate-600 opacity-60">Not available yet</p>
                                         </div>
                                     </div>
-                                    <span className="px-4 py-2 bg-emerald-600/10 text-emerald-500 border border-emerald-600/20 rounded-md text-[9px] font-black italic tracking-widest h-[42px] flex items-center">ENABLED</span>
+                                    <span className="px-4 py-2 bg-slate-800/60 text-slate-500 border border-slate-700 rounded-md text-[9px] font-black italic tracking-widest h-[42px] flex items-center">OFF</span>
                                 </div>
                             </div>
                         </div>

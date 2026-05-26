@@ -30,6 +30,19 @@ import { useSocket } from '../../context/SocketContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import EmojiPicker from 'emoji-picker-react';
 
+// Helper function to get relative time
+const getRelativeTime = (date) => {
+    const now = new Date();
+    const messageDate = new Date(date);
+    const diffInSeconds = Math.floor((now - messageDate) / 1000);
+    
+    if (diffInSeconds < 60) return 'Just now';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
+    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
+    return messageDate.toLocaleDateString();
+};
+
 const Communication = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const location = useLocation();

@@ -40,6 +40,14 @@ const Security = () => {
 
     const { stats, recentAudits } = security;
     const displayLogs = activeTab === 'registry' ? recentAudits : auditLogs;
+    const threatLevel =
+        stats.criticalAlerts > 5 ? 'HIGH'
+        : stats.criticalAlerts > 0 || stats.failedAttempts > 20 ? 'MEDIUM'
+        : 'LOW';
+    const threatColor =
+        threatLevel === 'HIGH' ? 'text-red-500'
+        : threatLevel === 'MEDIUM' ? 'text-amber-500'
+        : 'text-emerald-500';
 
     return (
         <motion.div 
@@ -53,7 +61,7 @@ const Security = () => {
                     <h1 className="text-2xl xs:text-3xl font-black tracking-tight text-white font-inter italic uppercase leading-none mb-1.5">Security & Access Center</h1>
                     <p className="text-[11px] xs:text-sm font-medium text-slate-500 mt-1 tracking-wide flex items-center gap-3">
                         <span className="w-1.5 h-1.5 rounded-md bg-superadmin-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]"></span>
-                        Firewall Situational Monitoring Active. Threat level: <span className="text-emerald-500 font-black italic">LOW</span>
+                        Firewall Situational Monitoring Active. Threat level: <span className={`${threatColor} font-black italic`}>{threatLevel}</span>
                     </p>
                 </div>
                 <div className="flex items-center gap-2 bg-slate-900/50 p-1 rounded-md border border-white/5 h-12 shadow-2xl backdrop-blur-md">

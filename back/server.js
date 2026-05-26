@@ -1,4 +1,12 @@
 require("dotenv").config();
+
+if (!process.env.CASHFREE_APP_ID || !process.env.CASHFREE_SECRET_KEY) {
+    console.warn('[CONFIG] Cashfree credentials missing — parent online fee payments will return 503.');
+}
+if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
+    console.warn('[CONFIG] Database URI not set (MONGO_URI or MONGODB_URI).');
+}
+
 const express = require('express');
 const connectDb = require('./db/db');
 const cors = require('cors');
@@ -36,6 +44,9 @@ app.use(cors({
   credentials: true,
 }));
 app.use(bodyParser.json());
+app.use('/uploads', express.static('uploads'));
+const subdomainResolver = require('./middleware/subdomain');
+app.use(subdomainResolver);
 const gpsRoutes = require('./routes/gps.routes');
 app.use('/api/', authRoutes);
 app.use('/api/gps', gpsRoutes);

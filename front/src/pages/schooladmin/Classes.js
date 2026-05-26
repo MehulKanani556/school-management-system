@@ -26,17 +26,20 @@ const Classes = () => {
   const dispatch = useDispatch();
   const { classes, teachers, subjects, standards, loading } = useSelector((s) => s.schoolAdmin);
   const { user } = useSelector((s) => s.auth);
+  const { activeAcademicYearId, activeAcademicYear } = useSelector((s) => s.academicYear);
   const [modal, setModal] = useState(false);
   const [editing, setEditing] = useState(null);
   const [stdModal, setStdModal] = useState(false);
   const [editingStd, setEditingStd] = useState(null);
 
   useEffect(() => {
-    dispatch(fetchClasses());
+    if (activeAcademicYearId) {
+      dispatch(fetchClasses({ academicYearId: activeAcademicYearId }));
+    }
     dispatch(fetchTeachers());
     dispatch(fetchSubjects());
     dispatch(fetchStandards());
-  }, [dispatch]);
+  }, [dispatch, activeAcademicYearId]);
 
   const formik = useFormik({
     initialValues: {
@@ -51,6 +54,7 @@ const Classes = () => {
       const data = {
         ...values,
         schoolId: user.schoolId,
+        academicYearId: activeAcademicYearId,
         subjectAssignments: validAssignments,
         subjects: validAssignments.map(a => a.subject)
       };
@@ -207,7 +211,14 @@ const Classes = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-black uppercase tracking-tighter text-white">Standards & Classrooms</h1>
-          <p className="text-slate-400 text-sm mt-1">Manage grade levels and their associated sections</p>
+          <p className="text-slate-400 text-sm mt-1">
+            Manage grade levels and their associated sections
+            {activeAcademicYear && (
+              <span className="ml-2 px-2 py-0.5 bg-brand-primary/10 border border-brand-primary/30 rounded text-[10px] font-black text-brand-primary uppercase tracking-wider">
+                Session {activeAcademicYear.name}
+              </span>
+            )}
+          </p>
         </div>
         <div className="flex gap-4">
           <button onClick={openStdAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-surface/40 hover:bg-slate-800 border border-brand-border/40 rounded-md font-black text-xs uppercase tracking-wider transition-all text-slate-300">
@@ -300,6 +311,18 @@ const Classes = () => {
                               </p>
                             </div>
                           </div>
+                          
+                          {/* Student Count Badge */}
+                          {typeof c.studentCount !== 'undefined' && (
+                            <div className="mt-3 flex items-center gap-2">
+                              <div className={`flex-1 px-3 py-2 rounded-md border ${c.studentCount > 0 ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-slate-800/40 border-slate-700/30'}`}>
+                                <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-0.5">Enrolled Students</p>
+                                <p className={`text-sm font-black ${c.studentCount > 0 ? 'text-brand-primary' : 'text-slate-600'}`}>
+                                  {c.studentCount} {c.studentCount === 1 ? 'Student' : 'Students'}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
 
                         {c.subjectAssignments?.length > 0 && (

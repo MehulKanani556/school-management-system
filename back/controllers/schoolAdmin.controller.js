@@ -142,7 +142,7 @@ exports.getDashboardStats = async (req, res) => {
 
     const attendanceTrends = last7Attendance.map(a => {
       const total = a.records.length;
-      const present = a.records.filter(r => r.status === 'present').length;
+      const present = a.records.filter(r => /present/i.test(r.status || '')).length;
       return {
         date: a.date.toISOString().split('T')[0],
         percentage: total > 0 ? Math.round((present / total) * 100) : 0
@@ -438,8 +438,10 @@ exports.getStudents = async (req, res) => {
           // Override with enrollment data for this year
           standard: e.standardId,
           classSection: e.classSectionId,
+          rollNumber: e.rollNumber || e.studentId?.rollNumber,
           enrollmentStatus: e.status,
-          enrollmentId: e._id
+          enrollmentId: e._id,
+          isPromoted: e.isPromoted,
         }));
 
       // Fetch fee summaries for the selected academic year
@@ -705,23 +707,83 @@ exports.getStudentDetail = async (req, res) => {
 
 exports.promoteStudents = async (req, res) => {
   try {
-    const { studentIds, toStandardId, toClassSectionId, fromAcademicYearId, toAcademicYearId, status = 'Promoted' } = req.body;
+    const { 
+      fromStandardId, 
+      fromClassSectionId, 
+      toStandardId, 
+      toClassSectionId, 
+      fromAcademicYearId, 
+      toAcademicYearId, 
+      status = 'Promoted' 
+    } = req.body;
     const schoolId = getSchoolId(req);
 
     if (!fromAcademicYearId || !toAcademicYearId) {
       return res.status(400).json({ message: 'Source and Target Academic Years are required' });
     }
 
-    const students = await Student.find({ _id: { $in: studentIds }, schoolId });
-    if (!students.length) return res.status(404).json({ message: 'No students found to promote' });
+    if (!fromStandardId || !toStandardId) {
+      return res.status(400).json({ message: 'Source and Target Standards are required' });
+    }
+
+    // Find students enrolled in the source academic year, standard, and optionally section
+    const enrollmentQuery = {
+      schoolId,
+      academicYearId: fromAcademicYearId,
+      standardId: fromStandardId,
+    };
+
+    if (fromClassSectionId) {
+      enrollmentQuery.classSectionId = fromClassSectionId;
+    }
+
+    const enrollments = await StudentEnrollment.find(enrollmentQuery)
+      .populate('studentId')
+      .lean();
+
+    if (!enrollments.length) {
+      return res.status(404).json({ message: 'No students found to promote in the selected class' });
+    }
+
+    const students = enrollments
+      .filter(e => e.studentId && !e.studentId.deletedAt)
+      .map(e => e.studentId);
+
+    if (!students.length) {
+      return res.status(404).json({ message: 'No active students found to promote' });
+    }
+
+    // If no target section specified, get all sections for the target grade and distribute students
+    let targetSections = [];
+    if (!toClassSectionId) {
+      targetSections = await ClassSection.find({ 
+        schoolId, 
+        standardId: toStandardId 
+      }).sort({ sectionLabel: 1 }).lean();
+      
+      if (!targetSections.length) {
+        return res.status(400).json({ 
+          message: 'No sections found for target grade. Please create sections first or specify a target section.' 
+        });
+      }
+    }
 
     let count = 0;
-    for (const student of students) {
+    for (let i = 0; i < students.length; i++) {
+      const student = students[i];
+      
+      // Determine target section: either specified or distribute evenly
+      let assignedSectionId = toClassSectionId;
+      if (!assignedSectionId && targetSections.length > 0) {
+        // Distribute students evenly across sections (round-robin)
+        assignedSectionId = targetSections[i % targetSections.length]._id;
+      }
+
       // 1. Create Promotion History record
       await PromotionHistory.create({
         schoolId,
         studentId: student._id,
-        fromStandard: student.standard,
+        fromStandard: fromStandardId,
         toStandard: toStandardId,
         fromAcademicYear: fromAcademicYearId,
         toAcademicYear: toAcademicYearId,
@@ -737,22 +799,165 @@ exports.promoteStudents = async (req, res) => {
           studentId: student._id,
           academicYearId: toAcademicYearId,
           standardId: toStandardId,
-          classSectionId: toClassSectionId || null,
+          classSectionId: assignedSectionId,
           status: 'Active',
           isPromoted: true
         },
         { upsert: true, new: true }
       );
 
-      // 3. Update active student reference
-      student.standard = toStandardId;
-      student.classSection = toClassSectionId || null;
-      await student.save();
+      // 3. Update active student reference (only if promoting to current/future year)
+      const currentYear = await AcademicYear.findOne({ schoolId, isCurrent: true });
+      if (currentYear && toAcademicYearId.toString() === currentYear._id.toString()) {
+        await Student.findByIdAndUpdate(student._id, {
+          standard: toStandardId,
+          classSection: assignedSectionId,
+        });
+      }
+      
       count++;
     }
 
-    res.json({ message: `Promotion Wizard completed. ${count} students migrated and enrollment records preserved.` });
-  } catch (err) { res.status(500).json({ message: err.message }); }
+    const distributionMsg = !toClassSectionId && targetSections.length > 1 
+      ? ` Students were automatically distributed across ${targetSections.length} sections.`
+      : '';
+
+    res.json({ 
+      message: `Promotion completed successfully! ${count} student${count !== 1 ? 's' : ''} promoted from Grade ${enrollments[0]?.standardId?.level || '?'} to the target grade.${distributionMsg}` 
+    });
+  } catch (err) { 
+    console.error('Promotion error:', err);
+    res.status(500).json({ message: err.message }); 
+  }
+};
+
+exports.promoteAllStudents = async (req, res) => {
+  try {
+    const { fromAcademicYearId, toAcademicYearId } = req.body;
+    const schoolId = getSchoolId(req);
+
+    if (!fromAcademicYearId || !toAcademicYearId) {
+      return res.status(400).json({ message: 'Source and Target Academic Years are required' });
+    }
+
+    // Get all standards for the school
+    const standards = await Standard.find({ schoolId }).sort({ level: 1 }).lean();
+    
+    let totalPromoted = 0;
+    const promotionResults = [];
+
+    // Promote each grade to the next grade
+    for (const standard of standards) {
+      // Find the next grade
+      const nextGrade = standards.find(s => s.level === standard.level + 1);
+      if (!nextGrade) {
+        // Skip if no next grade (e.g., Grade 12)
+        promotionResults.push({
+          grade: standard.level,
+          status: 'skipped',
+          message: 'No next grade available (graduation)'
+        });
+        continue;
+      }
+
+      // Find students enrolled in this grade for the source year
+      const enrollments = await StudentEnrollment.find({
+        schoolId,
+        academicYearId: fromAcademicYearId,
+        standardId: standard._id,
+      }).populate('studentId').lean();
+
+      const students = enrollments
+        .filter(e => e.studentId && !e.studentId.deletedAt)
+        .map(e => e.studentId);
+
+      if (!students.length) {
+        promotionResults.push({
+          grade: standard.level,
+          status: 'skipped',
+          message: 'No students found'
+        });
+        continue;
+      }
+
+      // Get target sections for distribution
+      const targetSections = await ClassSection.find({ 
+        schoolId, 
+        standardId: nextGrade._id 
+      }).sort({ sectionLabel: 1 }).lean();
+
+      if (!targetSections.length) {
+        promotionResults.push({
+          grade: standard.level,
+          status: 'failed',
+          message: 'No sections found in target grade'
+        });
+        continue;
+      }
+
+      // Promote each student
+      let gradeCount = 0;
+      for (let i = 0; i < students.length; i++) {
+        const student = students[i];
+        const assignedSectionId = targetSections[i % targetSections.length]._id;
+
+        // Create Promotion History
+        await PromotionHistory.create({
+          schoolId,
+          studentId: student._id,
+          fromStandard: standard._id,
+          toStandard: nextGrade._id,
+          fromAcademicYear: fromAcademicYearId,
+          toAcademicYear: toAcademicYearId,
+          promotedBy: req.user._id,
+          status: 'Promoted',
+        });
+
+        // Create/Update Student Enrollment
+        await StudentEnrollment.findOneAndUpdate(
+          { studentId: student._id, academicYearId: toAcademicYearId },
+          {
+            schoolId,
+            studentId: student._id,
+            academicYearId: toAcademicYearId,
+            standardId: nextGrade._id,
+            classSectionId: assignedSectionId,
+            status: 'Active',
+            isPromoted: true
+          },
+          { upsert: true, new: true }
+        );
+
+        // Update active student reference if promoting to current year
+        const currentYear = await AcademicYear.findOne({ schoolId, isCurrent: true });
+        if (currentYear && toAcademicYearId.toString() === currentYear._id.toString()) {
+          await Student.findByIdAndUpdate(student._id, {
+            standard: nextGrade._id,
+            classSection: assignedSectionId,
+          });
+        }
+
+        gradeCount++;
+      }
+
+      totalPromoted += gradeCount;
+      promotionResults.push({
+        grade: standard.level,
+        status: 'success',
+        count: gradeCount,
+        message: `${gradeCount} students promoted to Grade ${nextGrade.level}`
+      });
+    }
+
+    res.json({ 
+      message: `Bulk promotion completed! ${totalPromoted} students promoted across ${promotionResults.filter(r => r.status === 'success').length} grades.`,
+      totalPromoted,
+      results: promotionResults
+    });
+  } catch (err) { 
+    console.error('Bulk promotion error:', err);
+    res.status(500).json({ message: err.message }); 
+  }
 };
 
 exports.generateRollNumbers = async (req, res) => {
@@ -981,28 +1186,134 @@ exports.deleteTeacher = async (req, res) => {
 // ─── Classes ──────────────────────────────────────────────────────────────────
 exports.getClasses = async (req, res) => {
   try {
-    const classes = await ClassSection.find({ schoolId: getSchoolId(req) })
+    const schoolId = getSchoolId(req);
+    const academicYearId = req.query.academicYearId || req.academicYearId;
+
+    if (!academicYearId) {
+      return res.status(400).json({ 
+        message: 'Academic Year is required. Please select an academic year.' 
+      });
+    }
+
+    // Fetch class sections for the specific academic year
+    const classes = await ClassSection.find({ 
+      schoolId,
+      academicYearId 
+    })
       .populate('standardId', 'level name')
       .populate('classTeacher', 'firstName lastName')
       .populate('subjectAssignments.subject', 'name code')
-      .populate('subjectAssignments.teachers', 'firstName lastName');
-    res.json(classes);
+      .populate('subjectAssignments.teachers', 'firstName lastName')
+      .populate('academicYearId', 'name')
+      .lean();
+
+    // Get enrollment counts for each section
+    const enrollmentCounts = await StudentEnrollment.aggregate([
+      {
+        $match: {
+          schoolId: new mongoose.Types.ObjectId(schoolId),
+          academicYearId: new mongoose.Types.ObjectId(academicYearId),
+          status: 'Active'
+        }
+      },
+      {
+        $group: {
+          _id: '$classSectionId',
+          studentCount: { $sum: 1 }
+        }
+      }
+    ]);
+
+    const countMap = enrollmentCounts.reduce((map, item) => {
+      if (item._id) {
+        map[item._id.toString()] = item.studentCount;
+      }
+      return map;
+    }, {});
+
+    // Get average attendance percentage for each class section
+    const attendanceStats = await Attendance.aggregate([
+      {
+        $match: {
+          schoolId: new mongoose.Types.ObjectId(schoolId),
+          academicYearId: new mongoose.Types.ObjectId(academicYearId)
+        }
+      },
+      {
+        $project: {
+          classSection: 1,
+          presentCount: {
+            $size: {
+              $filter: {
+                input: '$records',
+                as: 'r',
+                cond: { $in: ['$$r.status', ['Present', 'Late', 'Half-Day']] }
+              }
+            }
+          },
+          totalCount: { $size: '$records' }
+        }
+      },
+      {
+        $group: {
+          _id: '$classSection',
+          totalPresent: { $sum: '$presentCount' },
+          totalRecords: { $sum: '$totalCount' }
+        }
+      }
+    ]);
+
+    const attendanceMap = attendanceStats.reduce((map, item) => {
+      if (item._id) {
+        const rate = item.totalRecords > 0 ? ((item.totalPresent / item.totalRecords) * 100) : 100;
+        map[item._id.toString()] = rate.toFixed(1);
+      }
+      return map;
+    }, {});
+
+    // Enrich classes with student counts & attendanceRate
+    const enrichedClasses = classes.map(c => ({
+      ...c,
+      studentCount: countMap[c._id.toString()] || 0,
+      hasStudents: (countMap[c._id.toString()] || 0) > 0,
+      attendanceRate: attendanceMap[c._id.toString()] || 'N/A'
+    }));
+
+    res.json(enrichedClasses);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.createClass = async (req, res) => {
   try {
-    const { standardId, sectionLabel, classTeacher } = req.body;
+    const { standardId, sectionLabel, classTeacher, academicYearId } = req.body;
     const schoolId = getSchoolId(req);
 
-    // Check if section already exists in this standard
-    const existingSection = await ClassSection.findOne({ schoolId, standardId, sectionLabel });
-    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard` });
+    // Use academicYearId from body or from middleware
+    const finalAcademicYearId = academicYearId || req.academicYearId;
+    
+    if (!finalAcademicYearId) {
+      return res.status(400).json({ 
+        message: 'Academic Year is required to create a class section.' 
+      });
+    }
 
-    // Check if teacher is already a class teacher for another section
+    // Check if section already exists in this standard for this academic year
+    const existingSection = await ClassSection.findOne({ 
+      schoolId, 
+      academicYearId: finalAcademicYearId,
+      standardId, 
+      sectionLabel 
+    });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard in the selected academic year` });
+
+    // Check if teacher is already a class teacher for another section in this academic year
     if (classTeacher) {
-      const alreadyAssigned = await ClassSection.findOne({ schoolId, classTeacher });
-      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
+      const alreadyAssigned = await ClassSection.findOne({ 
+        schoolId, 
+        academicYearId: finalAcademicYearId,
+        classTeacher 
+      });
+      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section in this academic year' });
     }
 
     // Fetch standard to ensure subjects match
@@ -1025,6 +1336,7 @@ exports.createClass = async (req, res) => {
     const cls = await ClassSection.create({
       ...req.body,
       schoolId,
+      academicYearId: finalAcademicYearId,
       subjectAssignments: finalAssignments,
       subjects: standardSubjectIds
     });
@@ -1033,7 +1345,8 @@ exports.createClass = async (req, res) => {
       { path: 'standardId', select: 'level' },
       { path: 'classTeacher', select: 'firstName lastName' },
       { path: 'subjectAssignments.subject', select: 'name code' },
-      { path: 'subjectAssignments.teachers', select: 'firstName lastName' }
+      { path: 'subjectAssignments.teachers', select: 'firstName lastName' },
+      { path: 'academicYearId', select: 'name' }
     ]);
     res.status(201).json({ message: 'Academic section created successfully', data: populated });
   } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1041,23 +1354,34 @@ exports.createClass = async (req, res) => {
 
 exports.updateClass = async (req, res) => {
   try {
-    const { standardId, sectionLabel, classTeacher } = req.body;
+    const { standardId, sectionLabel, classTeacher, academicYearId } = req.body;
     const schoolId = getSchoolId(req);
 
-    // Check for duplicate section
+    // Get the existing class to preserve its academicYearId if not provided
+    const existingClass = await ClassSection.findOne({ _id: req.params.id, schoolId });
+    if (!existingClass) return res.status(404).json({ message: 'Class section not found' });
+
+    const finalAcademicYearId = academicYearId || existingClass.academicYearId;
+
+    // Check for duplicate section in the same academic year
     const existingSection = await ClassSection.findOne({
-      schoolId, standardId, sectionLabel,
+      schoolId, 
+      academicYearId: finalAcademicYearId,
+      standardId, 
+      sectionLabel,
       _id: { $ne: req.params.id }
     });
-    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard` });
+    if (existingSection) return res.status(400).json({ message: `Section ${sectionLabel} already exists for this Standard in this academic year` });
 
-    // Check if teacher is already a class teacher elsewhere
+    // Check if teacher is already a class teacher elsewhere in this academic year
     if (classTeacher) {
       const alreadyAssigned = await ClassSection.findOne({
-        schoolId, classTeacher,
+        schoolId, 
+        academicYearId: finalAcademicYearId,
+        classTeacher,
         _id: { $ne: req.params.id }
       });
-      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section' });
+      if (alreadyAssigned) return res.status(400).json({ message: 'Teacher is already assigned as a Class Teacher to another section in this academic year' });
     }
 
     // Fetch standard to ensure subjects match
@@ -1127,14 +1451,52 @@ exports.getFees = async (req, res) => {
       }
     }
 
-    const fees = await FeePayment.find(addAcademicYearFilter({ schoolId }, req.academicYearId))
+    const schoolIdObj = new mongoose.Types.ObjectId(schoolId);
+    const ayId = req.academicYearId;
+
+    const fees = await FeePayment.find(addAcademicYearFilter({ schoolId }, ayId))
       .sort({ createdAt: -1 })
-      .populate({
-        path: 'studentId',
-        select: 'firstName lastName admissionNumber standard',
-        populate: { path: 'standard', select: 'level' }
-      });
-    res.json(fees);
+      .populate('academicYearId', 'name')
+      .lean();
+
+    const studentIds = fees.map((f) => f.studentId).filter(Boolean);
+    const enrollments = await StudentEnrollment.find({
+      schoolId: schoolIdObj,
+      academicYearId: ayId,
+      studentId: { $in: studentIds },
+    })
+      .populate('standardId', 'level name')
+      .lean();
+
+    const enrollByStudent = enrollments.reduce((m, e) => {
+      m[e.studentId.toString()] = e;
+      return m;
+    }, {});
+
+    const students = await Student.find({ _id: { $in: studentIds } })
+      .select('firstName lastName admissionNumber rollNumber')
+      .lean();
+    const studentById = students.reduce((m, s) => {
+      m[s._id.toString()] = s;
+      return m;
+    }, {});
+
+    const enriched = fees.map((f) => {
+      const sid = f.studentId?.toString();
+      const student = studentById[sid];
+      const enr = enrollByStudent[sid];
+      return {
+        ...f,
+        studentId: student
+          ? {
+              ...student,
+              standard: enr?.standardId || null,
+            }
+          : f.studentId,
+      };
+    });
+
+    res.json(enriched);
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1637,12 +1999,25 @@ exports.getAttendanceReport = async (req, res) => {
     }
 
     const attendanceData = await Attendance.find(filter).lean();
-    const studentQuery = { schoolId };
-    if (classSection) studentQuery.classSection = classSection;
-    const students = await Student.find(studentQuery).select('firstName lastName admissionNumber photo').lean();
+    
+    let students = [];
+    let enrollments = [];
+    if (classSection) {
+      enrollments = await StudentEnrollment.find({
+        schoolId,
+        classSectionId: classSection,
+        academicYearId: req.academicYearId
+      }).select('studentId rollNumber').lean();
+      const studentIds = enrollments.map(e => e.studentId);
+      students = await Student.find({ _id: { $in: studentIds } }).select('firstName lastName admissionNumber photo').lean();
+    } else {
+      students = await Student.find({ schoolId, deletedAt: null }).select('firstName lastName admissionNumber photo').lean();
+    }
 
     const report = students.map(student => {
       const studentIdStr = student._id.toString();
+      const enrollment = enrollments.find(e => e.studentId?.toString() === studentIdStr);
+      const rollNumber = enrollment ? enrollment.rollNumber : 'N/A';
       let present = 0, absent = 0, late = 0, halfDay = 0, total = 0;
       let lateTimes = [], earlyLeaves = [];
 
@@ -1663,6 +2038,7 @@ exports.getAttendanceReport = async (req, res) => {
       const percentage = total > 0 ? ((present / total) * 100).toFixed(2) : 0;
       return {
         ...student,
+        rollNumber,
         stats: { present, absent, late, halfDay, total, percentage },
         lateArrivals: lateTimes,
         earlyLeaves: earlyLeaves
@@ -1701,13 +2077,21 @@ exports.getLowAttendanceAlerts = async (req, res) => {
     const schoolId = getSchoolId(req);
     const threshold = 75; // 75% threshold
 
-    const students = await Student.find({ schoolId, isActive: true })
-      .select('firstName lastName classSection admissionNumber photo')
-      .populate('classSection', 'sectionLabel');
+    const enrollments = await StudentEnrollment.find({ 
+      schoolId, 
+      academicYearId: req.academicYearId,
+      status: 'Active'
+    }).populate({
+      path: 'studentId',
+      select: 'firstName lastName admissionNumber photo'
+    }).populate('classSectionId', 'sectionLabel').lean();
+
     const attendanceData = await Attendance.find(addAcademicYearFilter({ schoolId }, req.academicYearId)).lean();
 
     const alerts = [];
-    students.forEach(student => {
+    enrollments.forEach(enrollment => {
+      const student = enrollment.studentId;
+      if (!student) return;
       const studentIdStr = student._id.toString();
       let present = 0, total = 0;
       attendanceData.forEach(record => {
@@ -1727,7 +2111,7 @@ exports.getLowAttendanceAlerts = async (req, res) => {
           lastName: student.lastName,
           photo: student.photo,
           admissionNumber: student.admissionNumber,
-          class: student.classSection?.sectionLabel,
+          class: enrollment.classSectionId?.sectionLabel,
           stats: {
             percentage: percentage.toFixed(2),
             presentCount: present,
@@ -2663,6 +3047,15 @@ exports.sendFeeReminders = async (req, res) => {
           title: 'Fee Alert: Pending Fee',
           message: `Institutional record for ${student.firstName} ${student.lastName} shows a pending balance of ₹${pendingAmount} (${fee.category}). Due Date: ${new Date(fee.dueDate).toLocaleDateString()}.`,
           link: '/parent/fees'
+        });
+      }
+
+      const { sendSms } = require('../utils/sms');
+      const phone = student.guardianPhone || student.guardianContact;
+      if (phone) {
+        await sendSms({
+          to: phone,
+          message: `Fee reminder: ${student.firstName} owes Rs.${pendingAmount} (${fee.category}). Due: ${new Date(fee.dueDate).toLocaleDateString()}. - ${school.name || 'School'}`,
         });
       }
 
