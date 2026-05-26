@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll, fetchStaffForAttendance, fetchPayrollPreview, fetchStaffMonthlySummary } from '../../redux/slice/schoolAdmin.slice';
+import { fetchPayroll, fetchTeachers, createPayroll, updatePayroll, deletePayroll, generateBulkPayroll, fetchStaffForAttendance, fetchPayrollPreview, fetchStaffMonthlySummary, clearError } from '../../redux/slice/schoolAdmin.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
@@ -55,6 +55,18 @@ const Payroll = () => {
   const [submitting, setSubmitting] = useState(false);
   const [previewing, setPreviewing] = useState(false);
 
+  const activeYearObj = academicYears.find(y => y._id === activeAcademicYearId);
+
+  const availableYears = React.useMemo(() => {
+    const startYear = activeYearObj ? new Date(activeYearObj.startDate).getFullYear() : new Date().getFullYear() - 1;
+    const endYear = activeYearObj ? new Date(activeYearObj.endDate).getFullYear() : new Date().getFullYear() + 1;
+    const years = [];
+    for (let y = startYear; y <= endYear; y++) {
+      years.push(y);
+    }
+    return years;
+  }, [academicYears, activeAcademicYearId, activeYearObj]);
+
   useEffect(() => {
     dispatch(fetchPayroll());
     dispatch(fetchTeachers());
@@ -107,12 +119,55 @@ const Payroll = () => {
   });
 
   const openAdd = () => {
+    dispatch(clearError());
     setEditing(null);
-    formik.setValues(emptyValues);
+    const now = new Date();
+    let defaultYear = now.getFullYear();
+    let defaultMonth = now.getMonth() + 1;
+
+    if (activeYearObj) {
+      const start = new Date(activeYearObj.startDate);
+      const end = new Date(activeYearObj.endDate);
+      if (now < start || now > end) {
+        defaultYear = start.getFullYear();
+        defaultMonth = start.getMonth() + 1;
+      }
+    }
+
+    formik.setValues({
+      ...emptyValues,
+      month: defaultMonth,
+      year: defaultYear,
+      paymentDate: now.toISOString().split('T')[0]
+    });
     setModal(true);
   };
 
+  const openBulk = () => {
+    dispatch(clearError());
+    const now = new Date();
+    let defaultYear = now.getFullYear();
+    let defaultMonth = now.getMonth() + 1;
+
+    if (activeYearObj) {
+      const start = new Date(activeYearObj.startDate);
+      const end = new Date(activeYearObj.endDate);
+      if (now < start || now > end) {
+        defaultYear = start.getFullYear();
+        defaultMonth = start.getMonth() + 1;
+      }
+    }
+
+    setBulkValues({
+      month: defaultMonth,
+      year: defaultYear,
+      bonusPercent: 0
+    });
+    setBulkModal(true);
+  };
+
   const openEdit = (p) => {
+    dispatch(clearError());
     setEditing(p._id);
     formik.setValues({
       staffId: p.teacherId?._id || p.userId?._id || '',
@@ -122,7 +177,7 @@ const Payroll = () => {
       bonus: p.bonus,
       deductions: p.deductions,
       status: p.status,
-      paymentDate: p.paymentDate ? p.paymentDate.split('T')[0] : '',
+      paymentDate: p.paidAt ? p.paidAt.split('T')[0] : p.paymentDate ? p.paymentDate.split('T')[0] : '',
       remarks: p.remarks || '',
     });
     setModal(true);
@@ -134,17 +189,37 @@ const Payroll = () => {
   ];
 
   const filtered = payroll.filter(p => {
+    // 1. Filter by Active Academic Year range
+    if (activeYearObj) {
+      const start = new Date(activeYearObj.startDate);
+      const end = new Date(activeYearObj.endDate);
+      const recordDate = new Date(p.year, p.month - 1, 15);
+      if (recordDate < start || recordDate > end) {
+        return false;
+      }
+    }
+
+    // 2. Filter by search query name
     const staff = p.teacherId || p.userId;
-    const name = `${staff?.firstName} ${staff?.lastName}`.toLowerCase();
+    const name = `${staff?.firstName || ''} ${staff?.lastName || ''}`.toLowerCase();
     return name.includes(search.toLowerCase());
   });
 
-  const totalPages = Math.ceil(filtered.length / itemsPerPage);
-  const currentItems = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+  const sorted = [...filtered].sort((a, b) => {
+    const dateA = a.createdAt ? new Date(a.createdAt) : new Date(0);
+    const dateB = b.createdAt ? new Date(b.createdAt) : new Date(0);
+    if (dateB.getTime() !== dateA.getTime()) {
+      return dateB.getTime() - dateA.getTime();
+    }
+    return String(b._id).localeCompare(String(a._id));
+  });
+
+  const totalPages = Math.ceil(sorted.length / itemsPerPage);
+  const currentItems = sorted.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search]);
+  }, [search, activeAcademicYearId]);
 
   useEffect(() => {
     const { month, year } = formik.values;
@@ -213,7 +288,7 @@ const Payroll = () => {
           <p className="text-slate-400 text-sm mt-1">Institutional workforce financial registry</p>
         </div>
         <div className="flex gap-4">
-          <button onClick={() => setBulkModal(true)} className="flex items-center gap-2 px-6 py-3.5 bg-schooladmin-primary/10 hover:bg-schooladmin-primary rounded-md font-black text-xs uppercase tracking-widest transition-all border border-schooladmin-primary/20 text-schooladmin-primary hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
+          <button onClick={openBulk} className="flex items-center gap-2 px-6 py-3.5 bg-schooladmin-primary/10 hover:bg-schooladmin-primary rounded-md font-black text-xs uppercase tracking-widest transition-all border border-schooladmin-primary/20 text-schooladmin-primary hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
             <Zap size={18} /> Bulk Generation
           </button>
           <button onClick={openAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] text-white">
@@ -245,7 +320,7 @@ const Payroll = () => {
               <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target Year</label>
               <select value={bulkValues.year} onChange={(e) => setBulkValues({ ...bulkValues, year: parseInt(e.target.value) })}
                 className="w-full bg-slate-900 border border-brand-border/40 py-4 px-6 rounded-md text-white font-bold outline-none focus:border-brand-primary appearance-none cursor-pointer">
-                {[2023, 2024, 2025, 2026].map(y => <option key={y} value={y} className="bg-slate-900">{y}</option>)}
+                {availableYears.map(y => <option key={y} value={y} className="bg-slate-900">{y}</option>)}
               </select>
             </div>
           </div>
@@ -368,7 +443,7 @@ const Payroll = () => {
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-md p-4 mb-4 flex items-start gap-3">
               <XCircle className="text-red-500 shrink-0 mt-0.5" size={16} />
-              <div className="flex flex-col"><span className="text-[10px] font-black text-red-500 uppercase italic">Validation Protocol Failure</span><p className="text-[11px] font-bold text-red-200 mt-1 italic">{error}</p></div>
+              <div className="flex flex-col"><span className="text-[10px] font-black text-red-500 uppercase italic">Validation Protocol Failure</span><p className="text-[11px] font-bold text-red-200 mt-1 italic">{typeof error === 'object' ? error.message || JSON.stringify(error) : error}</p></div>
             </div>
           )}
           <div>

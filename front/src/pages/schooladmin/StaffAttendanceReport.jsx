@@ -28,10 +28,70 @@ const StaffAttendanceReport = () => {
     };
 
     const filteredSummary = staffMonthlySummary.filter(s => {
-        const staffObj = s.teacher || s.user;
-        const name = `${staffObj?.firstName} ${staffObj?.lastName}`.toLowerCase();
-        return name.includes(searchQuery.toLowerCase());
+        let name = '';
+        let empId = '';
+        if (s.teacher) {
+            name = `${s.teacher.firstName || ''} ${s.teacher.lastName || ''}`;
+            empId = s.teacher.employeeId || '';
+        } else if (s.driver) {
+            name = s.driver.name || '';
+            empId = s.driver.licenseNumber || '';
+        } else if (s.user) {
+            name = `${s.user.firstName || ''} ${s.user.lastName || ''}`;
+            empId = `${s.user.role || ''}-${s.user._id || ''}`;
+        }
+        
+        const searchLower = searchQuery.toLowerCase();
+        return name.toLowerCase().includes(searchLower) || empId.toLowerCase().includes(searchLower);
     });
+
+    const dynamicStats = React.useMemo(() => {
+        if (!staffMonthlySummary || staffMonthlySummary.length === 0) {
+            return {
+                efficiency: '100.0%',
+                criticalDeviations: '0',
+                topPerformer: 'N/A',
+                activePersonnel: 0
+            };
+        }
+
+        // 1. Workforce Efficiency: Average presence rate across all staff
+        let totalPresenceRate = 0;
+        staffMonthlySummary.forEach(s => {
+            const totalDays = (s.present || 0) + (s.absent || 0) + (s.halfDay || 0) + (s.leave || 0);
+            const rate = totalDays > 0 ? (s.present / totalDays) * 100 : 100;
+            totalPresenceRate += rate;
+        });
+        const efficiency = `${(totalPresenceRate / staffMonthlySummary.length).toFixed(1)}%`;
+
+        // 2. Critical Deviations: Total absent days across all staff
+        const totalAbsences = staffMonthlySummary.reduce((sum, s) => sum + (s.absent || 0), 0);
+        const criticalDeviations = String(totalAbsences);
+
+        // 3. Top Performer: Staff member with the highest present days
+        let topPerformer = 'N/A';
+        let maxPresent = -1;
+        staffMonthlySummary.forEach(s => {
+            if (s.present > maxPresent) {
+                maxPresent = s.present;
+                const staffObj = s.teacher || s.driver || s.user;
+                if (staffObj) {
+                    const firstName = staffObj.firstName || staffObj.name || '';
+                    const lastName = staffObj.lastName || '';
+                    const initial = firstName ? `${firstName[0]}.` : '';
+                    const last = lastName ? ` ${lastName}` : '';
+                    topPerformer = `${initial}${last}`.trim() || 'N/A';
+                }
+            }
+        });
+
+        return {
+            efficiency,
+            criticalDeviations,
+            topPerformer,
+            activePersonnel: filteredSummary.length
+        };
+    }, [staffMonthlySummary, filteredSummary.length]);
 
     const months = [
         "January", "February", "March", "April", "May", "June",
@@ -85,10 +145,10 @@ const StaffAttendanceReport = () => {
             {/* High-Level Analytical Overview */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 {[
-                    { label: 'Workforce Efficiency', val: '94.2%', icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/5', desc: 'Average Presence Rate' },
-                    { label: 'Critical Deviations', val: '12', icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-500/5', desc: 'Unnotified Absences' },
-                    { label: 'Top Performer', val: 'K. Sharma', icon: Award, color: 'text-amber-400', bg: 'bg-amber-500/5', desc: '100% Monthly Uptime' },
-                    { label: 'Active Personnel', val: filteredSummary.length, icon: Users, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/5', desc: 'Synchronized Nodes' },
+                    { label: 'Workforce Efficiency', val: dynamicStats.efficiency, icon: TrendingUp, color: 'text-emerald-400', bg: 'bg-emerald-500/5', desc: 'Average Presence Rate' },
+                    { label: 'Critical Deviations', val: dynamicStats.criticalDeviations, icon: AlertCircle, color: 'text-rose-400', bg: 'bg-rose-500/5', desc: 'Total Absent Days' },
+                    { label: 'Top Performer', val: dynamicStats.topPerformer, icon: Award, color: 'text-amber-400', bg: 'bg-amber-500/5', desc: 'Max Monthly Presence' },
+                    { label: 'Active Personnel', val: dynamicStats.activePersonnel, icon: Users, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/5', desc: 'Synchronized Nodes' },
                 ].map((s, i) => (
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}

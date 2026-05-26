@@ -23,22 +23,35 @@ const StatusBadge = ({ status }) => {
 const Leaves = () => {
   const dispatch = useDispatch();
   const { leaves, loading } = useSelector((s) => s.schoolAdmin);
+  const { activeAcademicYearId, academicYears } = useSelector((s) => s.academicYear);
   const [filter, setFilter] = useState('all'); // all, pending, approved, rejected
   const [search, setSearch] = useState('');
 
   useEffect(() => { dispatch(fetchLeaves()); }, [dispatch]);
 
-  const filtered = leaves.filter(l => {
-    const matchesSearch = `${l.teacherId?.firstName} ${l.teacherId?.lastName}`.toLowerCase().includes(search.toLowerCase());
+  const activeYearObj = academicYears.find(y => y._id === activeAcademicYearId);
+
+  const academicYearLeaves = leaves.filter(l => {
+    if (activeYearObj) {
+      const leaveStart = new Date(l.startDate);
+      const startBound = new Date(activeYearObj.startDate);
+      const endBound = new Date(activeYearObj.endDate);
+      if (leaveStart < startBound || leaveStart > endBound) return false;
+    }
+    return true;
+  });
+
+  const filtered = academicYearLeaves.filter(l => {
+    const matchesSearch = `${l.teacherId?.firstName || ''} ${l.teacherId?.lastName || ''}`.toLowerCase().includes(search.toLowerCase());
     const matchesStatus = filter === 'all' || l.status === filter;
     return matchesSearch && matchesStatus;
   });
 
   const stats = {
-    total: leaves.length,
-    pending: leaves.filter(l => l.status === 'pending').length,
-    approved: leaves.filter(l => l.status === 'approved').length,
-    rejected: leaves.filter(l => l.status === 'rejected').length
+    total: academicYearLeaves.length,
+    pending: academicYearLeaves.filter(l => l.status === 'pending').length,
+    approved: academicYearLeaves.filter(l => l.status === 'approved').length,
+    rejected: academicYearLeaves.filter(l => l.status === 'rejected').length
   };
 
   return (

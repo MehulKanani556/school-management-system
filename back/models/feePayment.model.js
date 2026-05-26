@@ -19,7 +19,7 @@ const feePaymentSchema = new mongoose.Schema({
   submittedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 }, { timestamps: true });
 
-feePaymentSchema.pre('save', function(next) {
+feePaymentSchema.pre('validate', function(next) {
   this.totalAmount = (this.amount || 0) - (this.discount || 0) + (this.lateFees || 0);
   next();
 });

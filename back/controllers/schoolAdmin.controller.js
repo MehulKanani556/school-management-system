@@ -2623,7 +2623,11 @@ exports.getAllAssignments = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
     const assignments = await Assignment.find(addAcademicYearFilter({ schoolId }, req.academicYearId))
-      .populate('classSection', 'sectionLabel')
+      .populate({
+        path: 'classSection',
+        select: 'sectionLabel standardId',
+        populate: { path: 'standardId', select: 'level name' }
+      })
       .populate('createdBy', 'firstName lastName')
       .lean();
 
@@ -2646,6 +2650,37 @@ exports.getAllAssignments = async (req, res) => {
     }));
 
     res.json(enriched);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.getAssignmentSubmissions = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const assignment = await Assignment.findOne({ _id: id, schoolId });
+    if (!assignment) return res.status(404).json({ message: 'Assignment registry not found' });
+
+    const submissions = await Submission.find({ assignmentId: id, schoolId })
+      .populate('studentId', 'firstName lastName admissionNumber photo')
+      .lean();
+      
+    res.json(submissions);
+  } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.deleteAssignment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const schoolId = getSchoolId(req);
+
+    const assignment = await Assignment.findOneAndDelete({ _id: id, schoolId });
+    if (!assignment) return res.status(404).json({ message: 'Assignment registry not found' });
+    
+    // Also delete any submissions of this assignment
+    await Submission.deleteMany({ assignmentId: id, schoolId });
+
+    res.json({ message: 'Instructional directive decommissioned successfully' });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

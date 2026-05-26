@@ -195,6 +195,8 @@ router.post('/school-admin/staff-attendance', ...schoolAdmin, sa.saveStaffAttend
 
 // Leaves
 router.get('/school-admin/assignments', ...schoolAdmin, sa.getAllAssignments);
+router.get('/school-admin/assignments/:id/submissions', ...schoolAdmin, sa.getAssignmentSubmissions);
+router.delete('/school-admin/assignments/:id', ...schoolAdmin, sa.deleteAssignment);
 router.get('/school-admin/leaves', ...schoolAdmin, sa.getAllLeaves);
 router.put('/school-admin/leaves/:id', ...schoolAdmin, sa.updateLeaveStatus);
 

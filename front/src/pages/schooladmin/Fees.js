@@ -8,7 +8,7 @@ import {
 } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter,  ChevronLeft, ChevronRight } from 'lucide-react';
+import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircle2, Wallet2, Mail, Download, PieChart, Info, Filter,  ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
@@ -36,6 +36,7 @@ const Fees = () => {
   const [formLoading, setFormLoading] = useState(false);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
   const itemsPerPage = 10;
 
   useEffect(() => {
@@ -201,16 +202,11 @@ const Fees = () => {
 
   // ─── Renderers ───────────────────────────────────────────────────────────────
 
-  const filteredFees = fees.filter(f => {
-    const matchStatus = filter === 'all' || f.status === filter;
-    const studentStandardId = f.studentId?.standard?._id || f.studentId?.standard;
-    const matchStandard = selectedStandard === 'all' || studentStandardId === selectedStandard;
-    return matchStatus && matchStandard;
-  });
-  
   const combinedFees = React.useMemo(() => {
-    const grouped = filteredFees.reduce((acc, f) => {
+    // 1. Group ALL fees by student first so that status/amounts are aggregated correctly
+    const grouped = fees.reduce((acc, f) => {
       const sid = f.studentId?._id || f.studentId;
+      if (!sid) return acc;
       if (!acc[sid]) {
         acc[sid] = {
           _id: sid,
@@ -218,7 +214,6 @@ const Fees = () => {
           amount: 0,
           paidAmount: 0,
           category: [],
-          status: 'paid',
           dueDate: f.dueDate,
           _raw: []
         };
@@ -228,14 +223,6 @@ const Fees = () => {
       if (f.category && !acc[sid].category.includes(f.category)) acc[sid].category.push(f.category);
       acc[sid]._raw.push(f);
       
-      // Status Priority: pending/overdue > partially_paid > paid
-      const s = f.status;
-      if (s === 'overdue' || (s === 'pending' && acc[sid].status !== 'overdue')) {
-        acc[sid].status = s;
-      } else if (s === 'partially_paid' && !['pending', 'overdue'].includes(acc[sid].status)) {
-        acc[sid].status = s;
-      }
-      
       // Due Date: Use earliest date
       if (f.dueDate && (!acc[sid].dueDate || new Date(f.dueDate) < new Date(acc[sid].dueDate))) {
         acc[sid].dueDate = f.dueDate;
@@ -244,13 +231,45 @@ const Fees = () => {
       return acc;
     }, {});
     
-    return Object.values(grouped).map(cf => ({
-      ...cf,
-      category: cf.category.join(', '),
-      lateFees: cf._raw.reduce((s, r) => s + (r.lateFees || 0), 0),
-      discount: cf._raw.reduce((s, r) => s + (r.discount || 0), 0)
-    }));
-  }, [filteredFees]);
+    // 2. Map grouped results with calculated statuses and other properties
+    const mapped = Object.values(grouped).map(cf => {
+      let status = 'paid';
+      if (cf.paidAmount === 0) {
+        const isOverdue = cf.dueDate && new Date(cf.dueDate) < new Date();
+        status = isOverdue ? 'overdue' : 'pending';
+      } else if (cf.paidAmount < cf.amount) {
+        status = 'partially_paid';
+      } else {
+        status = 'paid';
+      }
+
+      return {
+        ...cf,
+        status,
+        category: cf.category.join(', '),
+        lateFees: cf._raw.reduce((s, r) => s + (r.lateFees || 0), 0),
+        discount: cf._raw.reduce((s, r) => s + (r.discount || 0), 0)
+      };
+    });
+
+    // 3. Filter mapped combined results by Standard, Status, and SearchTerm
+    return mapped.filter(cf => {
+      // Filter by Standard (Grade Level)
+      const studentStandardId = cf.studentId?.standard?._id || cf.studentId?.standard;
+      const matchStandard = selectedStandard === 'all' || studentStandardId === selectedStandard;
+
+      // Filter by Overall Dynamic Status
+      const matchStatus = filter === 'all' || cf.status === filter;
+
+      // Filter by Search Query (Student Name or Admission Number)
+      const fullName = `${cf.studentId?.firstName || ''} ${cf.studentId?.lastName || ''}`.toLowerCase();
+      const admissionNum = (cf.studentId?.admissionNumber || '').toLowerCase();
+      const query = searchTerm.toLowerCase();
+      const matchSearch = !query || fullName.includes(query) || admissionNum.includes(query);
+
+      return matchStandard && matchStatus && matchSearch;
+    });
+  }, [fees, selectedStandard, filter, searchTerm]);
 
   const indexOfLastFee = currentPage * itemsPerPage;
   const indexOfFirstFee = indexOfLastFee - itemsPerPage;
@@ -259,10 +278,42 @@ const Fees = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [filter]);
+  }, [filter, selectedStandard, searchTerm]);
 
   const totalBilled = fees.reduce((sum, f) => sum + (f.amount || 0), 0);
   const totalPaid = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
+
+  const getPageNumbers = () => {
+    const pages = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      let start = Math.max(2, currentPage - 1);
+      let end = Math.min(totalPages - 1, currentPage + 1);
+      if (currentPage <= 3) {
+        end = 4;
+      } else if (currentPage >= totalPages - 2) {
+        start = totalPages - 3;
+      }
+      if (start > 2) pages.push('...');
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (end < totalPages - 1) pages.push('...');
+      pages.push(totalPages);
+    }
+    return pages;
+  };
+
+  const handleSendReminders = (params = {}) => {
+    const toastId = toast.loading('Dispatching fee reminders...');
+    dispatch(sendFeeReminders(params)).unwrap()
+      .then((res) => {
+        toast.success(res?.message || 'Reminders successfully dispatched', { id: toastId });
+      })
+      .catch((err) => {
+        toast.error(err?.message || 'Failed to dispatch reminders', { id: toastId });
+      });
+  };
 
   return (
     <div className="space-y-6 no-print">
@@ -290,7 +341,7 @@ const Fees = () => {
             ))}
           </div>
           <button 
-            onClick={() => dispatch(sendFeeReminders())}
+            onClick={() => handleSendReminders()}
             className="flex items-center gap-2 px-5 py-3.5 bg-brand-surface/60 hover:bg-brand-primary/10 border border-brand-border/40 text-slate-300 hover:text-white rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit shadow-sm"
           >
             <Mail size={18} /> Reminders
@@ -349,13 +400,27 @@ const Fees = () => {
             </div>
 
             {/* Filters Row */}
-            <div className="flex flex-wrap gap-2">
-              {['all', 'paid', 'pending', 'overdue'].map(s => (
-                <button key={s} onClick={() => setFilter(s)}
-                  className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all font-outfit border ${filter === s ? 'bg-slate-100 text-black border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-400 border-slate-700/50 hover:text-white'}`}>
-                  {s} Status
-                </button>
-              ))}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex flex-wrap gap-2">
+                {['all', 'paid', 'pending', 'overdue', 'partially_paid'].map(s => (
+                  <button key={s} onClick={() => setFilter(s)}
+                    className={`px-6 py-2 rounded-md text-[9px] font-black uppercase tracking-widest transition-all font-outfit border ${filter === s ? 'bg-slate-100 text-black border-transparent shadow-lg' : 'bg-slate-800/40 text-slate-400 border-slate-700/50 hover:text-white'}`}>
+                    {s === 'all' ? 'All Statuses' : `${s.replace('_', ' ')} status`}
+                  </button>
+                ))}
+              </div>
+
+              {/* Dynamic search matrix */}
+              <div className="relative w-full md:w-80 group">
+                <input 
+                  type="text" 
+                  placeholder="Search by student name or ID..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full bg-slate-900/60 border border-slate-800 focus:border-brand-primary rounded-md py-2.5 pl-10 pr-4 text-white text-xs font-black uppercase tracking-wider outline-none transition-all placeholder:text-slate-600 focus:ring-4 focus:ring-brand-primary/10"
+                />
+                <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-primary transition-colors" />
+              </div>
             </div>
 
             <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md overflow-hidden">
@@ -417,7 +482,7 @@ const Fees = () => {
                                <Download size={14} />
                              </button>
                              <button 
-                               onClick={() => dispatch(sendFeeReminders({ studentId: f.studentId?._id }))} 
+                               onClick={() => handleSendReminders({ studentId: f.studentId?._id })} 
                                className="p-2.5 rounded-md bg-slate-800/40 text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all opacity-0 group-hover:opacity-100"
                                title="Dispatch Reminder"
                              >
@@ -475,15 +540,27 @@ const Fees = () => {
                         <ChevronLeft size={16} />
                       </button>
                       <div className="flex gap-1">
-                        {[...Array(totalPages)].map((_, i) => (
-                          <button 
-                            key={i + 1}
-                            onClick={() => setCurrentPage(i + 1)}
-                            className={`w-8 h-8 rounded-md text-[10px] font-black transition-all font-outfit ${currentPage === i + 1 ? 'bg-brand-primary/20 border border-brand-primary text-brand-primary' : 'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'}`}
-                          >
-                            {i + 1}
-                          </button>
-                        ))}
+                        {getPageNumbers().map((page, index) => {
+                          if (page === '...') {
+                            return (
+                              <span 
+                                key={`ellipsis-${index}`}
+                                className="w-8 h-8 flex items-center justify-center text-[10px] font-black text-slate-600 font-outfit"
+                              >
+                                ...
+                              </span>
+                            );
+                          }
+                          return (
+                            <button 
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`w-8 h-8 rounded-md text-[10px] font-black transition-all font-outfit ${currentPage === page ? 'bg-brand-primary/20 border border-brand-primary text-brand-primary' : 'border border-slate-800 text-slate-500 hover:border-slate-600 hover:text-slate-300'}`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        })}
                       </div>
                       <button 
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}

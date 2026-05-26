@@ -120,6 +120,14 @@ export const exportStaffAttendance = createAsyncThunk('sa/exportStaffAttendance'
   } catch (e) { return rejectWithValue(e.response?.data); }
 });
 export const fetchAssignmentsOverview = asyncGet('sa/fetchAssignmentsOverview', '/assignments');
+export const fetchAssignmentSubmissions = createAsyncThunk('sa/fetchAssignmentSubmissions', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.get(`${BASE}/assignments/${id}/submissions`); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
+export const deleteAssignment = createAsyncThunk('sa/deleteAssignment', async (id, { rejectWithValue }) => {
+  try { const res = await axiosInstance.delete(`${BASE}/assignments/${id}`); return res.data; }
+  catch (e) { return rejectWithValue(e.response?.data); }
+});
 export const fetchLeaves = asyncGet('sa/leaves', '/leaves');
 export const fetchReviews = asyncGet('sa/reviews', '/reviews');
 export const fetchExamAnalytics = createAsyncThunk('sa/fetchExamAnalytics', async (id, { rejectWithValue }) => {
@@ -619,6 +627,10 @@ const schoolAdminSlice = createSlice({
       .addCase(fetchStaffMonthlySummary.fulfilled, handleList('staffMonthlySummary'))
       .addCase(saveStaffAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message; })
       .addCase(fetchAssignmentsOverview.fulfilled, handleList('assignments'))
+      .addCase(deleteAssignment.fulfilled, (state, a) => {
+        state.assignments = state.assignments.filter(item => item._id !== a.meta.arg);
+        state.message = a.payload.message || "Assignment deleted";
+      })
       .addCase(createPayroll.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
         state.payroll.push(item);
@@ -633,7 +645,8 @@ const schoolAdminSlice = createSlice({
         state.message = a.payload.message || "Payroll record modified";
       })
       .addCase(deletePayroll.fulfilled, (state, a) => {
-        state.payroll = state.payroll.filter(p => p._id !== a.payload.id);
+        const id = a.meta?.arg || a.payload?.id;
+        state.payroll = state.payroll.filter(p => p._id !== id);
         state.loading = false;
         state.message = a.payload.message || "Payroll record removed";
       })

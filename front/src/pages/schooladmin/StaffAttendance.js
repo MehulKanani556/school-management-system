@@ -114,6 +114,8 @@ const StaffAttendance = () => {
         if (saveStaffAttendance.fulfilled.match(res)) {
             toast.success('Workforce Registry Synchronized');
             setIsEditing(false);
+            // Refresh staff attendance list
+            dispatch(fetchStaffAttendance({ date: selectedDate }));
             // Refresh monthly summary
             const startOfMonth = currentMonth.clone().startOf('month').format('YYYY-MM-DD');
             const endOfMonth = currentMonth.clone().endOf('month').format('YYYY-MM-DD');
