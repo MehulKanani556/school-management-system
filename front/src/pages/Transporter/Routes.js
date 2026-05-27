@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage, fetchTransportApplicantsSlice, assignStudentSlice, unassignStudentSlice } from '../../redux/slice/transport.slice';
 import { 
     Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair, 
-    UserPlus, UserMinus, ShieldCheck, Search, Home, Info
+    UserPlus, UserMinus, ShieldCheck, Search, Home, Info, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
@@ -85,7 +85,8 @@ const Routes = () => {
     const [mapSearch, setMapSearch] = React.useState('');
     const [suggestions, setSuggestions] = React.useState([]);
     const [isSearching, setIsSearching] = React.useState(false);
-    const [schoolLoc, setSchoolLoc] = React.useState({ lat: 23.0225, lng: 72.5714 }); // Default to Ahmedabad center
+    const [isLocating, setIsLocating] = React.useState(false);
+    const [schoolLoc, setSchoolLoc] = React.useState({ lat: 18.5204, lng: 73.8567 }); // Default to Pune center (Viman Nagar context)
     const [assignData, setAssignData] = React.useState({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     const [studentSearch, setStudentSearch] = React.useState('');
     const [activeMapRoute, setActiveMapRoute] = React.useState(null);
@@ -164,6 +165,30 @@ const Routes = () => {
         } finally {
             setIsSearching(false);
         }
+    };
+
+    const handleGetMyLocation = () => {
+        if (!navigator.geolocation) {
+            toast.error("Geolocation is not supported by your browser");
+            return;
+        }
+
+        setIsLocating(true);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                setSchoolLoc({ lat: latitude, lng: longitude });
+                setNewStop(prev => ({ ...prev, lat: latitude, lng: longitude }));
+                toast.success("Location fetched successfully!");
+                setIsLocating(false);
+            },
+            (error) => {
+                console.error("Error fetching location:", error);
+                toast.error("Unable to retrieve location. Please check browser permissions.");
+                setIsLocating(false);
+            },
+            { enableHighAccuracy: true, timeout: 10000 }
+        );
     };
 
     useEffect(() => {
@@ -635,6 +660,14 @@ const Routes = () => {
                                           </button>
                                           <button 
                                             type="button"
+                                            onClick={handleGetMyLocation}
+                                            title="Use My Current Location"
+                                            className="p-2 bg-cyan-600/10 border border-cyan-600/20 rounded-md text-cyan-400 hover:bg-cyan-600 hover:text-white transition-all"
+                                          >
+                                              <Compass size={14} className={isLocating ? "animate-spin" : ""} />
+                                          </button>
+                                          <button 
+                                            type="button"
                                             onClick={() => {
                                                 if (newStop.lat) {
                                                     setSchoolLoc({ lat: newStop.lat, lng: newStop.lng });
@@ -650,7 +683,10 @@ const Routes = () => {
                                  </div>
                                  <div className="h-[400px] xl:flex-1 w-full relative">
                                      <MapContainer 
-                                         center={[schoolLoc.lat, schoolLoc.lng]} 
+                                         center={[
+                                             formData.stops.find(s => s.lat)?.lat || schoolLoc.lat,
+                                             formData.stops.find(s => s.lat)?.lng || schoolLoc.lng
+                                         ]} 
                                          zoom={13} 
                                          className="h-full w-full"
                                          zoomControl={false}

@@ -63,7 +63,7 @@ const RecenterMap = ({ coords }) => {
 };
 
 const LiveMap = ({ vehicleLocation, allLocations = {}, stops = [], autoCenter = true, mapTheme = 'dark' }) => {
-    const defaultCenter = [23.0225, 72.5714]; // Default point
+    const defaultCenter = [18.5204, 73.8567]; // Default point (Pune center)
 
     const center = (vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number')
         ? [vehicleLocation.lat, vehicleLocation.lng]
