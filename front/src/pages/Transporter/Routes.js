@@ -7,9 +7,21 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
-import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMapEvents, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { fetchStudents } from '../../redux/slice/schoolAdmin.slice';
+
+// Leaflet sizing invalidation helper for dynamic modal layouts
+const MapResizer = () => {
+    const map = useMap();
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            map.invalidateSize();
+        }, 450);
+        return () => clearTimeout(timer);
+    }, [map]);
+    return null;
+};
 
 // Map component for picking coordinates
 const StopPickerMap = ({ onPick, stops = [], center }) => {
@@ -25,6 +37,14 @@ const StopPickerMap = ({ onPick, stops = [], center }) => {
             map.flyTo(center, 14, { animate: true });
         }
     }, [center, map]);
+
+    useEffect(() => {
+        // Enforce bounds recalculation on mounting
+        const timer = setTimeout(() => {
+            map.invalidateSize();
+        }, 450);
+        return () => clearTimeout(timer);
+    }, [map]);
 
     return (
         <>
@@ -68,6 +88,7 @@ const Routes = () => {
     const [schoolLoc, setSchoolLoc] = React.useState({ lat: 23.0225, lng: 72.5714 }); // Default to Ahmedabad center
     const [assignData, setAssignData] = React.useState({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     const [studentSearch, setStudentSearch] = React.useState('');
+    const [activeMapRoute, setActiveMapRoute] = React.useState(null);
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
@@ -180,8 +201,8 @@ const Routes = () => {
         dispatch(assignStudentSlice({ routeId: selectedRouteForAssign._id, data: assignData }));
     }
 
-    const handleUnassign = (studentId) => {
-        if (window.confirm('Remove student from this route?')) {
+    const handleUnassign = async (studentId) => {
+        if (await window.confirm('Remove student from this route?')) {
             dispatch(unassignStudentSlice({ routeId: selectedRouteForAssign._id, studentId }));
         }
     }
@@ -231,8 +252,8 @@ const Routes = () => {
         setFormData({ ...formData, stops: updatedStops });
     }
 
-    const handleDelete = (id) => {
-        if (window.confirm('Delete this route? This action cannot be undone.')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Delete this route? This action cannot be undone.')) {
             dispatch(deleteRouteSlice(id));
         }
     }
@@ -268,13 +289,14 @@ const Routes = () => {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 font-outfit">
                 {routes.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).length > 0 ? routes.filter(r => r.name.toLowerCase().includes(searchTerm.toLowerCase())).map((route, i) => (
                     <div key={route._id} className={`bg-neutral-900 border ${route.status === 'inactive' ? 'border-rose-900/40 opacity-70' : 'border-slate-800/60'} rounded-md p-8 shadow-2xl group hover:border-blue-600/30 transition-all relative`}>
-                        <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-800/40">
-                            <div className="flex items-center gap-4">
-                                <div className={`p-3 bg-neutral-950 border border-slate-800 rounded-md ${route.status === 'inactive' ? 'text-rose-500' : 'text-transporter-primary'}`}><Navigation size={20} /></div>
-                                <div>
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="text-xl font-black text-slate-200 uppercase italic tracking-tighter leading-none">{route.name}</h3>
-                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase italic tracking-widest ${route.status === 'active' ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/20' : 'bg-rose-600/10 text-rose-500 border border-rose-600/20'}`}>
+                        {/* Title and Quick Actions Row */}
+                        <div className="flex justify-between items-start mb-6 pb-6 border-b border-slate-800/40 gap-4">
+                            <div className="flex items-start gap-4 flex-1 min-w-0">
+                                <div className={`p-3 bg-neutral-950 border border-slate-800 rounded-md shrink-0 ${route.status === 'inactive' ? 'text-rose-500' : 'text-cyan-500'}`}><Navigation size={20} /></div>
+                                <div className="min-w-0 flex-1">
+                                    <div className="flex flex-wrap items-center gap-2">
+                                        <h3 className="text-lg font-black text-slate-200 uppercase italic tracking-tighter leading-tight">{route.name}</h3>
+                                        <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase italic tracking-widest shrink-0 ${route.status === 'active' ? 'bg-emerald-600/10 text-emerald-500 border border-emerald-600/20' : 'bg-rose-600/10 text-rose-500 border border-rose-600/20'}`}>
                                             {route.status || 'active'}
                                         </span>
                                     </div>
@@ -283,52 +305,76 @@ const Routes = () => {
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <button 
-                                     onClick={() => openAssign(route)}
-                                     title="Manage Enrollments"
-                                     className="p-2.5 text-blue-400 hover:text-blue-300 bg-blue-600/10 border border-blue-600/20 rounded-md transition-all shadow-lg flex items-center gap-2 text-[10px] font-black uppercase italic leading-none px-4"
-                                 >
-                                     <Users size={16} /> Enrollments
-                                 </button>
+                            
+                            {/* Compact Quick Admin Actions */}
+                            <div className="flex items-center gap-2 shrink-0">
                                  <button 
                                      onClick={() => toggleStatus(route)}
                                      title={route.status === 'active' ? 'Deactivate Route' : 'Activate Route'}
-                                     className={`p-2.5 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
+                                     className={`p-2.5 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
                                  >
-                                     <Activity size={16} />
+                                     <Activity size={14} />
                                  </button>
                                 <button 
                                     onClick={() => openEdit(route)}
-                                    className="p-2.5 text-slate-600 hover:text-blue-400 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg"
+                                    title="Edit Route"
+                                    className="p-2.5 text-slate-400 hover:text-blue-400 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg"
                                 >
-                                    <Edit3 size={16} />
+                                    <Edit3 size={14} />
                                 </button>
                                 <button
                                     onClick={() => handleDelete(route._id)}
-                                    className="p-2.5 text-slate-600 hover:text-red-400 bg-neutral-950 border border-slate-800 rounded-md transition-all shadow-lg"
+                                    title="Delete Route"
+                                    className="p-2.5 text-slate-400 hover:text-rose-500 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg"
                                 >
-                                    <Trash2 size={16} />
+                                    <Trash2 size={14} />
                                 </button>
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-6 mb-8 px-4 py-3 bg-neutral-950/40 rounded-md border border-slate-800/60">
-                            <div className="flex items-center gap-2">
-                                <Users size={14} />
-                                <span className="text-xs font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Students</span>
+                        {/* Interactive Main Actions & Telemetry Stats Row */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                            <div className="flex gap-2">
+                                <button 
+                                     onClick={() => setActiveMapRoute(route)}
+                                     className="flex-1 py-3 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-600/20 hover:border-cyan-500 rounded-md transition-all shadow-lg text-cyan-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none animate-pulse hover:animate-none"
+                                 >
+                                     <MapPin size={14} /> Map View
+                                 </button>
+                                <button 
+                                     onClick={() => openAssign(route)}
+                                     className="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 border border-blue-600/20 hover:border-blue-500 rounded-md transition-all shadow-lg text-blue-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none"
+                                 >
+                                     <Users size={14} /> Enrollments
+                                 </button>
                             </div>
-                            <div className="text-[10px] text-slate-600 uppercase font-black italic tracking-widest">
-                                Capacity: {route.vehicleId?.capacity || 0}
-                            </div>
-                            <div className="text-[10px] text-slate-600 uppercase font-black italic tracking-widest">
-                                Load: {Math.round(((route.assignedStudents?.length || 0) / (route.vehicleId?.capacity || 1)) * 100)}%
+                            
+                            <div className="flex items-center justify-around px-4 py-2 bg-neutral-950/40 rounded-md border border-slate-800/60 text-slate-300">
+                                <div className="flex items-center gap-2">
+                                    <Users size={12} className="text-cyan-500" />
+                                    <span className="text-[10px] font-black uppercase italic tracking-tighter">{route.assignedStudents?.length || 0} Students</span>
+                                </div>
+                                <div className="text-[9px] text-slate-500 uppercase font-black italic tracking-widest">
+                                    Capacity: <span className="text-slate-300">{route.vehicleId?.capacity || 0}</span>
+                                </div>
+                                <div className="text-[9px] text-slate-500 uppercase font-black italic tracking-widest">
+                                    Load: <span className="text-slate-300">{Math.round(((route.assignedStudents?.length || 0) / (route.vehicleId?.capacity || 1)) * 100)}%</span>
+                                </div>
                             </div>
                         </div>
 
                         {/* Mini Map Preview */}
                         {route.stops?.some(s => s.lat) && (
-                            <div className="h-32 mb-6 rounded border border-slate-800 overflow-hidden grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100">
+                            <div 
+                                onClick={() => setActiveMapRoute(route)}
+                                className="h-32 mb-6 rounded border border-slate-800 overflow-hidden grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100 cursor-pointer relative group/map"
+                            >
+                                {/* Overlay Prompt */}
+                                <div className="absolute inset-0 bg-neutral-950/50 backdrop-blur-[1px] opacity-0 group-hover/map:opacity-100 transition-all flex items-center justify-center z-[400]">
+                                    <span className="px-4 py-2 bg-neutral-900 border border-slate-800 text-[9px] font-black uppercase tracking-[0.2em] italic text-cyan-400 rounded-md shadow-2xl flex items-center gap-2">
+                                        <MapPin size={10} className="animate-bounce" /> Click to Expand Interactive Map
+                                    </span>
+                                </div>
                                 <MapContainer 
                                     center={[route.stops.find(s => s.lat).lat, route.stops.find(s => s.lat).lng]} 
                                     zoom={11} 
@@ -338,11 +384,24 @@ const Routes = () => {
                                     scrollWheelZoom={false}
                                 >
                                     <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
+                                    {/* Neon glowing line path joining all stops */}
+                                    {route.stops.filter(s => s.lat).length > 1 && (
+                                        <>
+                                            <Polyline
+                                                positions={route.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
+                                                pathOptions={{ color: '#06b6d4', weight: 4, opacity: 0.3 }}
+                                            />
+                                            <Polyline
+                                                positions={route.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
+                                                pathOptions={{ color: '#22d3ee', weight: 1.5, opacity: 0.8, dashArray: '4, 8' }}
+                                            />
+                                        </>
+                                    )}
                                     {route.stops.map((s, idx) => s.lat && (
                                         <Marker 
                                             key={idx} 
                                             position={[s.lat, s.lng]} 
-                                            icon={L.divIcon({ html: '<div class="w-2 h-2 bg-blue-500 rounded-full"></div>', className: 'm-0', iconSize: [8, 8] })}
+                                            icon={L.divIcon({ html: '<div class="w-2.5 h-2.5 bg-cyan-500 rounded-full border border-slate-900 shadow-md"></div>', className: 'm-0', iconSize: [10, 10] })}
                                         />
                                     ))}
                                 </MapContainer>
@@ -351,14 +410,17 @@ const Routes = () => {
 
                         <div className="space-y-6">
                             <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-500 italic mb-4">Bus Stops</h4>
-                            <div className="grid grid-cols-1 gap-4">
+                            <div className="relative pl-6 space-y-6">
+                                {/* The Continuous Elegant Timeline Axis Line */}
+                                <div className="absolute left-[4px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-cyan-500/50 via-slate-800 to-cyan-500/50"></div>
+                                
                                 {[...route.stops].sort((a, b) => a.order - b.order).map((stop, idx) => (
-                                    <div key={idx} className="flex items-center gap-4 group/stop">
-                                        <div className="relative flex flex-col items-center">
-                                            <div className={`w-2.5 h-2.5 rounded-full ${route.status === 'inactive' ? 'bg-rose-900/60' : 'bg-transporter-primary shadow-[0_0_8px_rgba(37,99,235,0.4)]'}`}></div>
-                                            {idx !== route.stops.length - 1 && <div className="w-px h-10 bg-slate-800/80 my-1"></div>}
-                                        </div>
-                                        <div className="flex-1 bg-neutral-950/40 p-3 rounded-md border border-slate-800/60 group-hover/stop:border-blue-600/20 transition-all flex justify-between items-center">
+                                    <div key={idx} className="relative flex items-center group/stop">
+                                        {/* Glowing Dot on the Axis (absolutely positioned relative to the list parent) */}
+                                        <div className="absolute left-[-26px] w-2.5 h-2.5 rounded-full bg-slate-950 border-2 border-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.65)] z-10"></div>
+                                        
+                                        {/* Stop Card */}
+                                        <div className="flex-1 bg-neutral-950/40 p-3 rounded-md border border-slate-800/60 group-hover/stop:border-cyan-500/30 transition-all flex justify-between items-center ml-2">
                                             <div>
                                                 <p className="text-[11px] font-black text-slate-300 uppercase italic leading-none mb-1">{stop.name}</p>
                                                 <div className="flex items-center gap-2">
@@ -367,7 +429,7 @@ const Routes = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <p className="text-[10px] font-black italic opacity-80 leading-none">{stop.estimatedTime}</p>
+                                                <p className="text-[10px] font-black italic opacity-85 leading-none text-cyan-400">{stop.estimatedTime}</p>
                                                 <p className="text-[8px] font-bold text-slate-700 uppercase tracking-widest mt-0.5">TIME</p>
                                             </div>
                                         </div>
@@ -388,10 +450,10 @@ const Routes = () => {
                 {(isAddOpen || isEditOpen) && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0 font-outfit">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
-                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden custom-scrollbar max-h-[95vh] flex flex-col xl:flex-row">
+                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-y-auto xl:overflow-hidden custom-scrollbar max-h-[95vh] flex flex-col xl:flex-row">
                             
                             {/* Left: Form */}
-                            <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-auto">
+                            <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-visible xl:overflow-y-auto shrink-0">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
                                     {isEditOpen ? 'Edit Route' : 'Add Route'}
                                 </h3>
@@ -529,7 +591,7 @@ const Routes = () => {
                             </form>
 
                             {/* Right: Map for Picking */}
-                            <div className="w-full xl:w-[450px] bg-neutral-950 border-l border-slate-800 flex flex-col">
+                            <div className="w-full xl:w-[450px] bg-neutral-950 border-t xl:border-t-0 xl:border-l border-slate-800 flex flex-col shrink-0">
                                  <div className="p-6 border-b border-slate-800/60 space-y-4">
                                       <div>
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Route Map</h4>
@@ -586,13 +648,14 @@ const Routes = () => {
                                           </button>
                                       </div>
                                  </div>
-                                 <div className="flex-1 min-h-[400px]">
+                                 <div className="h-[400px] xl:flex-1 w-full relative">
                                      <MapContainer 
                                          center={[schoolLoc.lat, schoolLoc.lng]} 
                                          zoom={13} 
                                          className="h-full w-full"
                                          zoomControl={false}
                                      >
+                                         <MapResizer />
                                          <StopPickerMap 
                                              stops={formData.stops} 
                                              center={newStop.lat ? [newStop.lat, newStop.lng] : null}
@@ -789,6 +852,135 @@ const Routes = () => {
                                         )}
                                     </div>
                                  </div>
+                            </div>
+                        </motion.div>
+                    </div>
+                )}
+
+                {activeMapRoute && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 font-outfit">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }} 
+                            onClick={() => setActiveMapRoute(null)} 
+                            className="absolute inset-0 bg-neutral-950/80 backdrop-blur-sm"
+                        />
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 15 }} 
+                            animate={{ scale: 1, opacity: 1, y: 0 }} 
+                            exit={{ scale: 0.95, opacity: 0, y: 15 }} 
+                            className="bg-neutral-900 w-full max-w-5xl h-[80vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row"
+                        >
+                            {/* Left Column: Interactive Map */}
+                            <div className="flex-1 h-full relative min-h-[400px]">
+                                <MapContainer 
+                                    center={[
+                                        activeMapRoute.stops.find(s => s.lat)?.lat || schoolLoc.lat,
+                                        activeMapRoute.stops.find(s => s.lat)?.lng || schoolLoc.lng
+                                    ]} 
+                                    zoom={13} 
+                                    className="h-full w-full animate-fadeIn"
+                                    zoomControl={true}
+                                >
+                                    <MapResizer />
+                                    <TileLayer
+                                        url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                                        attribution='&copy; CARTO'
+                                    />
+                                    
+                                    {/* Neon glowing line path joining all stops */}
+                                    {activeMapRoute.stops.filter(s => s.lat).length > 1 && (
+                                        <>
+                                            <Polyline
+                                                positions={activeMapRoute.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
+                                                pathOptions={{ color: '#06b6d4', weight: 8, opacity: 0.3 }}
+                                            />
+                                            <Polyline
+                                                positions={activeMapRoute.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
+                                                pathOptions={{ color: '#22d3ee', weight: 3, opacity: 0.9, dashArray: '5, 10' }}
+                                            />
+                                        </>
+                                    )}
+                                    
+                                    {activeMapRoute.stops.map((s, idx) => s.lat && (
+                                        <Marker 
+                                            key={idx} 
+                                            position={[s.lat, s.lng]} 
+                                            icon={L.divIcon({
+                                                html: `
+                                                    <div class="relative flex items-center justify-center">
+                                                        <div class="absolute w-4 h-4 rounded-full bg-cyan-500/35 animate-ping"></div>
+                                                        <div class="w-4 h-4 rounded-full bg-cyan-500 border border-slate-900 shadow-md flex items-center justify-center text-[7px] font-black text-slate-950">${s.order}</div>
+                                                    </div>
+                                                `,
+                                                className: 'custom-route-marker',
+                                                iconSize: [16, 16],
+                                                iconAnchor: [8, 8]
+                                            })}
+                                        >
+                                            <Popup>
+                                                <div className="p-2 font-outfit text-xs text-slate-100 bg-neutral-900 border border-slate-800 rounded shadow-md leading-relaxed">
+                                                    <strong className="block text-slate-200 uppercase tracking-widest text-[9px] font-black">Stop {s.order}: {s.name}</strong>
+                                                    <span className="text-cyan-400 font-bold">Time: {s.estimatedTime}</span>
+                                                </div>
+                                            </Popup>
+                                        </Marker>
+                                    ))}
+                                </MapContainer>
+                                
+                                <button 
+                                    onClick={() => setActiveMapRoute(null)} 
+                                    className="absolute top-4 right-4 z-[1000] p-2.5 bg-neutral-950/80 hover:bg-neutral-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-md transition-all shadow-xl backdrop-blur-md"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                            
+                            {/* Right Column: Route Details */}
+                            <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-slate-800/80 p-8 flex flex-col justify-between overflow-y-auto bg-neutral-900">
+                                <div className="space-y-6">
+                                    <div>
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <Navigation size={16} className="text-cyan-400" />
+                                            <h3 className="text-lg font-black text-slate-100 uppercase tracking-tighter italic">{activeMapRoute.name}</h3>
+                                        </div>
+                                        <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Route Telemetry & Stops</p>
+                                    </div>
+                                    
+                                    <div className="space-y-4">
+                                        {[...activeMapRoute.stops].sort((a,b)=>a.order-b.order).map((s, idx) => (
+                                            <div key={idx} className="flex gap-4 items-start group/telemetry">
+                                                <div className="flex flex-col items-center">
+                                                    <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/35 flex items-center justify-center text-[8px] font-black text-cyan-400 shrink-0">
+                                                        {s.order}
+                                                    </div>
+                                                    {idx !== activeMapRoute.stops.length - 1 && (
+                                                        <div className="w-px h-12 bg-slate-800/60 my-1"></div>
+                                                    )}
+                                                </div>
+                                                <div className="flex-1 bg-neutral-950/40 border border-slate-800/40 group-hover/telemetry:border-cyan-500/20 rounded-md p-3 transition-all leading-tight">
+                                                    <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-wide">{s.name}</h4>
+                                                    <div className="flex justify-between items-center mt-1.5">
+                                                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Eta</span>
+                                                        <span className="text-[9px] font-black text-cyan-400">{s.estimatedTime}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                <div className="pt-6 border-t border-slate-800/60 mt-6 flex flex-col gap-2 bg-neutral-900">
+                                    <div className="flex justify-between text-[9px] font-bold uppercase text-slate-500 tracking-wider">
+                                        <span>Total Stops</span>
+                                        <span className="font-black text-slate-300">{activeMapRoute.stops.length}</span>
+                                    </div>
+                                    <div className="flex justify-between text-[9px] font-bold uppercase text-slate-500 tracking-wider">
+                                        <span>Assigned Students</span>
+                                        <span className="font-black text-cyan-400">{activeMapRoute.assignedStudents?.length || 0} Students</span>
+                                    </div>
+                                </div>
                             </div>
                         </motion.div>
                     </div>

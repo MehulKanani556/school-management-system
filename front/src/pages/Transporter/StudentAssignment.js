@@ -72,8 +72,8 @@ const StudentAssignment = () => {
     )
     );
 
-    const handleUnassign = (routeId, studentId) => {
-        if (window.confirm('Remove student from route? This will remove the student from the route assignment.')) {
+    const handleUnassign = async (routeId, studentId) => {
+        if (await window.confirm('Remove student from route? This will remove the student from the route assignment.')) {
             dispatch(unassignStudentSlice({ routeId, studentId }));
         }
     }
@@ -307,8 +307,8 @@ const StudentAssignment = () => {
                                         <CheckCircle size={14} /> Approve & Assign
                                     </button>
                                     <button 
-                                        onClick={() => {
-                                            if(window.confirm('Reject this inquiry? This will decline the request.')) {
+                                        onClick={async () => {
+                                            if(await window.confirm('Reject this inquiry? This will decline the request.')) {
                                                 dispatch(rejectApplicantSlice(a._id));
                                             }
                                         }}

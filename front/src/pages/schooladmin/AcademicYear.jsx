@@ -69,8 +69,8 @@ const AcademicYear = () => {
         setIsModalOpen(true);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Retract this temporal cycle from institutional memory?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Retract this temporal cycle from institutional memory?')) {
             dispatch(deleteAcademicYear(id));
         }
     };

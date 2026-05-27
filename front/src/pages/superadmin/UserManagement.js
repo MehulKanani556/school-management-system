@@ -35,8 +35,8 @@ const UserManagement = () => {
         setActiveMenu(null);
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('WARNING: IRREVERSIBLE ACTION. PURGE USER ENTITY FROM REGISTRY?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('WARNING: IRREVERSIBLE ACTION. PURGE USER ENTITY FROM REGISTRY?')) {
             dispatch(deletePlatformUser(id));
             setActiveMenu(null);
         }

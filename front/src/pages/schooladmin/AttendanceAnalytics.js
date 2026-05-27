@@ -77,7 +77,7 @@ const AttendanceAnalytics = () => {
         }
     };
 
-    const handleExport = () => {
+    const handleExport = async () => {
         let dataToExport = [];
         let filename = 'Institutional_Attendance_Intelligence.csv';
 
@@ -109,7 +109,7 @@ const AttendanceAnalytics = () => {
             filename = 'Detailed_Attendance_Telemetry.csv';
         }
 
-        if (dataToExport.length === 0) return alert("No nodes detected for export protocol.");
+        if (dataToExport.length === 0) return await alert("No nodes detected for export protocol.");
 
         const headers = Object.keys(dataToExport[0]).join(',');
         const rows = dataToExport.map(obj => Object.values(obj).join(',')).join('\n');

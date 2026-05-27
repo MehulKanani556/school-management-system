@@ -40,8 +40,8 @@ const Notifications = () => {
         }
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Purge this signal from archive?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Purge this signal from archive?')) {
             dispatch(deleteNotification(id));
             toast.success('Notification purged from registry');
         }

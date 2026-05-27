@@ -105,9 +105,9 @@ const Students = () => {
     }),
     onSubmit: async (values) => {
       const fromYear = academicYears.find(y => y._id === values.fromAcademicYearId);
-      const toYear = academicYears.find(y => y._id === values.toAcademicYearId);
+      const toYear = academicYears.findasync (y => y._id === values.toAcademicYearId);
       
-      if (!window.confirm(`This will promote ALL students from ALL grades in ${fromYear?.name} to the next grade in ${toYear?.name}. Continue?`)) {
+      if (!await window.confirm(`This will promote ALL students from ALL grades in ${fromYear?.name} to the next grade in ${toYear?.name}. Continue?`)) {
         return;
       }
 
@@ -233,7 +233,7 @@ const Students = () => {
 
   const handleSyncRollNumbers = async () => {
     if (!selectedSection) return;
-    if (window.confirm(`Do you want to re-synchronize roll sequence for Section ${selectedSection.sectionLabel}? (Girls first, then Boys, then alphabetical)`)) {
+    if (await window.confirm(`Do you want to re-synchronize roll sequence for Section ${selectedSection.sectionLabel}? (Girls first, then Boys, then alphabetical)`)) {
       try {
         const result = await dispatch(generateRollNumbers(selectedSection._id)).unwrap();
         toast.success(result.message || 'Roll sequence synchronized');

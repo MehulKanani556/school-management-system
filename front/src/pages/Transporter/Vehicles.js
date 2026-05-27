@@ -5,6 +5,49 @@ import { Bus, Search, Plus, Trash2, Edit3, User, Loader2, Gauge, CheckCircle2, A
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
+const formatVehicleNumber = (val) => {
+    if (!val) return '';
+    const cleaned = val.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    let state = '';
+    let rto = '';
+    let series = '';
+    let number = '';
+    let step = 0;
+    
+    for (let i = 0; i < cleaned.length; i++) {
+        const char = cleaned[i];
+        const isLetter = /[A-Z]/.test(char);
+        const isDigit = /[0-9]/.test(char);
+        
+        if (step === 0) {
+            state += char;
+            if (state.length === 2) step = 1;
+        } else if (step === 1) {
+            rto += char;
+            if (rto.length === 2) step = 2;
+        } else if (step === 2) {
+            if (isLetter) {
+                series += char;
+                if (series.length === 2) step = 3;
+            } else if (isDigit && series.length >= 1) {
+                step = 3;
+                number += char;
+            } else {
+                series += char;
+                if (series.length === 2) step = 3;
+            }
+        } else if (step === 3) {
+            number += char;
+        }
+    }
+    
+    let result = state;
+    if (rto) result += '-' + rto;
+    if (series) result += '-' + series;
+    if (number) result += '-' + number;
+    return result.slice(0, 13);
+};
+
 const Vehicles = () => {
     const dispatch = useDispatch();
     const { vehicles, drivers, loading, message, error } = useSelector((state) => state.transport);
@@ -86,7 +129,7 @@ const Vehicles = () => {
     const openEdit = (vehicle) => {
         setSelectedVehicle(vehicle);
         setFormData({
-            registrationNumber: vehicle.registrationNumber,
+            registrationNumber: formatVehicleNumber(vehicle.registrationNumber),
             capacity: vehicle.capacity,
             driverId: vehicle.driverId?._id || '',
             status: vehicle.status || 'active',
@@ -118,8 +161,8 @@ const Vehicles = () => {
         return diff < 30 * 24 * 60 * 60 * 1000; // 30 days
     }
 
-    const handleDelete = (id) => {
-        if (window.confirm('Decommission this vehicle node?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Decommission this vehicle node?')) {
             dispatch(deleteVehicleSlice(id));
         }
     }
@@ -270,7 +313,7 @@ const Vehicles = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Bus Number</label>
-                                        <input type="text" required placeholder="e.g. GJ-01-XX-1234" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: e.target.value })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
+                                        <input type="text" required placeholder="e.g. GJ-01-XX-1234" value={formData.registrationNumber} onChange={(e) => setFormData({ ...formData, registrationNumber: formatVehicleNumber(e.target.value) })} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic leading-none" />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Fuel Type</label>
@@ -308,19 +351,6 @@ const Vehicles = () => {
                                      </div>
                                  </div>
 
-                                 <div className="mt-8 pt-6 border-t border-slate-800/60">
-                                     <h4 className="text-[10px] font-black uppercase tracking-widest text-orange-500 italic mb-6">GPS Tracking Details</h4>
-                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-                                         <div className="space-y-2">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">GPS Device ID</label>
-                                             <input type="text" placeholder="e.g. GPS-V01" value={formData.gpsDeviceId} onChange={(e) => setFormData({...formData, gpsDeviceId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none" />
-                                         </div>
-                                         <div className="space-y-2">
-                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">API Key (if any)</label>
-                                             <input type="password" placeholder="••••••••" value={formData.gpsApiKey} onChange={(e) => setFormData({...formData, gpsApiKey: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none" />
-                                         </div>
-                                     </div>
-                                 </div>
 
                                 <div className="flex gap-4 mt-12">
                                     <button type="button" onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="flex-1 px-6 py-4 border border-slate-800 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800/30 transition-all rounded-md leading-none">Cancel</button>

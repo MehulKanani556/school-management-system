@@ -90,8 +90,8 @@ const Holidays = () => {
         formik.resetForm();
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Terminate this temporal break node?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Terminate this temporal break node?')) {
             dispatch(deleteHoliday(id))
                 .unwrap()
                 .then(() => toast.success('Node purged from history'));

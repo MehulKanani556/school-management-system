@@ -33,7 +33,7 @@ const ClassStudents = () => {
     };
 
     const handleGenerateRollNumbers = async () => {
-        if (window.confirm('Do you want to re-synchronize roll sequence based on gender (girls first) and name?')) {
+        if (await window.confirm('Do you want to re-synchronize roll sequence based on gender (girls first) and name?')) {
             setIsGenerating(true);
             try {
                 const result = await dispatch(generateRollNumbers(classId)).unwrap();

@@ -105,8 +105,8 @@ const Assignments = () => {
         }
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Decommission this structural assignment?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Decommission this structural assignment?')) {
             dispatch(deleteAssignment(id));
         }
     };

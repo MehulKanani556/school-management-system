@@ -122,6 +122,7 @@ import Maintenance from './pages/common/Maintenance';
 // Utilities & Context
 import ToastManager from './ToastManager';
 import ProfileModal from './components/ProfileModal';
+import CustomModal from './components/CustomModal';
 
 import { SocketProvider } from './context/SocketContext';
 import { ThemeProvider } from './context/ThemeContext';
@@ -529,6 +530,7 @@ function App() {
               <Toaster position="top-right" reverseOrder={false} />
               <ToastManager />
               <ProfileModal />
+              <CustomModal />
             </div>
           </SocketProvider>
         </ThemeProvider>

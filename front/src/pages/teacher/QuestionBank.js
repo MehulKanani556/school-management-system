@@ -667,7 +667,7 @@ const QuestionBank = () => {
                                                                 <button onClick={(e) => { e.stopPropagation(); handleEditClick(q); }} className="p-1 text-slate-500 hover:text-white"><Edit2 size={12} /></button>
                                                                 <button onClick={async (e) => { 
                                                                     e.stopPropagation(); 
-                                                                    if(window.confirm('Delete this question?')) {
+                                                                    if(await window.confirm('Delete this question?')) {
                                                                         await axiosInstance.delete(`/teacher/questions/${q._id}`);
                                                                         fetchQuestions();
                                                                     }

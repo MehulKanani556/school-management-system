@@ -53,7 +53,7 @@ const ChildFees = () => {
     };
 
     const handlePay = async (feeId) => {
-        if (!window.confirm("Authorize this institutional transaction?")) return;
+        if (!await window.confirm("Authorize this institutional transaction?")) return;
         try {
             const res = await dispatch(payChildFee(feeId)).unwrap();
             

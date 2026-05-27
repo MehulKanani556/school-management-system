@@ -64,8 +64,8 @@ const BookInventory = () => {
         b.category?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to delete this book?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Are you sure you want to delete this book?')) {
             dispatch(deleteBookSlice(id));
         }
     }

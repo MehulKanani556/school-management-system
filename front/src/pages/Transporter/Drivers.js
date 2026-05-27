@@ -82,8 +82,8 @@ const Drivers = () => {
         setIsEditOpen(true);
     }
 
-    const handleDelete = (id) => {
-        if (window.confirm('Delete driver profile? This action cannot be undone.')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Delete driver profile? This action cannot be undone.')) {
             dispatch(deleteDriverSlice(id));
         }
     }

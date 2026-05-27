@@ -252,7 +252,7 @@ const Messages = () => {
     };
 
     const handleDeleteMessage = async (id) => {
-        if (!window.confirm('Retract this transmission?')) return;
+        if (!await window.confirm('Retract this transmission?')) return;
         try {
             await axiosInstance.delete(`/school-admin/messages/${id}`);
             toast.success('Transmission Decommissioned');

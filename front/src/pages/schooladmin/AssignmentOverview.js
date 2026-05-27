@@ -67,11 +67,11 @@ const AssignmentOverview = () => {
     };
 
     const handleDelete = async (assignmentId) => {
-        if (window.confirm("Are you sure you want to decommission this active homework directive? This will also purge all student submissions associated with it.")) {
+        if (await window.confirm("Are you sure you want to decommission this active homework directive? This will also purge all student submissions associated with it.")) {
             try {
                 await dispatch(deleteAssignment(assignmentId)).unwrap();
             } catch (err) {
-                alert(err.message || "Failed to decommission assignment.");
+                await alert(err.message || "Failed to decommission assignment.");
             }
         }
     };

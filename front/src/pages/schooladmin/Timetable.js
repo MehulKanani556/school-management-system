@@ -282,8 +282,8 @@ const AdminTimetable = () => {
             .catch((err) => toast.error(err.message || 'Saving failed'));
     };
 
-    const handleDeleteTimetable = (id) => {
-        if (window.confirm('Delete this entire class timetable? This cannot be undone.')) {
+    const handleDeleteTimetable = async (id) => {
+        if (await window.confirm('Delete this entire class timetable? This cannot be undone.')) {
             dispatch(deleteTimetable(id))
                 .unwrap()
                 .then(() => toast.success('Timetable deleted'))

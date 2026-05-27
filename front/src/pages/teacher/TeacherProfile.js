@@ -69,9 +69,9 @@ const TeacherProfile = () => {
         dispatch(updateProfile(data));
     };
 
-    const handleChangePassword = (e) => {
+    const handleChangePassword = async (e) => {
         e.preventDefault();
-        if (passData.newPassword !== passData.confirmPassword) return alert("Passwords don't match");
+        if (passData.newPassword !== passData.confirmPassword) return await alert("Passwords don't match");
         dispatch(changeTeacherPassword({ oldPassword: passData.oldPassword, newPassword: passData.newPassword }));
         setModalType(null);
     };

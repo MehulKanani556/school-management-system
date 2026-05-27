@@ -42,8 +42,8 @@ const Holidays = () => {
         }
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('IRREVERSIBLE DELETION PROTOCOL - CONTINUE?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('IRREVERSIBLE DELETION PROTOCOL - CONTINUE?')) {
             dispatch(deleteGlobalHoliday(id));
         }
     };

@@ -71,7 +71,7 @@ const ResourceLocker = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Delete this resource permanently?')) return;
+        if (!await window.confirm('Delete this resource permanently?')) return;
         try {
             const res = await axiosInstance.delete(`/teacher/resources/${id}`);
             toast.success(res.data.message);

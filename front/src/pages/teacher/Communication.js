@@ -235,7 +235,7 @@ const Communication = () => {
     };
 
     const handleDeleteAnnouncement = async (id) => {
-        if (!window.confirm('Delete this announcement?')) return;
+        if (!await window.confirm('Delete this announcement?')) return;
         try {
             await dispatch(retractAnnouncement(id)).unwrap();
             toast.success('Announcement Deleted');

@@ -106,8 +106,8 @@ const TripLogs = () => {
         }
     }
 
-    const handleCancelTrip = (id) => {
-        if (window.confirm('Cancel this trip? This will stop the current trip schedule.')) {
+    const handleCancelTrip = async (id) => {
+        if (await window.confirm('Cancel this trip? This will stop the current trip schedule.')) {
             dispatch(updateTripStatusSlice({ id, status: 'Cancelled' }));
         }
     }

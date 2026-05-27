@@ -145,8 +145,8 @@ const PersonnelRegistry = () => {
         }
     };
 
-    const handleDelete = (id) => {
-        if (window.confirm('Are you sure you want to decommission this personnel node?')) {
+    const handleDelete = async (id) => {
+        if (await window.confirm('Are you sure you want to decommission this personnel node?')) {
             if (activeTab === 'institutional') {
                 dispatch(deleteStaff(id));
             } else {

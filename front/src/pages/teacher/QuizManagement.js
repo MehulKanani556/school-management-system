@@ -69,7 +69,7 @@ const QuizManagement = () => {
     };
 
     const handleDelete = async (quizId) => {
-        if (!window.confirm('Delete this quiz and all its attempts?')) return;
+        if (!await window.confirm('Delete this quiz and all its attempts?')) return;
         try {
             await axiosInstance.delete(`/teacher/quizzes/${quizId}`);
             setQuizzes(prev => prev.filter(q => q._id !== quizId));

@@ -53,7 +53,7 @@ const BehaviorLog = () => {
     };
 
     const handleDelete = async (id) => {
-        if (window.confirm('Purge this conduct vector from institutional memory?')) {
+        if (await window.confirm('Purge this conduct vector from institutional memory?')) {
             const res = await dispatch(deleteBehavior(id));
             if (res.meta.requestStatus === 'fulfilled') {
                 toast.success('Vector PURGED');
