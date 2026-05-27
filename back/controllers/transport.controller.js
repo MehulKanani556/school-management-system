@@ -41,15 +41,31 @@ exports.getVehicles = async (req, res) => {
 
 exports.addVehicle = async (req, res) => {
     try {
-        const vehicle = await Vehicle.create({ ...req.body, schoolId: getSchoolId(req) });
+        const { driverId } = req.body;
+        const schoolId = getSchoolId(req);
+        if (driverId) {
+            const existing = await Vehicle.findOne({ driverId, schoolId });
+            if (existing) {
+                return res.status(400).json({ message: 'Driver is already assigned to another vehicle' });
+            }
+        }
+        const vehicle = await Vehicle.create({ ...req.body, schoolId });
         res.status(201).json({ message: 'Vehicle added successfully', data: vehicle });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.updateVehicle = async (req, res) => {
     try {
+        const { driverId } = req.body;
+        const schoolId = getSchoolId(req);
+        if (driverId) {
+            const existing = await Vehicle.findOne({ driverId, schoolId, _id: { $ne: req.params.id } });
+            if (existing) {
+                return res.status(400).json({ message: 'Driver is already assigned to another vehicle' });
+            }
+        }
         const vehicle = await Vehicle.findOneAndUpdate(
-            { _id: req.params.id, schoolId: getSchoolId(req) },
+            { _id: req.params.id, schoolId },
             req.body, { new: true }
         ).populate('driverId');
         res.json({ message: 'Vehicle updated', data: vehicle });
@@ -427,7 +443,8 @@ exports.addDriver = async (req, res) => {
         }
 
         const driver = await Driver.create({ ...req.body, schoolId, userId });
-        res.status(201).json({ message: 'Driver added and account provisioned', data: driver });
+        const populatedDriver = await Driver.findById(driver._id).populate('userId');
+        res.status(201).json({ message: 'Driver added and account provisioned', data: populatedDriver });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -439,19 +456,23 @@ exports.updateDriver = async (req, res) => {
         const driver = await Driver.findOneAndUpdate(
             { _id: req.params.id, schoolId },
             req.body, { new: true }
-        ).populate('userId');
+        );
 
         if (driver && driver.userId) {
-            await User.findByIdAndUpdate(driver.userId._id, {
+            const userUpdate = {
                 firstName: name.split(' ')[0],
                 lastName: name.split(' ').slice(1).join(' ') || 'Driver',
-                email: email || driver.userId.email,
                 phoneNumber: contact,
-                baseSalary: Number(baseSalary) || driver.userId.baseSalary
-            });
+            };
+            if (email) userUpdate.email = email;
+            if (baseSalary !== undefined && baseSalary !== '') {
+                userUpdate.baseSalary = Number(baseSalary);
+            }
+            await User.findByIdAndUpdate(driver.userId, userUpdate);
         }
 
-        res.json({ message: 'Driver and linked account updated', data: driver });
+        const populatedDriver = await Driver.findById(req.params.id).populate('userId');
+        res.json({ message: 'Driver and linked account updated', data: populatedDriver });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

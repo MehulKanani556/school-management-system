@@ -127,7 +127,7 @@ const StudentAssignment = () => {
     const studentList = students.filter(s => s.role === 'Student');
 
     return (
-        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="space-y-8 pb-10">
+        <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1, transitionEnd: { transform: "none" } }} className="space-y-8 pb-10">
             <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-6 px-2 font-outfit">
                 <div>
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Assign Seats</h1>
@@ -376,32 +376,27 @@ const StudentAssignment = () => {
                                     </div>
 
                                     {formData.routeId && (
-                                        <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-4">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Stop</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Student Stop</label>
                                                 <select
                                                     required
                                                     value={formData.pickupStop}
-                                                    onChange={(e) => setFormData({ ...formData, pickupStop: e.target.value })}
+                                                    onChange={(e) => setFormData({ 
+                                                        ...formData, 
+                                                        pickupStop: e.target.value,
+                                                        dropoffStop: e.target.value
+                                                    })}
                                                     className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
                                                 >
                                                     <option value="">Select Stop...</option>
-                                                    {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                                                    {routes.find(r => r._id === formData.routeId)?.stops
+                                                        .filter(s => s.name !== 'School')
+                                                        .map(s => <option key={s.name} value={s.name}>{s.name}</option>)
+                                                    }
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Drop Stop</label>
-                                                <select
-                                                    required
-                                                    value={formData.dropoffStop}
-                                                    onChange={(e) => setFormData({ ...formData, dropoffStop: e.target.value })}
-                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
-                                                >
-                                                    <option value="">Select Stop...</option>
-                                                    {routes.find(r => r._id === formData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                                                </select>
-                                            </div>
-                                            <div className="space-y-2 col-span-2">
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-transporter-primary italic ml-1">Seat Number</label>
                                                 <input
                                                     type="number"
@@ -461,31 +456,24 @@ const StudentAssignment = () => {
                                         </div>
 
                                         {bulkData.routeId && (
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Pickup Stop</label>
-                                                    <select
-                                                        required
-                                                        value={bulkData.pickupStop}
-                                                        onChange={(e) => setBulkData({ ...bulkData, pickupStop: e.target.value })}
-                                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
-                                                    >
-                                                        <option value="">Select Stop...</option>
-                                                        {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Drop Stop</label>
-                                                    <select
-                                                        required
-                                                        value={bulkData.dropoffStop}
-                                                        onChange={(e) => setBulkData({ ...bulkData, dropoffStop: e.target.value })}
-                                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
-                                                    >
-                                                        <option value="">Select Stop...</option>
-                                                        {routes.find(r => r._id === bulkData.routeId)?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                                                    </select>
-                                                </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Student Stop</label>
+                                                <select
+                                                    required
+                                                    value={bulkData.pickupStop}
+                                                    onChange={(e) => setBulkData({ 
+                                                        ...bulkData, 
+                                                        pickupStop: e.target.value,
+                                                        dropoffStop: e.target.value
+                                                    })}
+                                                    className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none"
+                                                >
+                                                    <option value="">Select Stop...</option>
+                                                    {routes.find(r => r._id === bulkData.routeId)?.stops
+                                                        .filter(s => s.name !== 'School')
+                                                        .map(s => <option key={s.name} value={s.name}>{s.name}</option>)
+                                                    }
+                                                </select>
                                             </div>
                                         )}
 

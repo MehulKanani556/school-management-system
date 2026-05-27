@@ -102,7 +102,7 @@ const Drivers = () => {
     );
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0, transitionEnd: { transform: "none" } }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 px-2">
                 <div>
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Drivers</h1>

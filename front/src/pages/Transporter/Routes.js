@@ -23,6 +23,102 @@ const MapResizer = () => {
     return null;
 };
 
+// Component to fetch and display OSRM road-network route lines with high-fidelity glow
+const RoadNetworkPath = ({ stops, color1 = '#06b6d4', color2 = '#22d3ee', weight1 = 8, weight2 = 3 }) => {
+    const [roadPoints, setRoadPoints] = React.useState([]);
+
+    useEffect(() => {
+        const sorted = [...stops]
+            .filter(s => s.lat && s.lng)
+            .sort((a, b) => (a.order || 0) - (b.order || 0));
+
+        if (sorted.length < 2) {
+            setRoadPoints([]);
+            return;
+        }
+
+        let isMounted = true;
+        const fetchRoute = async () => {
+            try {
+                const coordsString = sorted.map(s => `${s.lng},${s.lat}`).join(';');
+                const resp = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`);
+                if (!resp.ok) throw new Error('OSRM request failed');
+                const data = await resp.json();
+                if (data.routes && data.routes[0] && data.routes[0].geometry) {
+                    const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]); // OSRM returns [lng, lat]
+                    
+                    // High-accuracy coordinate snapping patch:
+                    // Force the route line to pass EXACTLY through the actual marker coordinates of every stop,
+                    // by inserting/matching the exact marker coordinates into the OSRM path geometry.
+                    const correctedCoords = [...coords];
+                    
+                    const findClosestIndex = (path, target) => {
+                        let minD = Infinity;
+                        let closestIdx = 0;
+                        const [tLat, tLng] = target;
+                        for (let i = 0; i < path.length; i++) {
+                            const [cLat, cLng] = path[i];
+                            const d = (cLat - tLat) ** 2 + (cLng - tLng) ** 2;
+                            if (d < minD) {
+                                minD = d;
+                                closestIdx = i;
+                            }
+                        }
+                        return closestIdx;
+                    };
+
+                    sorted.forEach((stop, index) => {
+                        const actual = [stop.lat, stop.lng];
+                        if (index === 0) {
+                            correctedCoords[0] = actual;
+                        } else if (index === sorted.length - 1) {
+                            correctedCoords[correctedCoords.length - 1] = actual;
+                        } else {
+                            const closestIdx = findClosestIndex(correctedCoords, actual);
+                            // Insert to form a perfect path touching the marker directly
+                            correctedCoords.splice(closestIdx, 0, actual);
+                        }
+                    });
+
+                    if (isMounted) {
+                        setRoadPoints(correctedCoords);
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to fetch OSRM road route, falling back to straight lines:', err);
+                if (isMounted) {
+                    setRoadPoints([]); // Fall back to straight line
+                }
+            }
+        };
+
+        fetchRoute();
+        return () => { isMounted = false; };
+    }, [stops]);
+
+    const fallbackPoints = [...stops]
+        .filter(s => s.lat && s.lng)
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+        .map(s => [s.lat, s.lng]);
+
+    const activePoints = roadPoints.length > 0 ? roadPoints : fallbackPoints;
+
+    if (activePoints.length < 2) return null;
+
+    return (
+        <>
+            <Polyline
+                positions={activePoints}
+                pathOptions={{ color: color1, weight: weight1, opacity: 0.3 }}
+            />
+            <Polyline
+                positions={activePoints}
+                pathOptions={{ color: color2, weight: weight2, opacity: 0.9, dashArray: '5, 10' }}
+            />
+        </>
+    );
+};
+
 // Map component for picking coordinates
 const StopPickerMap = ({ onPick, stops = [], center }) => {
     const map = useMap();
@@ -74,22 +170,76 @@ const Routes = () => {
     const dispatch = useDispatch();
     const { routes, vehicles, applicants, loading, message, error } = useSelector((state) => state.transport);
     const { students } = useSelector((state) => state.schoolAdmin);
+    
+    // Build set of all assigned student IDs across all routes to filter out duplicates in assignment
+    const assignedStudentIds = React.useMemo(() => {
+        const ids = new Set();
+        routes.forEach(r => {
+            if (r.assignedStudents) {
+                r.assignedStudents.forEach(s => {
+                    const id = s.studentId?._id || s.studentId;
+                    if (id) ids.add(id.toString());
+                });
+            }
+        });
+        return ids;
+    }, [routes]);
     const [isAddOpen, setIsAddOpen] = React.useState(false);
     const [isEditOpen, setIsEditOpen] = React.useState(false);
     const [isAssignOpen, setIsAssignOpen] = React.useState(false);
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [selectedRouteForAssign, setSelectedRouteForAssign] = React.useState(null);
-    const [formData, setFormData] = React.useState({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0, startTime: '08:00 AM' });
-    const [newStop, setNewStop] = React.useState({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
+    const [formData, setFormData] = React.useState({ 
+        name: '', 
+        vehicleId: '', 
+        stops: [
+            {
+                name: 'School',
+                order: 1,
+                estimatedTime: '08:00 AM',
+                lat: 21.1702,
+                lng: 72.8311
+            }
+        ], 
+        status: 'active', 
+        fee: 0, 
+        startTime: '08:00 AM' 
+    });
+    const [newStop, setNewStop] = React.useState({ name: '', order: 2, estimatedTime: '08:00 AM', lat: null, lng: null });
     const [searchTerm, setSearchTerm] = React.useState('');
     const [mapSearch, setMapSearch] = React.useState('');
     const [suggestions, setSuggestions] = React.useState([]);
     const [isSearching, setIsSearching] = React.useState(false);
     const [isLocating, setIsLocating] = React.useState(false);
-    const [schoolLoc, setSchoolLoc] = React.useState({ lat: 18.5204, lng: 73.8567 }); // Default to Pune center (Viman Nagar context)
+    const [isAutoTime, setIsAutoTime] = React.useState(true);
+    const [schoolLoc, setSchoolLoc] = React.useState({ lat: 21.1702, lng: 72.8311 }); // Default to Surat center fallback
     const [assignData, setAssignData] = React.useState({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     const [studentSearch, setStudentSearch] = React.useState('');
     const [activeMapRoute, setActiveMapRoute] = React.useState(null);
+
+    useEffect(() => {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    setSchoolLoc({ lat: latitude, lng: longitude });
+                    setFormData(prev => {
+                        // If it has only the default placeholder school coordinates, update them
+                        const updatedStops = [...prev.stops];
+                        if (updatedStops.length > 0 && updatedStops[0].name === 'School' && updatedStops[0].lat === 21.1702 && updatedStops[0].lng === 72.8311) {
+                            updatedStops[0] = { ...updatedStops[0], lat: latitude, lng: longitude };
+                            return { ...prev, stops: updatedStops };
+                        }
+                        return prev;
+                    });
+                },
+                (error) => {
+                    console.log("Auto-location failed or denied, using Surat default:", error);
+                },
+                { enableHighAccuracy: true, timeout: 5000 }
+            );
+        }
+    }, []);
 
     useEffect(() => {
         dispatch(fetchRoutesSlice());
@@ -115,8 +265,23 @@ const Routes = () => {
     }, [message, error, dispatch]);
 
     const resetForm = () => {
-        setFormData({ name: '', vehicleId: '', stops: [], status: 'active', fee: 0, startTime: '08:00 AM' });
-        setNewStop({ name: '', order: 1, estimatedTime: '08:00 AM', lat: null, lng: null });
+        setFormData({ 
+            name: '', 
+            vehicleId: '', 
+            stops: [
+                {
+                    name: 'School',
+                    order: 1,
+                    estimatedTime: '08:00 AM',
+                    lat: schoolLoc.lat,
+                    lng: schoolLoc.lng
+                }
+            ], 
+            status: 'active', 
+            fee: 0, 
+            startTime: '08:00 AM' 
+        });
+        setNewStop({ name: '', order: 2, estimatedTime: '08:00 AM', lat: null, lng: null });
         setSelectedRoute(null);
         setAssignData({ studentId: '', pickupStop: '', dropoffStop: '', seatNumber: '' });
     }
@@ -235,9 +400,9 @@ const Routes = () => {
     const openAssign = (route) => {
         setSelectedRouteForAssign(route);
         // Pre-fill stops if possible
-        const defaultPickup = route.stops[0]?.name || '';
-        const defaultDropoff = route.stops[route.stops.length - 1]?.name || '';
-        setAssignData({ studentId: '', pickupStop: defaultPickup, dropoffStop: defaultDropoff, seatNumber: '' });
+        const nonSchoolStops = route.stops.filter(s => s.name !== 'School');
+        const defaultStop = nonSchoolStops[0]?.name || '';
+        setAssignData({ studentId: '', pickupStop: defaultStop, dropoffStop: defaultStop, seatNumber: '' });
         setIsAssignOpen(true);
     }
 
@@ -263,16 +428,29 @@ const Routes = () => {
         if (!newStop.name) return toast.error('Stop name is required');
         if (!newStop.lat || !newStop.lng) return toast.error('Select location on map');
         
-        const prevStop = formData.stops.length > 0 ? formData.stops[formData.stops.length - 1] : { lat: schoolLoc.lat, lng: schoolLoc.lng, estimatedTime: formData.startTime };
-        const dist = helperDistance(prevStop.lat, prevStop.lng, newStop.lat, newStop.lng);
-        const autoTime = helperAddTime(prevStop.estimatedTime, dist);
+        let finalTime = newStop.estimatedTime;
+        if (isAutoTime) {
+            if (formData.stops.length === 0) {
+                // First stop always starts exactly at the route's specified Start Time
+                finalTime = formData.startTime;
+            } else {
+                const prevStop = formData.stops[formData.stops.length - 1];
+                const dist = helperDistance(prevStop.lat, prevStop.lng, newStop.lat, newStop.lng);
+                finalTime = helperAddTime(prevStop.estimatedTime, dist);
+            }
+        }
 
         const order = formData.stops.length + 1;
-        setFormData({ ...formData, stops: [...formData.stops, { ...newStop, order, estimatedTime: autoTime }] });
-        setNewStop({ name: '', order: order + 1, estimatedTime: autoTime, lat: null, lng: null });
+        setFormData({ ...formData, stops: [...formData.stops, { ...newStop, order, estimatedTime: finalTime }] });
+        setNewStop({ name: '', order: order + 1, estimatedTime: finalTime, lat: null, lng: null });
     }
 
     const removeStop = (index) => {
+        const stopToRemove = formData.stops[index];
+        if (stopToRemove && stopToRemove.name === 'School' && index === 0) {
+            toast.error('The school base stop cannot be removed.');
+            return;
+        }
         const updatedStops = formData.stops.filter((_, i) => i !== index).map((s, i) => ({ ...s, order: i + 1 }));
         setFormData({ ...formData, stops: updatedStops });
     }
@@ -284,7 +462,7 @@ const Routes = () => {
     }
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0, transitionEnd: { transform: "none" } }} className="space-y-8 pb-10">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end px-2 font-outfit gap-4">
                 <div>
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Routes</h1>
@@ -409,19 +587,14 @@ const Routes = () => {
                                     scrollWheelZoom={false}
                                 >
                                     <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
-                                    {/* Neon glowing line path joining all stops */}
-                                    {route.stops.filter(s => s.lat).length > 1 && (
-                                        <>
-                                            <Polyline
-                                                positions={route.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
-                                                pathOptions={{ color: '#06b6d4', weight: 4, opacity: 0.3 }}
-                                            />
-                                            <Polyline
-                                                positions={route.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
-                                                pathOptions={{ color: '#22d3ee', weight: 1.5, opacity: 0.8, dashArray: '4, 8' }}
-                                            />
-                                        </>
-                                    )}
+                                    {/* Real Road-Network Route path joining all stops dynamically */}
+                                    <RoadNetworkPath 
+                                        stops={route.stops} 
+                                        color1="#06b6d4" 
+                                        color2="#22d3ee" 
+                                        weight1={4} 
+                                        weight2={1.5} 
+                                    />
                                     {route.stops.map((s, idx) => s.lat && (
                                         <Marker 
                                             key={idx} 
@@ -501,7 +674,16 @@ const Routes = () => {
                                                   type="text" 
                                                   required
                                                   value={formData.startTime}
-                                                  onChange={(e) => setFormData({...formData, startTime: e.target.value})}
+                                                  onChange={(e) => {
+                                                      const val = e.target.value;
+                                                      setFormData(prev => {
+                                                          const updatedStops = [...prev.stops];
+                                                          if (updatedStops.length > 0 && updatedStops[0].name === 'School') {
+                                                              updatedStops[0] = { ...updatedStops[0], estimatedTime: val };
+                                                          }
+                                                          return { ...prev, startTime: val, stops: updatedStops };
+                                                      });
+                                                  }}
                                                   className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
                                               />
                                           </div>
@@ -551,13 +733,23 @@ const Routes = () => {
                                                     onChange={(e) => setNewStop({...newStop, name: e.target.value})}
                                                     className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
                                                 />
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="HH:MM AM/PM"
-                                                    value={newStop.estimatedTime}
-                                                    onChange={(e) => setNewStop({...newStop, estimatedTime: e.target.value})}
-                                                    className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
-                                                />
+                                                <div className="relative flex items-center h-[38px]">
+                                                    <input 
+                                                        type="text" 
+                                                        placeholder="HH:MM AM/PM"
+                                                        disabled={isAutoTime}
+                                                        value={isAutoTime ? 'Auto-Calculated' : newStop.estimatedTime}
+                                                        onChange={(e) => setNewStop({...newStop, estimatedTime: e.target.value})}
+                                                        className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-3 pr-16 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-full leading-none disabled:opacity-40 disabled:text-cyan-400"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setIsAutoTime(!isAutoTime)}
+                                                        className={`absolute right-1 px-2.5 py-1 text-[8px] font-black uppercase tracking-wider rounded-md border transition-all h-[30px] flex items-center leading-none ${isAutoTime ? 'bg-cyan-600/10 border-cyan-600/20 text-cyan-400 hover:bg-cyan-600 hover:text-white' : 'bg-slate-800 border-slate-700 text-slate-400 hover:bg-slate-700'}`}
+                                                    >
+                                                        {isAutoTime ? 'Auto' : 'Manual'}
+                                                    </button>
+                                                </div>
                                             </div>
                                             <div className="flex items-center gap-4 bg-black/40 p-3 rounded-md border border-slate-800/40 flex-wrap">
                                                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic">
@@ -586,14 +778,39 @@ const Routes = () => {
                                                         </div>
                                                     </div>
                                                     <div className="flex items-center gap-2">
-                                                        <span className="text-[8px] font-black text-slate-600 italic uppercase">[{s.lat?.toFixed(2)}, {s.lng?.toFixed(2)}]</span>
-                                                        <button 
-                                                            type="button"
-                                                            onClick={() => removeStop(idx)}
-                                                            className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
-                                                        >
-                                                            <X size={14} />
-                                                        </button>
+                                                        <span className="text-[8px] font-black text-slate-600 italic uppercase">
+                                                            {s.lat && s.lng ? `[${s.lat.toFixed(4)}, ${s.lng.toFixed(4)}]` : 'NO COORD'}
+                                                        </span>
+                                                        {s.name === 'School' && idx === 0 ? (
+                                                            <button
+                                                                type="button"
+                                                                title="Set School Location from Map Selection"
+                                                                onClick={() => {
+                                                                    if (newStop.lat) {
+                                                                        setFormData(prev => {
+                                                                            const updatedStops = [...prev.stops];
+                                                                            updatedStops[0] = { ...updatedStops[0], lat: newStop.lat, lng: newStop.lng };
+                                                                            return { ...prev, stops: updatedStops };
+                                                                        });
+                                                                        setSchoolLoc({ lat: newStop.lat, lng: newStop.lng });
+                                                                        toast.success('School base location set from map selection!');
+                                                                    } else {
+                                                                        toast.error('Click on the map first to select the location.');
+                                                                    }
+                                                                }}
+                                                                className="p-1.5 text-emerald-500 hover:text-emerald-400 bg-neutral-950 border border-slate-800 rounded-md transition-all"
+                                                            >
+                                                                <MapPin size={14} />
+                                                            </button>
+                                                        ) : (
+                                                            <button 
+                                                                type="button"
+                                                                onClick={() => removeStop(idx)}
+                                                                className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}
@@ -671,7 +888,16 @@ const Routes = () => {
                                             onClick={() => {
                                                 if (newStop.lat) {
                                                     setSchoolLoc({ lat: newStop.lat, lng: newStop.lng });
-                                                    toast.success('School location set');
+                                                    setFormData(prev => {
+                                                        const updatedStops = [...prev.stops];
+                                                        if (updatedStops.length > 0 && updatedStops[0].name === 'School') {
+                                                            updatedStops[0] = { ...updatedStops[0], lat: newStop.lat, lng: newStop.lng };
+                                                        }
+                                                        return { ...prev, stops: updatedStops };
+                                                    });
+                                                    toast.success('School base location updated');
+                                                } else {
+                                                    toast.error('Please click on the map to pick coordinates first');
                                                 }
                                             }}
                                             title="Set as School Base"
@@ -697,6 +923,7 @@ const Routes = () => {
                                              center={newStop.lat ? [newStop.lat, newStop.lng] : null}
                                              onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })} 
                                          />
+                                         <RoadNetworkPath stops={formData.stops} />
                                          <Marker 
                                             position={[schoolLoc.lat, schoolLoc.lng]} 
                                             icon={L.divIcon({
@@ -725,12 +952,12 @@ const Routes = () => {
                 )}
 
                 {isAssignOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-6 font-outfit">
+                    <div className="fixed inset-0 z-50 flex items-start justify-center p-6 pt-16 font-outfit">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAssignOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-neutral-900 w-full max-w-5xl h-[85vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row">
                             
                             {/* Left: Assignment Form */}
-                            <div className="w-full md:w-1/3 p-10 border-r border-slate-800/60 overflow-y-auto">
+                            <div className="w-full md:w-1/3 p-6 border-r border-slate-800/60 overflow-y-auto">
                                 <div className="flex items-center gap-3 mb-8">
                                     <UserPlus className="text-blue-500" size={24} />
                                     <h3 className="text-xl font-black italic uppercase text-white leading-none">Add Student</h3>
@@ -757,17 +984,21 @@ const Routes = () => {
                                         >
                                             <option value="">Select Student...</option>
                                             {/* Priority 1: Applicants (Those who applied via portal) */}
-                                            {applicants.length > 0 && (
+                                            {applicants.filter(a => !assignedStudentIds.has(a._id.toString())).length > 0 && (
                                                 <optgroup label="PENDING APPLICATIONS" className="bg-neutral-900 text-blue-400">
-                                                    {applicants.map(a => (
-                                                        <option key={a._id} value={a._id}>{a.firstName} {a.lastName} (ADM: {a.admissionNumber || 'N/A'})</option>
-                                                    ))}
+                                                    {applicants
+                                                        .filter(a => !assignedStudentIds.has(a._id.toString()))
+                                                        .map(a => (
+                                                            <option key={a._id} value={a._id}>{a.firstName} {a.lastName} (ADM: {a.admissionNumber || 'N/A'})</option>
+                                                        ))
+                                                    }
                                                 </optgroup>
                                             )}
                                             {/* Priority 2: All Other Students */}
                                             <optgroup label="ALL STUDENTS" className="bg-neutral-950 text-slate-500">
                                                 {students
                                                     .filter(s => 
+                                                        !assignedStudentIds.has(s._id.toString()) &&
                                                         !applicants.some(a => a._id === s._id) && 
                                                         (`${s.firstName} ${s.lastName} ${s.admissionNumber}`.toLowerCase().includes(studentSearch.toLowerCase()))
                                                     )
@@ -785,27 +1016,23 @@ const Routes = () => {
                                         </div>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Pickup Stop</label>
-                                            <select 
-                                                value={assignData.pickupStop}
-                                                onChange={(e) => setAssignData({...assignData, pickupStop: e.target.value})}
-                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
-                                            >
-                                                {selectedRouteForAssign?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Drop Stop</label>
-                                            <select 
-                                                value={assignData.dropoffStop}
-                                                onChange={(e) => setAssignData({...assignData, dropoffStop: e.target.value})}
-                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
-                                            >
-                                                {selectedRouteForAssign?.stops.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
-                                            </select>
-                                        </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Student Stop</label>
+                                        <select 
+                                            value={assignData.pickupStop}
+                                            onChange={(e) => setAssignData({
+                                                ...assignData,
+                                                pickupStop: e.target.value,
+                                                dropoffStop: e.target.value
+                                            })}
+                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
+                                        >
+                                            <option value="">Select Stop...</option>
+                                            {selectedRouteForAssign?.stops
+                                                .filter(s => s.name !== 'School')
+                                                .map(s => <option key={s.name} value={s.name}>{s.name}</option>)
+                                            }
+                                        </select>
                                     </div>
 
                                     <div className="space-y-2">
@@ -840,7 +1067,7 @@ const Routes = () => {
 
                             {/* Right: Current Students */}
                             <div className="flex-1 bg-black/20 overflow-y-auto custom-scrollbar">
-                                 <div className="p-10">
+                                 <div className="p-6">
                                     <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800/60">
                                         <div>
                                             <h3 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none">{selectedRouteForAssign?.name} Students</h3>
@@ -925,19 +1152,8 @@ const Routes = () => {
                                         attribution='&copy; CARTO'
                                     />
                                     
-                                    {/* Neon glowing line path joining all stops */}
-                                    {activeMapRoute.stops.filter(s => s.lat).length > 1 && (
-                                        <>
-                                            <Polyline
-                                                positions={activeMapRoute.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
-                                                pathOptions={{ color: '#06b6d4', weight: 8, opacity: 0.3 }}
-                                            />
-                                            <Polyline
-                                                positions={activeMapRoute.stops.filter(s => s.lat).sort((a,b)=>a.order-b.order).map(s => [s.lat, s.lng])}
-                                                pathOptions={{ color: '#22d3ee', weight: 3, opacity: 0.9, dashArray: '5, 10' }}
-                                            />
-                                        </>
-                                    )}
+                                    {/* Real Road-Network Route path joining all stops dynamically */}
+                                    <RoadNetworkPath stops={activeMapRoute.stops} />
                                     
                                     {activeMapRoute.stops.map((s, idx) => s.lat && (
                                         <Marker 

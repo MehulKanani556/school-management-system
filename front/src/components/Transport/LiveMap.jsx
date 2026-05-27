@@ -62,8 +62,102 @@ const RecenterMap = ({ coords }) => {
     return null;
 };
 
+// Component to fetch and display OSRM road-network route lines styled in glowing orange
+const RoadNetworkPath = ({ stops }) => {
+    const [roadPoints, setRoadPoints] = useState([]);
+
+    useEffect(() => {
+        const sorted = [...stops]
+            .filter(s => s && typeof s.lat === 'number' && typeof s.lng === 'number');
+
+        if (sorted.length < 2) {
+            setRoadPoints([]);
+            return;
+        }
+
+        let isMounted = true;
+        const fetchRoute = async () => {
+            try {
+                const coordsString = sorted.map(s => `${s.lng},${s.lat}`).join(';');
+                const resp = await fetch(`https://router.project-osrm.org/route/v1/driving/${coordsString}?overview=full&geometries=geojson`);
+                if (!resp.ok) throw new Error('OSRM request failed');
+                const data = await resp.json();
+                if (data.routes && data.routes[0] && data.routes[0].geometry) {
+                    const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]); // OSRM returns [lng, lat]
+                    
+                    // High-accuracy coordinate snapping patch:
+                    // Force the route line to pass EXACTLY through the actual marker coordinates of every stop,
+                    // by inserting/matching the exact marker coordinates into the OSRM path geometry.
+                    const correctedCoords = [...coords];
+                    
+                    const findClosestIndex = (path, target) => {
+                        let minD = Infinity;
+                        let closestIdx = 0;
+                        const [tLat, tLng] = target;
+                        for (let i = 0; i < path.length; i++) {
+                            const [cLat, cLng] = path[i];
+                            const d = (cLat - tLat) ** 2 + (cLng - tLng) ** 2;
+                            if (d < minD) {
+                                minD = d;
+                                closestIdx = i;
+                            }
+                        }
+                        return closestIdx;
+                    };
+
+                    sorted.forEach((stop, index) => {
+                        const actual = [stop.lat, stop.lng];
+                        if (index === 0) {
+                            correctedCoords[0] = actual;
+                        } else if (index === sorted.length - 1) {
+                            correctedCoords[correctedCoords.length - 1] = actual;
+                        } else {
+                            const closestIdx = findClosestIndex(correctedCoords, actual);
+                            // Insert to form a perfect path touching the marker directly
+                            correctedCoords.splice(closestIdx, 0, actual);
+                        }
+                    });
+
+                    if (isMounted) {
+                        setRoadPoints(correctedCoords);
+                    }
+                }
+            } catch (err) {
+                console.warn('Failed to fetch OSRM road route, falling back to straight lines:', err);
+                if (isMounted) {
+                    setRoadPoints([]); // Fall back to straight line
+                }
+            }
+        };
+
+        fetchRoute();
+        return () => { isMounted = false; };
+    }, [stops]);
+
+    const fallbackPoints = [...stops]
+        .filter(s => s && typeof s.lat === 'number' && typeof s.lng === 'number')
+        .map(s => [s.lat, s.lng]);
+
+    const activePoints = roadPoints.length > 0 ? roadPoints : fallbackPoints;
+
+    if (activePoints.length < 2) return null;
+
+    return (
+        <>
+            <Polyline
+                positions={activePoints}
+                pathOptions={{ color: '#ea580c', weight: 8, opacity: 0.2 }}
+            />
+            <Polyline
+                positions={activePoints}
+                pathOptions={{ color: '#f97316', weight: 3, opacity: 0.8, dashArray: '5, 10' }}
+            />
+        </>
+    );
+};
+
 const LiveMap = ({ vehicleLocation, allLocations = {}, stops = [], autoCenter = true, mapTheme = 'dark' }) => {
-    const defaultCenter = [18.5204, 73.8567]; // Default point (Pune center)
+    const defaultCenter = [21.1702, 72.8311]; // Default point (Surat center)
 
     const center = (vehicleLocation && typeof vehicleLocation.lat === 'number' && typeof vehicleLocation.lng === 'number')
         ? [vehicleLocation.lat, vehicleLocation.lng]
@@ -114,13 +208,8 @@ const LiveMap = ({ vehicleLocation, allLocations = {}, stops = [], autoCenter = 
                     </Marker>
                 ))}
 
-                {/* Path */}
-                {validStops.length > 1 && (
-                    <Polyline
-                        positions={validStops.map(s => [s.lat, s.lng])}
-                        pathOptions={{ color: '#f97316', weight: 3, dashArray: '10, 10', opacity: 0.4 }}
-                    />
-                )}
+                {/* Real Road-Network Route path joining all stops dynamically */}
+                <RoadNetworkPath stops={validStops} />
 
                 {/* Multiple Vehicles */}
                 {Object.entries(allLocations).map(([vid, loc]) => {

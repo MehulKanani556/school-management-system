@@ -182,7 +182,7 @@ const Vehicles = () => {
     }
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0, transitionEnd: { transform: "none" } }} className="space-y-8 pb-10">
             <div className="flex justify-between items-end px-2">
                 <div>
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">All Buses</h1>
@@ -344,9 +344,18 @@ const Vehicles = () => {
                                          <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Assign Driver</label>
                                          <select value={formData.driverId} onChange={(e) => setFormData({...formData, driverId: e.target.value})} className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-orange-600/50 transition-all italic leading-none appearance-none">
                                              <option value="">SELECT DRIVER</option>
-                                             {drivers.map(driver => (
-                                                 <option key={driver._id} value={driver._id}>{driver.name.toUpperCase()}</option>
-                                             ))}
+                                             {drivers
+                                                 .filter(driver => {
+                                                     const currentDriverId = selectedVehicle?.driverId?._id || selectedVehicle?.driverId;
+                                                     if (isEditOpen && currentDriverId === driver._id) {
+                                                         return true;
+                                                     }
+                                                     return !vehicles.some(v => (v.driverId?._id || v.driverId) === driver._id);
+                                                 })
+                                                 .map(driver => (
+                                                     <option key={driver._id} value={driver._id}>{driver.name.toUpperCase()}</option>
+                                                 ))
+                                             }
                                          </select>
                                      </div>
                                  </div>
