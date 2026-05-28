@@ -12,6 +12,7 @@ const messageSchema = new mongoose.Schema({
   fileUrl: { type: String },
   isRead: { type: Boolean, default: false },
   isPinned: { type: Boolean, default: false },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear' },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Message', messageSchema);

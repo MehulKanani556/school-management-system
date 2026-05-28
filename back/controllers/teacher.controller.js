@@ -334,6 +334,15 @@ exports.sendMessage = async (req, res) => {
                 ...populated.toJSON(),
                 senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
             });
+            await nc.sendNotification({
+                schoolId: teacher.schoolId._id,
+                recipient,
+                sender: req.user._id,
+                type: 'General',
+                title: `New Message from ${populated.sender.firstName} ${populated.sender.lastName}`,
+                message: content.length > 60 ? content.substring(0, 60) + '...' : content,
+                link: '/communication?tab=messages'
+            });
         } else if (finalType === 'Notice') {
             if (classSection) {
                 socketManager.sendToClass(classSection, 'NEW_NOTICE', populated);

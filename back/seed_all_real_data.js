@@ -458,6 +458,7 @@ async function seed() {
           targetRole: a.targetRole,
           isPublished: true,
           expiresAt: new Date(acYr.endDate),
+          academicYearId: acYr._id,
         });
       }
     }
@@ -470,6 +471,7 @@ async function seed() {
         targetRole: a.targetRole,
         isPublished: true,
         expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        academicYearId: ctx.currentYear._id,
       });
     }
 

@@ -65,12 +65,12 @@ const StudentAssignment = () => {
         );
     }
 
-    const filteredStudents = students.filter(s =>
-    (
-        `${s.firstName} ${s.lastName}`.toLowerCase().includes(studentSearch.toLowerCase()) ||
-        s.admissionNumber?.toLowerCase().includes(studentSearch.toLowerCase())
-    )
-    );
+    const filteredStudents = students.filter(s => {
+        const matchesSearch = `${s.firstName} ${s.lastName}`.toLowerCase().includes(studentSearch.toLowerCase()) ||
+            s.admissionNumber?.toLowerCase().includes(studentSearch.toLowerCase());
+        const isAssigned = routes?.some(r => r.assignedStudents?.some(as => (as.studentId?._id || as.studentId) === s._id));
+        return matchesSearch && !isAssigned;
+    });
 
     const handleUnassign = async (routeId, studentId) => {
         if (await window.confirm('Remove student from route? This will remove the student from the route assignment.')) {
@@ -124,7 +124,9 @@ const StudentAssignment = () => {
         )
     })).filter(route => route.assignedStudents?.length > 0 || route.name?.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const studentList = students.filter(s => s.role === 'Student');
+    const studentList = students.filter(s =>
+        !routes?.some(r => r.assignedStudents?.some(as => (as.studentId?._id || as.studentId) === s._id))
+    );
 
     return (
         <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1, transitionEnd: { transform: "none" } }} className="space-y-8 pb-10">
@@ -137,13 +139,13 @@ const StudentAssignment = () => {
                 <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
                     {/* Tab Navigation */}
                     <div className="flex p-1 bg-neutral-900 border border-slate-800 rounded-md h-[42px] mr-4">
-                        <button 
+                        <button
                             onClick={() => setActiveTab('manifest')}
                             className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 ${activeTab === 'manifest' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
                             <Users size={12} /> Assigned Students
                         </button>
-                        <button 
+                        <button
                             onClick={() => setActiveTab('inquiries')}
                             className={`px-6 h-full text-[10px] font-black uppercase italic tracking-widest rounded transition-all flex items-center gap-2 relative ${activeTab === 'inquiries' ? 'bg-transporter-primary text-white shadow-lg shadow-transporter-primary/20' : 'text-slate-500 hover:text-slate-300'}`}
                         >
@@ -181,7 +183,7 @@ const StudentAssignment = () => {
                         >
                             <Navigation size={14} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> auto match
                         </button>
-                        <label className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
+                        {/*   <label className="px-6 py-4 bg-transporter-primary/10 border border-transporter-primary text-transporter-primary text-[11px] font-black italic uppercase tracking-widest rounded-md hover:bg-transporter-primary hover:text-white transition-all flex items-center gap-2 cursor-pointer leading-none font-outfit h-[42px]">
                             <Plus size={14} /> Add from File
                             <input
                                 type="file"
@@ -207,6 +209,7 @@ const StudentAssignment = () => {
                                 }}
                             />
                         </label>
+                        */}
                     </div>
                 </div>
             </div>
@@ -239,13 +242,18 @@ const StudentAssignment = () => {
                                                         {as.studentId?.firstName} {as.studentId?.lastName}
                                                     </p>
                                                 </Link>
-                                                <div className="flex items-center gap-2 mt-2">
+                                                {as.studentId?.standard && (
+                                                    <p className="text-[9px] font-black text-transporter-primary/90 uppercase tracking-widest mt-1 italic">
+                                                        Grade {as.studentId.standard.level} • Sec {as.studentId.classSection?.sectionLabel || 'N/A'}
+                                                    </p>
+                                                )}
+                                                <div className="flex items-center gap-2 mt-1.5">
                                                     <MapPin size={10} className="text-transporter-primary opacity-60 flex-shrink-0" />
                                                     <p className="text-[9px] font-black text-slate-500 uppercase italic truncate">{as.pickupStop}</p>
                                                     {as.seatNumber && <span className="ml-auto text-[8px] font-black bg-neutral-900 border border-transporter-primary/20 px-2 py-0.5 rounded text-transporter-primary">SEAT {as.seatNumber}</span>}
                                                 </div>
                                             </div>
-                                            <button 
+                                            <button
                                                 onClick={() => handleUnassign(route._id, as.studentId._id)}
                                                 className="absolute top-2 right-2 p-1.5 text-slate-700 hover:text-red-500 opacity-0 group-hover/card:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
                                             >
@@ -265,12 +273,12 @@ const StudentAssignment = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 font-outfit">
                     <AnimatePresence mode="popLayout">
                         {applicants.map((a) => (
-                            <motion.div 
+                            <motion.div
                                 layout
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
-                                key={a._id} 
+                                key={a._id}
                                 className="bg-neutral-900 border border-slate-800/60 rounded-md p-6 relative group shadow-2xl overflow-hidden"
                             >
                                 <div className="absolute top-0 left-0 w-1 h-full bg-transporter-primary"></div>
@@ -283,7 +291,7 @@ const StudentAssignment = () => {
                                             <Link to={`/school-admin/profile/${a._id}`} className="block">
                                                 <h4 className="text-sm font-black text-slate-100 uppercase italic tracking-tighter leading-none hover:text-transporter-primary transition-colors cursor-pointer">{a.firstName} {a.lastName}</h4>
                                             </Link>
-                                            <p className="text-[10px] font-black text-slate-500 uppercase italic tracking-widest mt-2 bg-slate-950 px-2 py-0.5 rounded border border-slate-800/60 inline-block">{a.standard?.name || 'GEN-X'} // {a.classSection?.name || 'ALPHA'}</p>
+                                            <p className="text-[10px] font-black text-slate-500 uppercase italic tracking-widest mt-2 bg-slate-950 px-2 py-0.5 rounded border border-slate-800/60 inline-block">Grade {a.standard?.level || a.standard?.name || 'N/A'} • Sec {a.classSection?.sectionLabel || 'N/A'}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -293,22 +301,22 @@ const StudentAssignment = () => {
                                 </div>
 
                                 <div className="p-4 bg-neutral-950/40 border border-slate-800/40 rounded italic mb-6">
-                                     <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-tight">Student has requested transport services. Review for approval.</p>
+                                    <p className="text-[10px] font-medium text-slate-400 leading-relaxed uppercase tracking-tight">Student has requested transport services. Review for approval.</p>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-3">
-                                    <button 
+                                    <button
                                         onClick={() => {
-                                            setFormData({...formData, studentId: a._id});
+                                            setFormData({ ...formData, studentId: a._id });
                                             setIsAddOpen(true);
                                         }}
                                         className="py-3 bg-emerald-600/10 border border-emerald-600/30 text-emerald-500 text-[10px] font-black uppercase italic tracking-widest rounded hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center gap-2"
                                     >
                                         <CheckCircle size={14} /> Approve & Assign
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={async () => {
-                                            if(await window.confirm('Reject this inquiry? This will decline the request.')) {
+                                            if (await window.confirm('Reject this inquiry? This will decline the request.')) {
                                                 dispatch(rejectApplicantSlice(a._id));
                                             }
                                         }}
@@ -322,8 +330,8 @@ const StudentAssignment = () => {
                     </AnimatePresence>
                     {applicants.length === 0 && (
                         <div className="col-span-full py-20 bg-neutral-900 border border-slate-800 border-dashed rounded-md text-center opacity-40">
-                             <Inbox size={48} className="mx-auto mb-4 text-slate-500 opacity-20" />
-                             <p className="text-[11px] font-black italic uppercase tracking-[0.3em] text-slate-400">No pending requests found.</p>
+                            <Inbox size={48} className="mx-auto mb-4 text-slate-500 opacity-20" />
+                            <p className="text-[11px] font-black italic uppercase tracking-[0.3em] text-slate-400">No pending requests found.</p>
                         </div>
                     )}
                 </div>
@@ -382,8 +390,8 @@ const StudentAssignment = () => {
                                                 <select
                                                     required
                                                     value={formData.pickupStop}
-                                                    onChange={(e) => setFormData({ 
-                                                        ...formData, 
+                                                    onChange={(e) => setFormData({
+                                                        ...formData,
                                                         pickupStop: e.target.value,
                                                         dropoffStop: e.target.value
                                                     })}
@@ -461,8 +469,8 @@ const StudentAssignment = () => {
                                                 <select
                                                     required
                                                     value={bulkData.pickupStop}
-                                                    onChange={(e) => setBulkData({ 
-                                                        ...bulkData, 
+                                                    onChange={(e) => setBulkData({
+                                                        ...bulkData,
                                                         pickupStop: e.target.value,
                                                         dropoffStop: e.target.value
                                                     })}

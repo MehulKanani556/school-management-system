@@ -47,16 +47,21 @@ const Messages = () => {
         const handleNewMessage = (data) => {
             setMessages(prev => [data, ...prev]);
             if (data.sender?._id !== selectedChat && data.sender !== selectedChat) {
-                toast.success(`New message from ${data.sender?.firstName || 'Faculty'}`, {
-                    style: {
-                        background: '#0f172a',
-                        color: '#fff',
-                        border: '1px solid #10b981',
-                        fontSize: '11px',
-                        fontWeight: 900,
-                        textTransform: 'uppercase'
-                    }
-                });
+                const meId = currentUser?._id?.toString();
+                const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${meId}`) || '[]');
+                const senderId = (data.sender?._id || data.sender)?.toString();
+                if (!mutedList.includes(senderId)) {
+                    toast.success(`New message from ${data.sender?.firstName || 'Faculty'}`, {
+                        style: {
+                            background: '#0f172a',
+                            color: '#fff',
+                            border: '1px solid #10b981',
+                            fontSize: '11px',
+                            fontWeight: 900,
+                            textTransform: 'uppercase'
+                        }
+                    });
+                }
             }
         };
 

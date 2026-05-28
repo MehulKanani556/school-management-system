@@ -5,10 +5,14 @@ const getSchoolId = (req) => req.user.schoolId;
 
 exports.getAnnouncements = async (req, res) => {
     try {
-        const { role, classSectionId } = req.query;
+        const { role, classSectionId, academicYearId } = req.query;
         const schoolId = getSchoolId(req);
         
         const filter = { schoolId, isPublished: true };
+        
+        if (academicYearId) {
+            filter.academicYearId = academicYearId;
+        }
         
         if (role) {
             filter.targetRoles = { $in: [role, 'All'] };
@@ -70,7 +74,12 @@ exports.deleteAnnouncement = async (req, res) => {
 exports.getManagedAnnouncements = async (req, res) => {
     try {
         const schoolId = getSchoolId(req);
-        const announcements = await Announcement.find({ schoolId })
+        const { academicYearId } = req.query;
+        const filter = { schoolId };
+        if (academicYearId) {
+            filter.academicYearId = academicYearId;
+        }
+        const announcements = await Announcement.find(filter)
             .populate('authorId', 'firstName lastName photo')
             .populate('targetClassSection', 'sectionLabel')
             .sort({ createdAt: -1 });

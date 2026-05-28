@@ -7,10 +7,127 @@ const Driver = require('../models/driver.model');
 const socketManager = require('../socketManager/socketManager');
 const nc = require('./notification.controller');
 
+// Helper to enrich Parent and Student profiles with children, grade, and section details
+const enrichUserProfiles = async (users, schoolId) => {
+    if (!users) return users;
+    
+    const isArray = Array.isArray(users);
+    const userList = isArray ? users : [users];
+    
+    // 1. Gather all Parent IDs and Student Emails
+    const parentIds = [];
+    const studentEmails = [];
+    
+    for (let u of userList) {
+        if (!u) continue;
+        const role = u.role;
+        const email = u.email;
+        const id = u._id;
+        
+        if (role === 'Parent' && id) {
+            parentIds.push(id);
+        } else if (role === 'Student' && email) {
+            studentEmails.push(email);
+        }
+    }
+    
+    // 2. Fetch children/students in bulk queries
+    let parentToChildrenMap = {};
+    let emailToStudentMap = {};
+    
+    if (parentIds.length > 0) {
+        const children = await Student.find({ parentId: { $in: parentIds }, schoolId })
+            .populate({
+                path: 'classSection',
+                populate: { path: 'standardId', select: 'level name' }
+            })
+            .populate('standard', 'level name')
+            .lean();
+            
+        // Group by parentId
+        for (let c of children) {
+            if (c.parentId) {
+                const pIdStr = c.parentId.toString();
+                if (!parentToChildrenMap[pIdStr]) {
+                    parentToChildrenMap[pIdStr] = [];
+                }
+                parentToChildrenMap[pIdStr].push(c);
+            }
+        }
+    }
+    
+    if (studentEmails.length > 0) {
+        const students = await Student.find({ email: { $in: studentEmails }, schoolId })
+            .populate({
+                path: 'classSection',
+                populate: { path: 'standardId', select: 'level name' }
+            })
+            .populate('standard', 'level name')
+            .lean();
+            
+        for (let s of students) {
+            if (s.email) {
+                emailToStudentMap[s.email] = s;
+            }
+        }
+    }
+    
+    // 3. Map back to user objects
+    const enrichedList = [];
+    for (let u of userList) {
+        if (!u) {
+            enrichedList.push(u);
+            continue;
+        }
+        const uObj = u.toObject ? u.toObject() : { ...u };
+        
+        if (uObj.role === 'Parent') {
+            const children = parentToChildrenMap[uObj._id.toString()] || [];
+            if (children.length > 0) {
+                const childStrings = children.map(c => {
+                    let grade = '';
+                    let sec = '';
+                    if (c.classSection) {
+                        grade = c.classSection.standardId?.name || c.classSection.standardId?.level || '';
+                        sec = c.classSection.sectionLabel || '';
+                    }
+                    if (!grade && c.standard) {
+                        grade = c.standard.name || c.standard.level || '';
+                    }
+                    const sectionStr = sec ? `-${sec}` : '';
+                    const gradeSectionStr = grade ? ` (${grade}${sectionStr})` : '';
+                    return `${c.firstName} ${c.lastName}${gradeSectionStr}`;
+                });
+                uObj.parentInfo = `Parent / ${childStrings.join(', ')}`;
+            } else {
+                uObj.parentInfo = 'Parent';
+            }
+        } else if (uObj.role === 'Student') {
+            const student = emailToStudentMap[uObj.email];
+            if (student) {
+                let grade = '';
+                let sec = '';
+                if (student.classSection) {
+                    grade = student.classSection.standardId?.name || student.classSection.standardId?.level || '';
+                    sec = student.classSection.sectionLabel || '';
+                }
+                if (!grade && student.standard) {
+                    grade = student.standard.name || student.standard.level || '';
+                }
+                const sectionStr = sec ? `-${sec}` : '';
+                uObj.studentInfo = grade ? `${grade}${sectionStr}` : '';
+            }
+        }
+        enrichedList.push(uObj);
+    }
+    
+    return isArray ? enrichedList : enrichedList[0];
+};
+
 // Create an announcement
 exports.createAnnouncement = async (req, res) => {
     try {
-        const { targetRole, classSection, subject, content, schoolId: providedSchoolId } = req.body;
+        const { targetRole, classSection, subject, content, academicYearId, schoolId: providedSchoolId } = req.body;
         const schoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
 
         const announcement = await Message.create({
@@ -21,6 +138,7 @@ exports.createAnnouncement = async (req, res) => {
             classSection,
             subject,
             content,
+            academicYearId,
             fileUrl: req.file ? req.file.location : null
         });
 
@@ -50,7 +168,7 @@ exports.createAnnouncement = async (req, res) => {
 // Create a Notice (Notice Board)
 exports.createNotice = async (req, res) => {
     try {
-        const { subject, content, classSection } = req.body;
+        const { subject, content, classSection, academicYearId } = req.body;
         const schoolId = req.user.schoolId;
 
         const notice = await Message.create({
@@ -61,6 +179,7 @@ exports.createNotice = async (req, res) => {
             classSection: classSection || null,
             subject,
             content,
+            academicYearId,
             fileUrl: req.file ? req.file.location : null
         });
 
@@ -82,7 +201,7 @@ exports.createNotice = async (req, res) => {
 // Send a direct message to a specific user (e.g. Admin to Teacher)
 exports.sendMessage = async (req, res) => {
     try {
-        const { recipient, recipientId, subject, content, type, targetRole, classSection, schoolId: providedSchoolId } = req.body;
+        const { recipient, recipientId, subject, content, type, targetRole, classSection, academicYearId, schoolId: providedSchoolId } = req.body;
         const schoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
         const fileUrl = req.file ? req.file.location : null;
 
@@ -96,6 +215,7 @@ exports.sendMessage = async (req, res) => {
             classSection: classSection || null,
             subject: subject || (finalType === 'DirectMessage' ? 'Direct Message' : 'Announcement'),
             content,
+            academicYearId,
             fileUrl
         });
 
@@ -109,6 +229,15 @@ exports.sendMessage = async (req, res) => {
             socketManager.sendToUser(recipient || recipientId, 'NEW_MESSAGE', {
                 ...populated.toJSON(),
                 senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+            });
+            await nc.sendNotification({
+                schoolId,
+                recipient: recipient || recipientId,
+                sender: req.user._id,
+                type: 'Message',
+                title: `New Message from ${populated.sender.firstName} ${populated.sender.lastName}`,
+                message: content.length > 60 ? content.substring(0, 60) + '...' : content,
+                link: '/communication?tab=messages'
             });
         } else if (finalType === 'Notice') {
             if (classSection) {
@@ -130,10 +259,15 @@ exports.sendMessage = async (req, res) => {
 // Get all announcements for the school (with role-based filtering)
 exports.getAnnouncements = async (req, res) => {
     try {
+        const { academicYearId } = req.query;
         const query = { 
             schoolId: req.user.schoolId, 
             type: 'Announcement' 
         };
+
+        if (academicYearId) {
+            query.academicYearId = academicYearId;
+        }
 
         // If not school admin, filter by target role
         if (!['School_Admin', 'Super_Admin'].includes(req.user.role)) {
@@ -152,29 +286,60 @@ exports.getAnnouncements = async (req, res) => {
 // Get all notices for the school (with class filtering for students/parents)
 exports.getNotices = async (req, res) => {
     try {
+        const { academicYearId } = req.query;
         const query = { 
             schoolId: req.user.schoolId, 
             type: 'Notice' 
         };
 
+        if (academicYearId) {
+            query.academicYearId = academicYearId;
+        }
+
         // If student, only show school-wide notices or their own class notices
         if (req.user.role === 'Student') {
             const student = await Student.findOne({ userId: req.user._id });
             if (student) {
-                query.$or = [
-                    { classSection: null }, 
-                    { classSection: student.classSection }
-                ];
+                if (query.academicYearId) {
+                    query.$and = [
+                        { academicYearId: query.academicYearId },
+                        {
+                            $or: [
+                                { classSection: null },
+                                { classSection: student.classSection }
+                            ]
+                        }
+                    ];
+                    delete query.academicYearId;
+                } else {
+                    query.$or = [
+                        { classSection: null }, 
+                        { classSection: student.classSection }
+                    ];
+                }
             }
         } 
         // If parent, show notices for all children's classes
         else if (req.user.role === 'Parent') {
             const children = await Student.find({ parentId: req.user._id });
             const classIds = children.map(c => c.classSection).filter(id => id);
-            query.$or = [
-                { classSection: null },
-                { classSection: { $in: classIds } }
-            ];
+            if (query.academicYearId) {
+                query.$and = [
+                    { academicYearId: query.academicYearId },
+                    {
+                        $or: [
+                            { classSection: null },
+                            { classSection: { $in: classIds } }
+                        ]
+                    }
+                ];
+                delete query.academicYearId;
+            } else {
+                query.$or = [
+                    { classSection: null },
+                    { classSection: { $in: classIds } }
+                ];
+            }
         }
 
         const notices = await Message.find(query)
@@ -200,11 +365,23 @@ exports.getMyMessages = async (req, res) => {
                 }
             ]
         })
-        .populate('sender', 'firstName lastName photo role')
-        .populate('recipient', 'firstName lastName photo role')
+        .populate('sender', 'firstName lastName photo role email')
+        .populate('recipient', 'firstName lastName photo role email')
         .sort({ createdAt: -1 });
+
+        const enrichedMessages = [];
+        for (let msg of messages) {
+            const msgObj = msg.toObject();
+            if (msgObj.sender) {
+                msgObj.sender = await enrichUserProfiles(msgObj.sender, req.user.schoolId);
+            }
+            if (msgObj.recipient) {
+                msgObj.recipient = await enrichUserProfiles(msgObj.recipient, req.user.schoolId);
+            }
+            enrichedMessages.push(msgObj);
+        }
         
-        res.json(messages);
+        res.json(enrichedMessages);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -226,8 +403,8 @@ exports.getChatHistory = async (req, res) => {
                 { sender: otherUserId, recipient: req.user._id }
             ]
         })
-        .populate('sender', 'firstName lastName photo role')
-        .populate('recipient', 'firstName lastName photo role')
+        .populate('sender', 'firstName lastName photo role email')
+        .populate('recipient', 'firstName lastName photo role email')
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit);
@@ -250,38 +427,39 @@ exports.getContacts = async (req, res) => {
             contacts = await User.find({ 
                 schoolId, 
                 _id: { $ne: currentUserId } 
-            }).select('firstName lastName role photo');
+            }).select('firstName lastName role photo email');
         } else if (req.user.role === 'Teacher' || req.user.role === 'Transport_Manager') {
             // Strategic staff see all stakeholders
             contacts = await User.find({ 
                 schoolId, 
                 _id: { $ne: currentUserId },
                 role: { $in: ['School_Admin', 'Teacher', 'Student', 'Parent', 'Transport_Manager', 'Driver', 'Accountant', 'Librarian'] } 
-            }).select('firstName lastName role photo');
+            }).select('firstName lastName role photo email');
         } else if (req.user.role === 'Driver') {
             // Drivers see transport team and admin
             contacts = await User.find({
                 schoolId,
                 _id: { $ne: currentUserId },
                 role: { $in: ['School_Admin', 'Transport_Manager', 'Driver'] }
-            }).select('firstName lastName role photo');
+            }).select('firstName lastName role photo email');
         } else if (req.user.role === 'Student' || req.user.role === 'Parent') {
             // Students/Parents see Faculty and Management
             contacts = await User.find({
                 schoolId,
                 _id: { $ne: currentUserId },
                 role: { $in: ['School_Admin', 'Teacher', 'Transport_Manager', 'Accountant', 'Librarian'] }
-            }).select('firstName lastName role photo');
+            }).select('firstName lastName role photo email');
         } else {
             // Accountants/Librarians see other staff
             contacts = await User.find({
                 schoolId,
                 _id: { $ne: currentUserId },
                 role: { $in: ['School_Admin', 'Teacher', 'Accountant', 'Librarian', 'Transport_Manager'] }
-            }).select('firstName lastName role photo');
+            }).select('firstName lastName role photo email');
         }
 
-        res.json(contacts);
+        const enrichedContacts = await enrichUserProfiles(contacts, schoolId);
+        res.json(enrichedContacts);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

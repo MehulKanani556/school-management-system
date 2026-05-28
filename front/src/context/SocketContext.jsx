@@ -82,6 +82,20 @@ export const SocketProvider = ({ children }) => {
                 socketRef.current.on('NEW_MESSAGE', (data) => {
                     dispatch(incrementUnreadCount());
                     dispatch(addCommunicationMessage(data));
+                    
+                    const senderId = (data.sender?._id || data.sender)?.toString();
+                    if (senderId && user) {
+                        // Suppress toast if it is the currently active open chat
+                        const activeChat = localStorage.getItem(`active_chat_${user._id}`);
+                        if (activeChat === senderId) {
+                            return;
+                        }
+                        // Suppress toast if this sender is muted
+                        const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${user._id}`) || '[]');
+                        if (mutedList.includes(senderId)) {
+                            return;
+                        }
+                    }
                     toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
                 });
 
@@ -91,14 +105,20 @@ export const SocketProvider = ({ children }) => {
                     dispatch(setSANewTicket(data));
                     dispatch(setSuperNewTicket(data));
                     if (['School_Admin', 'Super_Admin'].includes(user.role)) {
-                        toast.success(`🎫 New Support Ticket: ${data.subject}`, { icon: '🆘', duration: 5000 });
+                        toast.success(`🎫 New Support Ticket: ${data.subject}`, { 
+                            id: `new-ticket-${data._id}`,
+                            icon: '🆘', 
+                            duration: 5000 
+                        });
                     }
                 });
                 // 2b. Notices
                 socketRef.current.on('NEW_NOTICE', (data) => {
                     dispatch(incrementUnreadCount());
                     dispatch(addCommunicationMessage(data));
-                    toast.success(`📌 New Notice: ${data.subject}`);
+                    toast.success(`📌 New Notice: ${data.subject}`, {
+                        id: `new-notice-${data._id}`
+                    });
                 });
 
                 socketRef.current.on('TICKET_REPLY', (data) => {
@@ -112,7 +132,9 @@ export const SocketProvider = ({ children }) => {
                     const senderId = (lastReply?.senderId?._id || lastReply?.senderId)?.toString();
 
                     if (senderId && senderId !== currentUserId) {
-                        toast.success(`💬 New reply from ${lastReply.senderId?.firstName || 'System'} on ticket: ${data.subject}`);
+                        toast.success(`💬 New reply from ${lastReply.senderId?.firstName || 'System'} on ticket: ${data.subject}`, {
+                            id: `ticket-reply-${data._id}-${lastReply?._id || Date.now()}`
+                        });
                     }
                 });
 
@@ -120,7 +142,9 @@ export const SocketProvider = ({ children }) => {
                     console.log('🔄 REAL-TIME: TICKET_STATUS_CHANGED received', data);
                     dispatch(updateSATicketStatusRealTime(data));
                     dispatch(updateSuperTicketStatusRealTime(data));
-                    toast(`🔄 Ticket Status update: ${data.subject} is now ${data.status}`);
+                    toast(`🔄 Ticket Status update: ${data.subject} is now ${data.status}`, {
+                        id: `ticket-status-${data._id}-${data.status}`
+                    });
                 });
             } else if (socketRef.current.connected) {
                 // Already connected but user/token might have updated, re-register

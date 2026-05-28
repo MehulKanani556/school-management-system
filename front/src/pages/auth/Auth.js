@@ -23,17 +23,31 @@ const Auth = () => {
         }
     }, [isAuthenticated, navigate]);
 
+    const [rememberMe, setRememberMe] = useState(() => {
+        return localStorage.getItem('remember_me') === 'true';
+    });
+
     // Login Formik
     const loginFormik = useFormik({
         initialValues: {
-            identifier: '',
-            password: '',
+            identifier: localStorage.getItem('remembered_identifier') || '',
+            password: localStorage.getItem('remembered_password') || '',
         },
         validationSchema: Yup.object({
             identifier: Yup.string().required('Email or Admission Number is required'),
             password: Yup.string().required('Password is required'),
         }),
         onSubmit: (values) => {
+            if (rememberMe) {
+                localStorage.setItem('remembered_identifier', values.identifier);
+                localStorage.setItem('remembered_password', values.password);
+                localStorage.setItem('remember_me', 'true');
+            } else {
+                localStorage.removeItem('remembered_identifier');
+                localStorage.removeItem('remembered_password');
+                localStorage.setItem('remember_me', 'false');
+            }
+
             const val = values.identifier.toUpperCase();
             // Refined detection: Starts with ADM but is NOT an email
             const isStudent = val.startsWith('ADM') && !val.includes('@');
@@ -164,6 +178,17 @@ const Auth = () => {
                             {loginFormik.touched.password && loginFormik.errors.password && (
                                 <motion.p initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} className="text-[11px] text-luxury-rose font-black ml-4 uppercase tracking-[0.1em]">{loginFormik.errors.password}</motion.p>
                             )}
+                            <div className="flex items-center justify-between px-2 mt-4">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <input
+                                        type="checkbox"
+                                        checked={rememberMe}
+                                        onChange={(e) => setRememberMe(e.target.checked)}
+                                        className={`w-4 h-4 rounded bg-slate-900/40 border-2 border-brand-border/40 text-${getThemeColor()} focus:ring-0 cursor-pointer`}
+                                    />
+                                    <span className="text-xs text-slate-400 font-bold uppercase tracking-wider group-hover:text-slate-200 transition-colors">Remember Me</span>
+                                </label>
+                            </div>
                         </div>
 
                         {error && (

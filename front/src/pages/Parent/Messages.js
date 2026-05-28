@@ -52,7 +52,11 @@ const Messages = () => {
             setMessages(prev => [...prev, data]);
             const senderId = (data.sender?._id || data.sender)?.toString();
             if (senderId !== selectedChat?._id?.toString()) {
-               toast.info(`New message from ${data.sender?.firstName || 'Faculty'}`);
+                const meId = currentUser?._id?.toString();
+                const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${meId}`) || '[]');
+                if (!mutedList.includes(senderId)) {
+                    toast.info(`New message from ${data.sender?.firstName || 'Faculty'}`);
+                }
             }
         });
 

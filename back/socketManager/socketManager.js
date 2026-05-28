@@ -5,6 +5,7 @@ const vehicleLocationMap = new Map(); // vehicleId -> { lat, lng, updatedAt }
 const Message = require('../models/message.model');
 const Vehicle = require('../models/vehicle.model');
 const Driver = require('../models/driver.model');
+const nc = require('../controllers/notification.controller');
 
 function initializeSocket(io) {
   ioInstance = io;
@@ -183,6 +184,17 @@ function initializeSocket(io) {
             io.to(recipient.toString()).emit('NEW_MESSAGE', frontendData);
             // Send back to sender to confirm and update UI
             socket.emit('NEW_MESSAGE', frontendData);
+
+            // Push a persistent system notification to the recipient
+            nc.sendNotification({
+                schoolId,
+                recipient,
+                sender: senderId,
+                type: 'Message',
+                title: `New Message from ${populated.sender.firstName} ${populated.sender.lastName}`,
+                message: content.length > 60 ? content.substring(0, 60) + '...' : content,
+                link: '/communication?tab=messages'
+            }).catch(err => console.error("Error creating notification on DM socket event:", err));
 
         } catch (err) {
             console.error("Socket direct message error:", err);

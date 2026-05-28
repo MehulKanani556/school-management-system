@@ -138,6 +138,7 @@ const SchoolAdminLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
+      if (notif.type === 'Message') return;
       toast.success(`System Alert: ${notif.title}`, {
         icon: '⚡',
         style: {
@@ -191,12 +192,12 @@ const SchoolAdminLayout = () => {
         <div className="p-8 flex-shrink-0">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-md bg-gradient-to-br from-schooladmin-primary to-schooladmin-secondary flex items-center justify-center font-black text-xl italic shadow-lg">AM</div>
-            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Admin <span className="text-schooladmin-primary">Node</span></span>
+            <span className="text-xl font-black tracking-tight uppercase font-outfit text-white">Admin <span className="text-schooladmin-primary">Portal</span></span>
           </div>
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Operations Control</p>
+          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Navigation Menu</p>
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;
@@ -277,9 +278,9 @@ const SchoolAdminLayout = () => {
             <button onClick={() => setSidebarOpen(!sidebarOpen)} className="lg:hidden p-2 rounded-md hover:bg-white/5 transition-colors">
               <Menu size={20} />
             </button>
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Institutional Node</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Admin Dashboard</span>
             <ChevronRight size={14} className="hidden sm:block opacity-20" />
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-schooladmin-primary italic">Admin Center Terminal</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-schooladmin-primary italic">Admin Panel</span>
           </div>
 
           <div className="flex items-center gap-6">
@@ -349,7 +350,7 @@ const SchoolAdminLayout = () => {
                           className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-schooladmin-primary/10 text-schooladmin-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                         >
                           <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                          Log Out Matrix
+                          Log Out
                         </button>
                       </div>
                     </motion.div>

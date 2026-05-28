@@ -116,6 +116,7 @@ const TeacherLayout = () => {
         if (!socket) return;
         socket.on('NEW_NOTIFICATION', (notif) => {
             dispatch(receiveNotification(notif));
+            if (notif.type === 'Message') return;
             toast.success(`Teacher Intel: ${notif.title}`, {
                 icon: '👨‍🏫',
                 style: {

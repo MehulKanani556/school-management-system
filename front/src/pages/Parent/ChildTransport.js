@@ -59,26 +59,26 @@ const ChildTransport = () => {
             <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center space-y-8 p-10 bg-brand-surface/20 rounded-xl border border-brand-border/20 backdrop-blur-sm">
                 <div className="relative">
                     <div className="w-32 h-32 rounded-full border-4 border-dashed border-slate-800/40 flex items-center justify-center animate-spin-slow">
-                         <div className="w-24 h-24 rounded-full border-4 border-slate-800/20" />
+                        <div className="w-24 h-24 rounded-full border-4 border-slate-800/20" />
                     </div>
                     <Truck size={40} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-700" />
                 </div>
-                
+
                 <div className="max-w-md mx-auto space-y-4">
                     <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none font-outfit">Logistical Connectivity Required</h3>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest leading-relaxed">
-                        {selectedChild?.transportStatus === 'Applied' 
+                        {selectedChild?.transportStatus === 'Applied'
                             ? "Institutional inquiry successful. Awaiting route vector allocation from administration."
                             : "This student is not currently indexed in the transport grid. Initiate enrollment protocol below."}
                     </p>
-                    
+
                     {selectedChild?.transportStatus === 'Applied' ? (
                         <div className="inline-flex items-center gap-3 px-6 py-3 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse shadow-lg shadow-amber-500/5">
                             <div className="w-2 h-2 bg-amber-500 rounded-full" />
                             <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em]">Application Pending Approval</span>
                         </div>
                     ) : (
-                        <motion.button 
+                        <motion.button
                             whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => dispatch(applyTransport(selectedChild._id))}
@@ -107,7 +107,7 @@ const ChildTransport = () => {
     const { route, assignment } = transport;
 
     return (
-        <motion.div 
+        <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             className="space-y-8 pb-12"
@@ -119,7 +119,14 @@ const ChildTransport = () => {
                         <span className="text-[10px] font-black uppercase tracking-[0.4em] text-emerald-400">Fleet Control</span>
                     </div>
                     <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Transport Logistics</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">Route synchronization for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s daily transit.</p>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide italic">
+                        Route synchronization for <span className="text-white font-bold">{selectedChild?.firstName} {selectedChild?.lastName}</span>
+                        {selectedChild?.standard && (
+                            <span className="text-xs font-black text-emerald-400 uppercase tracking-widest ml-2 italic bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded">
+                                Grade {selectedChild.standard.level} / {selectedChild.classSection?.sectionLabel || 'N/A'}
+                            </span>
+                        )}'s daily transit.
+                    </p>
                 </div>
 
                 <div className={`flex items-center gap-6 ${isConnected ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-red-500/5 border-red-500/10'} border p-4 px-8 rounded-md shadow-inner transition-colors`}>
@@ -175,7 +182,7 @@ const ChildTransport = () => {
                     </div>
 
                     <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md p-8">
-                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6 font-outfit flex items-center gap-2">
+                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-6 font-outfit flex items-center gap-2">
                             <Shield size={14} className="text-emerald-400" /> Operational Security
                         </h3>
                         <div className="space-y-4">
@@ -197,19 +204,19 @@ const ChildTransport = () => {
                     {/* Live Map implementation */}
                     <div className="bg-[#0a0a0c] border border-brand-border/40 rounded-md aspect-video overflow-hidden relative shadow-2xl group">
                         <div className="absolute top-0 left-0 right-0 p-6 bg-gradient-to-b from-black/80 to-transparent z-[1000] flex items-center justify-between">
-                             <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4">
                                 <div className="w-10 h-10 rounded-md bg-orange-600/10 border border-orange-600/30 flex items-center justify-center text-orange-500 animate-pulse">
                                     <Wifi size={20} />
                                 </div>
                                 <h4 className="text-[10px] font-black text-white uppercase tracking-[0.4em] italic shadow-orange-500">Satellite Telemetry Uplink active</h4>
                             </div>
                         </div>
-                        <LiveMap 
-                            vehicleLocation={liveLocation} 
+                        <LiveMap
+                            vehicleLocation={liveLocation}
                             stops={route.stops?.map(s => ({
                                 ...s,
                                 isTarget: s.name === assignment.pickupStop || s.name === assignment.dropoffStop
-                            }))} 
+                            }))}
                         />
                     </div>
 
@@ -220,27 +227,27 @@ const ChildTransport = () => {
                                 <p className="text-lg font-black uppercase tracking-tight italic">{route.name} Channel</p>
                             </div>
                             <div className="flex items-center gap-4">
-                               <span className={`flex items-center gap-2 text-[9px] font-black ${liveLocation ? 'text-emerald-400' : 'text-slate-600'} uppercase tracking-widest italic`}>
-                                   <Clock size={12} /> Sync: {liveLocation ? '+0.0s' : 'Searching...'}
-                               </span>
+                                <span className={`flex items-center gap-2 text-[9px] font-black ${liveLocation ? 'text-emerald-400' : 'text-slate-600'} uppercase tracking-widest italic`}>
+                                    <Clock size={12} /> Sync: {liveLocation ? '+0.0s' : 'Searching...'}
+                                </span>
                             </div>
                         </div>
 
                         <div className="flex-1 p-10 relative">
                             {/* Timeline Connector */}
                             <div className="absolute left-[59px] top-10 bottom-10 w-[2px] bg-gradient-to-b from-emerald-500 via-luxury-rose to-blue-500 opacity-20" />
-                            
+
                             <div className="space-y-12 relative">
                                 {route.stops?.map((stop, idx) => {
                                     const isPickup = stop.name === assignment.pickupStop;
                                     const isDropoff = stop.name === assignment.dropoffStop;
                                     const isSpecial = isPickup || isDropoff;
-                                    
+
                                     // Real-time status calculation
                                     let status = 'pending'; // pending, reached, current
                                     if (liveLocation && stop.lat && stop.lng) {
                                         const dist = Math.sqrt(
-                                            Math.pow(liveLocation.lat - stop.lat, 2) + 
+                                            Math.pow(liveLocation.lat - stop.lat, 2) +
                                             Math.pow(liveLocation.lng - stop.lng, 2)
                                         );
                                         // Simple distance check (approx degrees to meters: 0.001 is ~111m)
@@ -261,18 +268,18 @@ const ChildTransport = () => {
                                                 </div>
                                                 <span className="text-[9px] font-black text-slate-800 uppercase italic">STP-{idx + 1}</span>
                                             </div>
-                                            
+
                                             <div className="flex-1 pt-1">
                                                 <div className="flex items-center justify-between mb-2">
                                                     <h5 className={`text-sm font-black uppercase tracking-widest italic transition-colors ${status === 'reached' ? 'text-emerald-500' : isSpecial ? 'text-white' : 'text-slate-500'}`}>
                                                         {stop.name}
                                                     </h5>
                                                     <div className="flex items-center gap-3">
-                                                         {status === 'reached' && <span className="text-[8px] font-black text-emerald-500 uppercase italic tracking-widest">Crossed</span>}
-                                                         <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">{stop.estimatedTime || '---'}</span>
+                                                        {status === 'reached' && <span className="text-[8px] font-black text-emerald-500 uppercase italic tracking-widest">Crossed</span>}
+                                                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.2em]">{stop.estimatedTime || '---'}</span>
                                                     </div>
                                                 </div>
-                                                
+
                                                 {isPickup && (
                                                     <div className={`inline-flex items-center gap-3 px-4 py-1.5 ${status === 'reached' ? 'bg-emerald-500/5' : 'bg-emerald-500/10'} border border-emerald-500/20 rounded-full transition-all`}>
                                                         <div className={`w-1.5 h-1.5 bg-emerald-500 rounded-full ${status === 'reached' ? '' : 'animate-ping'}`} />

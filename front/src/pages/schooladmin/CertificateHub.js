@@ -8,6 +8,7 @@ import {
     CreditCard, Fingerprint, QrCode,
     ScanLine,
     Calendar,
+    Printer,
 } from 'lucide-react';
 import moment from 'moment';
 import { QRCodeSVG } from 'qrcode.react';
@@ -58,6 +59,133 @@ const CertificateHub = () => {
         pdf.save(`${docType}_${selectedEntity.firstName}_${selectedEntity._id.toString().slice(-4)}.pdf`);
     };
 
+    const handlePrint = () => {
+        if (!selectedEntity || !docRef.current) return;
+
+        const iframe = document.createElement('iframe');
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0';
+        iframe.style.height = '0';
+        iframe.style.border = '0';
+        document.body.appendChild(iframe);
+
+        const doc = iframe.contentWindow.document;
+        doc.open();
+        doc.write(`
+            <html>
+                <head>
+                    <title>Print Credentials Node</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+                    <script src="https://cdn.tailwindcss.com"></script>
+                    <script>
+                        tailwind.config = {
+                            theme: {
+                                extend: {
+                                    fontFamily: {
+                                        outfit: ['Outfit', 'sans-serif'],
+                                        inter: ['Inter', 'sans-serif'],
+                                    }
+                                }
+                            }
+                        }
+                    </script>
+                    <style>
+                        :root {
+                            --brand-surface: #0b0f19;
+                            --brand-border: rgba(255, 255, 255, 0.08);
+                            --brand-primary: #3b82f6;
+                            --schooladmin-primary: #3b82f6;
+                        }
+                        
+                        body {
+                            background: white !important;
+                            color: black !important;
+                            margin: 0;
+                            padding: 0;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            min-height: 100vh;
+                            font-family: 'Outfit', 'Inter', sans-serif;
+                            -webkit-print-color-adjust: exact !important;
+                            print-color-adjust: exact !important;
+                        }
+
+                        /* Target card custom backgrounds and brand vars in print */
+                        .bg-brand-surface { background-color: var(--brand-surface) !important; }
+                        .border-brand-border { border-color: var(--brand-border) !important; }
+                        .text-brand-primary { color: var(--brand-primary) !important; }
+                        .text-schooladmin-primary { color: var(--schooladmin-primary) !important; }
+
+                        .tc-preview, .bonafide-preview {
+                            width: 210mm;
+                            height: 297mm;
+                            border: 8px solid rgba(49, 46, 129, 0.05);
+                            padding: 2.5rem;
+                            box-sizing: border-box;
+                            position: relative;
+                            background: white;
+                        }
+                        .bonafide-preview {
+                            border: 20px double #000000;
+                            padding: 5rem;
+                        }
+                        .id-card-preview {
+                            width: 140mm;
+                            height: 90mm;
+                            background: #0b0f19;
+                            color: white;
+                            border-radius: 0.75rem;
+                            padding: 1.25rem;
+                            position: relative;
+                            overflow: hidden;
+                            display: flex;
+                            gap: 1.25rem;
+                            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+                        }
+
+                        @media print {
+                            body {
+                                min-height: 0;
+                                background: white !important;
+                            }
+                            .tc-preview, .bonafide-preview {
+                                border: none;
+                                width: 210mm;
+                                height: 297mm;
+                                margin: 0;
+                                page-break-inside: avoid;
+                            }
+                            .id-card-preview {
+                                transform: scale(1.3);
+                                margin: 2in auto;
+                                page-break-inside: avoid;
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="print-area">
+                        ${docRef.current.innerHTML}
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            setTimeout(function() {
+                                window.print();
+                                setTimeout(function() {
+                                    window.frameElement.remove();
+                                }, 1000);
+                            }, 500);
+                        };
+                    </script>
+                </body>
+            </html>
+        `);
+        doc.close();
+    };
+
     const verifyUrl = selectedEntity ? `${window.location.protocol}//${window.location.host}/verify/${tab === 'students' ? 'student' : 'teacher'}/${selectedEntity._id}?doc=${docType}` : '';
 
     return (
@@ -67,15 +195,22 @@ const CertificateHub = () => {
                     <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Identity & Credentials Hub</h1>
                     <p className="text-slate-400 text-sm mt-1">Institutional authentication and certification issuance node</p>
                 </div>
-                {/* <div className="flex items-center gap-3">
-                    <button
-                        onClick={handleDownload}
-                        disabled={!selectedEntity}
-                        className={`flex items-center gap-2 px-6 py-3 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-lg text-white ${!selectedEntity ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-brand-primary hover:bg-blue-600 shadow-blue-600/20'}`}
-                    >
-                        <Download size={16} /> Download Document
-                    </button>
-                </div> */}
+                {selectedEntity && (
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={handleDownload}
+                            className="flex items-center gap-2 px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest transition-all shadow-lg text-white bg-brand-primary hover:bg-blue-600 shadow-blue-600/20 border border-brand-primary animate-in fade-in slide-in-from-right-4 duration-300"
+                        >
+                            <Download size={14} /> Download PDF
+                        </button>
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center gap-2 px-6 py-3 rounded-md font-black text-[10px] uppercase tracking-widest transition-all shadow-lg border text-white bg-slate-900 border-brand-border hover:bg-slate-850 hover:text-white transition-all animate-in fade-in slide-in-from-right-4 duration-300"
+                        >
+                            <Printer size={14} /> Print Document
+                        </button>
+                    </div>
+                )}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 h-[calc(100vh-250px)]">
@@ -112,6 +247,11 @@ const CertificateHub = () => {
                                 <div>
                                     <p className={`text-[11px] font-black uppercase tracking-tight italic leading-tight ${selectedEntity?._id === e._id ? 'text-white' : 'text-slate-200 group-hover:text-brand-primary'}`}>{e.firstName} {e.lastName}</p>
                                     <p className={`text-[9px] font-bold ${selectedEntity?._id === e._id ? 'text-white/60' : 'text-slate-500'}`}>{e.admissionNumber || e.employeeId}</p>
+                                    {tab === 'students' && (
+                                        <p className={`text-[8px] font-black uppercase tracking-wider mt-1 inline-block px-1.5 py-0.5 rounded ${selectedEntity?._id === e._id ? 'bg-white/15 text-white border border-white/10' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'}`}>
+                                            Grade {e.standard?.level || e.standard?.name || 'N/A'} - Sec {e.classSection?.sectionLabel || 'N/A'}
+                                        </p>
+                                    )}
                                 </div>
                             </button>
                         ))}
@@ -181,11 +321,18 @@ const CertificateHub = () => {
                                                         <span className="text-[9px] font-black text-white font-mono">{selectedEntity.admissionNumber || selectedEntity.employeeId}</span>
                                                     </div>
                                                     {tab === 'students' && (
-                                                        <div className="flex items-center gap-1.5">
-                                                            <Grid size={10} className="text-emerald-400 shrink-0" />
-                                                            <span className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Sector:</span>
-                                                            <span className="text-[9px] font-black text-white">{selectedEntity.classSection?.sectionLabel || 'NULL'}</span>
-                                                        </div>
+                                                        <>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Grid size={10} className="text-emerald-400 shrink-0" />
+                                                                <span className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Grade:</span>
+                                                                <span className="text-[9px] font-black text-white">{selectedEntity.standard?.level || selectedEntity.standard?.name || 'N/A'}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5">
+                                                                <Grid size={10} className="text-teal-400 shrink-0" />
+                                                                <span className="text-[9px] font-black uppercase text-slate-500 tracking-tighter">Section:</span>
+                                                                <span className="text-[9px] font-black text-white">{selectedEntity.classSection?.sectionLabel || 'N/A'}</span>
+                                                            </div>
+                                                        </>
                                                     )}
                                                     <div className="flex items-center gap-1.5">
                                                         <Calendar size={10} className="text-amber-400 shrink-0" />
@@ -219,7 +366,7 @@ const CertificateHub = () => {
                                                     This is to verify the institutional presence of <br />
                                                     <span className="text-4xl font-black uppercase tracking-tight text-black not-italic px-4 border-b-2 border-slate-900 mx-2">{selectedEntity.firstName} {selectedEntity.lastName}</span> <br />
                                                     {tab === 'students' ? (
-                                                        <>bearing Identity Trace <span className="font-bold">#{selectedEntity.admissionNumber}</span>, currently interfaced with sector <span className="font-bold underline italic">{selectedEntity.classSection?.sectionLabel || 'N/A'}</span>.</>
+                                                        <>bearing Identity Trace <span className="font-bold">#{selectedEntity.admissionNumber}</span>, currently interfaced with Grade <span className="font-bold underline italic">{selectedEntity.standard?.level || selectedEntity.standard?.name || 'N/A'}</span>, Section <span className="font-bold underline italic">{selectedEntity.classSection?.sectionLabel || 'N/A'}</span>.</>
                                                     ) : (
                                                         <>registered under Personnel Core with ID <span className="font-bold">#{selectedEntity.employeeId}</span>.</>
                                                     )}
@@ -268,9 +415,9 @@ const CertificateHub = () => {
                                                 {[
                                                     { label: '1. Name of the Subject', value: `${selectedEntity.firstName} ${selectedEntity.lastName}` },
                                                     { label: '2. Parental Identifier', value: selectedEntity.guardianName || (selectedEntity.parentId ? `${selectedEntity.parentId.firstName} ${selectedEntity.parentId.lastName}` : 'Institutional Hub #9921'), isUppercase: true },
-                                                    { label: '3. Standard / Sector', value: `${selectedEntity.standard?.name || 'N/A'} / ${selectedEntity.classSection?.sectionLabel || 'General'}` },
+                                                    { label: '3. Standard / Sector', value: `Grade ${selectedEntity.standard?.level || selectedEntity.standard?.name || 'N/A'} - Sec ${selectedEntity.classSection?.sectionLabel || 'N/A'}` },
                                                     { label: '4. Date of Initial Interface', value: moment(selectedEntity.createdAt).format('DD MMMM YYYY') },
-                                                    { label: '5. Highest Attained Grade', value: selectedEntity.classSection?.sectionLabel || (tab === 'students' ? 'N/A' : 'Faculty') },
+                                                    { label: '5. Highest Attained Grade', value: selectedEntity.standard?.level ? `Grade ${selectedEntity.standard.level}` : (tab === 'students' ? 'N/A' : 'Faculty') },
                                                     { label: '6. Behavioral Conduct Evaluation', value: 'OPTIMAL / EXEMPLARY' },
                                                     { label: '7. Global Standing', value: 'CLEARANCE GRANTED' },
                                                 ].map((item, idx) => (
@@ -312,11 +459,75 @@ const CertificateHub = () => {
 
             <style>{`
                 @media print {
-                    .no-print { display: none !important; }
-                    .print-area { transform: none !important; margin: 0 !important; border: none !important; padding: 0 !important; box-shadow: none !important; }
-                    body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-                    .id-card-preview { transform: scale(1.5) !important; margin: 2in auto !important; }
-                    .tc-preview, .bonafide-preview { margin: 0 !important; width: 100% !important; height: auto !important; }
+                    /* Hide sidebars, layouts, headers, and navigation panels */
+                    .no-print,
+                    aside,
+                    header,
+                    .lg\\:col-span-4,
+                    .flex.gap-3.no-print {
+                        display: none !important;
+                    }
+                    
+                    /* Reset HTML and Body to default white print style */
+                    html, body {
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                        height: auto !important;
+                        overflow: visible !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
+
+                    /* Make parent containers flow and occupy full size without clipping */
+                    div, main, section, article {
+                        height: auto !important;
+                        min-height: 0 !important;
+                        overflow: visible !important;
+                        position: static !important;
+                        background: transparent !important;
+                        box-shadow: none !important;
+                        border: none !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+
+                    /* Pin and size the print area container */
+                    .print-area {
+                        display: block !important;
+                        width: 100% !important;
+                        height: auto !important;
+                        margin: 0 !important;
+                        padding: 0 !important;
+                        background: transparent !important;
+                    }
+
+                    /* Standardize TC & Bonafide sheets for A4 paper print */
+                    .tc-preview, .bonafide-preview {
+                        display: block !important;
+                        width: 210mm !important;
+                        height: 297mm !important;
+                        margin: 0 auto !important;
+                        box-sizing: border-box !important;
+                        background: #ffffff !important;
+                        color: #000000 !important;
+                        page-break-inside: avoid !important;
+                        page-break-after: avoid !important;
+                    }
+
+                    /* Scale ID card print */
+                    .id-card-preview {
+                        display: block !important;
+                        width: 140mm !important;
+                        height: 90mm !important;
+                        margin: 2in auto !important;
+                        background: #0f172a !important; /* Keep ID card dark theme */
+                        color: #ffffff !important;
+                        transform: scale(1.5) !important;
+                        box-sizing: border-box !important;
+                        page-break-inside: avoid !important;
+                    }
                 }
             `}</style>
         </div>

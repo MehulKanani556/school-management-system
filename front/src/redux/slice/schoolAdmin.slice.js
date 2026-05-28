@@ -53,9 +53,9 @@ export const fetchStudentDetail = createAsyncThunk('sa/studentDetail', async (id
   } catch (e) { return rejectWithValue(e.response?.data); }
 });
 
-export const exportFeeReport = createAsyncThunk('sa/exportFeeReport', async (_, { rejectWithValue }) => {
+export const exportFeeReport = createAsyncThunk('sa/exportFeeReport', async (params, { rejectWithValue }) => {
   try {
-    const res = await axiosInstance.get('/school-admin/reports/fees-export', { responseType: 'blob' });
+    const res = await axiosInstance.get('/school-admin/reports/fees-export', { params, responseType: 'blob' });
     const url = window.URL.createObjectURL(new Blob([res.data]));
     const link = document.createElement('a');
     link.href = url;

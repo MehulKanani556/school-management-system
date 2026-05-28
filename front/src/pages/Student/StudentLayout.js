@@ -83,6 +83,7 @@ const StudentLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
+      if (notif.type === 'Message') return;
       toast.success(`New Notification: ${notif.title}`, {
         icon: '🎯',
         style: {

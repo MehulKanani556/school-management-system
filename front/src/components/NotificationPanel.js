@@ -1,7 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, X, Check, Trash2, ExternalLink, Info, Award, Calendar, AlertCircle } from 'lucide-react';
+import { Bell, X, Check, Trash2, ExternalLink, Info, Award, Calendar, AlertCircle, MessageSquare } from 'lucide-react';
 import { markRead, markAllRead } from '../redux/slice/notification.slice';
 import { Link } from 'react-router-dom';
 
@@ -22,6 +22,7 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
             case 'Mark': return <Award className="text-brand-secondary" size={16} />;
             case 'Attendance': return <Calendar className="text-emerald-500" size={16} />;
             case 'Fee': return <AlertCircle className="text-luxury-rose" size={16} />;
+            case 'Message': return <MessageSquare className="text-cyan-400" size={16} />;
             default: return <Bell className="text-slate-400" size={16} />;
         }
     };
@@ -39,15 +40,15 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
                     >
                         <header className="p-6 border-b border-brand-border/60 bg-brand-background/40 flex items-center justify-between">
                             <div>
-                                <h3 className="text-lg font-black text-white italic uppercase tracking-tighter font-outfit">Institutional Alerts</h3>
-                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] opacity-80 mt-0.5">{unreadCount} Critical Unread Messages</p>
+                                <h3 className="text-lg font-black text-white italic uppercase tracking-tighter font-outfit">Notifications</h3>
+                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.2em] opacity-80 mt-0.5">{unreadCount} Unread Notifications</p>
                             </div>
                             <div className="flex items-center gap-3">
                                 {unreadCount > 0 && (
                                     <button
                                         onClick={() => dispatch(markAllRead())}
                                         className="p-2.5 rounded-md bg-brand-primary/10 text-brand-primary hover:bg-brand-primary hover:text-white transition-all border border-brand-primary/20 shadow-xl"
-                                        title="Synchronize All"
+                                        title="Mark All as Read"
                                     >
                                         <Check size={16} />
                                     </button>
@@ -86,7 +87,7 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
                                                     <div className="w-5 h-5 rounded-md bg-brand-surface border border-brand-border/50 overflow-hidden flex items-center justify-center">
                                                         {notif.sender?.photo ? <img src={notif.sender.photo} alt="" className="w-full h-full object-cover" /> : <div className="text-[7px] font-bold">{notif.sender?.firstName?.charAt(0)}</div>}
                                                     </div>
-                                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{notif.sender?.role || 'System'} Registry</span>
+                                                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest">{notif.sender?.role || 'System'}</span>
                                                 </div>
 
                                                 {notif.link && (
@@ -95,7 +96,7 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
                                                         onClick={(e) => { e.stopPropagation(); onClose(); }}
                                                         className="flex items-center gap-2 text-[9px] font-black text-brand-primary uppercase tracking-widest hover:text-white transition-all group/link"
                                                     >
-                                                        Access Matrix <ExternalLink size={10} className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                                        View Details <ExternalLink size={10} className="group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
                                                     </Link>
                                                 )}
                                             </div>
@@ -105,7 +106,7 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
                             )) : (
                                 <div className="py-20 flex flex-col items-center justify-center opacity-30 gap-4">
                                     <Bell size={48} className="text-slate-600" />
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Alert Pipeline Empty</p>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">No Notifications</p>
                                 </div>
                             )}
                         </div>
@@ -116,7 +117,7 @@ const NotificationPanel = ({ isOpen, onClose, role }) => {
                                 onClick={onClose}
                                 className="w-full flex items-center justify-center py-3 rounded-md bg-brand-surface text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:bg-brand-background hover:text-white transition-all border border-brand-border shadow-xl active:scale-95"
                             >
-                                View Full Intelligence Registry
+                                View All Notifications
                             </Link>
                         </footer>
                     </motion.div>

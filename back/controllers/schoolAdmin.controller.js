@@ -2129,10 +2129,18 @@ exports.getLowAttendanceAlerts = async (req, res) => {
 exports.getSchoolWidePerformance = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
+    const examQuery = { schoolId, isPublished: true };
+    if (req.academicYearId) {
+      examQuery.academicYearId = req.academicYearId;
+    }
     // published exams
-    const exams = await Exam.find({ schoolId, isPublished: true }).populate('subject standardId');
+    const exams = await Exam.find(examQuery).populate('subject standardId');
     const examIds = exams.map(e => e._id);
-    const marks = await Mark.find({ examId: { $in: examIds }, schoolId }).lean();
+    const marksQuery = { examId: { $in: examIds }, schoolId };
+    if (req.academicYearId) {
+      marksQuery.academicYearId = req.academicYearId;
+    }
+    const marks = await Mark.find(marksQuery).lean();
 
     const performance = {
       totalExams: exams.length,
@@ -2181,7 +2189,11 @@ exports.getSchoolWidePerformance = async (req, res) => {
 exports.getFeeCollectionReport = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const fees = await FeePayment.find({ schoolId }).lean();
+    const query = { schoolId };
+    if (req.academicYearId) {
+      query.academicYearId = req.academicYearId;
+    }
+    const fees = await FeePayment.find(query).lean();
 
     let totalExpected = 0, totalCollected = 0, totalOutstanding = 0;
     fees.forEach(f => {
@@ -2200,7 +2212,11 @@ exports.getFeeCollectionReport = async (req, res) => {
 exports.exportFeeReport = async (req, res) => {
   try {
     const schoolId = getSchoolId(req);
-    const fees = await FeePayment.find({ schoolId }).populate('studentId standardId');
+    const query = { schoolId };
+    if (req.academicYearId) {
+      query.academicYearId = req.academicYearId;
+    }
+    const fees = await FeePayment.find(query).populate('studentId standardId');
 
     const fields = [
       { label: 'Student Name', value: (row) => `${row.studentId?.firstName || 'Unknown'} ${row.studentId?.lastName || ''}` },
@@ -2228,6 +2244,7 @@ exports.exportAttendanceReportCSV = async (req, res) => {
     const filter = { schoolId };
     if (classSection) filter.classSection = classSection;
     if (startDate && endDate) filter.date = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    if (req.academicYearId) filter.academicYearId = req.academicYearId;
 
     const attendance = await Attendance.find(filter).populate('records.studentId');
 

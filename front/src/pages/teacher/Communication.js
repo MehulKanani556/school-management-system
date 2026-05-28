@@ -76,10 +76,15 @@ const Communication = () => {
     const lastScrollHeightRef = React.useRef(0);
 
     const selectedChatRef = React.useRef(null);
+    const currentUserRef = React.useRef(null);
 
     useEffect(() => {
         selectedChatRef.current = selectedChat;
     }, [selectedChat]);
+
+    useEffect(() => {
+        currentUserRef.current = currentUser;
+    }, [currentUser]);
 
     useEffect(() => {
         dispatch(fetchAssignedClasses());
@@ -110,7 +115,7 @@ const Communication = () => {
             } else if (data.type === 'DirectMessage') {
                 const senderId = (data.sender?._id || data.sender)?.toString();
                 const recipientId = (data.recipient?._id || data.recipient)?.toString();
-                const meId = currentUser?._id?.toString();
+                const meId = currentUserRef.current?._id?.toString();
                 const partnerId = senderId === meId ? recipientId : senderId;
 
                 // If active chat, append to local messages
@@ -124,11 +129,16 @@ const Communication = () => {
                         ...prev,
                         [partnerId]: (prev[partnerId] || 0) + 1
                     }));
+
+                    // Only show visual toast if the sender is not muted
+                    const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${meId}`) || '[]');
+                    if (senderId !== meId && !mutedList.includes(senderId)) {
+                        toast.success(`💬 New Message from ${data.senderName || data.sender?.firstName || 'Faculty'}`);
+                    }
                 }
 
                 // Update Redux state as well for feedback lists
                 dispatch(updateTeacherMessages(data));
-                toast.success(`Direct Signal: ${data.sender?.firstName || 'User'}`);
             }
         };
 

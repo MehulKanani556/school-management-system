@@ -116,6 +116,12 @@ const Communication = () => {
 
     const { socket } = useSocket();
     const { user: currentUser } = useSelector(state => state.auth);
+    const { activeAcademicYearId } = useSelector(state => state.academicYear);
+
+    const currentUserRef = React.useRef(currentUser);
+    useEffect(() => {
+        currentUserRef.current = currentUser;
+    }, [currentUser]);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -127,7 +133,7 @@ const Communication = () => {
 
     useEffect(() => {
         fetchData();
-    }, [activeTab]);
+    }, [activeTab, activeAcademicYearId]);
 
     useEffect(() => {
         if (!socket || typeof socket.on !== 'function') return;
@@ -140,7 +146,7 @@ const Communication = () => {
         const handleDirectMessage = (data) => {
             const senderId = (data.sender?._id || data.sender)?.toString();
             const recipientId = (data.recipient?._id || data.recipient)?.toString();
-            const meId = currentUser?._id?.toString();
+            const meId = currentUserRef.current?._id?.toString();
             const partnerId = senderId === meId ? recipientId : senderId;
 
             // If it's the active chat, add it to chatMessages
@@ -152,15 +158,21 @@ const Communication = () => {
                         chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
                     }
                 }, 100);
+            } else if (senderId !== meId) {
+                // If it's a message from someone else, show a toast notification
+                const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${meId}`) || '[]');
+                if (!mutedList.includes(senderId)) {
+                    toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
+                }
             }
 
             // Update the conversations list preview
             setMessages(prev => [data, ...prev.filter(m => {
-                const mPartnerId = m.sender?._id === currentUser?._id ? m.recipient?._id || m.recipient : m.sender?._id;
+                const mSenderId = (m.sender?._id || m.sender)?.toString();
+                const mRecipientId = (m.recipient?._id || m.recipient)?.toString();
+                const mPartnerId = mSenderId === meId ? mRecipientId : mSenderId;
                 return mPartnerId !== partnerId;
             })]);
-
-            // toast.success(`Direct Proton Received: ${data.subject}`);
         };
 
         const handleNotice = (data) => {
@@ -184,10 +196,11 @@ const Communication = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
+            const params = activeAcademicYearId ? `?academicYearId=${activeAcademicYearId}` : '';
             const [annRes, msgRes, notRes, conRes] = await Promise.all([
-                axiosInstance.get('/school-admin/announcements'),
+                axiosInstance.get(`/school-admin/announcements${params}`),
                 axiosInstance.get('/school-admin/messages'),
-                axiosInstance.get('/school-admin/notices'),
+                axiosInstance.get(`/school-admin/notices${params}`),
                 axiosInstance.get('/contacts')
             ]);
             setAnnouncements(annRes.data);
@@ -239,8 +252,19 @@ const Communication = () => {
             setChatMessages([]);
             setHasMore(true);
             fetchChatHistory(selectedChat, 1);
+            
+            if (currentUser) {
+                localStorage.setItem(`active_chat_${currentUser._id}`, selectedChat);
+                const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${currentUser._id}`) || '[]');
+                setIsMuted(mutedList.includes(selectedChat));
+            }
+        } else {
+            if (currentUser) {
+                localStorage.removeItem(`active_chat_${currentUser._id}`);
+            }
+            setIsMuted(false);
         }
-    }, [selectedChat]);
+    }, [selectedChat, currentUser]);
 
     // Restore scroll position when loading older messages
     useEffect(() => {
@@ -267,6 +291,7 @@ const Communication = () => {
 
             if (activeTab === 'announcements') {
                 url = '/school-admin/announcements';
+                payload = { ...payload, academicYearId: activeAcademicYearId };
                 await axiosInstance.post(url, payload);
             }
             else if (activeTab === 'messages') {
@@ -285,6 +310,7 @@ const Communication = () => {
             }
             else if (activeTab === 'notices') {
                 url = '/school-admin/notices';
+                payload = { ...payload, academicYearId: activeAcademicYearId };
                 await axiosInstance.post(url, payload);
             }
 
@@ -308,12 +334,19 @@ const Communication = () => {
     };
 
     const handleMuteToggle = () => {
-        setIsMuted(!isMuted);
-        if (!isMuted) {
-            toast.success('Notifications muted for this conversation');
-        } else {
+        if (!selectedChat || !currentUser) return;
+        const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${currentUser._id}`) || '[]');
+        let newMutedList;
+        if (mutedList.includes(selectedChat)) {
+            newMutedList = mutedList.filter(id => id !== selectedChat);
+            setIsMuted(false);
             toast.success('Notifications enabled for this conversation');
+        } else {
+            newMutedList = [...mutedList, selectedChat];
+            setIsMuted(true);
+            toast.success('Notifications muted for this conversation');
         }
+        localStorage.setItem(`muted_chats_${currentUser._id}`, JSON.stringify(newMutedList));
     };
 
     const handleClearChatHistory = async () => {
@@ -349,7 +382,8 @@ const Communication = () => {
     const conversations = useMemo(() => {
         if (!messages.length) return [];
         const groups = {};
-        messages.forEach(msg => {
+        const directMsgs = messages.filter(m => m.type === 'DirectMessage');
+        directMsgs.forEach(msg => {
             const senderId = (msg.sender?._id || msg.sender)?.toString();
             const recipientId = (msg.recipient?._id || msg.recipient)?.toString();
             const meId = currentUser?._id?.toString();
@@ -365,6 +399,11 @@ const Communication = () => {
     const activeConversation = useMemo(() => {
         return conversations.find(c => (c.partner._id || c.partner) === selectedChat);
     }, [conversations, selectedChat]);
+
+    const activeConversationPartner = useMemo(() => {
+        if (activeConversation?.partner) return activeConversation.partner;
+        return contacts.find(c => c._id === selectedChat);
+    }, [activeConversation, contacts, selectedChat]);
 
     // Filtered conversations and contacts based on search query
     const filteredConversations = useMemo(() => {
@@ -408,21 +447,21 @@ const Communication = () => {
                     <div className="space-y-2">
                         <div className="flex items-center gap-2">
                             <div className="h-[1.5px] w-6 bg-brand-primary rounded-md"></div>
-                            <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.4em] italic leading-none">Intelligence Signal Relay</span>
+                            <span className="text-[8px] font-black text-brand-primary uppercase tracking-[0.4em] italic leading-none">Communication Hub</span>
                         </div>
                         <h1 className="text-3xl lg:text-4xl font-black text-white uppercase tracking-tighter italic leading-none">
                             {activeTab === 'announcements' ? (
-                                <>ANNOUNCEMENT <span className="text-brand-primary">HUB</span></>
+                                <>ANNOUNCEMENT <span className="text-brand-primary">BOARD</span></>
                             ) : activeTab === 'messages' ? (
-                                <>DIRECT <span className="text-brand-primary">PROBE</span></>
+                                <>DIRECT <span className="text-brand-primary">MESSAGES</span></>
                             ) : (
                                 <>NOTICE <span className="text-brand-primary">BOARD</span></>
                             )}
                         </h1>
                         <p className="text-slate-500 font-bold text-[9px] lg:text-[10px] tracking-wider uppercase">
-                            {activeTab === 'announcements' ? 'Unified administrative broadcast and relay.' :
-                                activeTab === 'messages' ? 'Secured point-to-point institutional messaging.' :
-                                    'Public domain bulletin and regional advisory.'}
+                            {activeTab === 'announcements' ? 'Post school-wide or targeted group announcements.' :
+                                activeTab === 'messages' ? 'Direct chat messaging with school staff and parents.' :
+                                    'Post and view official public school notices.'}
                         </p>
                     </div>
 
@@ -488,11 +527,22 @@ const Communication = () => {
                                                     </div>
                                                     <div className="text-left min-w-0 flex-1">
                                                         <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{p.firstName} {p.lastName}</h4>
-                                                        <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1">{conv.messages[0].content}</p>
+                                                        {p.role === 'Parent' ? (
+                                                            <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                                {p.parentInfo || 'Parent'}
+                                                            </p>
+                                                        ) : p.role === 'Student' ? (
+                                                            <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                                Student {p.studentInfo ? `(${p.studentInfo})` : ''}
+                                                            </p>
+                                                        ) : (
+                                                            p.role && <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">{p.role}</p>
+                                                        )}
+                                                        <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1.5">{conv.messages[0].content}</p>
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1.5">
                                                         <span className="text-[7px] font-bold text-slate-600">2M</span>
-                                                        {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-luxury-rose animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
+                                                        {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
                                                     </div>
                                                 </button>
                                             );
@@ -516,7 +566,19 @@ const Communication = () => {
                                                 </div>
                                                 <div className="text-left">
                                                     <h4 className="text-slate-500 group-hover:text-white font-black text-[10px] uppercase tracking-tighter italic transition-colors">{t.firstName} {t.lastName}</h4>
-                                                    <p className="text-[7px] text-slate-600 font-black uppercase tracking-widest">Role: {t.role}</p>
+                                                    {t.role === 'Parent' ? (
+                                                        <p className="text-[7px] text-slate-600 group-hover:text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                            {t.parentInfo || 'Parent'}
+                                                        </p>
+                                                    ) : t.role === 'Student' ? (
+                                                        <p className="text-[7px] text-slate-600 group-hover:text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                            Student {t.studentInfo ? `(${t.studentInfo})` : ''}
+                                                        </p>
+                                                    ) : (
+                                                        <p className="text-[7px] text-slate-600 group-hover:text-slate-400 font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                            Role: {t.role}
+                                                        </p>
+                                                    )}
                                                 </div>
                                                 <ArrowUpRight size={12} className="ml-auto text-slate-800 group-hover:text-brand-primary" />
                                             </button>
@@ -538,11 +600,21 @@ const Communication = () => {
                                         <div className="flex items-center gap-4">
                                             <button onClick={() => setSelectedChat(null)} className="lg:hidden p-2 rounded-md bg-slate-800/60 text-slate-400 mr-1"><ArrowLeft size={18} /></button>
                                             <div className="w-11 h-11 rounded-md bg-slate-800 overflow-hidden border border-brand-primary/20 shadow-xl shadow-brand-primary/5">
-                                                {activeConversation?.partner.photo ? <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
+                                                {activeConversationPartner?.photo ? <img src={activeConversationPartner.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
                                             </div>
                                             <div>
-                                                <h3 className="text-lg font-black text-white italic tracking-tighter uppercase leading-none mb-1">
-                                                    {activeConversation?.partner.firstName || 'TARGET'} {activeConversation?.partner.lastName || 'LOCKED'}
+                                                <h3 className="text-lg font-black text-white italic tracking-tighter uppercase leading-none mb-1 flex items-center gap-2">
+                                                    {activeConversationPartner?.firstName || 'TARGET'} {activeConversationPartner?.lastName || 'LOCKED'}
+                                                    {activeConversationPartner?.role && (
+                                                        <span className="text-[7px] bg-brand-primary/20 text-brand-primary px-1.5 py-0.5 rounded font-black tracking-widest uppercase">
+                                                            {activeConversationPartner.role === 'Parent' && activeConversationPartner.parentInfo 
+                                                                ? activeConversationPartner.parentInfo 
+                                                                : activeConversationPartner.role === 'Student' && activeConversationPartner.studentInfo 
+                                                                    ? `Student (${activeConversationPartner.studentInfo})` 
+                                                                    : activeConversationPartner.role
+                                                            }
+                                                        </span>
+                                                    )}
                                                 </h3>
                                                 <span className="flex items-center gap-2 text-[8px] font-black text-emerald-500 uppercase tracking-widest italic leading-none">
                                                     <div className="w-1 h-1 rounded-md bg-emerald-500 animate-pulse"></div>
@@ -711,18 +783,18 @@ const Communication = () => {
                                                     {/* Partner Info */}
                                                     <div className="flex flex-col items-center text-center space-y-4 pb-6 border-b border-slate-800/60">
                                                         <div className="w-24 h-24 rounded-md bg-slate-800 overflow-hidden border-2 border-brand-primary/20 shadow-xl">
-                                                            {activeConversation?.partner.photo ? (
-                                                                <img src={activeConversation.partner.photo} alt="" className="w-full h-full object-cover" />
+                                                            {activeConversationPartner?.photo ? (
+                                                                <img src={activeConversationPartner.photo} alt="" className="w-full h-full object-cover" />
                                                             ) : (
                                                                 <User className="w-full h-full p-6 text-slate-600" />
                                                             )}
                                                         </div>
                                                         <div>
                                                             <h4 className="text-lg font-black text-white uppercase tracking-tighter italic">
-                                                                {activeConversation?.partner.firstName} {activeConversation?.partner.lastName}
+                                                                {activeConversationPartner?.firstName} {activeConversationPartner?.lastName}
                                                             </h4>
                                                             <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mt-1">
-                                                                {activeConversation?.partner.role || 'User'}
+                                                                {activeConversationPartner?.role || 'User'}
                                                             </p>
                                                         </div>
                                                     </div>
@@ -745,13 +817,13 @@ const Communication = () => {
                                                     </div>
 
                                                     {/* Contact Info */}
-                                                    {activeConversation?.partner.email && (
+                                                    {activeConversationPartner?.email && (
                                                         <div className="space-y-3">
                                                             <h4 className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Contact Details</h4>
                                                             <div className="bg-slate-950/50 border border-slate-800 rounded-md p-4 space-y-2">
                                                                 <div className="flex items-center gap-2">
                                                                     <Mail size={12} className="text-slate-600" />
-                                                                    <span className="text-[10px] font-bold text-slate-400 italic">{activeConversation.partner.email}</span>
+                                                                    <span className="text-[10px] font-bold text-slate-400 italic">{activeConversationPartner.email}</span>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -844,8 +916,8 @@ const Communication = () => {
                                         <MessageSquare size={48} className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-slate-800 group-hover:text-brand-primary transition-colors duration-500" />
                                     </div>
                                     <div className="space-y-4">
-                                        <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">INITIALIZE COMMS PROBE</h3>
-                                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-relaxed max-w-sm">Select a transmission endpoint from the encrypted archive to begin secured institutional relay.</p>
+                                        <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Open Direct Messages</h3>
+                                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest leading-relaxed max-w-sm">Select a conversation or contact from the sidebar to begin messaging.</p>
                                     </div>
                                     <div className="flex items-center gap-3">
                                         <div className="h-px w-8 bg-slate-800"></div>
@@ -868,16 +940,16 @@ const Communication = () => {
                                     <div className="flex items-center justify-between">
                                         <h2 className="text-lg font-black text-white uppercase italic tracking-tight flex items-center gap-4">
                                             <Send className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} size={20} />
-                                            New {activeTab === 'announcements' ? 'Broadcast Dispatch' : 'Public Notice'}
+                                            New {activeTab === 'announcements' ? 'Announcement' : 'Notice'}
                                         </h2>
-                                        <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50 italic">SECURE DISPATCH</div>
+                                        <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest bg-slate-800/50 px-3 py-1.5 rounded-md border border-slate-700/50 italic">CREATE POST</div>
                                     </div>
 
                                     <form onSubmit={handleSend} className="space-y-6 flex-1 flex flex-col min-h-0 pr-1 custom-scrollbar overflow-y-auto">
                                         {activeTab === 'announcements' && (
                                             <div className="space-y-3">
                                                 <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
-                                                    <Users size={11} className="text-brand-primary" /> Target Demographic
+                                                    <Users size={11} className="text-brand-primary" /> Target Audience
                                                 </label>
                                                 <div className="relative group/select">
                                                     <select
@@ -895,7 +967,7 @@ const Communication = () => {
                                                     </select>
                                                     <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500 group-hover/select:text-brand-primary transition-colors">
                                                         <ChevronDown size={14} />
-                                                    </div>
+                                                     </div>
                                                 </div>
                                             </div>
                                         )}
@@ -906,7 +978,7 @@ const Communication = () => {
                                             </label>
                                             <input
                                                 required
-                                                placeholder="ENTER HEADER..."
+                                                placeholder="ENTER SUBJECT..."
                                                 value={formData.subject}
                                                 onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                                                 className={`w-full bg-slate-950/60 border border-slate-800 rounded-md p-4 text-white text-[13px] font-black uppercase tracking-tighter outline-none focus:border-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'} transition-all placeholder:text-slate-800 italic`}
@@ -915,11 +987,11 @@ const Communication = () => {
 
                                         <div className="space-y-3 flex-1 flex flex-col">
                                             <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2 italic ml-1">
-                                                <MessageSquare size={11} className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} /> Signal Payload
+                                                <MessageSquare size={11} className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} /> Message Body
                                             </label>
                                             <textarea
                                                 required
-                                                placeholder="COMPOSE DIRECTIVE..."
+                                                placeholder="TYPE MESSAGE HERE..."
                                                 value={formData.content}
                                                 onChange={(e) => setFormData({ ...formData, content: e.target.value })}
                                                 className={`flex-1 w-full bg-slate-950/60 border border-slate-800 rounded-md p-5 text-white text-[13px] font-bold outline-none focus:border-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'} transition-all placeholder:text-slate-800 italic resize-none uppercase tracking-tighter`}
@@ -931,7 +1003,7 @@ const Communication = () => {
                                             className={`w-full py-4 rounded-md flex items-center justify-center gap-3 text-[12px] font-black uppercase tracking-[0.3em] transition-all shadow-2xl active:scale-95 group ${activeTab === 'announcements' ? 'bg-brand-primary text-white shadow-brand-primary/20 hover:bg-brand-primary/90' : 'bg-emerald-500 text-white shadow-emerald-500/20 hover:bg-emerald-600'}`}
                                         >
                                             <Send size={18} className="group-hover:-translate-y-1 group-hover:translate-x-1 transition-transform" />
-                                            INITIALIZE SIGNAL
+                                            {activeTab === 'announcements' ? 'Post Announcement' : 'Post Notice'}
                                         </button>
                                     </form>
                                 </div>
@@ -946,14 +1018,14 @@ const Communication = () => {
                                         <div className={`p-1.5 rounded-md bg-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}/10 border border-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}/20`}>
                                             <Filter size={16} className={`text-${activeTab === 'announcements' ? 'brand-primary' : 'emerald-500'}`} />
                                         </div>
-                                        ACTIVE ARCHIVE
+                                        ACTIVE POSTS
                                     </h3>
                                     <span className="bg-slate-900 border border-slate-800 text-slate-500 text-[8px] font-black px-3 py-1 rounded-md tracking-widest italic cursor-default">
-                                        {activeTab === 'announcements' ? announcements.length : notices.length} RECORDS
+                                        {activeTab === 'announcements' ? announcements.length : notices.length} POSTS
                                     </span>
                                 </div>
                                 <button onClick={fetchData} className="group flex items-center gap-2 text-[9px] font-black text-slate-600 uppercase tracking-widest hover:text-white transition-all italic">
-                                    SYNC <ArrowUpRight size={12} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                    REFRESH <ArrowUpRight size={12} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                 </button>
                             </div>
 
@@ -997,10 +1069,10 @@ const Communication = () => {
                                             <div className="flex items-center justify-between text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 italic relative z-10 pt-4 border-t border-white/[0.03]">
                                                 <div className="flex items-center gap-2">
                                                     <div className={`w-1.5 h-1.5 rounded-md ${activeTab === 'announcements' ? 'bg-brand-primary' : 'bg-emerald-500'} animate-pulse`}></div>
-                                                    <span>AUTHORITY: {item.sender?.firstName} {item.sender?.lastName} [ADMIN]</span>
+                                                    <span>POSTED BY: {item.sender?.firstName} {item.sender?.lastName}</span>
                                                 </div>
                                                 <span className={activeTab === 'announcements' ? 'text-brand-primary/60' : 'text-emerald-400/60'}>
-                                                    {activeTab === 'announcements' ? 'Broadcast Protocol' : 'Bulletin Relay'}
+                                                    {activeTab === 'announcements' ? 'Announcement' : 'Notice'}
                                                 </span>
                                             </div>
                                         </motion.div>
@@ -1013,7 +1085,7 @@ const Communication = () => {
                                             <div className="w-16 h-16 border-4 border-brand-primary/20 rounded-md animate-ping"></div>
                                             <div className="absolute inset-0 w-16 h-16 border-4 border-brand-primary border-t-transparent rounded-md animate-spin"></div>
                                         </div>
-                                        <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-500 italic animate-pulse">Syncing Signal Archive...</span>
+                                        <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-500 italic animate-pulse">Loading posts...</span>
                                     </div>
                                 )}
 
@@ -1021,8 +1093,8 @@ const Communication = () => {
                                     <div className="bg-slate-900/20 border border-dashed border-slate-800 rounded-md p-32 flex flex-col items-center text-center space-y-8 animate-pulse">
                                         <AlertCircle size={64} className="text-slate-800 opacity-50" />
                                         <div>
-                                            <h4 className="text-slate-600 font-black text-2xl uppercase italic tracking-widest">Archive Void Detected</h4>
-                                            <p className="text-slate-700 text-[11px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs leading-relaxed">The historical database for this transmission sector is currently depleted.</p>
+                                            <h4 className="text-slate-600 font-black text-2xl uppercase italic tracking-widest">No Posts Found</h4>
+                                            <p className="text-slate-700 text-[11px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs leading-relaxed">There are no active posts in this section for the selected academic year.</p>
                                         </div>
                                     </div>
                                 )}

@@ -143,7 +143,14 @@ exports.getRoutes = async (req, res) => {
 
         const routes = await Route.find(query)
             .populate('vehicleId')
-            .populate('assignedStudents.studentId', 'firstName lastName admissionNumber');
+            .populate({
+                path: 'assignedStudents.studentId',
+                select: 'firstName lastName admissionNumber standard classSection',
+                populate: [
+                    { path: 'standard', select: 'level name' },
+                    { path: 'classSection', select: 'sectionLabel' }
+                ]
+            });
         res.json(routes);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -188,6 +195,15 @@ exports.unassignStudent = async (req, res) => {
 
         // Optional: Remove pending transport fee? 
         // (Usually keep for audit but we will let user decide or leave it)
+
+        await route.populate({
+            path: 'assignedStudents.studentId',
+            select: 'firstName lastName admissionNumber standard classSection',
+            populate: [
+                { path: 'standard', select: 'level name' },
+                { path: 'classSection', select: 'sectionLabel' }
+            ]
+        });
 
         res.json({ message: 'Student removed from route', data: route });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -304,6 +320,15 @@ exports.assignStudent = async (req, res) => {
                 link: '/parent/transport'
             });
         }
+
+        await route.populate({
+            path: 'assignedStudents.studentId',
+            select: 'firstName lastName admissionNumber standard classSection',
+            populate: [
+                { path: 'standard', select: 'level name' },
+                { path: 'classSection', select: 'sectionLabel' }
+            ]
+        });
 
         res.json({ message: 'Student assigned and fee synchronized', data: route });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -635,7 +660,8 @@ exports.getTransportAnalytics = async (req, res) => {
 
 exports.bulkAssignStudents = async (req, res) => {
     try {
-        const { routeId, studentIds, pickupStop, dropoffStop } = req.body;
+        const routeId = req.params.id || req.body.routeId;
+        const { studentIds, pickupStop, dropoffStop } = req.body;
         const schoolId = getSchoolId(req);
 
         const route = await Route.findOne({ _id: routeId, schoolId }).populate('vehicleId');
@@ -687,7 +713,16 @@ exports.bulkAssignStudents = async (req, res) => {
         }
 
         await route.save();
-        const updated = await Route.findById(routeId).populate('vehicleId').populate('assignedStudents.studentId', 'firstName lastName admissionNumber');
+        const updated = await Route.findById(routeId)
+            .populate('vehicleId')
+            .populate({
+                path: 'assignedStudents.studentId',
+                select: 'firstName lastName admissionNumber standard classSection',
+                populate: [
+                    { path: 'standard', select: 'level name' },
+                    { path: 'classSection', select: 'sectionLabel' }
+                ]
+            });
         res.json({ message: 'Bulk assignment synthesized successfully', data: updated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

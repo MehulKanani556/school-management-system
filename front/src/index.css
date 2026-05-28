@@ -138,11 +138,50 @@ html {
 }
 
 @media print {
-  /* Hide everything by default */
-  html, body { background: white !important; height: auto !important; overflow: visible !important; }
+  /* Setup basic page print attributes */
+  html, body { 
+    background: white !important; 
+    color: #0f172a !important; 
+    height: auto !important; 
+    overflow: visible !important; 
+  }
   
-  /* Hide all siblings of the portal and the main root */
-  body > *:not(.print-portal-active) { display: none !important; }
+  /* Hide sidebar, topbar/header, print button, and background decorations during page print */
+  aside, header, nav, .no-print, button, svg.lucide-printer, [class*="Filter"] { 
+    display: none !important; 
+  }
+
+  /* Make sure #root is fully visible during page prints */
+  #root {
+    display: block !important;
+    background: white !important;
+    color: #0f172a !important;
+  }
+
+  /* Reset all nested text colors to dark and make cards clean on white paper */
+  #root, #root * {
+    color: #0f172a !important;
+    background-color: transparent !important;
+    border-color: #cbd5e1 !important; /* clean light-gray borders for card elements */
+    text-shadow: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Make header titles and key metrics stand out cleanly in print */
+  #root .text-brand-primary, #root .text-indigo-400, #root .text-emerald-400, #root span.text-brand-primary {
+    color: #1e3a8a !important; /* deep high-contrast blue for printable section headers */
+    font-weight: 800 !important;
+  }
+
+  /* ONLY hide #root if the active receipt print portal modal is open */
+  body:has(.print-portal-active) #root { 
+    display: none !important; 
+  }
+
+  /* Hide all siblings of the print portal ONLY when the portal is active */
+  body:has(.print-portal-active) > *:not(.print-portal-active) { 
+    display: none !important; 
+  }
 
   /* Ensure the portal container itself is transparent and not fixed/clipping */
   .print-portal-active {
@@ -156,6 +195,10 @@ html {
     z-index: 99999 !important;
   }
 
+  .print-portal-active * {
+    color: #0f172a !important;
+  }
+
   /* Target the Modal Content area specifically */
   .print-content-active {
     background: transparent !important;
@@ -165,11 +208,6 @@ html {
     padding: 0 !important;
     width: 100% !important;
     display: block !important;
-  }
-
-  /* Specifically hide common structural elements if they leaked through */
-  #root, .no-print, [class*="backdrop"], [class*="overlay"], aside, header, nav { 
-    display: none !important; 
   }
 
   /* Focus exclusively on the receipt */
@@ -200,7 +238,7 @@ html {
 
   @page { 
     size: portrait; 
-    margin: 0; 
+    margin: 15mm; /* Standard margins for page prints */
   }
 }
 

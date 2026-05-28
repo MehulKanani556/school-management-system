@@ -17,6 +17,7 @@ const announcementSchema = new mongoose.Schema(
       default: ['All'] 
     }],
     targetClassSection: { type: mongoose.Schema.Types.ObjectId, ref: 'ClassSection' },
+    academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear' },
     isPublished: { type: Boolean, default: true },
     expiresAt: { type: Date }
   },
