@@ -21,16 +21,7 @@ const AcademicYear = () => {
         dispatch(fetchAcademicYears());
     }, [dispatch]);
 
-    useEffect(() => {
-        if (message) {
-            toast.success(message);
-            dispatch(clearMessage());
-        }
-        if (error) {
-            toast.error(error);
-            dispatch(clearError());
-        }
-    }, [message, error, dispatch]);
+
 
     const formik = useFormik({
         initialValues: {

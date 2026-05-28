@@ -54,14 +54,12 @@ const Holidays = () => {
                 dispatch(updateHoliday({ id: editingHoliday._id, data: values }))
                     .unwrap()
                     .then(() => {
-                        toast.success('Temporal node recalibrated');
                         closeModal();
                     });
             } else {
                 dispatch(createHoliday(values))
                     .unwrap()
                     .then(() => {
-                        toast.success('New break protocol initialized');
                         closeModal();
                     });
             }
@@ -93,8 +91,7 @@ const Holidays = () => {
     const handleDelete = async (id) => {
         if (await window.confirm('Terminate this temporal break node?')) {
             dispatch(deleteHoliday(id))
-                .unwrap()
-                .then(() => toast.success('Node purged from history'));
+                .unwrap();
         }
     };
 

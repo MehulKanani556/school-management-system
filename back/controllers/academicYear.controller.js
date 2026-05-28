@@ -17,6 +17,38 @@ exports.createAcademicYear = async (req, res) => {
         const { name, startDate, endDate, isCurrent } = req.body;
         const schoolId = getSchoolId(req);
 
+        // Date validation: startDate must be before endDate
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (start >= end) {
+            return res.status(400).json({ message: 'Start date must be strictly before end date.' });
+        }
+
+        // Session year validation
+        const nameMatch = name.match(/^(\d{4})-\d{2}$/);
+        if (nameMatch) {
+            const expectedStartYear = parseInt(nameMatch[1], 10);
+            const actualStartYear = start.getFullYear();
+            if (actualStartYear !== expectedStartYear) {
+                return res.status(400).json({ 
+                    message: `Start date year (${actualStartYear}) must match the session year (${expectedStartYear})` 
+                });
+            }
+        }
+
+        // Overlap validation: check if the new session dates overlap with any existing academic year
+        const overlappingYear = await AcademicYear.findOne({
+            schoolId,
+            startDate: { $lt: end },
+            endDate: { $gt: start }
+        });
+
+        if (overlappingYear) {
+            return res.status(400).json({ 
+                message: `Session dates overlap with an existing session: ${overlappingYear.name} (${new Date(overlappingYear.startDate).toLocaleDateString()} - ${new Date(overlappingYear.endDate).toLocaleDateString()})` 
+            });
+        }
+
         if (isCurrent) {
             await AcademicYear.updateMany({ schoolId }, { isCurrent: false });
         }
@@ -37,8 +69,46 @@ exports.createAcademicYear = async (req, res) => {
 exports.updateAcademicYear = async (req, res) => {
     try {
         const { id } = req.params;
-        const { isCurrent } = req.body;
+        const { name, startDate, endDate, isCurrent } = req.body;
         const schoolId = getSchoolId(req);
+
+        const existingYear = await AcademicYear.findById(id);
+        if (!existingYear) return res.status(404).json({ message: 'Academic Cycle not found' });
+
+        const finalName = name || existingYear.name;
+        const finalStartDate = startDate ? new Date(startDate) : existingYear.startDate;
+        const finalEndDate = endDate ? new Date(endDate) : existingYear.endDate;
+
+        // Date validation: startDate must be before endDate
+        if (finalStartDate >= finalEndDate) {
+            return res.status(400).json({ message: 'Start date must be strictly before end date.' });
+        }
+
+        // Session year validation
+        const nameMatch = finalName.match(/^(\d{4})-\d{2}$/);
+        if (nameMatch) {
+            const expectedStartYear = parseInt(nameMatch[1], 10);
+            const actualStartYear = finalStartDate.getFullYear();
+            if (actualStartYear !== expectedStartYear) {
+                return res.status(400).json({ 
+                    message: `Start date year (${actualStartYear}) must match the session year (${expectedStartYear})` 
+                });
+            }
+        }
+
+        // Overlap validation: check if the updated session dates overlap with any other academic year
+        const overlappingYear = await AcademicYear.findOne({
+            schoolId,
+            _id: { $ne: id },
+            startDate: { $lt: finalEndDate },
+            endDate: { $gt: finalStartDate }
+        });
+
+        if (overlappingYear) {
+            return res.status(400).json({ 
+                message: `Session dates overlap with an existing session: ${overlappingYear.name} (${new Date(overlappingYear.startDate).toLocaleDateString()} - ${new Date(overlappingYear.endDate).toLocaleDateString()})` 
+                });
+        }
 
         if (isCurrent) {
             await AcademicYear.updateMany({ schoolId, _id: { $ne: id } }, { isCurrent: false });
@@ -50,7 +120,6 @@ exports.updateAcademicYear = async (req, res) => {
             { new: true }
         );
 
-        if (!year) return res.status(404).json({ message: 'Academic Cycle not found' });
         res.json(year);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

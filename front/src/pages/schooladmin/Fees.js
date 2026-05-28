@@ -12,7 +12,7 @@ import { Plus, Pencil, Trash2, LayoutGrid, List, Settings2, Sparkles, CheckCircl
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 const STATUS_COLORS = { 
   paid: 'text-emerald-400 bg-emerald-400/10 border-emerald-500/20', 
@@ -90,6 +90,8 @@ const Fees = () => {
         const isTryingToAddNewChargeButMissingData = isAddingNew && (!values.amount || !values.category);
         if (isTryingToAddNewChargeButMissingData) {
             toast.error('Please specify Reason and Amount for the new charge');
+            setFormLoading(false);
+            return;
         }
 
         const isActuallyCreatingOrSpecificEditing = !isTryingToAddNewChargeButMissingData && values.amount && values.category && !activeIds.includes(editing);
@@ -104,14 +106,13 @@ const Fees = () => {
         }
 
         if (successCount > 0) {
-            toast.success(`${successCount} financial updates committed`);
             closeModals();
             dispatch(fetchFees());
         } else {
-            toast.info('No payment or record data detected');
+            toast('No payment or record data detected');
         }
       } catch (err) {
-        toast.error(err?.message || 'Transaction failed');
+        console.error(err);
       } finally {
         setFormLoading(false);
       }
@@ -136,11 +137,10 @@ const Fees = () => {
       const action = editing ? updateFeeStructure({ id: editing, data: values }) : createFeeStructure(values);
       dispatch(action).unwrap()
         .then(() => {
-          toast.success(editing ? 'Structure refined' : 'Structure established');
           closeModals();
           dispatch(fetchFeeStructures());
         })
-        .catch(err => toast.error(err?.message || 'Operation failed'));
+        .catch(() => {});
     }
   });
 
@@ -155,10 +155,9 @@ const Fees = () => {
     onSubmit: (values) => {
       dispatch(applyFeeStructure(values)).unwrap()
         .then(() => {
-          toast.success('Fees applied successfully');
           dispatch(fetchFees());
         })
-        .catch(err => toast.error(err?.message || 'Failed to apply fees'));
+        .catch(() => {});
       closeModals();
     }
   });
@@ -670,6 +669,10 @@ const Fees = () => {
               const unpaidFees = fees.filter(f => (f.studentId?._id || f.studentId) === feeFormik.values.studentId && f.status !== 'paid');
               const totalUnpaid = unpaidFees.reduce((sum, f) => sum + (f.amount || 0) - (f.paidAmount || 0), 0);
               const bulkPayingTotal = Object.values(payingMap).reduce((s, v) => s + (Number(v) || 0), 0);
+              const isAllPaidInFull = unpaidFees.length > 0 && unpaidFees.every(f => {
+                const remaining = (f.amount || 0) - (f.paidAmount || 0);
+                return Number(payingMap[f._id] || 0) === remaining;
+              });
 
               return (
                 <div className="space-y-4">
@@ -679,17 +682,44 @@ const Fees = () => {
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         <Wallet2 size={60} className="rotate-12" />
                       </div>
-                      <div className="relative z-10 flex items-center justify-between">
+                      <div className="relative z-10 flex items-center justify-between gap-4">
                         <div>
                           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-1">Total Outstanding</p>
                           <p className="text-4xl font-black font-outfit text-schooladmin-primary italic tracking-tighter">${totalUnpaid.toLocaleString()}</p>
                         </div>
-                        {bulkPayingTotal > 0 && (
-                          <div className="text-right">
-                             <p className="text-[10px] font-black uppercase tracking-widest text-emerald-500 mb-1">Paying This Session</p>
-                             <p className="text-2xl font-black font-outfit text-white italic">-${bulkPayingTotal.toLocaleString()}</p>
-                          </div>
-                        )}
+                        <div className="flex flex-col items-end gap-2 z-20">
+                          {bulkPayingTotal > 0 && (
+                            <div className="text-right">
+                               <p className="text-[9px] font-black uppercase tracking-widest text-emerald-500 mb-0.5">Paying This Session</p>
+                               <p className="text-xl font-black font-outfit text-white italic">-${bulkPayingTotal.toLocaleString()}</p>
+                            </div>
+                          )}
+                          {isAllPaidInFull ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setPayingMap({});
+                              }}
+                              className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/20 hover:border-transparent rounded-md font-black text-[9px] uppercase tracking-[0.15em] transition-all duration-300"
+                            >
+                              Clear Payments
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const newPayingMap = {};
+                                unpaidFees.forEach(f => {
+                                  newPayingMap[f._id] = (f.amount || 0) - (f.paidAmount || 0);
+                                });
+                                setPayingMap(newPayingMap);
+                              }}
+                              className="px-3 py-1.5 bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 border border-emerald-500/20 hover:border-transparent rounded-md font-black text-[9px] uppercase tracking-[0.15em] transition-all duration-300 shadow-md shadow-emerald-500/5 hover:shadow-emerald-500/15"
+                            >
+                              Pay All in Full
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
@@ -736,8 +766,41 @@ const Fees = () => {
                                     setPayingMap(prev => ({ ...prev, [uf._id]: val }));
                                     if (editing === uf._id) feeFormik.setFieldValue('payingNow', val);
                                   }}
-                                  className="w-full bg-slate-900/60 border border-white/5 focus:border-brand-primary rounded-md py-3 pl-8 pr-4 text-white outline-none text-xs font-black transition-all"
+                                  className="w-full bg-slate-900/60 border border-white/5 focus:border-brand-primary rounded-md py-3 pl-8 pr-20 text-white outline-none text-xs font-black transition-all"
                                 />
+                                {(() => {
+                                  const remaining = (uf.amount || 0) - (uf.paidAmount || 0);
+                                  const isPaidInFull = Number(payingMap[uf._id] || 0) === remaining;
+
+                                  return isPaidInFull ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setPayingMap(prev => {
+                                          const copy = { ...prev };
+                                          delete copy[uf._id];
+                                          return copy;
+                                        });
+                                        if (editing === uf._id) feeFormik.setFieldValue('payingNow', 0);
+                                      }}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-emerald-500/10 text-emerald-400 hover:bg-red-500/20 hover:text-red-400 rounded text-[9px] font-black uppercase tracking-wider transition-all z-20"
+                                      title="Click to clear"
+                                    >
+                                      Full ✓
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setPayingMap(prev => ({ ...prev, [uf._id]: remaining }));
+                                        if (editing === uf._id) feeFormik.setFieldValue('payingNow', remaining);
+                                      }}
+                                      className="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 bg-brand-primary/10 hover:bg-brand-primary/20 text-brand-primary rounded text-[9px] font-black uppercase tracking-wider transition-all z-20"
+                                    >
+                                      Pay Full
+                                    </button>
+                                  );
+                                })()}
                               </div>
                               <button 
                                 type="button"

@@ -14,7 +14,7 @@ import {
     updateTicketStatusRealTime as updateSuperTicketStatusRealTime 
 } from '../redux/slice/superAdmin.slice';
 
-import toast from 'react-hot-toast';
+import { toast } from 'react-hot-toast';
 
 export const SocketContext = createContext(null);
 

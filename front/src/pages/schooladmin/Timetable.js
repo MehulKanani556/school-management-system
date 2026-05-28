@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { fetchClasses, fetchSubjects, fetchTeachers, fetchTimetable, saveTimetable, deleteTimetable, fetchAllTimetables, clearError, fetchTimetableTemplates, createTimetableTemplate, updateTimetableTemplate, deleteTimetableTemplate } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings, GraduationCap } from 'lucide-react';
+import { ArrowLeft, Clock, Plus, Trash2, Save, Calendar, Users, BookOpen, Layers, Edit2, Check, X, AlertCircle, LayoutGrid, List, Table as TableIcon, ChevronRight, ChevronDown, Printer, Settings, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Modal from '../../components/Modal';
 
@@ -10,6 +11,7 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 
 const AdminTimetable = () => {
     const dispatch = useDispatch();
+    const navigate = useNavigate();
     const [selectedClass, setSelectedClass] = useState('');
     const [activeGrade, setActiveGrade] = useState('');
     const [activeDay, setActiveDay] = useState('Monday');
@@ -192,14 +194,12 @@ const AdminTimetable = () => {
             dispatch(updateTimetableTemplate({ id: currentTemplate._id, data }))
                 .unwrap()
                 .then(() => {
-                    toast.success('Template updated');
                     setIsTemplateEditModalOpen(false);
                 });
         } else {
             dispatch(createTimetableTemplate(data))
                 .unwrap()
                 .then(() => {
-                    toast.success('Template created');
                     setIsTemplateEditModalOpen(false);
                 });
         }
@@ -207,8 +207,7 @@ const AdminTimetable = () => {
 
     const handleDeleteTemplate = (id) => {
         dispatch(deleteTimetableTemplate(id))
-            .unwrap()
-            .then(() => toast.success('Template deleted'));
+            .unwrap();
     };
 
     const addTemplatePeriod = () => {
@@ -276,7 +275,6 @@ const AdminTimetable = () => {
         dispatch(saveTimetable({ classSection: selectedClass, schedule: scheduleArray }))
             .unwrap()
             .then(() => {
-                toast.success('Timetable saved successfully');
                 dispatch(fetchAllTimetables());
             })
             .catch((err) => toast.error(err.message || 'Saving failed'));
@@ -286,7 +284,6 @@ const AdminTimetable = () => {
         if (await window.confirm('Delete this entire class timetable? This cannot be undone.')) {
             dispatch(deleteTimetable(id))
                 .unwrap()
-                .then(() => toast.success('Timetable deleted'))
                 .catch((err) => toast.error(err.message || 'Delete failed'));
         }
     };
@@ -329,17 +326,29 @@ const AdminTimetable = () => {
                     <div className="absolute inset-0 bg-gradient-to-br from-brand-primary/10 via-transparent to-transparent opacity-50"></div>
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-brand-primary/5 rounded-md blur-[100px] animate-pulse"></div>
                     
-                    <div className="space-y-2 relative z-10">
-                        <div className="flex items-center gap-2 mb-1">
-                            <div className="w-1.5 h-1.5 rounded-md bg-brand-primary shadow-glow"></div>
-                            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Timetable System v2.0</span>
+                    <div className="flex items-start gap-4 relative z-10">
+                        {viewMode === 'editor' && (
+                            <button 
+                                type="button"
+                                onClick={() => setViewMode('table')}
+                                className="p-3 bg-slate-800/50 hover:bg-slate-700/50 border border-slate-700/50 rounded-md text-slate-400 hover:text-white transition-all shadow-lg mt-1 animate-fadeIn"
+                                title="Go Back to All Timetables"
+                            >
+                                <ArrowLeft size={18} />
+                            </button>
+                        )}
+                        <div className="space-y-2">
+                            <div className="flex items-center gap-2 mb-1">
+                                <div className="w-1.5 h-1.5 rounded-md bg-brand-primary shadow-glow"></div>
+                                <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-primary/80 font-outfit">Timetable System v2.0</span>
+                            </div>
+                            <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit group-hover:scale-[1.01] transition-transform duration-700">
+                                Timetable Management
+                            </h1>
+                            <p className="text-slate-500 font-bold text-[10px] tracking-[0.2em] uppercase italic flex items-center gap-2">
+                                Class schedules for {classes.length} school standards
+                            </p>
                         </div>
-                        <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit group-hover:scale-[1.01] transition-transform duration-700">
-                            Timetable Management
-                        </h1>
-                        <p className="text-slate-500 font-bold text-[10px] tracking-[0.2em] uppercase italic flex items-center gap-2">
-                            Class schedules for {classes.length} school standards
-                        </p>
                     </div>
 
                     <div className="flex flex-wrap items-center gap-4 relative z-10">

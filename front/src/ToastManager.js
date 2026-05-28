@@ -23,29 +23,43 @@ const ToastManager = () => {
     useEffect(() => {
         const extractErr = (err) => err?.message || (typeof err === 'string' ? err : JSON.stringify(err));
         
+        const showSuccess = (msg) => {
+            const str = String(msg);
+            toast.success(str, { id: str });
+        };
+
+        const showError = (err) => {
+            const str = extractErr(err);
+            const lower = str.toLowerCase();
+            const id = (lower.includes('session') || lower.includes('expired') || lower.includes('unauthorized') || lower.includes('token')) 
+                ? 'session_expired' 
+                : str;
+            toast.error(str, { id });
+        };
+
         // Teacher Sector
-        if (teacher?.message) { toast.success(String(teacher.message)); dispatch(clearTeacherMessage()); }
-        if (teacher?.error) { toast.error(extractErr(teacher.error)); dispatch(clearTeacherError()); }
+        if (teacher?.message) { showSuccess(teacher.message); dispatch(clearTeacherMessage()); }
+        if (teacher?.error) { showError(teacher.error); dispatch(clearTeacherError()); }
 
         // Auth Entry Point
-        if (auth?.message) { toast.success(String(auth.message)); dispatch(clearAuthMessage()); }
-        if (auth?.error) { toast.error(extractErr(auth.error)); dispatch(clearAuthError()); }
+        if (auth?.message) { showSuccess(auth.message); dispatch(clearAuthMessage()); }
+        if (auth?.error) { showError(auth.error); dispatch(clearAuthError()); }
 
         // School Admin Registry
-        if (schoolAdmin?.message) { toast.success(String(schoolAdmin.message)); dispatch(clearSchoolAdminMessage()); }
-        if (schoolAdmin?.error) { toast.error(extractErr(schoolAdmin.error)); dispatch(clearSchoolAdminError()); }
+        if (schoolAdmin?.message) { showSuccess(schoolAdmin.message); dispatch(clearSchoolAdminMessage()); }
+        if (schoolAdmin?.error) { showError(schoolAdmin.error); dispatch(clearSchoolAdminError()); }
 
         // Student Portal
-        if (student?.message) { toast.success(String(student.message)); dispatch(clearStudentMessage()); }
-        if (student?.error) { toast.error(extractErr(student.error)); dispatch(clearStudentError()); }
+        if (student?.message) { showSuccess(student.message); dispatch(clearStudentMessage()); }
+        if (student?.error) { showError(student.error); dispatch(clearStudentError()); }
 
         // Super Admin Infrastructure
-        if (school?.message) { toast.success(String(school.message)); dispatch(clearSchoolMessage()); }
-        if (school?.error) { toast.error(extractErr(school.error)); dispatch(clearSchoolError()); }
+        if (school?.message) { showSuccess(school.message); dispatch(clearSchoolMessage()); }
+        if (school?.error) { showError(school.error); dispatch(clearSchoolError()); }
 
         // Global Security Registry
-        if (user?.message) { toast.success(String(user.message)); dispatch(clearUserMessage()); } 
-        if (user?.error) { toast.error(extractErr(user.error)); dispatch(clearUserError()); }
+        if (user?.message) { showSuccess(user.message); dispatch(clearUserMessage()); } 
+        if (user?.error) { showError(user.error); dispatch(clearUserError()); }
 
     }, [
         teacher?.message, teacher?.error,

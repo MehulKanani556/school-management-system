@@ -34,69 +34,115 @@ async function seed() {
       { start: '14:30', end: '15:15' }
     ];
 
-    // Track teacher availability: teacherBusy[day][periodIndex] = Set of teacher IDs currently busy
-    const teacherBusy = {};
+    // Initialize schedule structures for all sections of this academic year
+    const sectionSchedules = {};
+    for (const section of sections) {
+      sectionSchedules[section._id.toString()] = [];
+    }
+
+    const firstLectureIdx = periodTimes.findIndex(p => !p.type || !p.type.includes('Break'));
+    let roomCounter = 101;
+    const roomMap = {};
+    for (const section of sections) {
+      roomMap[section._id.toString()] = String(roomCounter++);
+    }
+
     for (const day of days) {
-      teacherBusy[day] = {};
-      for (let i = 0; i < periodTimes.length; i++) {
-        teacherBusy[day][i] = new Set();
+      const dailyPeriods = {};
+      for (const section of sections) {
+        dailyPeriods[section._id.toString()] = [];
+      }
+
+      for (let idx = 0; idx < periodTimes.length; idx++) {
+        const p = periodTimes[idx];
+
+        if (p.type && p.type.includes('Break')) {
+          for (const section of sections) {
+            dailyPeriods[section._id.toString()].push({
+              startTime: p.start,
+              endTime: p.end,
+              type: p.type
+            });
+          }
+          continue;
+        }
+
+        const assignedTeacherIds = new Set();
+        const scheduledSectionsThisPeriod = {};
+
+        // 1. First Pass: Fixed assignments (First lecture is Class Teacher)
+        const isFirstLecture = (idx === firstLectureIdx);
+        if (isFirstLecture) {
+          for (const section of sections) {
+            const classTeacher = section.classTeacher;
+            if (classTeacher) {
+              const teacherId = classTeacher._id.toString();
+              assignedTeacherIds.add(teacherId);
+
+              const secSubjects = subjects.filter(s => s.schoolId.toString() === section.schoolId.toString());
+              const subjectId = secSubjects[idx % secSubjects.length]?._id;
+
+              dailyPeriods[section._id.toString()].push({
+                startTime: p.start,
+                endTime: p.end,
+                type: 'Lecture',
+                subject: subjectId,
+                teacher: classTeacher._id,
+                room: roomMap[section._id.toString()]
+              });
+
+              scheduledSectionsThisPeriod[section._id.toString()] = true;
+            }
+          }
+        }
+
+        // 2. Second Pass: Assign available teachers to remaining sections
+        for (const section of sections) {
+          if (scheduledSectionsThisPeriod[section._id.toString()]) continue;
+
+          const availableTeachers = teachers.filter(t => !assignedTeacherIds.has(t._id.toString()));
+          let chosenTeacher = null;
+
+          if (availableTeachers.length > 0) {
+            const pickIdx = (idx + sections.indexOf(section)) % availableTeachers.length;
+            chosenTeacher = availableTeachers[pickIdx];
+            assignedTeacherIds.add(chosenTeacher._id.toString());
+          } else {
+            chosenTeacher = teachers[0];
+          }
+
+          const secSubjects = subjects.filter(s => s.schoolId.toString() === section.schoolId.toString());
+          const subjectId = secSubjects[idx % secSubjects.length]?._id;
+
+          dailyPeriods[section._id.toString()].push({
+            startTime: p.start,
+            endTime: p.end,
+            type: 'Lecture',
+            subject: subjectId,
+            teacher: chosenTeacher?._id,
+            room: roomMap[section._id.toString()]
+          });
+        }
+      }
+
+      for (const section of sections) {
+        sectionSchedules[section._id.toString()].push({
+          day,
+          periods: dailyPeriods[section._id.toString()]
+        });
       }
     }
 
-    let roomCounter = 101;
     for (const section of sections) {
-      const classTeacher = section.classTeacher;
-      const sectionSubjects = subjects; 
-      const sectionRoom = String(roomCounter++);
-
-      const schedule = days.map((day) => {
-        let isFirstLecture = true;
-
-        const periods = periodTimes.map((p, idx) => {
-          if (p.type && p.type.includes('Break')) {
-            return { startTime: p.start, endTime: p.end, type: p.type };
-          }
-
-          let assignedTeacher = null;
-          let assignedSubject = null;
-
-          if (isFirstLecture) {
-            assignedTeacher = classTeacher;
-            assignedSubject = sectionSubjects[idx % sectionSubjects.length];
-            isFirstLecture = false;
-          } else {
-            const busySet = teacherBusy[day][idx];
-            const availableTeachers = teachers.filter(t => !busySet.has(t._id.toString()));
-            
-            if (availableTeachers.length > 0) {
-              assignedTeacher = availableTeachers[idx % availableTeachers.length];
-              assignedSubject = sectionSubjects[idx % sectionSubjects.length];
-            } else {
-              assignedTeacher = teachers[0];
-              assignedSubject = sectionSubjects[0];
-            }
-          }
-
-          if (assignedTeacher) {
-            teacherBusy[day][idx].add(assignedTeacher._id.toString());
-          }
-
-          return {
-            startTime: p.start, 
-            endTime: p.end, 
-            type: 'Lecture',
-            subject: assignedSubject?._id, 
-            teacher: assignedTeacher?._id, 
-            room: sectionRoom
-          };
-        });
-
-        return { day, periods };
-      });
-
       await Timetable.findOneAndUpdate(
         { classSection: section._id, academicYearId: year._id },
-        { schoolId: section.schoolId, standardId: section.standardId, classSection: section._id, schedule, academicYearId: year._id },
+        { 
+          schoolId: section.schoolId, 
+          standardId: section.standardId, 
+          classSection: section._id, 
+          schedule: sectionSchedules[section._id.toString()], 
+          academicYearId: year._id 
+        },
         { upsert: true, new: true }
       );
     }
