@@ -32,15 +32,26 @@ import EmojiPicker from 'emoji-picker-react';
 
 // Helper function to get relative time
 const getRelativeTime = (date) => {
+    if (!date) return '';
     const now = new Date();
     const messageDate = new Date(date);
     const diffInSeconds = Math.floor((now - messageDate) / 1000);
     
     if (diffInSeconds < 60) return 'Just now';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h`;
-    if (diffInSeconds < 604800) return `${Math.floor(diffInSeconds / 86400)}d`;
-    return messageDate.toLocaleDateString();
+    if (diffInSeconds < 3600) {
+        const mins = Math.floor(diffInSeconds / 60);
+        return `${mins} min ago`;
+    }
+    if (diffInSeconds < 86400) {
+        const hrs = Math.floor(diffInSeconds / 3600);
+        return `${hrs} hr ago`;
+    }
+    if (diffInSeconds < 172800) return 'Yesterday';
+    if (diffInSeconds < 604800) {
+        const days = Math.floor(diffInSeconds / 86400);
+        return `${days} days ago`;
+    }
+    return messageDate.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 };
 
 const Communication = () => {
@@ -139,8 +150,8 @@ const Communication = () => {
         if (!socket || typeof socket.on !== 'function') return;
 
         const handleAnnouncement = (data) => {
+            // Toast is handled globally by SocketContext — only update local UI state here
             setAnnouncements(prev => [data, ...prev]);
-            toast.success(`Broadcasting Archive Updated: ${data.subject}`);
         };
 
         const handleDirectMessage = (data) => {
@@ -159,11 +170,7 @@ const Communication = () => {
                     }
                 }, 100);
             } else if (senderId !== meId) {
-                // If it's a message from someone else, show a toast notification
-                const mutedList = JSON.parse(localStorage.getItem(`muted_chats_${meId}`) || '[]');
-                if (!mutedList.includes(senderId)) {
-                    toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
-                }
+                // Toast is handled globally by SocketContext — no duplicate toast here
             }
 
             // Update the conversations list preview
@@ -176,8 +183,8 @@ const Communication = () => {
         };
 
         const handleNotice = (data) => {
+            // Toast is handled globally by SocketContext — only update local UI state here
             setNotices(prev => [data, ...prev]);
-            toast.success(`Public Bulletin Synced: ${data.subject}`);
         };
 
         socket.on('NEW_ANNOUNCEMENT', handleAnnouncement);
@@ -541,7 +548,7 @@ const Communication = () => {
                                                         <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1.5">{conv.messages[0].content}</p>
                                                     </div>
                                                     <div className="flex flex-col items-end gap-1.5">
-                                                        <span className="text-[7px] font-bold text-slate-600">2M</span>
+                                                        <span className="text-[7px] font-bold text-slate-600">{getRelativeTime(conv.messages[0].createdAt)}</span>
                                                         {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-schooladmin-primary/50 shadow-lg"></div>}
                                                     </div>
                                                 </button>

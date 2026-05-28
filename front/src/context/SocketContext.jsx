@@ -75,7 +75,9 @@ export const SocketProvider = ({ children }) => {
                 socketRef.current.on('NEW_ANNOUNCEMENT', (data) => {
                     dispatch(incrementUnreadCount());
                     dispatch(addCommunicationMessage(data));
-                    toast.success(`📢 New Announcement: ${data.subject || data.title}`);
+                    toast.success(`📢 New Announcement: ${data.subject || data.title}`, {
+                        id: `new-announcement-${data._id}`
+                    });
                 });
 
                 // 2. Direct Messages
@@ -96,7 +98,9 @@ export const SocketProvider = ({ children }) => {
                             return;
                         }
                     }
-                    toast.success(`💬 New Message from ${data.senderName || 'someone'}`);
+                    toast.success(`💬 New Message from ${data.senderName || 'someone'}`, {
+                        id: `new-message-${(data.sender?._id || data.sender)}-${data._id}`
+                    });
                 });
 
                 // 3. Ticket Support (Real-Time)

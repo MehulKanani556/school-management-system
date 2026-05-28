@@ -47,7 +47,15 @@ const ToastManager = () => {
         if (user?.message) { toast.success(String(user.message)); dispatch(clearUserMessage()); } 
         if (user?.error) { toast.error(extractErr(user.error)); dispatch(clearUserError()); }
 
-    }, [teacher, auth, schoolAdmin, student, school, user, dispatch]);
+    }, [
+        teacher?.message, teacher?.error,
+        auth?.message, auth?.error,
+        schoolAdmin?.message, schoolAdmin?.error,
+        student?.message, student?.error,
+        school?.message, school?.error,
+        user?.message, user?.error,
+        dispatch
+    ]);
 
 
     return null;
