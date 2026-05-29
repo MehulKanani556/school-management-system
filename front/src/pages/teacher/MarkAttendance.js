@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
     fetchAssignedClasses, 
     fetchClassStudents, 
@@ -17,11 +17,15 @@ import toast from 'react-hot-toast';
 const MarkAttendance = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const classIdFromQuery = searchParams.get('classId');
 
     const { classes, students, attendance, message, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
+    const prevYearRef = useRef(activeAcademicYear);
     
     // Core Selection State
-    const [selectedClassId, setSelectedClassId] = useState('');
+    const [selectedClassId, setSelectedClassId] = useState(classIdFromQuery || '');
     const [showMarking, setShowMarking] = useState(false);
     const [viewDate, setViewDate] = useState(new Date().toISOString().split('T')[0]);
     
@@ -36,9 +40,30 @@ const MarkAttendance = () => {
     const [isEditing, setIsEditing] = useState(false);
 
 
+    const isCurrentUserClassTeacher = useMemo(() => {
+        const activeClass = classes.find(c => c._id === selectedClassId);
+        return activeClass ? !!activeClass.isClassTeacher : false;
+    }, [classes, selectedClassId]);
+
+
     useEffect(() => {
+        if (classIdFromQuery) {
+            setSelectedClassId(classIdFromQuery);
+        }
+    }, [classIdFromQuery]);
+
+    useEffect(() => {
+        // Detect academic year switch — reset all class/attendance state
+        if (prevYearRef.current && prevYearRef.current !== activeAcademicYear) {
+            setSelectedClassId('');
+            setShowMarking(false);
+            setMarkedDates([]);
+            setRecords({});
+            setSearchTerm('');
+        }
+        prevYearRef.current = activeAcademicYear;
         dispatch(fetchAssignedClasses());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     // Initial message cleanup
     useEffect(() => {
@@ -58,7 +83,11 @@ const MarkAttendance = () => {
                 endDate: endOfMonth,
                 type: 'marked-dates' 
             })).then(res => {
-                if (res.payload) setMarkedDates(res.payload);
+                if (res.payload && Array.isArray(res.payload)) {
+                    setMarkedDates(res.payload);
+                } else {
+                    setMarkedDates([]);
+                }
             });
         }
     }, [selectedClassId, currentMonth, dispatch]);
@@ -112,9 +141,9 @@ const MarkAttendance = () => {
         const formattedDate = date.format('YYYY-MM-DD');
         setViewDate(formattedDate);
         // Check if already marked to set initial edit mode
-        const isAlreadyMarked = markedDates && markedDates.some(s => s.date === formattedDate);
+        const isAlreadyMarked = Array.isArray(markedDates) && markedDates.some(s => s.date === formattedDate);
 
-        setIsEditing(!isAlreadyMarked);
+        setIsEditing(isCurrentUserClassTeacher ? !isAlreadyMarked : false);
         setShowMarking(true);
     };
 
@@ -151,7 +180,11 @@ const MarkAttendance = () => {
                 type: 'marked-dates' 
             })).unwrap();
             
-            if (response) setMarkedDates(response);
+            if (response && Array.isArray(response)) {
+                setMarkedDates(response);
+            } else {
+                setMarkedDates([]);
+            }
         } catch (error) {
             console.error("Save failure:", error);
         }
@@ -300,7 +333,7 @@ const MarkAttendance = () => {
                                 {calendarGrid.flat().map((date, i) => {
                                     const isCurrentMonth = date.month() === currentMonth.month();
                                     const isToday = date.isSame(moment(), 'day');
-                                    const isMarked = markedDates && markedDates.some(s => {
+                                    const isMarked = Array.isArray(markedDates) && markedDates.some(s => {
                                         const currentGridDate = date.format('YYYY-MM-DD');
                                         return s.date === currentGridDate;
                                     });
@@ -367,7 +400,12 @@ const MarkAttendance = () => {
                         </div>
                         
                         <div className="flex gap-4">
-                            {!isEditing && markedDates.some(s => moment(s.date).format('YYYY-MM-DD') === viewDate) ? (
+                            {!isCurrentUserClassTeacher ? (
+                                <div className="flex items-center gap-3 bg-slate-900 border border-slate-800 p-4 rounded-md px-6 shadow-xl">
+                                    <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse"></span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 font-outfit">Read-Only Mode</span>
+                                </div>
+                            ) : !isEditing && Array.isArray(markedDates) && markedDates.some(s => moment(s.date).format('YYYY-MM-DD') === viewDate) ? (
                                 <button 
                                     onClick={() => setIsEditing(true)}
                                     className="flex items-center justify-center gap-3 bg-slate-800 hover:bg-slate-700 text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all border border-slate-700 font-outfit italic"
@@ -392,7 +430,7 @@ const MarkAttendance = () => {
                                         disabled={loading || !isEditing}
                                         className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-teacher-primary text-white px-10 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[11px] transition-all shadow-[0_0_30px_rgba(59,130,246,0.3)] disabled:opacity-50 font-outfit italic shadow-brand-primary/20"
                                     >
-                                        {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />} {markedDates.some(s => moment(s.date).format('YYYY-MM-DD') === viewDate) ? 'Update Registry' : 'Commit Changes'}
+                                        {loading ? <Activity size={20} className="animate-spin" /> : <Save size={20} />} {Array.isArray(markedDates) && markedDates.some(s => moment(s.date).format('YYYY-MM-DD') === viewDate) ? 'Update Registry' : 'Commit Changes'}
                                     </button>
                                 </>
                             )}

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
     fetchAssignedClasses,
@@ -18,11 +18,12 @@ import {
     Plus, X, ExternalLink, School, MessageCircle, FileCheck
 } from 'lucide-react';
 import Modal from '../../components/Modal';
+import moment from 'moment';
 
 const Assignments = () => {
     const dispatch = useDispatch();
     const { classes, assignments, submissions, loading, message } = useSelector((state) => state.teacher);
-    const { activeAcademicYearId } = useSelector((state) => state.academicYear);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
 
     const [viewMode, setViewMode] = useState('list'); // 'list', 'form', 'submissions'
     const [editMode, setEditMode] = useState(null);
@@ -38,13 +39,21 @@ const Assignments = () => {
         file: null
     });
 
+    const prevYearRef = useRef(activeAcademicYear);
+
     useEffect(() => {
-        if (activeAcademicYearId) {
-            console.log('📝 Assignments - Academic Year Changed:', activeAcademicYearId);
-            dispatch(fetchAssignedClasses());
-            dispatch(fetchAssignments());
+        if (!activeAcademicYear) return;
+        if (prevYearRef.current && prevYearRef.current._id !== activeAcademicYear._id) {
+            resetForm();
+            setViewMode('list');
+            setActiveAssignment(null);
+            setGradingSubmission(null);
         }
-    }, [dispatch, activeAcademicYearId]);
+        prevYearRef.current = activeAcademicYear;
+
+        dispatch(fetchAssignedClasses());
+        dispatch(fetchAssignments());
+    }, [dispatch, activeAcademicYear]);
 
     useEffect(() => {
         if (message) {
@@ -60,13 +69,13 @@ const Assignments = () => {
     };
 
     const handleEdit = (assignment) => {
-        const classId = typeof assignment.classSection === 'object' ? assignment.classSection._id : assignment.classSection;
+        const classId = assignment.classSection && typeof assignment.classSection === 'object' ? assignment.classSection._id : (assignment.classSection || '');
         setEditMode(assignment);
         setFormData({
-            title: assignment.title,
-            description: assignment.description,
-            subject: assignment.subject,
-            dueDate: new Date(assignment.dueDate).toISOString().split('T')[0],
+            title: assignment.title || '',
+            description: assignment.description || '',
+            subject: assignment.subject || '',
+            dueDate: assignment.dueDate ? moment(assignment.dueDate).format('YYYY-MM-DD') : '',
             file: null
         });
         setSelectedClass(classId || '');
@@ -111,6 +120,21 @@ const Assignments = () => {
         }
     };
 
+    // Construct class options, ensuring the assignment's current class section is included
+    const classOptions = [...(classes || [])];
+    const editingClassObj = editMode?.classSection && typeof editMode.classSection === 'object' ? editMode.classSection : null;
+    if (editingClassObj && !classOptions.some(cls => cls._id === editingClassObj._id)) {
+        classOptions.push(editingClassObj);
+    }
+
+    // Determine the subject options based on the selected class
+    const selectedClassObj = classOptions.find(c => c._id === selectedClass);
+    let subjectOptions = selectedClassObj?.subjects || [];
+    // Ensure the current assignment's subject is in the subject options
+    if (editMode && formData.subject && !subjectOptions.some(sub => sub.name === formData.subject)) {
+        subjectOptions = [...subjectOptions, { _id: 'current-subject', name: formData.subject }];
+    }
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-10 container">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-2 border-b border-white/5">
@@ -149,7 +173,7 @@ const Assignments = () => {
                                             onChange={(e) => {
                                                 const classId = e.target.value;
                                                 setSelectedClass(classId);
-                                                const selectedClassObj = classes.find(c => c._id === classId);
+                                                const selectedClassObj = classOptions.find(c => c._id === classId);
                                                 if (selectedClassObj?.subjects?.length > 0) {
                                                     setFormData(prev => ({ ...prev, subject: selectedClassObj.subjects[0].name }));
                                                 } else {
@@ -159,8 +183,8 @@ const Assignments = () => {
                                             className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white"
                                         >
                                             <option value="" className="bg-slate-900 text-slate-500">Select Section</option>
-                                            {classes.map(cls => (
-                                                <option key={cls._id} value={cls._id} className="bg-slate-900 text-white">Std {cls.standardId?.level || cls.standardId?.gradeLevel} - {cls.sectionLabel}</option>
+                                            {classOptions.map(cls => (
+                                                <option key={cls._id} value={cls._id} className="bg-slate-900 text-white">Std {cls.standardId?.level || cls.standardId?.name || cls.standardId?.gradeLevel || 'N/A'} - {cls.sectionLabel}</option>
                                             ))}
                                         </select>
                                     </div>
@@ -171,7 +195,7 @@ const Assignments = () => {
                                         <ChevronDown size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
                                         <select value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })} required className="w-full bg-slate-800/40 border border-slate-700/50 h-14 px-6 rounded-md text-[11px] font-bold uppercase tracking-widest outline-none appearance-none focus:border-brand-primary transition-all text-white">
                                             <option value="" className="bg-slate-900 text-slate-500">Select Subject</option>
-                                            {(classes.find(c => c._id === selectedClass)?.subjects || []).map(sub => (
+                                            {subjectOptions.map(sub => (
                                                 <option key={sub._id} value={sub.name} className="bg-slate-900 text-white">{sub.name}</option>
                                             ))}
                                         </select>

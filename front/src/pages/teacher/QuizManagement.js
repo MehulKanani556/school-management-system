@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
+import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Brain, Plus, Trash2, Eye, EyeOff, Users, ChevronDown, ChevronUp, X, Save, CheckCircle, AlertCircle } from 'lucide-react';
+import { Brain, Plus, Trash2, Eye, EyeOff, Users, ChevronDown, ChevronUp, X, Save, CheckCircle, AlertCircle, Edit, FileText } from 'lucide-react';
 import axiosInstance from '../../utils/axiosInstance';
 import { toast } from 'react-hot-toast';
 
 const EMPTY_QUESTION = { text: '', options: ['', '', '', ''], correctAnswer: 0, points: 10 };
 
 const QuizManagement = () => {
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
+    const prevYearRef = useRef(activeAcademicYear);
+
     const [quizzes, setQuizzes] = useState([]);
     const [loading, setLoading] = useState(true);
     const [subjects, setSubjects] = useState([]);
     const [standards, setStandards] = useState([]);
     const [showForm, setShowForm] = useState(false);
+    const [editingQuizId, setEditingQuizId] = useState(null);
+    const [expandedQuestionsQuiz, setExpandedQuestionsQuiz] = useState(null);
     const [expandedQuiz, setExpandedQuiz] = useState(null);
     const [attempts, setAttempts] = useState({});
     const [form, setForm] = useState({
@@ -20,8 +26,19 @@ const QuizManagement = () => {
     });
 
     useEffect(() => {
+        if (prevYearRef.current && prevYearRef.current !== activeAcademicYear) {
+            setShowForm(false);
+            setEditingQuizId(null);
+            setExpandedQuestionsQuiz(null);
+            setForm({
+                title: '', description: '', subjectId: '', standardId: '',
+                duration: 30, passingScore: 40, questions: [{ ...EMPTY_QUESTION }]
+            });
+        }
+        prevYearRef.current = activeAcademicYear;
+
         fetchAll();
-    }, []);
+    }, [activeAcademicYear]);
 
     const fetchAll = async () => {
         setLoading(true);
@@ -54,8 +71,48 @@ const QuizManagement = () => {
             setExpandedQuiz(null);
         } else {
             setExpandedQuiz(quizId);
+            setExpandedQuestionsQuiz(null); // collapse questions
             if (!attempts[quizId]) fetchAttempts(quizId);
         }
+    };
+
+    const handleToggleQuestions = (quizId) => {
+        if (expandedQuestionsQuiz === quizId) {
+            setExpandedQuestionsQuiz(null);
+        } else {
+            setExpandedQuestionsQuiz(quizId);
+            setExpandedQuiz(null); // collapse attempts
+        }
+    };
+
+    const handleEditClick = (quiz) => {
+        setEditingQuizId(quiz._id);
+        setForm({
+            title: quiz.title || '',
+            description: quiz.description || '',
+            subjectId: quiz.subjectId?._id || quiz.subjectId || '',
+            standardId: quiz.standardId?._id || quiz.standardId || '',
+            duration: quiz.duration || 30,
+            passingScore: quiz.passingScore || 40,
+            questions: quiz.questions && quiz.questions.length > 0
+                ? quiz.questions.map(q => ({
+                    text: q.text || '',
+                    options: q.options || ['', '', '', ''],
+                    correctAnswer: typeof q.correctAnswer === 'number' ? q.correctAnswer : 0,
+                    points: q.points || 10
+                }))
+                : [{ ...EMPTY_QUESTION }]
+        });
+        setShowForm(true);
+    };
+
+    const handleNewQuizClick = () => {
+        setEditingQuizId(null);
+        setForm({
+            title: '', description: '', subjectId: '', standardId: '',
+            duration: 30, passingScore: 40, questions: [{ ...EMPTY_QUESTION }]
+        });
+        setShowForm(prev => !prev);
     };
 
     const handleTogglePublish = async (quizId) => {
@@ -102,13 +159,22 @@ const QuizManagement = () => {
             return toast.error('Fill all question texts and options');
         }
         try {
-            const res = await axiosInstance.post('/teacher/quizzes', form);
-            setQuizzes(prev => [res.data.quiz, ...prev]);
-            setShowForm(false);
-            setForm({ title: '', description: '', subjectId: '', standardId: '', duration: 30, passingScore: 40, questions: [{ ...EMPTY_QUESTION }] });
-            toast.success('Quiz created');
+            if (editingQuizId) {
+                const res = await axiosInstance.put(`/teacher/quizzes/${editingQuizId}`, form);
+                setQuizzes(prev => prev.map(q => q._id === editingQuizId ? res.data.quiz : q));
+                setShowForm(false);
+                setEditingQuizId(null);
+                setForm({ title: '', description: '', subjectId: '', standardId: '', duration: 30, passingScore: 40, questions: [{ ...EMPTY_QUESTION }] });
+                toast.success('Quiz updated successfully');
+            } else {
+                const res = await axiosInstance.post('/teacher/quizzes', form);
+                setQuizzes(prev => [res.data.quiz, ...prev]);
+                setShowForm(false);
+                setForm({ title: '', description: '', subjectId: '', standardId: '', duration: 30, passingScore: 40, questions: [{ ...EMPTY_QUESTION }] });
+                toast.success('Quiz created');
+            }
         } catch (err) {
-            toast.error(err.response?.data?.message || 'Failed to create quiz');
+            toast.error(err.response?.data?.message || `Failed to ${editingQuizId ? 'update' : 'create'} quiz`);
         }
     };
 
@@ -122,7 +188,7 @@ const QuizManagement = () => {
                     <p className="text-slate-500 text-sm italic">Create and manage interactive assessments for your students.</p>
                 </div>
                 <button
-                    onClick={() => setShowForm(!showForm)}
+                    onClick={handleNewQuizClick}
                     className="flex items-center gap-3 px-8 py-4 bg-teacher-primary hover:bg-purple-500 text-white rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg"
                 >
                     <Plus size={16} /> New Quiz
@@ -141,9 +207,9 @@ const QuizManagement = () => {
                     >
                         <div className="p-8 border-b border-slate-800/60 flex items-center justify-between">
                             <h3 className="text-sm font-black text-white uppercase tracking-widest flex items-center gap-3">
-                                <Brain size={18} className="text-teacher-primary" /> Configure Quiz Node
+                                <Brain size={18} className="text-teacher-primary" /> {editingQuizId ? 'Configure Quiz Node (Edit Mode)' : 'Configure Quiz Node'}
                             </h3>
-                            <button type="button" onClick={() => setShowForm(false)} className="text-slate-500 hover:text-white transition-colors">
+                            <button type="button" onClick={() => { setShowForm(false); setEditingQuizId(null); }} className="text-slate-500 hover:text-white transition-colors">
                                 <X size={20} />
                             </button>
                         </div>
@@ -236,7 +302,7 @@ const QuizManagement = () => {
 
                             <div className="flex justify-end pt-4 border-t border-slate-800/60">
                                 <button type="submit" className="flex items-center gap-3 px-10 py-4 bg-teacher-primary hover:bg-purple-500 text-white rounded-md text-[10px] font-black uppercase tracking-widest transition-all shadow-lg">
-                                    <Save size={14} /> Save Quiz
+                                    <Save size={14} /> {editingQuizId ? 'Update Quiz' : 'Save Quiz'}
                                 </button>
                             </div>
                         </div>
@@ -290,6 +356,12 @@ const QuizManagement = () => {
                                     <button onClick={() => handleTogglePublish(quiz._id)} title={quiz.isPublished ? 'Unpublish' : 'Publish'} className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
                                         {quiz.isPublished ? <EyeOff size={16} /> : <Eye size={16} />}
                                     </button>
+                                    <button onClick={() => handleEditClick(quiz)} title="Edit Quiz" className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all">
+                                        <Edit size={16} />
+                                    </button>
+                                    <button onClick={() => handleToggleQuestions(quiz._id)} title="View Questions" className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-widest">
+                                        <FileText size={14} /> Questions {expandedQuestionsQuiz === quiz._id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+                                    </button>
                                     <button onClick={() => handleToggleExpand(quiz._id)} className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-all flex items-center gap-1 text-[9px] font-black uppercase tracking-widest">
                                         <Users size={14} /> Attempts {expandedQuiz === quiz._id ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
                                     </button>
@@ -298,6 +370,51 @@ const QuizManagement = () => {
                                     </button>
                                 </div>
                             </div>
+
+                            {/* Questions Panel */}
+                            <AnimatePresence>
+                                {expandedQuestionsQuiz === quiz._id && (
+                                    <motion.div
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden border-t border-slate-800/60"
+                                    >
+                                        <div className="p-6 space-y-4 bg-slate-950/20">
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">Quiz Questions</h4>
+                                            {(!quiz.questions || quiz.questions.length === 0) ? (
+                                                <p className="text-[10px] text-slate-600 uppercase tracking-widest italic text-center py-4">No questions found</p>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    {quiz.questions.map((q, idx) => (
+                                                        <div key={q._id || idx} className="bg-[#121217] border border-slate-800/40 rounded-md p-4 space-y-3">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[10px] font-black text-teacher-primary uppercase tracking-widest">Q{idx + 1} • {q.points || 10} Points</span>
+                                                            </div>
+                                                            <p className="text-sm font-semibold text-white">{q.text}</p>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                                                {q.options?.map((opt, oIdx) => (
+                                                                    <div 
+                                                                        key={oIdx} 
+                                                                        className={`px-4 py-2.5 rounded-md text-xs border flex items-center justify-between ${
+                                                                            q.correctAnswer === oIdx 
+                                                                                ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400 font-bold' 
+                                                                                : 'bg-slate-900/40 border-slate-800/60 text-slate-400'
+                                                                        }`}
+                                                                    >
+                                                                        <span>{String.fromCharCode(65 + oIdx)}. {opt}</span>
+                                                                        {q.correctAnswer === oIdx && <CheckCircle size={12} className="text-emerald-400 flex-shrink-0" />}
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             {/* Attempts Panel */}
                             <AnimatePresence>

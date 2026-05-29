@@ -8,8 +8,7 @@ import {
     fetchClassStudents, 
     fetchExamSchedule, 
     fetchTeacherMarks,
-    submitMarks, 
-    clearTeacherMessage 
+    submitMarks
 } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Save, Search, ChevronDown, Activity, Award, BookOpen, User, CheckCircle, Pencil } from 'lucide-react';
@@ -24,8 +23,10 @@ const AddMarks = () => {
 
     const [isGlobalEditMode, setIsGlobalEditMode] = useState(true);
 
-    const { classes, students, exams, marks, message, loading } = useSelector((state) => state.teacher);
+    const { classes, students, exams, marks, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
     const [searchTerm, setSearchTerm] = useState('');
+    const prevYearRef = useRef(activeAcademicYear);
 
     const formik = useFormik({
         initialValues: {
@@ -48,21 +49,35 @@ const AddMarks = () => {
                 return toast.error("No marks found for submission");
             }
 
-            const result = await dispatch(submitMarks({ 
+            const promise = dispatch(submitMarks({ 
                 examId: values.selectedExam, 
                 studentMarks: studentMarksArr 
-            }));
+            })).unwrap();
 
-            if (submitMarks.fulfilled.match(result)) {
+            toast.promise(promise, {
+                loading: 'Syncing performance metrics...',
+                success: (res) => res.message || 'Performance metrics localized',
+                error: (err) => err || 'Failed to save marks'
+            });
+
+            try {
+                await promise;
                 dispatch(fetchTeacherMarks(values.selectedExam));
-                setIsGlobalEditMode(false); // Relock after sync
+                setIsGlobalEditMode(false);
+            } catch (_) {
+                // error already shown by toast.promise
             }
         }
     });
 
     useEffect(() => {
+        if (prevYearRef.current && prevYearRef.current !== activeAcademicYear) {
+            formik.setFieldValue('selectedClass', '');
+            formik.setFieldValue('selectedExam', '');
+        }
+        prevYearRef.current = activeAcademicYear;
         dispatch(fetchAssignedClasses());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     // Fetch dependencies when class changes
     useEffect(() => {
@@ -131,12 +146,7 @@ const AddMarks = () => {
         }
     }, [students, marks]);
 
-    useEffect(() => {
-        if (message) {
-            toast.success(message);
-            dispatch(clearTeacherMessage());
-        }
-    }, [message, dispatch]);
+
 
     const filteredStudents = students.filter(s => 
         `${s.firstName} ${s.lastName}`.toLowerCase().includes(searchTerm.toLowerCase())

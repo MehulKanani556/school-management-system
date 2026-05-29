@@ -9,10 +9,11 @@ const TeacherDashboard = () => {
     const dispatch = useDispatch();
     const { user } = useSelector((state) => state.auth);
     const { dashboard, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
 
     useEffect(() => {
         dispatch(fetchDashboard());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     if (loading && !dashboard) {
         return (
@@ -41,15 +42,6 @@ const TeacherDashboard = () => {
                         Overview of your Class Responsibilities & Academic Schedule.
                     </p>
                 </div>
-                <div className="flex gap-4">
-                    <div className="bg-brand-surface/60 border border-brand-border/80 p-6 rounded-md min-w-[200px] shadow-2xl">
-                        <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-500 mb-2">Academic Session</p>
-                        <div className="flex items-center gap-3">
-                            <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
-                            <span className="text-xl font-black uppercase text-white font-outfit tracking-wider">Session 2026-27</span>
-                        </div>
-                    </div>
-                </div>
             </header>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -68,48 +60,9 @@ const TeacherDashboard = () => {
                     </motion.div>
                 ))}
             </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="flex items-center justify-between px-2">
-                        <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Assigned Class Sections</h3>
-                        <Link to="/teacher/classes" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 group italic hover:translate-x-1 transition-all">View All Sections <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {dashboard?.classesGrid?.map((item, idx) => (
-                            <motion.div
-                                key={item.id}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                transition={{ delay: idx * 0.1 }}
-                                className="bg-gradient-to-br from-brand-surface via-brand-surface to-brand-primary/10 p-8 rounded-md border border-brand-border/80 shadow-2xl relative overflow-hidden group hover:border-brand-primary/30 transition-all"
-                            >
-                                <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/20 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                                <div className="flex items-start justify-between mb-8">
-                                    <div className="w-14 h-14 rounded-md bg-brand-surface/80 border border-brand-border/50 flex items-center justify-center font-black text-2xl text-brand-primary font-outfit italic shadow-xl group-hover:scale-110 transition-transform">
-                                        {item.section.charAt(0)}
-                                    </div>
-                                    <span className="text-[10px] bg-brand-primary/10 text-brand-primary px-4 py-1.5 rounded-full font-black uppercase tracking-widest border border-brand-primary/20 italic">
-                                        Assigned
-                                    </span>
-                                </div>
-                                <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-3">Class {item.standard}</h4>
-                                <div className="flex items-center gap-3 mb-10">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
-                                    <p className="text-slate-400 text-xs font-black uppercase tracking-widest italic">Section {item.section}</p>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-slate-600"></div>
-                                    <p className="text-slate-500 text-xs font-bold uppercase tracking-widest">{item.students} Students</p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <Link to={`/teacher/attendance`} className="flex-1 py-4 text-center bg-brand-primary hover:bg-teacher-primary rounded-md text-[10px] font-black uppercase text-white tracking-[0.2em] transition-all shadow-xl active:scale-95">Daily Attendance</Link>
-                                    <Link to={`/teacher/classes`} className="flex-1 py-4 text-center bg-brand-surface/80 hover:bg-brand-surface rounded-md text-[10px] font-black uppercase tracking-[0.2em] transition-all border border-brand-border/50 active:scale-95 text-slate-300">Exam Marks</Link>
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                </div>
-
+  {/* Side-by-Side Notification and Homework Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Important Notifications */}
                 <div className="space-y-8">
                     <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Important Notifications</h3>
                     <div className="bg-brand-surface/60 backdrop-blur-xl border border-luxury-rose/20 p-8 rounded-md shadow-2xl space-y-6">
@@ -131,9 +84,12 @@ const TeacherDashboard = () => {
                             <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest text-center py-6 italic">No pending alerts</p>
                         )}
                     </div>
+                </div>
 
+                {/* Homework Tracking */}
+                <div className="space-y-8">
                     <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Tracking</h3>
-                    <div className="bg-brand-surface/60 backdrop-blur-xl border border-brand-border/80 p-8 rounded-md shadow-2xl h-full flex flex-col">
+                    <div className="bg-brand-surface/60 backdrop-blur-xl border border-brand-border/80 p-8 rounded-md shadow-2xl flex flex-col">
                         <div className="flex items-center gap-3 mb-10">
                             <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping"></div>
                             <span className="text-[11px] font-black uppercase text-slate-400 tracking-[0.3em] italic font-outfit">Recent Submissions</span>
@@ -163,6 +119,54 @@ const TeacherDashboard = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Assigned Class Sections (Full Width) */}
+            <div className="space-y-8">
+                <div className="flex items-center justify-between px-2">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit italic">Assigned Class Sections</h3>
+                    <Link to="/teacher/classes" className="text-[10px] font-black uppercase tracking-widest text-brand-primary flex items-center gap-2 group italic hover:translate-x-1 transition-all">View All Sections <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" /> </Link>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {dashboard?.classesGrid?.map((item, idx) => (
+                        <motion.div
+                            key={item.id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.08 }}
+                            className="bg-gradient-to-br from-slate-900/90 to-slate-950/90 p-8 rounded-2xl border border-slate-800/80 shadow-2xl relative overflow-hidden group hover:border-brand-primary/30 transition-all duration-300"
+                        >
+                            <div className="absolute -top-10 -right-10 w-32 h-32 bg-brand-primary/10 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-all duration-500"></div>
+                            <div className="flex items-center justify-between mb-6">
+                                <div className="w-12 h-12 rounded-xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center font-black text-xl text-brand-primary font-outfit shadow-inner group-hover:scale-105 transition-transform duration-300">
+                                    {item.section}
+                                </div>
+                                {item.isClassTeacher ? (
+                                    <span className="text-[9px] bg-emerald-500/10 text-emerald-400 px-3.5 py-1.5 rounded-full font-black uppercase tracking-widest border border-emerald-500/20 shadow-lg shadow-emerald-500/5 italic">
+                                        Class Teacher
+                                    </span>
+                                ) : (
+                                    <span className="text-[9px] bg-brand-primary/10 text-indigo-400 px-3.5 py-1.5 rounded-full font-black uppercase tracking-widest border border-brand-primary/20 shadow-lg shadow-brand-primary/5 italic">
+                                        Subject Teacher
+                                    </span>
+                                )}
+                            </div>
+                            <h4 className="text-2xl font-black text-white italic tracking-tighter uppercase font-outfit mb-4">Class {item.standard}</h4>
+                            <div className="h-[1px] bg-gradient-to-r from-slate-800 to-transparent mb-5"></div>
+                            <div className="flex items-center gap-6 text-slate-400">
+                                <div className="flex items-center gap-2.5">
+                                    <Users size={15} className="text-brand-primary" />
+                                    <span className="text-xs font-semibold tracking-wide">{item.students} Active Students</span>
+                                </div>
+                                <div className="flex items-center gap-2.5">
+                                    <BookOpen size={15} className="text-indigo-400" />
+                                    <span className="text-xs font-semibold tracking-wide">Section {item.section}</span>
+                                </div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+            </div>          
         </div>
     );
 };

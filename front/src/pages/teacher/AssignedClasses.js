@@ -17,6 +17,12 @@ const AssignedClasses = () => {
         }
     }, [dispatch, activeAcademicYearId]);
 
+    const sortedClasses = [...classes].sort((a, b) => {
+        if (a.isClassTeacher && !b.isClassTeacher) return -1;
+        if (!a.isClassTeacher && b.isClassTeacher) return 1;
+        return 0;
+    });
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
             <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
@@ -46,14 +52,27 @@ const AssignedClasses = () => {
                                     </tr>
                                 ))
                             ) : (
-                                classes.map((cls, idx) => (
+                                sortedClasses.map((cls, idx) => (
                                     <tr key={cls._id} className="group hover:bg-white/[0.02] transition-colors">
                                         <td className="px-8 py-7">
                                             <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center font-black text-slate-400 font-outfit italic">0{idx + 1}</div>
                                         </td>
                                         <td className="px-8 py-7">
                                             <div>
-                                                <p className="text-lg font-black text-white italic tracking-tight uppercase font-outfit leading-none mb-1 group-hover:text-brand-primary transition-colors">Grade {cls.gradeLevel} - {cls.sectionLabel}</p>
+                                                <div className="flex items-center gap-3 mb-2.5">
+                                                    <p className="text-lg font-black text-white italic tracking-tight uppercase font-outfit leading-none group-hover:text-brand-primary transition-colors">
+                                                        Class {cls.standardId?.level || cls.standardId || 'N/A'} - {cls.sectionLabel}
+                                                    </p>
+                                                    {cls.isClassTeacher ? (
+                                                        <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-emerald-500/20 shadow-lg shadow-emerald-500/5 italic">
+                                                            Class Teacher
+                                                        </span>
+                                                    ) : (
+                                                        <span className="text-[8px] bg-brand-primary/10 text-indigo-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-brand-primary/20 shadow-lg shadow-brand-primary/5 italic">
+                                                            Subject Teacher
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Academic Sector</p>
                                             </div>
                                         </td>

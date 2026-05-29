@@ -1,0 +1,14 @@
+School_admin:
+
+    email: principal@vidyamandir.edu.in
+    password: Password@123
+
+Teacher:
+
+    email: harsh.mehta.48.teacher@vidyamandir.edu.in
+    password: Password@123
+
+Student:
+
+    email: [EMAIL_ADDRESS]
+    password: Password@123

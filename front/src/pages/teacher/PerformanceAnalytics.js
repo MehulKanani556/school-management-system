@@ -23,6 +23,7 @@ import { TrendingUp, Award, Target, Activity, Users, BookOpen } from 'lucide-rea
 const PerformanceAnalytics = () => {
     const dispatch = useDispatch();
     const { analytics, loading } = useSelector(state => state.teacher);
+    const { activeAcademicYear } = useSelector(state => state.academicYear);
     
     // Normalize data structure to handle potential nested responses safely
     const dataArray = useMemo(() => {
@@ -33,7 +34,7 @@ const PerformanceAnalytics = () => {
 
     useEffect(() => {
         dispatch(fetchPerformanceAnalytics());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     const chartData = useMemo(() => {
         if (!dataArray.length) return [];

@@ -8,10 +8,11 @@ import { fetchAttendanceAnalytics } from '../../redux/slice/teacher.slice';
 const TeacherAttendanceAnalytics = () => {
     const dispatch = useDispatch();
     const { attendanceAnalytics, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
 
     useEffect(() => {
         dispatch(fetchAttendanceAnalytics());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     if (loading && !attendanceAnalytics) {
         return (

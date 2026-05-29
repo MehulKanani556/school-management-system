@@ -15,6 +15,7 @@ const Question = require('../models/question.model');
 const QuizAttempt = require('../models/quizAttempt.model');
 const Teacher = require('../models/teacher.model');
 const Subject = require('../models/subject.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
 const nc = require('./notification.controller');
 const { addAcademicYearFilter } = require('../utils/academicYearHelper');
 
@@ -50,8 +51,11 @@ exports.getAttendance = async (req, res) => {
         const { startDate, endDate } = req.query;
         const student = await getStudent(req.user._id);
 
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const classSectionId = enrollment?.classSectionId || student.classSection?._id || student.classSection;
+
         const filter = addAcademicYearFilter({
-            classSection: student.classSection._id,
+            classSection: classSectionId,
             'records.studentId': student._id
         }, req.academicYearId);
 
@@ -95,7 +99,10 @@ exports.getResults = async (req, res) => {
 exports.getAssignments = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
-        const assignments = await Assignment.find(addAcademicYearFilter({ classSection: student.classSection._id }, req.academicYearId))
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const classSectionId = enrollment?.classSectionId || student.classSection?._id || student.classSection;
+
+        const assignments = await Assignment.find(addAcademicYearFilter({ classSection: classSectionId }, req.academicYearId))
             .populate('createdBy', 'firstName lastName');
         res.json(assignments);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -204,12 +211,16 @@ exports.changePassword = async (req, res) => {
 exports.getExams = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const standardId = enrollment?.standardId || student.standard?._id || student.standard;
+        const classSectionId = enrollment?.classSectionId || student.classSection?._id || student.classSection;
+
         const exams = await Exam.find(addAcademicYearFilter({
-            standardId: student.standard,
+            standardId: standardId,
             schoolId: student.schoolId._id,
             isPublished: true,
             $or: [
-                { classSection: student.classSection._id },
+                { classSection: classSectionId },
                 { classSection: null }
             ]
         }, req.academicYearId)).populate('subject').sort({ date: 1 });
@@ -228,6 +239,13 @@ exports.downloadReportCard = async (req, res) => {
 
         const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
         if (!student) return res.status(404).json({ message: 'Student not found' });
+
+        const enrollment = await StudentEnrollment.findOne({ studentId: id, academicYearId: req.academicYearId })
+            .populate('standardId')
+            .populate('classSectionId');
+        
+        const standardToPrint = enrollment?.standardId || student.standard;
+        const classSectionToPrint = enrollment?.classSectionId || student.classSection;
 
         const marks = await Mark.find(addAcademicYearFilter({ studentId: id, schoolId }, req.academicYearId))
             .populate({
@@ -252,7 +270,7 @@ exports.downloadReportCard = async (req, res) => {
         doc.rect(0, 0, 595, 120).fill(darkColor);
         doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
         doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('OFFICIAL ACADEMIC REPORT CARD', 40, 75, { characterSpacing: 2 });
-        doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text('ANNUAL SESSION 2025-26', 430, 45, { align: 'right', width: 125 });
+        doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text(`ANNUAL SESSION ${req.academicYearName || '2025-26'}`, 430, 45, { align: 'right', width: 125 });
 
         let currentY = 150;
 
@@ -272,9 +290,9 @@ exports.downloadReportCard = async (req, res) => {
 
         currentY += 20;
         doc.font('Helvetica-Bold').text('Standard/Grade:', col1, currentY);
-        doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'}`, col1 + 80, currentY);
+        doc.font('Helvetica').text(`Grade ${standardToPrint?.level || 'N/A'}`, col1 + 80, currentY);
         doc.font('Helvetica-Bold').text('Class Section:', col2, currentY);
-        doc.font('Helvetica').text(student.classSection?.sectionLabel || 'N/A', col2 + 80, currentY);
+        doc.font('Helvetica').text(classSectionToPrint?.sectionLabel || 'N/A', col2 + 80, currentY);
 
         currentY += 40;
 
@@ -347,11 +365,18 @@ exports.downloadFeeReceipt = async (req, res) => {
     try {
         const { feeId } = req.params;
         const student = await getStudent(req.user._id);
-        const fee = await FeePayment.findById(feeId);
+        const fee = await FeePayment.findById(feeId).populate('academicYearId');
 
         if (!fee || fee.studentId.toString() !== student._id.toString()) {
             return res.status(404).json({ message: 'Fee record node not found' });
         }
+
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: fee.academicYearId })
+            .populate('standardId')
+            .populate('classSectionId');
+        
+        const standardToPrint = enrollment?.standardId || student.standard;
+        const classSectionToPrint = enrollment?.classSectionId || student.classSection;
 
         const doc = new PDFDocument({ margin: 40, size: 'A4' });
         res.setHeader('Content-Type', 'application/pdf');
@@ -385,9 +410,9 @@ exports.downloadFeeReceipt = async (req, res) => {
         doc.font('Helvetica').text(student.admissionNumber || 'N/A', 420, y);
         y += 20;
         doc.font('Helvetica-Bold').text('Grade/Sec:', 40, y);
-        doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'} / ${student.classSection?.sectionLabel || 'N/A'}`, 140, y);
+        doc.font('Helvetica').text(`Grade ${standardToPrint?.level || 'N/A'} / ${classSectionToPrint?.sectionLabel || 'N/A'}`, 140, y);
         doc.font('Helvetica-Bold').text('Academic Year:', 320, y);
-        doc.font('Helvetica').text(fee.academicYear || '2025-26', 420, y);
+        doc.font('Helvetica').text(fee.academicYearId?.name || fee.academicYear || '2025-26', 420, y);
 
         y += 40;
 
@@ -465,9 +490,12 @@ exports.getMyReservations = async (req, res) => {
 exports.getQuizzes = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const standardId = enrollment?.standardId || student.standard?._id || student.standard;
+
         const quizzes = await Quiz.find(addAcademicYearFilter({
             schoolId: student.schoolId._id,
-            standardId: student.standard,
+            standardId: standardId,
             isPublished: true
         }, req.academicYearId)).populate('subjectId', 'name').populate('questions');
         res.json(quizzes);
@@ -544,10 +572,13 @@ exports.getQuizHistory = async (req, res) => {
 exports.getStudentResources = async (req, res) => {
     try {
         const student = await getStudent(req.user._id);
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const classSectionId = enrollment?.classSectionId || student.classSection?._id || student.classSection;
+
         const resources = await ResourceLocker.find({
             schoolId: student.schoolId._id,
             $or: [
-                { classSection: student.classSection._id },
+                { classSection: classSectionId },
                 { classSection: null }
             ]
         })

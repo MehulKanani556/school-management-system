@@ -1,18 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLessonPlans, createLessonPlan, fetchAssignedClasses, fetchDashboard } from '../../redux/slice/teacher.slice';
+import { fetchLessonPlans, createLessonPlan, updateLessonPlan, deleteLessonPlan, fetchAssignedClasses, fetchDashboard } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ClipboardList, Plus, Search, Calendar, BookOpen, Clock, CheckCircle2, MoreVertical, X, FileText, ChevronRight } from 'lucide-react';
+import { ClipboardList, Plus, Search, Calendar, BookOpen, Clock, CheckCircle2, MoreVertical, X, FileText, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import moment from 'moment';
 
 const LessonPlans = () => {
     const dispatch = useDispatch();
     const { lessonPlans, classes, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
+    const prevYearRef = useRef(activeAcademicYear);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editingPlanId, setEditingPlanId] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const toastIdRef = useRef(null); // Track active toast to prevent duplicates
     const [formData, setFormData] = useState({
         classSection: '',
         subject: '',
@@ -24,20 +30,115 @@ const LessonPlans = () => {
     });
 
     useEffect(() => {
+        // Detect academic year switch
+        if (prevYearRef.current && prevYearRef.current !== activeAcademicYear) {
+            // Close modal and reset form if year changes mid-flow
+            setIsModalOpen(false);
+            setIsEditMode(false);
+            setEditingPlanId(null);
+            setFormData({ classSection: '', subject: '', topic: '', subTopics: '', date: new Date().toISOString().split('T')[0], objectives: '', status: 'Draft' });
+        }
+        prevYearRef.current = activeAcademicYear;
+
         dispatch(fetchLessonPlans());
         dispatch(fetchAssignedClasses());
         dispatch(fetchDashboard());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        
+        if (isSubmitting) return; // Prevent double submission
+        
+        setIsSubmitting(true);
         const data = { ...formData, subTopics: formData.subTopics.split(',').map(s => s.trim()) };
-        const res = await dispatch(createLessonPlan(data));
-        if (res.meta.requestStatus === 'fulfilled') {
-            toast.success('Lesson Plan Saved Successfully');
-            setIsModalOpen(false);
-            setFormData({ classSection: '', subject: '', topic: '', subTopics: '', date: new Date().toISOString().split('T')[0], objectives: '', status: 'Draft' });
+
+        // Dismiss any existing toast
+        if (toastIdRef.current) {
+            toast.dismiss(toastIdRef.current);
         }
+
+        // Show loading toast and store its ID
+        toastIdRef.current = toast.loading(isEditMode ? 'Updating lesson plan...' : 'Saving lesson plan...');
+
+        try {
+            const result = isEditMode 
+                ? await dispatch(updateLessonPlan({ id: editingPlanId, data })).unwrap()
+                : await dispatch(createLessonPlan(data)).unwrap();
+            
+            // Dismiss loading toast and show success
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = toast.success(isEditMode ? 'Lesson Plan Updated Successfully' : 'Lesson Plan Saved Successfully');
+            
+            setIsModalOpen(false);
+            setIsEditMode(false);
+            setEditingPlanId(null);
+            setFormData({ classSection: '', subject: '', topic: '', subTopics: '', date: new Date().toISOString().split('T')[0], objectives: '', status: 'Draft' });
+        } catch (error) {
+            // Dismiss loading toast and show error
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = toast.error(error || `Failed to ${isEditMode ? 'update' : 'save'} lesson plan`);
+        } finally {
+            setIsSubmitting(false);
+            toastIdRef.current = null;
+        }
+    };
+
+    const handleEdit = (plan) => {
+        setIsEditMode(true);
+        setEditingPlanId(plan._id);
+        
+        const classId = plan.classSection && typeof plan.classSection === 'object' ? plan.classSection._id : (plan.classSection || '');
+        const subjectId = plan.subject && typeof plan.subject === 'object' ? plan.subject._id : (plan.subject || '');
+
+        setFormData({
+            classSection: classId,
+            subject: subjectId,
+            topic: plan.topic || '',
+            subTopics: Array.isArray(plan.subTopics) ? plan.subTopics.join(', ') : (plan.subTopics || ''),
+            date: plan.date ? moment(plan.date).format('YYYY-MM-DD') : '',
+            objectives: plan.objectives || '',
+            status: plan.status || 'Draft'
+        });
+        setIsModalOpen(true);
+    };
+
+    const handleDelete = async (planId) => {
+        if (!window.confirm('Are you sure you want to delete this lesson plan?')) return;
+        
+        if (isSubmitting) return; // Prevent double submission
+        
+        setIsSubmitting(true);
+
+        // Dismiss any existing toast
+        if (toastIdRef.current) {
+            toast.dismiss(toastIdRef.current);
+        }
+
+        // Show loading toast and store its ID
+        toastIdRef.current = toast.loading('Deleting lesson plan...');
+
+        try {
+            await dispatch(deleteLessonPlan(planId)).unwrap();
+            
+            // Dismiss loading toast and show success
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = toast.success('Lesson Plan Deleted Successfully');
+        } catch (error) {
+            // Dismiss loading toast and show error
+            toast.dismiss(toastIdRef.current);
+            toastIdRef.current = toast.error(error || 'Failed to delete lesson plan');
+        } finally {
+            setIsSubmitting(false);
+            toastIdRef.current = null;
+        }
+    };
+
+    const handleCloseModal = () => {
+        setIsModalOpen(false);
+        setIsEditMode(false);
+        setEditingPlanId(null);
+        setFormData({ classSection: '', subject: '', topic: '', subTopics: '', date: new Date().toISOString().split('T')[0], objectives: '', status: 'Draft' });
     };
 
     const filteredPlans = lessonPlans?.filter(p =>
@@ -98,18 +199,22 @@ const LessonPlans = () => {
                                 <div className="px-3 py-1 bg-slate-800 rounded-md border border-slate-700/50 text-[9px] font-black text-brand-primary uppercase tracking-widest">
                                     {plan.subject?.name}
                                 </div>
-                                <div className={`px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-widest ${plan.status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
-                                        plan.status === 'Published' ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary' :
-                                            'bg-slate-700/40 border-slate-600/50 text-slate-400'
-                                    }`}>
-                                    {plan.status}
+                                <div className="flex items-center gap-2">
+                                    <div className={`px-3 py-1 rounded-md border text-[9px] font-black uppercase tracking-widest ${plan.status === 'Completed' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                                            plan.status === 'Published' ? 'bg-brand-primary/10 border-brand-primary/20 text-brand-primary' :
+                                                'bg-slate-700/40 border-slate-600/50 text-slate-400'
+                                        }`}>
+                                        {plan.status}
+                                    </div>
                                 </div>
                             </div>
 
                             <h3 className="text-lg font-black uppercase font-outfit mb-2 group-hover:text-brand-primary transition-colors">{plan.topic}</h3>
                             <p className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mb-6 flex items-center gap-2">
                                 <ChevronRight size={12} className="text-brand-primary" />
-                                {plan.classSection?.sectionLabel}
+                                {plan.classSection?.standardId?.level 
+                                    ? `Grade ${plan.classSection.standardId.level}${plan.classSection.standardId.name ? ` (${plan.classSection.standardId.name})` : ''} - Section ${plan.classSection.sectionLabel}` 
+                                    : plan.classSection?.sectionLabel}
                             </p>
 
                             <div className="space-y-4">
@@ -127,12 +232,28 @@ const LessonPlans = () => {
                                 </div>
                             </div>
 
-                            <button
-                                onClick={() => { setSelectedPlan(plan); setIsDetailOpen(true); }}
-                                className="w-full mt-8 py-3 rounded-md border border-slate-800 hover:border-brand-primary text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-primary/10 transition-all text-slate-400 hover:text-brand-primary"
-                            >
-                                View Plan Details
-                            </button>
+                            <div className="flex gap-2 mt-8">
+                                <button
+                                    onClick={() => { setSelectedPlan(plan); setIsDetailOpen(true); }}
+                                    className="flex-1 py-3 rounded-md border border-slate-800 hover:border-brand-primary text-[10px] font-black uppercase tracking-widest group-hover:bg-brand-primary/10 transition-all text-slate-400 hover:text-brand-primary"
+                                >
+                                    View Details
+                                </button>
+                                <button
+                                    onClick={() => handleEdit(plan)}
+                                    className="px-4 py-3 rounded-md border border-slate-800 hover:border-blue-500 text-[10px] font-black uppercase tracking-widest hover:bg-blue-500/10 transition-all text-slate-400 hover:text-blue-400"
+                                    title="Edit"
+                                >
+                                    <Edit2 size={14} />
+                                </button>
+                                <button
+                                    onClick={() => handleDelete(plan._id)}
+                                    className="px-4 py-3 rounded-md border border-slate-800 hover:border-red-500 text-[10px] font-black uppercase tracking-widest hover:bg-red-500/10 transition-all text-slate-400 hover:text-red-400"
+                                    title="Delete"
+                                >
+                                    <Trash2 size={14} />
+                                </button>
+                            </div>
                         </motion.div>
                     ))}
                 </AnimatePresence>
@@ -159,9 +280,11 @@ const LessonPlans = () => {
                             <div className="p-8 border-b border-slate-800 flex justify-between items-center">
                                 <div className="flex items-center gap-3">
                                     <Plus className="text-brand-primary" size={20} />
-                                    <h2 className="text-xl font-black uppercase font-outfit tracking-wider">Create New Lesson Plan</h2>
+                                    <h2 className="text-xl font-black uppercase font-outfit tracking-wider">
+                                        {isEditMode ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}
+                                    </h2>
                                 </div>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-colors"><X size={20} /></button>
+                                <button onClick={handleCloseModal} className="p-2 hover:bg-slate-800 rounded-md transition-colors"><X size={20} /></button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
@@ -265,9 +388,10 @@ const LessonPlans = () => {
 
                                 <button
                                     type="submit"
-                                    className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-lg hover:-translate-y-1"
+                                    disabled={isSubmitting}
+                                    className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
                                 >
-                                    SAVE LESSON PLAN
+                                    {isSubmitting ? 'PROCESSING...' : (isEditMode ? 'UPDATE LESSON PLAN' : 'SAVE LESSON PLAN')}
                                 </button>
                             </form>
                         </motion.div>
@@ -300,7 +424,9 @@ const LessonPlans = () => {
                                                 {selectedPlan.subject?.name}
                                             </div>
                                             <div className="text-slate-500 text-[9px] font-black uppercase tracking-widest leading-none">
-                                                {selectedPlan.classSection?.sectionLabel}
+                                                {selectedPlan.classSection?.standardId?.level
+                                                    ? `${selectedPlan.classSection.standardId.name ? ` ${selectedPlan.classSection.standardId.name}` : ''} — ${selectedPlan.classSection.sectionLabel}`
+                                                    : selectedPlan.classSection?.sectionLabel}
                                             </div>
                                         </div>
                                         <h2 className="text-2xl font-black uppercase font-outfit tracking-tighter text-white">{selectedPlan.topic}</h2>

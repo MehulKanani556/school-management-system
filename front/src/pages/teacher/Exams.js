@@ -19,10 +19,11 @@ const TeacherExams = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const { exams, loading } = useSelector(state => state.teacher);
+    const { activeAcademicYear } = useSelector(state => state.academicYear);
 
     useEffect(() => {
         dispatch(fetchExamSchedule());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     if (loading && exams.length === 0) return (
         <div className="h-[60vh] flex flex-col items-center justify-center gap-6">

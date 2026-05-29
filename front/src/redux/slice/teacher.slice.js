@@ -10,9 +10,9 @@ export const fetchDashboard = createAsyncThunk('teacher/fetchDashboard', async (
     }
 });
 
-export const fetchAssignedClasses = createAsyncThunk('teacher/fetchClasses', async (_, { rejectWithValue }) => {
+export const fetchAssignedClasses = createAsyncThunk('teacher/fetchClasses', async (params, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get('/teacher/assigned-classes');
+        const response = await axiosInstance.get('/teacher/assigned-classes', { params });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -457,8 +457,8 @@ const teacherSlice = createSlice({
             .addCase(fetchClassStudents.fulfilled, (state, action) => {
                 state.students = action.payload;
             })
-            .addCase(generateRollNumbers.fulfilled, (state, action) => {
-                state.message = action.payload.message || 'Roll sequence synchronized';
+            .addCase(generateRollNumbers.fulfilled, (state) => {
+                /* Handled locally in component toast to prevent double notification */
             })
             .addCase(fetchStudentDetail.fulfilled, (state, action) => {
                 state.studentDetail = action.payload;
@@ -508,8 +508,8 @@ const teacherSlice = createSlice({
                 state.message = action.payload?.message || "Homework decommissioned";
                 state.assignments = state.assignments.filter(a => a._id !== action.meta.arg);
             })
-            .addCase(submitAttendance.fulfilled, (state, action) => { state.message = action.payload?.message || "Attendance marked successfully"; })
-            .addCase(submitMarks.fulfilled, (state, action) => { state.message = action.payload?.message || "Marks submitted successfully"; })
+            .addCase(submitAttendance.fulfilled, (state) => { /* handled locally in component toast */ })
+            .addCase(submitMarks.fulfilled, (state) => { /* toast handled locally via toast.promise in component */ })
             .addCase(uploadAssignment.fulfilled, (state, action) => { 
                 state.message = action.payload?.message || "Assignment published successfully"; 
                 const newAs = action.payload?.assignment || action.payload;
@@ -587,7 +587,7 @@ const teacherSlice = createSlice({
                 state.loading = false;
             })
             .addCase(createLessonPlan.fulfilled, (state, action) => {
-                state.message = action.payload.message;
+                /* toast handled locally in component to prevent double notification */
                 state.lessonPlans = [action.payload.plan, ...state.lessonPlans];
             })
             .addCase(fetchBehaviorLogs.fulfilled, (state, action) => {
@@ -624,13 +624,17 @@ const teacherSlice = createSlice({
                 state.message = action.payload.message || 'Meeting deleted';
             })
             .addCase(updateLessonPlan.fulfilled, (state, action) => {
+                const index = state.lessonPlans.findIndex(p => p._id === action.payload.plan?._id);
+                if (index !== -1) {
+                    state.lessonPlans[index] = action.payload.plan;
+                }
                 state.loading = false;
-                state.message = action.payload.message || 'Lesson plan updated';
+                /* toast handled locally in component to prevent double notification */
             })
             .addCase(deleteLessonPlan.fulfilled, (state, action) => {
                 state.lessonPlans = state.lessonPlans.filter(p => p._id !== action.payload.id);
                 state.loading = false;
-                state.message = action.payload.message || 'Lesson plan deleted';
+                /* toast handled locally in component to prevent double notification */
             })
             .addCase(fetchMyStaffAttendance.fulfilled, (state, action) => {
                 state.myStaffAttendance = action.payload;

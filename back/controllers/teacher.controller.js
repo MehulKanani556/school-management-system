@@ -38,20 +38,32 @@ exports.getTeacherDashboard = async (req, res) => {
         const teacherProfile = await getTeacher(req.user._id);
         if (!teacherProfile) return res.status(404).json({ message: 'Teacher profile node not found' });
 
-        // 1. Assigned classes & student count
+        // 1. Assigned classes & student count (using StudentEnrollment for accuracy)
         const assignedClasses = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [
                 { classTeacher: teacherProfile._id },
                 { 'subjectAssignments.teachers': teacherProfile._id }
             ]
         }).populate('standardId');
         const classIds = assignedClasses.map(c => c._id);
-        const studentsCount = await Student.countDocuments({ classSection: { $in: classIds }, deletedAt: null });
+
+        const enrollments = await StudentEnrollment.find({
+            classSectionId: { $in: classIds },
+            academicYearId: req.academicYearId,
+            status: 'Active'
+        }).populate({
+            path: 'studentId',
+            match: { deletedAt: null }
+        });
+        const activeStudents = enrollments.filter(e => e.studentId);
+        const studentsCount = activeStudents.length;
 
         // 2. Attendance % (last 30 days overall average for those classes)
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         const attendanceRecords = await Attendance.find({
+            academicYearId: req.academicYearId,
             classSection: { $in: classIds },
             date: { $gte: thirtyDaysAgo }
         });
@@ -66,8 +78,8 @@ exports.getTeacherDashboard = async (req, res) => {
         });
         const attendancePercentage = totalPossible > 0 ? Number(((totalPresent / totalPossible) * 100).toFixed(1)) : 0;
 
-        // 3. Assignment stats (active vs total)
-        const assignments = await Assignment.find({ createdBy: req.user._id });
+        // 3. Assignment stats (active vs total) - Year scoped
+        const assignments = await Assignment.find(addAcademicYearFilter({ createdBy: req.user._id }, req.academicYearId));
         const assignmentCount = assignments.length;
 
         // Top 4 assignments with submission counts
@@ -84,32 +96,45 @@ exports.getTeacherDashboard = async (req, res) => {
             })
         );
 
-        // 4. Classes Summary Grid
+        // 4. Classes Summary Grid (using StudentEnrollment for correctness per year)
         const classesGrid = await Promise.all(assignedClasses.map(async (c) => {
-            const count = await Student.countDocuments({ classSection: c._id, deletedAt: null });
+            const enrollmentsForClass = await StudentEnrollment.find({
+                classSectionId: c._id,
+                academicYearId: req.academicYearId,
+                status: 'Active'
+            }).populate({
+                path: 'studentId',
+                match: { deletedAt: null }
+            });
+            const activeStudentsForClass = enrollmentsForClass.filter(e => e.studentId);
             return {
                 id: c._id,
                 section: c.sectionLabel,
-                standard: c.standardId?.level || c.standardId || 'N/A', // Support both populated object and raw level if needed
-                students: count
+                standard: c.standardId?.level || c.standardId || 'N/A',
+                students: activeStudentsForClass.length,
+                isClassTeacher: c.classTeacher?.toString() === teacherProfile._id.toString()
             };
         }));
 
-        // 5. Upcoming Deadlines (within next 3 days)
+        // 5. Upcoming Deadlines (within next 3 days) - Year scoped
         const threeDaysFromNow = new Date();
         threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-        const deadlinesCount = await Assignment.countDocuments({
-            createdBy: req.user._id,
-            dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
-        });
+        const deadlinesCount = await Assignment.countDocuments(
+            addAcademicYearFilter({
+                createdBy: req.user._id,
+                dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
+            }, req.academicYearId)
+        );
 
         const myClass = assignedClasses.find(c => c.classTeacher?.toString() === teacherProfile._id.toString());
 
-        // Fetch actual alerts (upcoming assignments within 3 days)
-        const alerts = await Assignment.find({
-            createdBy: req.user._id,
-            dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
-        }).sort({ dueDate: 1 }).limit(3);
+        // Fetch actual alerts (upcoming assignments within 3 days) - Year scoped
+        const alerts = await Assignment.find(
+            addAcademicYearFilter({
+                createdBy: req.user._id,
+                dueDate: { $gte: new Date(), $lte: threeDaysFromNow }
+            }, req.academicYearId)
+        ).sort({ dueDate: 1 }).limit(3);
 
         res.json({
             profile: teacherProfile,
@@ -142,13 +167,25 @@ exports.getAssignedClasses = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
 
-        const classes = await ClassSection.find({
-            $or: [
+        const { onlyClassTeacher } = req.query;
+        const filter = { academicYearId: req.academicYearId };
+
+        if (onlyClassTeacher === 'true') {
+            filter.classTeacher = teacher._id;
+        } else {
+            filter.$or = [
                 { classTeacher: teacher._id },
                 { 'subjectAssignments.teachers': teacher._id }
-            ]
-        }).populate('standardId', 'level').populate('subjects', 'name');
-        res.json(classes);
+            ];
+        }
+
+        const classes = await ClassSection.find(filter).populate('standardId', 'level').populate('subjects', 'name');
+        const classesWithRole = classes.map(c => {
+            const classObj = c.toObject();
+            classObj.isClassTeacher = c.classTeacher?.toString() === teacher._id.toString();
+            return classObj;
+        });
+        res.json(classesWithRole);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -159,6 +196,7 @@ exports.getTeacherContext = async (req, res) => {
         if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
 
         const classes = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [
                 { classTeacher: teacher._id },
                 { 'subjectAssignments.teachers': teacher._id }
@@ -198,14 +236,13 @@ exports.markAttendance = async (req, res) => {
         const targetClass = classSection || classSectionId;
         const teacher = await getTeacher(req.user._id);
 
-
-        // Verify teacher is assigned to this class
+        // Verify teacher is the designated classTeacher of this class
         const isAssigned = await ClassSection.findOne({
             _id: targetClass,
-            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            classTeacher: teacher._id
         });
 
-        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You can only take attendance for class sections where you are the designated Class Teacher.' });
 
         const attendance = await Attendance.findOneAndUpdate(
             { schoolId: teacher.schoolId._id, classSection: targetClass, date: new Date(date), academicYearId: req.academicYearId },
@@ -233,11 +270,24 @@ exports.addMarks = async (req, res) => {
         const exam = await Exam.findById(examId).populate('subject');
         if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
 
-        // Verify teacher is assigned to the exam's class
-        const isAssigned = await ClassSection.findOne({
-            _id: exam.classSection,
-            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-        });
+        // Verify teacher is assigned to the exam's class.
+        // Exams can be standard-wide (classSection = null), so we must handle both cases.
+        let isAssigned = null;
+
+        if (exam.classSection) {
+            // Case 1: Exam is tied to a specific class section
+            isAssigned = await ClassSection.findOne({
+                _id: exam.classSection,
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+        } else if (exam.standardId) {
+            // Case 2: Standard-wide exam (classSection is null) — check by standardId
+            isAssigned = await ClassSection.findOne({
+                standardId: exam.standardId,
+                academicYearId: req.academicYearId,
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+        }
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
@@ -287,6 +337,12 @@ exports.uploadAssignment = async (req, res) => {
             fileUrl,
             createdBy: req.user._id,
             academicYearId: req.academicYearId
+        });
+
+        await assignment.populate({
+            path: 'classSection',
+            select: 'sectionLabel standardId',
+            populate: { path: 'standardId', select: 'level name' }
         });
 
         // Notify all students in this class
@@ -513,12 +569,13 @@ exports.getAttendanceByClassAndDate = async (req, res) => {
         const targetRef = classId || classSection || sectionId;
         const teacher = await getTeacher(req.user._id);
 
+        // Verify teacher is assigned to this class section in any role
         const isAssigned = await ClassSection.findOne({
             _id: targetRef,
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
 
-        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
+        if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class section.' });
 
         const mongoose = require('mongoose');
         const filter = {
@@ -559,10 +616,21 @@ exports.getMarksByExam = async (req, res) => {
         const exam = await Exam.findById(examId);
         if (!exam) return res.status(404).json({ message: 'Assessment node not found' });
 
-        const isAssigned = await ClassSection.findOne({
-            _id: exam.classSection,
-            $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
-        });
+        // Verify teacher is assigned. Handle both class-specific and standard-wide exams.
+        let isAssigned = null;
+
+        if (exam.classSection) {
+            isAssigned = await ClassSection.findOne({
+                _id: exam.classSection,
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+        } else if (exam.standardId) {
+            isAssigned = await ClassSection.findOne({
+                standardId: exam.standardId,
+                academicYearId: req.academicYearId,
+                $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
+            });
+        }
 
         if (!isAssigned) return res.status(403).json({ message: 'Access denied: You are not assigned to this class' });
 
@@ -581,7 +649,7 @@ exports.getAssignments = async (req, res) => {
             .populate({
                 path: 'classSection',
                 select: 'sectionLabel standardId',
-                populate: { path: 'standardId', select: 'gradeLevel' }
+                populate: { path: 'standardId', select: 'level name' }
             })
             .sort({ createdAt: -1 });
         res.json(assignments);
@@ -670,6 +738,13 @@ exports.updateAssignment = async (req, res) => {
             { new: true }
         );
         if (!assignment) return res.status(404).json({ message: 'Homework node not found' });
+
+        await assignment.populate({
+            path: 'classSection',
+            select: 'sectionLabel standardId',
+            populate: { path: 'standardId', select: 'level name' }
+        });
+
         res.json({ message: 'Homework node mapping updated', assignment });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -717,6 +792,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
         if (!teacher) return res.status(404).json({ message: 'Teacher profile node not found' });
 
         const assignedClasses = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         }).populate('standardId', 'level');
         const classIds = assignedClasses.map(c => c._id);
@@ -725,6 +801,7 @@ exports.getAttendanceAnalytics = async (req, res) => {
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const attendance = await Attendance.find({
+            academicYearId: req.academicYearId,
             classSection: { $in: classIds },
             date: { $gte: thirtyDaysAgo }
         }).sort({ date: 1 });
@@ -838,11 +915,13 @@ exports.getStudentFeeStatus = async (req, res) => {
             // Integrity Check: ensure teacher is assigned to this sector
             const isAssigned = await ClassSection.exists({
                 _id: classId,
+                academicYearId: req.academicYearId,
                 $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
             });
             if (!isAssigned) return res.status(403).json({ message: 'Pedagogical security clearance insufficient for this sector node' });
         } else {
             const assignedClasses = await ClassSection.find({
+                academicYearId: req.academicYearId,
                 $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
             });
             classIds = assignedClasses.map(c => c._id);
@@ -878,12 +957,14 @@ exports.getPerformanceAnalytics = async (req, res) => {
         if (!teacher) return res.status(404).json({ message: 'Teacher profile not found' });
 
         const assignedClasses = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const classIds = assignedClasses.map(c => c._id);
         const standardIds = assignedClasses.map(c => c.standardId).filter(Boolean);
 
         const exams = await Exam.find({
+            academicYearId: req.academicYearId,
             $or: [
                 { classSection: { $in: classIds } },
                 { standardId: { $in: standardIds }, classSection: null }
@@ -979,23 +1060,62 @@ exports.bulkAttendanceImport = async (req, res) => {
         if (!classSectionId || !date || !attendanceData) return res.status(400).json({ message: "Incomplete sector data" });
 
         const teacher = await getTeacher(req.user._id);
+        const academicYearId = req.academicYearId;
 
-        // Find or create the attendance document for this class and date
-        const cs = await ClassSection.findById(classSectionId);
-        if (!cs) return res.status(404).json({ message: 'Class section not found' });
+        // Find class section and verify teacher is the designated classTeacher
+        const cs = await ClassSection.findOne({ _id: classSectionId, classTeacher: teacher._id });
+        if (!cs) return res.status(403).json({ message: 'Access denied: You can only import attendance in bulk for class sections where you are the designated Class Teacher.' });
 
+        // Resolve admissionNumbers → studentIds from active enrollments
+        const VALID_STATUSES = ['Present', 'Absent', 'Late'];
+        const admissionNumbers = attendanceData.map(e => e.admissionNumber).filter(Boolean);
+        const students = await Student.find({
+            admissionNumber: { $in: admissionNumbers },
+            schoolId: teacher.schoolId._id,
+            deletedAt: null
+        }).select('_id admissionNumber').lean();
+
+        const admissionToId = {};
+        students.forEach(s => { admissionToId[s.admissionNumber] = s._id; });
+
+        // Build validated records (skip rows with unknown admissionNumber or invalid status)
+        const resolvedRecords = [];
+        const skipped = [];
+        attendanceData.forEach(entry => {
+            const studentId = admissionToId[entry.admissionNumber];
+            // Normalize status: capitalise first letter, default to 'Present'
+            const rawStatus = entry.status ? entry.status.trim() : 'Present';
+            const status = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
+            const validStatus = VALID_STATUSES.includes(status) ? status : 'Present';
+
+            if (!studentId) { skipped.push(entry.admissionNumber); return; }
+            resolvedRecords.push({ studentId, status: validStatus });
+        });
+
+        if (resolvedRecords.length === 0) {
+            return res.status(400).json({ message: 'No valid student records found. Check admission numbers.', skipped });
+        }
+
+        // Upsert the Attendance document with all required fields
         const attendance = await Attendance.findOneAndUpdate(
             { schoolId: teacher.schoolId._id, classSection: classSectionId, date: new Date(date) },
-            { $setOnInsert: { standardId: cs.standardId, submittedBy: req.user._id } },
+            {
+                $setOnInsert: {
+                    standardId: cs.standardId,
+                    academicYearId,
+                    submittedBy: req.user._id
+                }
+            },
             { upsert: true, new: true }
         );
 
-        // Ensure standardId is set on the in-memory document (required field, may be missing on new docs)
+        // Ensure required fields are set on the in-memory document
         if (!attendance.standardId) attendance.standardId = cs.standardId;
+        if (!attendance.academicYearId) attendance.academicYearId = academicYearId;
 
-        // Update records array - replace or add student records
+        // Merge resolved records into existing attendance
         const currentRecords = attendance.records || [];
-        attendanceData.forEach(entry => {
+        resolvedRecords.forEach(entry => {
             const index = currentRecords.findIndex(r => r.studentId.toString() === entry.studentId.toString());
             if (index !== -1) {
                 currentRecords[index].status = entry.status;
@@ -1008,7 +1128,11 @@ exports.bulkAttendanceImport = async (req, res) => {
         attendance.submittedBy = req.user._id;
         await attendance.save();
 
-        res.json({ message: `Synchronized ${attendanceData.length} records successfully.`, count: attendanceData.length });
+        res.json({
+            message: `Synchronized ${resolvedRecords.length} records successfully.`,
+            count: resolvedRecords.length,
+            skipped: skipped.length > 0 ? skipped : undefined
+        });
     } catch (error) {
         res.status(500).json({ message: "Cluster synchronization failure", error: error.message });
     }
@@ -1033,6 +1157,7 @@ exports.getUnifiedCalendar = async (req, res) => {
         
         // Find classes and standards assigned to the teacher
         const assignedClasses = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [
                 { classTeacher: teacher._id },
                 { 'subjectAssignments.teachers': teacher._id }
@@ -1042,7 +1167,7 @@ exports.getUnifiedCalendar = async (req, res) => {
         const standardIds = assignedClasses.map(c => c.standardId);
 
         const [timetable, exams, assignments, leaves] = await Promise.all([
-            Timetable.find({ 'schedule.periods.teacher': teacher._id })
+            Timetable.find({ academicYearId: req.academicYearId, 'schedule.periods.teacher': teacher._id })
                 .populate({
                     path: 'classSection',
                     populate: { path: 'standardId' }
@@ -1050,13 +1175,14 @@ exports.getUnifiedCalendar = async (req, res) => {
                 .populate('schedule.periods.subject')
                 .populate('schedule.periods.teacher'),
             Exam.find({ 
+                academicYearId: req.academicYearId,
                 $or: [
                     { classSection: { $in: classIds } },
                     { standardId: { $in: standardIds }, classSection: null }
                 ],
                 schoolId: teacher.schoolId._id 
             }).populate('classSection').populate('subject'),
-            Assignment.find({ createdBy: req.user._id }),
+            Assignment.find(addAcademicYearFilter({ createdBy: req.user._id }, req.academicYearId)),
             Leave.find({ teacherId: teacher._id, status: 'approved' })
         ]);
 
@@ -1073,11 +1199,12 @@ exports.getExamsByClass = async (req, res) => {
 
         const teacher = await getTeacher(req.user._id);
         const assignedClasses = await ClassSection.find({
+            academicYearId: req.academicYearId,
             $or: [{ classTeacher: teacher._id }, { 'subjectAssignments.teachers': teacher._id }]
         });
         const standardIds = assignedClasses.map(c => c.standardId);
 
-        let query = { schoolId: teacher.schoolId._id };
+        let query = { schoolId: teacher.schoolId._id, academicYearId: req.academicYearId };
 
         if (targetClassId) {
             // Strict filtering by specific class context or global standard allocation
@@ -1135,7 +1262,7 @@ exports.getLessonPlans = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
         const plans = await LessonPlan.find(addAcademicYearFilter({ teacherId: teacher._id }, req.academicYearId))
-            .populate('classSection', 'sectionLabel')
+            .populate({ path: 'classSection', select: 'sectionLabel standardId', populate: { path: 'standardId', select: 'level name' } })
             .populate('subject', 'name')
             .sort({ date: -1 });
         res.json(plans);
@@ -1162,15 +1289,17 @@ exports.createLessonPlan = async (req, res) => {
 
 exports.updateLessonPlan = async (req, res) => {
     try {
-        await LessonPlan.findByIdAndUpdate(req.params.id, req.body);
-        res.json({ message: 'Synchronized pedagogical metadata' });
+        const updatedPlan = await LessonPlan.findByIdAndUpdate(req.params.id, req.body, { new: true })
+            .populate({ path: 'classSection', select: 'sectionLabel standardId', populate: { path: 'standardId', select: 'level name' } })
+            .populate('subject', 'name');
+        res.json({ message: 'Lesson plan updated successfully', plan: updatedPlan });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
 exports.deleteLessonPlan = async (req, res) => {
     try {
         await LessonPlan.findByIdAndDelete(req.params.id);
-        res.json({ message: 'Pedagogical directive DELETED successfully' });
+        res.json({ message: 'Lesson plan deleted successfully' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1470,6 +1599,12 @@ exports.createQuiz = async (req, res) => {
         quiz.questions = createdQuestions.map(q => q._id);
         await quiz.save();
 
+        await quiz.populate([
+            { path: 'subjectId', select: 'name' },
+            { path: 'standardId', select: 'level' },
+            { path: 'questions' }
+        ]);
+
         res.status(201).json({ message: 'Quiz node created', quiz });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1477,14 +1612,46 @@ exports.createQuiz = async (req, res) => {
 exports.updateQuiz = async (req, res) => {
     try {
         const { id } = req.params;
-        const { title, description, subjectId, standardId, duration, passingScore } = req.body;
-        const quiz = await Quiz.findOneAndUpdate(
-            { _id: id, createdBy: req.user._id },
-            { title, description, subjectId, standardId, duration, passingScore },
-            { new: true }
-        ).populate('subjectId', 'name').populate('standardId', 'level').populate('questions');
+        const { title, description, subjectId, standardId, duration, passingScore, questions } = req.body;
+
+        const quiz = await Quiz.findOne({ _id: id, createdBy: req.user._id });
         if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
-        res.json({ message: 'Quiz updated', quiz });
+
+        quiz.title = title;
+        quiz.description = description;
+        quiz.subjectId = subjectId;
+        quiz.standardId = standardId;
+        quiz.duration = duration || 30;
+        quiz.passingScore = passingScore || 40;
+
+        if (questions) {
+            // Delete old questions associated with this quiz
+            await Question.deleteMany({ quizId: id });
+
+            // Create new questions
+            const createdQuestions = await Promise.all(
+                (questions || []).map(q => Question.create({
+                    quizId: id,
+                    text: q.text,
+                    options: q.options,
+                    correctAnswer: q.correctAnswer,
+                    points: q.points || 10
+                }))
+            );
+
+            // Set new question references on the quiz
+            quiz.questions = createdQuestions.map(q => q._id);
+        }
+
+        await quiz.save();
+
+        await quiz.populate([
+            { path: 'subjectId', select: 'name' },
+            { path: 'standardId', select: 'level' },
+            { path: 'questions' }
+        ]);
+
+        res.json({ message: 'Quiz updated successfully', quiz });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

@@ -25,9 +25,11 @@ const TeacherUnifiedCalendar = () => {
     const [selectedDayEvents, setSelectedDayEvents] = useState(null);
     const [selectedDate, setSelectedDate] = useState(null);
 
+    const { activeAcademicYear } = useSelector(state => state.academicYear);
+
     useEffect(() => {
         dispatch(fetchUnifiedCalendar());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     // Calendar logic
     const daysInMonth = (year, month) => new Date(year, month + 1, 0).getDate();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchAssignedClasses, fetchTeacherTimetable, fetchUnifiedCalendar, fetchProfile } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -9,14 +9,20 @@ const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'
 const TeacherTimetable = () => {
     const dispatch = useDispatch();
     const { classes, timetable, unifiedCalendar, profile } = useSelector((state) => state.teacher);
+    const { activeAcademicYear } = useSelector((state) => state.academicYear);
+    const prevYearRef = useRef(activeAcademicYear);
     const [selectedClass, setSelectedClass] = useState('');
     const [activeDay, setActiveDay] = useState('Monday');
 
     useEffect(() => {
+        if (prevYearRef.current && prevYearRef.current !== activeAcademicYear) {
+            setSelectedClass('');
+        }
+        prevYearRef.current = activeAcademicYear;
         dispatch(fetchAssignedClasses());
         dispatch(fetchUnifiedCalendar());
         dispatch(fetchProfile());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYear]);
 
     useEffect(() => {
         if (selectedClass) {
@@ -147,7 +153,7 @@ const TeacherTimetable = () => {
                                                         <p className="text-[8px] font-black text-brand-secondary uppercase tracking-[0.2em] italic">Sector</p>
                                                         {(slot.contextLabel || (selectedClass && timetable?.classSection)) && (
                                                             <span className="text-[8px] font-black bg-brand-primary/10 text-brand-primary px-2 py-0.5 rounded-md border border-brand-primary/15">
-                                                                {slot.contextLabel || `Grade ${timetable?.classSection?.gradeLevel}-${timetable?.classSection?.sectionLabel}`}
+                                                                {slot.contextLabel || `Grade ${timetable?.classSection?.standardId?.level || timetable?.classSection?.gradeLevel || '—'}-${timetable?.classSection?.sectionLabel || '—'}`}
                                                             </span>
                                                         )}
                                                     </div>

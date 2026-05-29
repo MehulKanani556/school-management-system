@@ -69,44 +69,84 @@ const ClassStudents = () => {
                 </button>
             </header>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {students.map((student, idx) => (
-                    <motion.div
-                        key={student._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: idx * 0.05 }}
-                        className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm"
+            {loading && students.length === 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="animate-pulse bg-slate-900/40 border border-slate-800/80 rounded-md p-8 h-64 flex flex-col justify-between">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-md bg-slate-800"></div>
+                                <div className="space-y-3 flex-1">
+                                    <div className="h-4 bg-slate-800 rounded-md w-3/4"></div>
+                                    <div className="h-3 bg-slate-800 rounded-md w-1/2"></div>
+                                </div>
+                            </div>
+                            <div className="h-10 bg-slate-800 rounded-md w-full"></div>
+                        </div>
+                    ))}
+                </div>
+            ) : !loading && students.length === 0 ? (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-2xl mx-auto py-24 px-8 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800/80 shadow-3xl text-center backdrop-blur-xl relative overflow-hidden group"
+                >
+                    <div className="absolute -top-24 -left-24 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl opacity-50"></div>
+                    <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl opacity-50"></div>
+                    
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-inner mb-8 group-hover:scale-105 transition-transform duration-300">
+                        <Users size={32} />
+                    </div>
+                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-3">No Student Records Found</h2>
+                    <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed mb-8">
+                        There are no active student enrollments registered under this class section for the selected academic year.
+                    </p>
+                    <Link 
+                        to="/teacher/classes" 
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-brand-surface/80 hover:bg-brand-primary border border-brand-border hover:border-brand-primary/20 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 hover:text-white transition-all shadow-xl active:scale-95"
                     >
-                        <div className="flex items-center gap-6 mb-8">
-                            <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
-                                {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-600 font-outfit uppercase">{student.firstName.charAt(0)}</div>}
-                            </div>
-                            <div 
-                                className="cursor-pointer group/name"
-                                onClick={() => navigate(`/teacher/profile/${student._id}`)}
-                            >
-                                <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1 group-hover/name:text-brand-primary transition-colors">{student.firstName} <br /> {student.lastName}</h4>
-                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId || student.admissionNumber}</p>
-                            </div>
-                        </div>
-
-                        <div className="space-y-4 mb-8">
-                            <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-slate-500">
-                                <span>Roll Sequence</span>
-                                <span className="text-slate-300 italic">#{student.rollNumber || 'N/A'}</span>
-                            </div>
-                        </div>
-
-                        <button
-                            onClick={() => handleViewDetail(student._id)}
-                            className="w-full py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                        <ArrowLeft size={14} /> Back To Class Registry
+                    </Link>
+                </motion.div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {students.map((student, idx) => (
+                        <motion.div
+                            key={student._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm"
                         >
-                            <Info size={14} /> Intelligence Profile
-                        </button>
-                    </motion.div>
-                ))}
-            </div>
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
+                                    {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-600 font-outfit uppercase">{student.firstName.charAt(0)}</div>}
+                                </div>
+                                <div 
+                                    className="cursor-pointer group/name"
+                                    onClick={() => navigate(`/teacher/profile/${student._id}`)}
+                                >
+                                    <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1 group-hover/name:text-brand-primary transition-colors">{student.firstName} <br /> {student.lastName}</h4>
+                                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId || student.admissionNumber}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-8">
+                                <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-slate-500">
+                                    <span>Roll Sequence</span>
+                                    <span className="text-slate-300 italic">#{student.rollNumber || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => handleViewDetail(student._id)}
+                                className="w-full py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                            >
+                                <Info size={14} /> Intelligence Profile
+                            </button>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
 
             <Modal open={!!selectedStudent} onClose={() => setSelectedStudent(null)} title="Student Intelligence Terminal">
                 {(!studentDetail || loading) ? (

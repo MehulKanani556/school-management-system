@@ -2,6 +2,7 @@ const Timetable = require('../models/timetable.model');
 const Student = require('../models/student.model');
 const Teacher = require('../models/teacher.model');
 const ClassSection = require('../models/classSection.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
 
 // 1. Get Timetable for a specific class
 exports.getTimetableByClass = async (req, res) => {
@@ -22,6 +23,10 @@ exports.getTimetableByClass = async (req, res) => {
         }
 
         const timetable = await Timetable.findOne({ classSection: classId, academicYearId: req.academicYearId })
+            .populate({
+                path: 'classSection',
+                populate: { path: 'standardId' }
+            })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');
         res.json(timetable || { classSection: classId, schedule: [] });
@@ -103,8 +108,11 @@ exports.getStudentTimetable = async (req, res) => {
             return res.status(404).json({ message: 'Student not found' });
         }
 
-        console.log(`[DEBUG] Fetching timetable for student section: ${student.classSection}`);
-        const timetable = await Timetable.findOne({ classSection: student.classSection, academicYearId: req.academicYearId })
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId });
+        const classSectionId = enrollment?.classSectionId || student.classSection?._id || student.classSection;
+
+        console.log(`[DEBUG] Fetching timetable for student section: ${classSectionId}`);
+        const timetable = await Timetable.findOne({ classSection: classSectionId, academicYearId: req.academicYearId })
             .populate('schedule.periods.subject')
             .populate('schedule.periods.teacher', 'firstName lastName');
         
