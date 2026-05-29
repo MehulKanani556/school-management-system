@@ -29,6 +29,14 @@ const Exams = () => {
     const [analyticsModal, setAnalyticsModal] = useState(false);
     const [activeTab, setActiveTab] = useState('insights');
 
+    const sortedExams = React.useMemo(() => {
+        return [...exams].sort((a, b) => {
+            const dateA = a.date ? new Date(a.date) : new Date(0);
+            const dateB = b.date ? new Date(b.date) : new Date(0);
+            return dateB - dateA;
+        });
+    }, [exams]);
+
     useEffect(() => {
         if (!activeAcademicYearId) return;
         dispatch(fetchExams());
@@ -84,7 +92,7 @@ const Exams = () => {
                         <BookOpen size={48} className="text-slate-800 mx-auto mb-4 opacity-20" />
                         <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No Exams Scheduled In This Sector</p>
                     </div>
-                ) : exams.map((e, i) => (
+                ) : sortedExams.map((e, i) => (
                     <motion.div key={e._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                         className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-8 hover:border-brand-primary/30 transition-all group relative overflow-hidden">
                         <div className="absolute top-0 right-0 p-8 text-slate-800 opacity-5 group-hover:opacity-20 transition-opacity pointer-events-none">

@@ -198,7 +198,7 @@ const Dashboard = () => {
                     <p className="text-xs text-slate-400 leading-relaxed">
                       There are {dashboard.alerts.overdueFees} students with overdue fee payments.
                     </p>
-                    <button className="mt-3 text-[10px] font-black uppercase text-amber-500 hover:underline">Take Action</button>
+                    <Link to="/school-admin/fees" className="mt-3 inline-block text-[10px] font-black uppercase text-amber-500 hover:underline">Take Action</Link>
                   </div>
                 </div>
               )}
@@ -213,7 +213,7 @@ const Dashboard = () => {
                     <p className="text-xs text-slate-400 leading-relaxed">
                       {dashboard.alerts.examsToday} exams are scheduled for today. Check rosters.
                     </p>
-                    <button className="mt-3 text-[10px] font-black uppercase text-schooladmin-primary hover:underline">View Schedule</button>
+                    <Link to="/school-admin/exams" className="mt-3 inline-block text-[10px] font-black uppercase text-schooladmin-primary hover:underline">View Schedule</Link>
                   </div>
                 </div>
               )}
@@ -386,9 +386,9 @@ const Dashboard = () => {
           <p className="text-sm text-slate-400 mb-8 max-w-[200px] leading-relaxed">
             {dashboard?.metrics?.growthInsight || 'All performance metrics are stable for the current month.'}
           </p>
-          <button className="px-8 py-3 rounded-md bg-brand-primary hover:bg-schooladmin-primary text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-schooladmin-primary/20 active:scale-95">
+          <Link to="/school-admin/reports" className="px-8 py-3 rounded-md bg-brand-primary hover:bg-schooladmin-primary text-white text-xs font-black uppercase tracking-widest transition-all shadow-lg shadow-schooladmin-primary/20 active:scale-95 inline-block text-center">
             View Analytics
-          </button>
+          </Link>
         </motion.div>
       </div>
 
