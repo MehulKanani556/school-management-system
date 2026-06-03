@@ -8,6 +8,7 @@ import toast from 'react-hot-toast';
 const BehaviorLog = () => {
     const dispatch = useDispatch();
     const { classes, students, behaviorLogs, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear || {});
     const [selectedClass, setSelectedClass] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedStudent, setSelectedStudent] = useState(null);
@@ -23,7 +24,8 @@ const BehaviorLog = () => {
     useEffect(() => {
         dispatch(fetchAssignedClasses());
         dispatch(fetchBehaviorLogs());
-    }, [dispatch]);
+        setSelectedClass('');
+    }, [dispatch, activeAcademicYearId]);
 
     useEffect(() => {
         if (selectedClass) {
@@ -37,7 +39,6 @@ const BehaviorLog = () => {
         if (editMode) {
             const res = await dispatch(updateBehavior({ id: editingLogId, data: formData }));
             if (res.meta.requestStatus === 'fulfilled') {
-                toast.success('Conduct vector RECALIBRATED');
                 closeModal();
                 dispatch(fetchBehaviorLogs());
             }
@@ -45,7 +46,6 @@ const BehaviorLog = () => {
             const data = { ...formData, studentId: selectedStudent._id };
             const res = await dispatch(logBehavior(data));
             if (res.meta.requestStatus === 'fulfilled') {
-                toast.success('Conduct vector LOCALIZED');
                 closeModal();
                 dispatch(fetchBehaviorLogs());
             }
@@ -54,10 +54,7 @@ const BehaviorLog = () => {
 
     const handleDelete = async (id) => {
         if (await window.confirm('Purge this conduct vector from institutional memory?')) {
-            const res = await dispatch(deleteBehavior(id));
-            if (res.meta.requestStatus === 'fulfilled') {
-                toast.success('Vector PURGED');
-            }
+            await dispatch(deleteBehavior(id));
         }
     };
 
@@ -165,8 +162,8 @@ const BehaviorLog = () => {
                 </div>
 
                 {/* Recent Logs Sidebar */}
-                <div className="space-y-6">
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 px-1">Institutional Memory (Recent)</h2>
+                <div className="space-y-6 max-h-[680px] overflow-y-auto pr-2">
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 px-1 sticky top-0 bg-[#020617] py-3 z-10 border-b border-slate-900/60">Institutional Memory (Recent)</h2>
                     {behaviorLogs?.slice(0, 10).map((log, i) => (
                         <motion.div 
                             key={log._id}

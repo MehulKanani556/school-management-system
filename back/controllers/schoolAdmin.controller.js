@@ -2734,7 +2734,11 @@ exports.updateLeaveStatus = async (req, res) => {
 // ─── Teacher Reviews ──────────────────────────────────────────────────────────
 exports.getAllReviews = async (req, res) => {
   try {
-    const reviews = await Review.find({ schoolId: getSchoolId(req) })
+    const query = { schoolId: getSchoolId(req) };
+    if (req.academicYearId) {
+      query.academicYearId = req.academicYearId;
+    }
+    const reviews = await Review.find(query)
       .populate('teacherId', 'firstName lastName employeeId')
       .populate('reviewerId', 'firstName lastName')
       .sort({ createdAt: -1 });
@@ -2747,7 +2751,8 @@ exports.createReview = async (req, res) => {
     const review = await Review.create({
       ...req.body,
       schoolId: getSchoolId(req),
-      reviewerId: req.user._id
+      reviewerId: req.user._id,
+      academicYearId: req.academicYearId
     });
     const populated = await review.populate([
       { path: 'teacherId', select: 'firstName lastName employeeId' },

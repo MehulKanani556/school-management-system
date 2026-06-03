@@ -7,11 +7,12 @@ import { Megaphone, Calendar, Activity, Pin } from 'lucide-react';
 const TeacherAnnouncements = () => {
     const dispatch = useDispatch();
     const { messages = [], loading } = useSelector(state => state.teacher || {});
+    const { activeAcademicYearId } = useSelector(state => state.academicYear || {});
     const announcements = messages.filter(m => m.type === 'Announcement');
 
     useEffect(() => {
         dispatch(fetchMyMessages());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
 
     return (
         <div className="space-y-12">

@@ -82,7 +82,7 @@ const TeacherAttendanceAnalytics = () => {
                 <div className="space-y-8">
                     <div className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl">
                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit mb-8 px-2">Class Performance</h3>
-                        <div className="space-y-6">
+                        <div className="space-y-6 max-h-[480px] overflow-y-auto pr-2">
                             {classWise.map((c, idx) => (
                                 <motion.div
                                     key={c.section}
@@ -93,17 +93,19 @@ const TeacherAttendanceAnalytics = () => {
                                 >
                                     <div className="flex items-center justify-between mb-4">
                                         <span className="text-[11px] font-black text-white uppercase tracking-widest italic">{c.section}</span>
-                                        <span className={`text-[11px] font-black uppercase tracking-widest ${c.percentage >= 85 ? 'text-luxury-emerald' : 'text-brand-accent'}`}>
-                                            {c.percentage}%
+                                        <span className={`text-[11px] font-black uppercase tracking-widest ${c.percentage === null ? 'text-slate-500' : c.percentage >= 85 ? 'text-luxury-emerald' : 'text-brand-accent'}`}>
+                                            {c.percentage !== null ? `${c.percentage}%` : 'N/A'}
                                         </span>
                                     </div>
                                     <div className="h-1.5 w-full bg-slate-700 rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${c.percentage}%` }}
-                                            transition={{ duration: 1, delay: idx * 0.1 }}
-                                            className={`h-full rounded-full ${c.percentage >= 85 ? 'bg-luxury-emerald' : 'bg-brand-primary'} shadow-[0_0_10px_rgba(59,130,246,0.3)]`}
-                                        />
+                                        {c.percentage !== null && (
+                                            <motion.div
+                                                initial={{ width: 0 }}
+                                                animate={{ width: `${c.percentage}%` }}
+                                                transition={{ duration: 1, delay: idx * 0.1 }}
+                                                className={`h-full rounded-full ${c.percentage >= 85 ? 'bg-luxury-emerald' : 'bg-brand-primary'} shadow-[0_0_10px_rgba(59,130,246,0.3)]`}
+                                            />
+                                        )}
                                     </div>
                                 </motion.div>
                             ))}

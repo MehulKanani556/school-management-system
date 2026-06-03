@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchStudentProfile, updateStudentProfile, changeStudentPassword, clearStudentMessage, clearStudentError, fetchStudentFees } from '../../redux/slice/student.slice';
+import { fetchStudentProfile, updateStudentProfile, changeStudentPassword, fetchStudentFees } from '../../redux/slice/student.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { User, Phone, MapPin, ShieldCheck, Hash, Calendar, Info, Edit3, Save, X, Lock, Camera, CheckCircle, Fingerprint, CreditCard, AlertTriangle, Mail, GraduationCap } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -29,20 +29,6 @@ const StudentProfile = () => {
         if (profile) setFormData(profile);
     }, [profile]);
 
-    useEffect(() => {
-        if (message) {
-            toast.success(message);
-            dispatch(clearStudentMessage());
-            setEditMode(false);
-            setPreview(null);
-            setPasswordModal(false);
-        }
-        if (error) {
-            toast.error(error);
-            dispatch(clearStudentError());
-        }
-    }, [message, error, dispatch]);
-
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -62,18 +48,25 @@ const StudentProfile = () => {
             if (key === 'photoFile') data.append('photo', formData[key]);
             else if (typeof formData[key] !== 'object') data.append(key, formData[key]);
         });
-        dispatch(updateStudentProfile(data));
+        const res = await dispatch(updateStudentProfile(data));
+        if (!res.error) {
+            setEditMode(false);
+            setPreview(null);
+        }
     };
 
-    const handlePasswordChange = (e) => {
+    const handlePasswordChange = async (e) => {
         e.preventDefault();
         if (passData.newPassword !== passData.confirmPassword) {
             return toast.error("Credentials Mismatch: Confirmation failed.");
         }
-        dispatch(changeStudentPassword({
+        const res = await dispatch(changeStudentPassword({
             oldPassword: passData.oldPassword,
             newPassword: passData.newPassword
         }));
+        if (!res.error) {
+            setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+        }
     };
 
     if (loading && !profile) {

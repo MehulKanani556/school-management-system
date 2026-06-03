@@ -95,7 +95,7 @@ const Holidays = () => {
         }
     };
 
-    const filteredHolidays = holidays.filter(h => 
+    const filteredHolidays = holidays.filter(h =>
         h.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
@@ -113,10 +113,10 @@ const Holidays = () => {
             {/* More Compact Premium Header */}
             <header className="relative mb-8 group">
                 <div className="absolute -top-6 -left-6 w-48 h-48 bg-brand-primary/10 rounded-md blur-[80px] opacity-40 group-hover:opacity-70 transition-opacity duration-1000"></div>
-                
+
                 <div className="relative z-10 bg-brand-surface/40 backdrop-blur-2xl border border-white/5 rounded-md p-1 shadow-xl overflow-hidden">
                     <div className="bg-brand-background/40 rounded-md px-8 py-10 flex flex-col xl:flex-row xl:items-center justify-between gap-8">
-                        
+
                         <div className="space-y-4 max-w-xl">
                             <div className="flex items-center gap-2">
                                 <div className="px-3 py-1 rounded-md bg-slate-900/80 border border-white/10 flex items-center gap-1.5 backdrop-blur-md shadow-md">
@@ -138,7 +138,7 @@ const Holidays = () => {
                             {nextHoliday && (
                                 <div className="flex items-center gap-4 pt-1">
                                     <div className="flex -space-x-2">
-                                        {[1,2].map(i => (
+                                        {[1, 2].map(i => (
                                             <div key={i} className="w-7 h-7 rounded-md border border-brand-surface bg-slate-800 shadow-md"></div>
                                         ))}
                                     </div>
@@ -154,8 +154,8 @@ const Holidays = () => {
                         <div className="flex flex-col sm:flex-row items-center gap-4 self-stretch xl:self-center">
                             <div className="relative group w-full sm:w-64">
                                 <Search size={16} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-brand-accent transition-colors" />
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     placeholder="Identify specific break..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -163,7 +163,7 @@ const Holidays = () => {
                                 />
                             </div>
                             {isAdmin && (
-                                <button 
+                                <button
                                     onClick={() => openModal()}
                                     className="w-full sm:w-auto flex items-center justify-center gap-4 bg-brand-primary hover:bg-brand-primary/90 text-white px-8 h-14 rounded-md font-black tracking-[0.2em] uppercase text-[10px] transition-all shadow-xl shadow-brand-primary/20 active:scale-95 font-outfit italic group overflow-hidden"
                                 >
@@ -182,7 +182,7 @@ const Holidays = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
                 <AnimatePresence mode='popLayout'>
                     {filteredHolidays.map((holiday, idx) => (
-                        <motion.div 
+                        <motion.div
                             key={holiday._id}
                             initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
                             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
@@ -192,7 +192,7 @@ const Holidays = () => {
                         >
                             {/* Card Glow Background */}
                             <div className="absolute -inset-[1px] bg-gradient-to-br from-white/15 to-white/0 rounded-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                            
+
                             <div className="relative bg-brand-surface/60 backdrop-blur-2xl border border-white/5 rounded-md p-1 shadow-2xl h-full overflow-hidden transition-all duration-500 group-hover:translate-y-[-8px] group-hover:border-brand-primary/30">
                                 {/* Inner Card Content */}
                                 <div className="bg-brand-background/40 rounded-md p-5 space-y-4 h-full">
@@ -241,7 +241,7 @@ const Holidays = () => {
                                                 {new Date(holiday.endDate).toLocaleDateString()}
                                             </p>
                                         </div>
-                                        
+
                                         <div className="flex items-center gap-3">
                                             <span className="h-1 w-1 rounded-md bg-luxury-emerald animate-pulse shadow-[0_0_8px_#10b981]"></span>
                                             <span className="text-[8px] font-bold text-slate-500 uppercase tracking-[0.2em]">Active Protocol</span>
@@ -271,9 +271,9 @@ const Holidays = () => {
             <AnimatePresence>
                 {isModalOpen && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-[20px] bg-black/60">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 40 }} 
-                            animate={{ opacity: 1, scale: 1, y: 0 }} 
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 40 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 40 }}
                             className="w-full max-w-2xl bg-[#020617] border border-white/10 rounded-md shadow-[0_40px_120px_rgba(0,0,0,0.9)] overflow-hidden"
                         >
@@ -297,7 +297,7 @@ const Holidays = () => {
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Node Title</label>
                                             <div className="relative">
                                                 <Info size={18} className="absolute right-6 top-1/2 -translate-y-1/2 text-slate-600 pointer-events-none" />
-                                                <input 
+                                                <input
                                                     name="title"
                                                     {...formik.getFieldProps('title')}
                                                     placeholder="e.g. Winter Solstice Synchronisation"
@@ -309,7 +309,7 @@ const Holidays = () => {
 
                                         <div className="space-y-3">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Commencement</label>
-                                            <input 
+                                            <input
                                                 type="date"
                                                 name="startDate"
                                                 {...formik.getFieldProps('startDate')}
@@ -318,7 +318,7 @@ const Holidays = () => {
                                         </div>
                                         <div className="space-y-3">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Termination</label>
-                                            <input 
+                                            <input
                                                 type="date"
                                                 name="endDate"
                                                 {...formik.getFieldProps('endDate')}
@@ -328,7 +328,7 @@ const Holidays = () => {
 
                                         <div className="col-span-full space-y-3">
                                             <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] ml-6 font-outfit italic">Temporal Context</label>
-                                            <textarea 
+                                            <textarea
                                                 name="description"
                                                 {...formik.getFieldProps('description')}
                                                 placeholder="Append metadata regarding this temporal break node..."
@@ -339,14 +339,14 @@ const Holidays = () => {
                                 </div>
 
                                 <div className="p-10 bg-slate-900/40 border-t border-white/5 flex gap-6">
-                                    <button 
-                                        type="button" 
+                                    <button
+                                        type="button"
                                         onClick={closeModal}
                                         className="flex-1 h-16 rounded-md border border-white/10 font-black tracking-[0.3em] uppercase text-[10px] text-slate-500 hover:text-white hover:bg-slate-900 transition-all font-outfit italic active:scale-95"
                                     >
                                         Abort
                                     </button>
-                                    <button 
+                                    <button
                                         type="submit"
                                         disabled={loading}
                                         className="flex-[2] h-16 rounded-md bg-gradient-to-r from-brand-accent to-brand-primary text-white font-black tracking-[0.3em] uppercase text-[11px] shadow-2xl shadow-brand-accent/20 hover:shadow-brand-accent/40 transition-all active:scale-95 flex items-center justify-center gap-4 font-outfit italic"

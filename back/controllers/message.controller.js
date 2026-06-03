@@ -138,7 +138,7 @@ exports.createAnnouncement = async (req, res) => {
             classSection,
             subject,
             content,
-            academicYearId,
+            academicYearId: academicYearId || req.academicYearId,
             fileUrl: req.file ? req.file.location : null
         });
 
@@ -179,7 +179,7 @@ exports.createNotice = async (req, res) => {
             classSection: classSection || null,
             subject,
             content,
-            academicYearId,
+            academicYearId: academicYearId || req.academicYearId,
             fileUrl: req.file ? req.file.location : null
         });
 
@@ -215,7 +215,7 @@ exports.sendMessage = async (req, res) => {
             classSection: classSection || null,
             subject: subject || (finalType === 'DirectMessage' ? 'Direct Message' : 'Announcement'),
             content,
-            academicYearId,
+            academicYearId: academicYearId || req.academicYearId,
             fileUrl
         });
 
@@ -259,14 +259,14 @@ exports.sendMessage = async (req, res) => {
 // Get all announcements for the school (with role-based filtering)
 exports.getAnnouncements = async (req, res) => {
     try {
-        const { academicYearId } = req.query;
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
         const query = { 
             schoolId: req.user.schoolId, 
             type: 'Announcement' 
         };
 
-        if (academicYearId) {
-            query.academicYearId = academicYearId;
+        if (activeYearId) {
+            query.academicYearId = activeYearId;
         }
 
         // If not school admin, filter by target role
@@ -286,14 +286,14 @@ exports.getAnnouncements = async (req, res) => {
 // Get all notices for the school (with class filtering for students/parents)
 exports.getNotices = async (req, res) => {
     try {
-        const { academicYearId } = req.query;
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
         const query = { 
             schoolId: req.user.schoolId, 
             type: 'Notice' 
         };
 
-        if (academicYearId) {
-            query.academicYearId = academicYearId;
+        if (activeYearId) {
+            query.academicYearId = activeYearId;
         }
 
         // If student, only show school-wide notices or their own class notices
@@ -354,15 +354,18 @@ exports.getNotices = async (req, res) => {
 // Get personal feed (messages/announcements where user is involved)
 exports.getMyMessages = async (req, res) => {
     try {
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
+        const baseQuery = { schoolId: req.user.schoolId };
+        if (activeYearId) {
+            baseQuery.academicYearId = activeYearId;
+        }
+
         const messages = await Message.find({
-            schoolId: req.user.schoolId,
+            ...baseQuery,
             $or: [
                 { recipient: req.user._id },
                 { sender: req.user._id },
-                { 
-                    type: 'Announcement', 
-                    targetRole: { $in: ['All', req.user.role] } 
-                }
+                { type: 'Announcement', targetRole: { $in: ['All', req.user.role] } }
             ]
         })
         .populate('sender', 'firstName lastName photo role email')

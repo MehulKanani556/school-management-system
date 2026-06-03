@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { 
     Megaphone, 
     Layout, 
@@ -20,9 +21,11 @@ const ParentAnnouncements = () => {
     const [loading, setLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const { activeAcademicYearId } = useSelector(state => state.academicYear || {});
+
     useEffect(() => {
         fetchData();
-    }, [activeTab]);
+    }, [activeTab, activeAcademicYearId]);
 
     const fetchData = async () => {
         setLoading(true);

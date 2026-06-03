@@ -303,12 +303,13 @@ exports.updateTicketStatus = async (req, res) => {
             .populate('schoolId', 'name');
 
         if (ticket) {
+            const payload = { ticket, changerId: req.user._id.toString() };
             console.log(`[SUPER_TICKET_SOCKET] Status Change. Notifying user: ${ticket.openedBy._id}`);
-            socketManager.sendToUser(ticket.openedBy._id, 'TICKET_STATUS_CHANGED', ticket);
+            socketManager.sendToUser(ticket.openedBy._id, 'TICKET_STATUS_CHANGED', payload);
             
             // Notify other admins
-            socketManager.broadcastToRole('School_Admin', 'TICKET_STATUS_CHANGED', ticket);
-            socketManager.broadcastToRole('Super_Admin', 'TICKET_STATUS_CHANGED', ticket);
+            socketManager.broadcastToRole('School_Admin', 'TICKET_STATUS_CHANGED', payload);
+            socketManager.broadcastToRole('Super_Admin', 'TICKET_STATUS_CHANGED', payload);
         }
 
         res.status(200).json({ success: true, ticket, message: 'Ticket status updated' });

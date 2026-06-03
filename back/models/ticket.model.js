@@ -45,6 +45,10 @@ const ticketSchema = new mongoose.Schema({
             default: Date.now,
         }
     }],
+    academicYearId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'AcademicYear'
+    },
     createdAt: {
         type: Date,
         default: Date.now,

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAssignedClasses, fetchClassStudents, scheduleMeeting, fetchMeetings } from '../../redux/slice/teacher.slice';
+import { fetchAssignedClasses, fetchClassStudents, scheduleMeeting, fetchMeetings, updateMeeting } from '../../redux/slice/teacher.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Clock, Search, Plus, X, Video, MapPin, CheckCircle2, MoreVertical, MessageSquare, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -9,6 +9,7 @@ const PTMMeetings = () => {
     const dispatch = useDispatch();
     const { user: currentUser } = useSelector((state) => state.auth);
     const { classes, students, meetings, loading } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear || {});
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDetailOpen, setIsDetailOpen] = useState(false);
     const [currentMeeting, setCurrentMeeting] = useState(null);
@@ -29,7 +30,7 @@ const PTMMeetings = () => {
     useEffect(() => {
         dispatch(fetchAssignedClasses());
         dispatch(fetchMeetings());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
 
     useEffect(() => {
         if (selectedClass) {
@@ -51,15 +52,22 @@ const PTMMeetings = () => {
         e.preventDefault();
         const res = await dispatch(scheduleMeeting(formData));
         if (res.meta.requestStatus === 'fulfilled') {
-            toast.success('Meeting Scheduled Successfully');
             setIsModalOpen(false);
             setFormData({ studentId: '', title: '', description: '', date: new Date().toISOString().split('T')[0], startTime: '10:00', endTime: '10:30', meetingType: 'In-Person', meetingLink: '', scope: 'Individual', classSection: '' });
             setSelectedClass('');
         }
     };
 
-    const upcomingMeetings = meetings?.filter(m => new Date(m.date) >= new Date().setHours(0,0,0,0));
-    const pastMeetings = meetings?.filter(m => new Date(m.date) < new Date().setHours(0,0,0,0));
+    const handleComplete = async (meetingId) => {
+        if (!await window.confirm('Mark this PTM meeting as completed?')) return;
+        const res = await dispatch(updateMeeting({ id: meetingId, data: { status: 'Completed' } }));
+        if (res.meta.requestStatus === 'fulfilled') {
+            dispatch(fetchMeetings());
+        }
+    };
+
+    const upcomingMeetings = meetings?.filter(m => m.status === 'Scheduled');
+    const pastMeetings = meetings?.filter(m => m.status === 'Completed');
 
     return (
         <div className="space-y-10 animate-in fade-in duration-1000">
@@ -124,9 +132,9 @@ const PTMMeetings = () => {
                                             </div>
                                         </div>
                                         <div className={`px-6 py-2.5 rounded-md border text-[9px] font-black uppercase tracking-widest shadow-inner ${
-                                            m.meetingType === 'Online' ? 'bg-teacher-primary/10 border-teacher-primary/30 text-teacher-primary' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
+                                            (m.meetingType === 'Online' || m.meetingType === 'Virtual') ? 'bg-teacher-primary/10 border-teacher-primary/30 text-teacher-primary' : 'bg-slate-800 border-slate-700/50 text-slate-400 shadow-white/5'
                                         }`}>
-                                            {m.meetingType === 'Online' ? <Video size={10} className="inline mr-2" /> : <MapPin size={10} className="inline mr-2" />}
+                                            {(m.meetingType === 'Online' || m.meetingType === 'Virtual') ? <Video size={10} className="inline mr-2" /> : <MapPin size={10} className="inline mr-2" />}
                                             {m.meetingType} 
                                         </div>
                                     </div>
@@ -150,22 +158,38 @@ const PTMMeetings = () => {
                                                 {m.scope === 'Class' ? 'CLASS MEETING' : 'INDIVIDUAL MEETING'}
                                             </span>
                                         </div>
-                                        {m.meetingType === 'Online' ? (
-                                            <button 
-                                                onClick={() => handleJoinLink(m.meetingLink)}
-                                                className="flex items-center gap-3 text-teacher-primary hover:text-teacher-primary text-[10px] font-black uppercase tracking-widest bg-cyan-900/10 hover:bg-cyan-900/20 px-6 py-2.5 rounded-md transition-all border border-teacher-primary/20"
-                                            >
-                                                Join Meeting
-                                                <ChevronRight size={14} />
-                                            </button>
+                                        {(m.meetingType === 'Online' || m.meetingType === 'Virtual') ? (
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => handleJoinLink(m.meetingLink)}
+                                                    className="flex items-center gap-3 text-teacher-primary hover:text-teacher-primary text-[10px] font-black uppercase tracking-widest bg-cyan-900/10 hover:bg-cyan-900/20 px-6 py-2.5 rounded-md transition-all border border-teacher-primary/20"
+                                                >
+                                                    Join Meeting
+                                                    <ChevronRight size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleComplete(m._id)}
+                                                    className="flex items-center gap-2 text-emerald-500 hover:bg-emerald-500 hover:text-slate-950 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 px-6 py-2.5 rounded-md transition-all border border-emerald-500/20"
+                                                >
+                                                    Complete
+                                                </button>
+                                            </div>
                                         ) : (
-                                            <button 
-                                                onClick={() => handleDetail(m)}
-                                                className="flex items-center gap-3 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md transition-all border border-slate-800 hover:border-slate-700"
-                                            >
-                                                Meeting Details
-                                                <ChevronRight size={14} />
-                                            </button>
+                                            <div className="flex gap-2">
+                                                <button 
+                                                    onClick={() => handleDetail(m)}
+                                                    className="flex items-center gap-3 text-slate-400 hover:text-white text-[10px] font-black uppercase tracking-widest px-6 py-2.5 rounded-md transition-all border border-slate-800 hover:border-slate-700"
+                                                >
+                                                    Meeting Details
+                                                    <ChevronRight size={14} />
+                                                </button>
+                                                <button 
+                                                    onClick={() => handleComplete(m._id)}
+                                                    className="flex items-center gap-2 text-emerald-500 hover:bg-emerald-500 hover:text-slate-950 text-[10px] font-black uppercase tracking-widest bg-emerald-500/10 px-6 py-2.5 rounded-md transition-all border border-emerald-500/20"
+                                                >
+                                                    Complete
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </motion.div>
@@ -452,13 +476,25 @@ const PTMMeetings = () => {
                                     </div>
                                 </div>
 
-                                {currentMeeting.meetingType === 'Online' && (
+                                {(currentMeeting.meetingType === 'Online' || currentMeeting.meetingType === 'Virtual') && (
                                     <button 
                                         onClick={() => handleJoinLink(currentMeeting.meetingLink)}
-                                        className="w-full bg-teacher-primary/10 hover:bg-teacher-primary/20 text-teacher-primary py-4 rounded-md font-black uppercase text-[10px] tracking-widest border border-teacher-primary/20 transition-all flex items-center justify-center gap-3"
+                                        className="w-full bg-teacher-primary/10 hover:bg-teacher-primary/20 text-teacher-primary py-4 rounded-md font-black uppercase text-[10px] tracking-widest border border-teacher-primary/20 transition-all flex items-center justify-center gap-3 mb-2"
                                     >
                                         <Video size={16} />
                                         Join Online Meeting
+                                    </button>
+                                )}
+                                {currentMeeting.status === 'Scheduled' && (
+                                    <button 
+                                        onClick={() => {
+                                            handleComplete(currentMeeting._id);
+                                            setIsDetailOpen(false);
+                                        }}
+                                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-4 rounded-md font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-3"
+                                    >
+                                        <CheckCircle2 size={16} />
+                                        Complete Meeting
                                     </button>
                                 )}
                             </div>

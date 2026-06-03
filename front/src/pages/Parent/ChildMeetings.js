@@ -7,16 +7,17 @@ import { Calendar, Users, Clock, Video, MapPin, CheckCircle2, MoreVertical, Mess
 const ChildMeetings = () => {
     const dispatch = useDispatch();
     const { selectedChild, meetings, meetingsLoading: loading } = useSelector((state) => state.parent);
+    const { activeAcademicYearId } = useSelector((state) => state.academicYear || {});
     const [selectedMeeting, setSelectedMeeting] = useState(null);
 
     useEffect(() => {
         if (selectedChild?._id) {
             dispatch(fetchChildMeetings(selectedChild._id));
         }
-    }, [selectedChild?._id, dispatch]);
+    }, [selectedChild?._id, dispatch, activeAcademicYearId]);
 
-    const upcomingMeetings = meetings?.filter(m => new Date(m.date) >= new Date().setHours(0,0,0,0));
-    const pastMeetings = meetings?.filter(m => new Date(m.date) < new Date().setHours(0,0,0,0));
+    const upcomingMeetings = meetings?.filter(m => m.status === 'Scheduled');
+    const pastMeetings = meetings?.filter(m => m.status === 'Completed');
 
     return (
         <div className="space-y-6 animate-in fade-in duration-1000 pb-20">
@@ -83,9 +84,9 @@ const ChildMeetings = () => {
                                             </div>
                                         </div>
                                         <div className={`px-8 py-3 rounded-md border text-[10px] font-black uppercase tracking-[0.2em] shadow-inner ${
-                                            m.meetingType === 'Virtual' ? 'bg-parent-primary/10 border-parent-primary/30 text-parent-primary shadow-parent-primary/5' : 'bg-slate-800/50 border-slate-700/60 text-slate-400 shadow-white/5'
+                                            (m.meetingType === 'Virtual' || m.meetingType === 'Online') ? 'bg-parent-primary/10 border-parent-primary/30 text-parent-primary shadow-parent-primary/5' : 'bg-slate-800/50 border-slate-700/60 text-slate-400 shadow-white/5'
                                         }`}>
-                                            {m.meetingType === 'Virtual' ? <Video size={12} className="inline mr-3 -translate-y-[1px]" /> : <MapPin size={12} className="inline mr-3 -translate-y-[1px]" />}
+                                            {(m.meetingType === 'Virtual' || m.meetingType === 'Online') ? <Video size={12} className="inline mr-3 -translate-y-[1px]" /> : <MapPin size={12} className="inline mr-3 -translate-y-[1px]" />}
                                             {m.meetingType} SECTOR
                                         </div>
                                     </div>
@@ -97,7 +98,7 @@ const ChildMeetings = () => {
                                             <CheckCircle2 size={16} className="text-emerald-500/50" />
                                             <span className="text-[10px] font-black uppercase tracking-[0.3em] italic">Protocol Status: {m.status}</span>
                                         </div>
-                                        {m.meetingType === 'Virtual' ? (
+                                        {(m.meetingType === 'Virtual' || m.meetingType === 'Online') ? (
                                             <button 
                                                 onClick={() => {
                                                     if (m.meetingLink) {

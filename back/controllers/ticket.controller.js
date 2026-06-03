@@ -13,7 +13,8 @@ exports.createTicket = async (req, res) => {
             subject,
             description,
             priority,
-            category
+            category,
+            academicYearId: req.academicYearId
         });
 
         const populated = await ticket.populate('openedBy', 'firstName lastName role photo');
@@ -40,6 +41,12 @@ exports.getTickets = async (req, res) => {
         // Non-Admins only see their own
         if (!['School_Admin', 'Super_Admin'].includes(req.user.role)) {
             query.openedBy = req.user._id;
+        }
+
+        // Filter by academic year
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
+        if (activeYearId) {
+            query.academicYearId = activeYearId;
         }
 
         const tickets = await Ticket.find(query)
@@ -177,14 +184,13 @@ exports.updateStatus = async (req, res) => {
          .populate('replies.senderId', 'firstName lastName role photo');
 
         if (ticket) {
-            const isAdmin = ['School_Admin', 'Super_Admin'].includes(req.user.role);
-            
+            const payload = { ticket, changerId: req.user._id.toString() };
             console.log(`[TICKET_SOCKET] Status Change. Notifying user: ${ticket.openedBy._id}`);
-            socketManager.sendToUser(ticket.openedBy._id, 'TICKET_STATUS_CHANGED', ticket);
+            socketManager.sendToUser(ticket.openedBy._id, 'TICKET_STATUS_CHANGED', payload);
             
             // Notify all admins of the change
-            socketManager.broadcastToRole('School_Admin', 'TICKET_STATUS_CHANGED', ticket);
-            socketManager.broadcastToRole('Super_Admin', 'TICKET_STATUS_CHANGED', ticket);
+            socketManager.broadcastToRole('School_Admin', 'TICKET_STATUS_CHANGED', payload);
+            socketManager.broadcastToRole('Super_Admin', 'TICKET_STATUS_CHANGED', payload);
         }
 
         res.json({ message: `Ticket status pivoted to ${status}`, data: ticket });

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchMyLeaves, applyLeave, clearTeacherMessage } from '../../redux/slice/teacher.slice';
+import { fetchMyLeaves, applyLeave } from '../../redux/slice/teacher.slice';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { motion } from 'framer-motion';
@@ -43,12 +43,6 @@ const TeacherLeaves = () => {
         dispatch(fetchMyLeaves());
     }, [dispatch]);
 
-    useEffect(() => {
-        if (message) {
-            toast.success(message);
-            dispatch(clearTeacherMessage());
-        }
-    }, [message, dispatch]);
 
     const formik = useFormik({
         initialValues: { type: 'sick', startDate: '', endDate: '', reason: '' },

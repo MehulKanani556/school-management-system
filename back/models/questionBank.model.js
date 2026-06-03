@@ -5,6 +5,8 @@ const questionBankSchema = new mongoose.Schema({
 
     teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
 
+    academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear', required: true },
+
     subject: { type: mongoose.Schema.Types.ObjectId, ref: 'Subject', required: true },
     classLevel: { type: String, required: true },
     content: { type: String, required: true },

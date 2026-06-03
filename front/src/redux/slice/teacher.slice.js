@@ -101,14 +101,28 @@ export const uploadAssignment = createAsyncThunk('teacher/uploadAssignment', asy
     }
 });
 
-export const sendMessage = createAsyncThunk('teacher/sendMessage', async (formData, { rejectWithValue }) => {
+export const sendMessage = createAsyncThunk('teacher/sendMessage', async (formData, { getState, rejectWithValue }) => {
     try {
-        const response = await axiosInstance.post('/teacher/send-message', formData, {
+        const activeYearId = getState().academicYear?.activeAcademicYearId || localStorage.getItem('activeAcademicYearId');
+        let payload = formData;
+        
+        if (formData instanceof FormData) {
+            if (activeYearId && !formData.has('academicYearId')) {
+                formData.append('academicYearId', activeYearId);
+            }
+        } else if (typeof formData === 'object' && formData !== null) {
+            payload = {
+                ...formData,
+                academicYearId: formData.academicYearId || activeYearId
+            };
+        }
+
+        const response = await axiosInstance.post('/teacher/send-message', payload, {
             headers: { 'Content-Type': 'multipart/form-data' }
         });
         return response.data;
     } catch (error) {
-        return rejectWithValue(error.response.data.message);
+        return rejectWithValue(error.response?.data?.message || error.message);
     }
 });
 export const fetchExamSchedule = createAsyncThunk('teacher/fetchExams', async (classId, { rejectWithValue }) => {
@@ -240,11 +254,13 @@ export const fetchFeeStatus = createAsyncThunk('teacher/fetchFees', async (param
     } catch (error) { return rejectWithValue(error.response.data.message); }
 });
 
-export const fetchMyMessages = createAsyncThunk('teacher/fetchMessages', async (_, { rejectWithValue }) => {
+export const fetchMyMessages = createAsyncThunk('teacher/fetchMessages', async (_, { getState, rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get('/my-messages');
+        const activeYearId = getState().academicYear?.activeAcademicYearId || localStorage.getItem('activeAcademicYearId');
+        const url = activeYearId ? `/my-messages?academicYearId=${activeYearId}` : '/my-messages';
+        const response = await axiosInstance.get(url);
         return response.data;
-    } catch (error) { return rejectWithValue(error.response.data.message); }
+    } catch (error) { return rejectWithValue(error.response?.data?.message || error.message); }
 });
 
 export const fetchPerformanceAnalytics = createAsyncThunk('teacher/fetchPerformance', async (params = {}, { rejectWithValue }) => {
@@ -278,9 +294,16 @@ export const fetchDetailedAttendance = createAsyncThunk('teacher/fetchDetailedAt
 
 export const retractAnnouncement = createAsyncThunk('teacher/retractAnnouncement', async (id, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.delete(`/teacher/retract-announcement/${id}`);
+        const response = await axiosInstance.post(`/teacher/retract-announcement/${id}`);
         return response.data;
-    } catch (error) { return rejectWithValue(error.response.data.message); }
+    } catch (error) { return rejectWithValue(error.response?.data?.message || error.message); }
+});
+
+export const updateAnnouncement = createAsyncThunk('teacher/updateAnnouncement', async ({ id, subject, content, classSection }, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.put(`/teacher/update-announcement/${id}`, { subject, content, classSection });
+        return response.data;
+    } catch (error) { return rejectWithValue(error.response?.data?.message || error.message); }
 });
 
 export const importAttendanceBulk = createAsyncThunk('teacher/bulkAttendance', async (data, { rejectWithValue }) => {
@@ -546,8 +569,16 @@ const teacherSlice = createSlice({
                     state.messages = [msg, ...state.messages];
                 }
             })
+            .addCase(fetchFeeStatus.pending, (state) => {
+                state.loading = true;
+            })
             .addCase(fetchFeeStatus.fulfilled, (state, action) => {
+                state.loading = false;
                 state.feeStatus = action.payload;
+            })
+            .addCase(fetchFeeStatus.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload;
             })
             .addCase(fetchPerformanceAnalytics.fulfilled, (state, action) => {
                 state.loading = false;
@@ -558,6 +589,17 @@ const teacherSlice = createSlice({
             })
             .addCase(retractAnnouncement.fulfilled, (state, action) => {
                 state.message = action.payload.message;
+                const retractedId = String(action.meta.arg);
+                state.messages = state.messages.filter(m => String(m._id) !== retractedId);
+                state.notices = state.notices.filter(m => String(m._id) !== retractedId);
+            })
+            .addCase(updateAnnouncement.fulfilled, (state, action) => {
+                state.loading = false;
+                state.message = action.payload.message;
+                const updated = action.payload.data;
+                const updatedId = String(updated._id);
+                state.messages = state.messages.map(m => String(m._id) === updatedId ? updated : m);
+                state.notices = state.notices.map(n => String(n._id) === updatedId ? updated : n);
             })
             .addCase(importAttendanceBulk.fulfilled, (state, action) => {
                 state.message = action.payload.message;
@@ -617,6 +659,16 @@ const teacherSlice = createSlice({
             .addCase(updateMeeting.fulfilled, (state, action) => {
                 state.loading = false;
                 state.message = action.payload.message || 'Meeting updated';
+                const { id, data } = action.meta.arg || {};
+                if (id && data) {
+                    const index = state.meetings.findIndex(m => m._id === id);
+                    if (index !== -1) {
+                        state.meetings[index] = {
+                            ...state.meetings[index],
+                            ...data
+                        };
+                    }
+                }
             })
             .addCase(deleteMeeting.fulfilled, (state, action) => {
                 state.meetings = state.meetings.filter(m => m._id !== action.payload.id);

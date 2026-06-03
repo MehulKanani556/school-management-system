@@ -3,21 +3,40 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchMyStaffAttendance, fetchMyLeaves } from '../../redux/slice/teacher.slice';
 import { 
     Calendar as CalendarIcon, CheckCircle, XCircle, Clock, 
-    AlertCircle, Activity, ChevronLeft, ChevronRight, Info
+    Activity, ChevronLeft, ChevronRight, Info
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 
 const MyStaffAttendance = () => {
     const dispatch = useDispatch();
-    const { myStaffAttendance, leaves, loading } = useSelector((state) => state.teacher);
+    const { myStaffAttendance, leaves } = useSelector((state) => state.teacher);
+    const { activeAcademicYearId, academicYears } = useSelector((state) => state.academicYear || {});
     const [currentMonth, setCurrentMonth] = useState(moment());
     const [selectedDate, setSelectedDate] = useState(null);
 
     useEffect(() => {
         dispatch(fetchMyStaffAttendance());
         dispatch(fetchMyLeaves());
-    }, [dispatch]);
+    }, [dispatch, activeAcademicYearId]);
+
+    useEffect(() => {
+        if (activeAcademicYearId && academicYears?.length > 0) {
+            const activeYearObj = academicYears.find(y => y._id === activeAcademicYearId);
+            if (activeYearObj) {
+                const today = moment();
+                const start = moment(activeYearObj.startDate);
+                const end = moment(activeYearObj.endDate);
+                
+                // If today is within this academic year, keep today. Otherwise, use the start date of this academic year.
+                if (today.isBetween(start, end, 'day', '[]')) {
+                    setCurrentMonth(today);
+                } else {
+                    setCurrentMonth(start);
+                }
+            }
+        }
+    }, [activeAcademicYearId, academicYears]);
 
     const stats = useMemo(() => {
         const total = myStaffAttendance?.length || 0;
@@ -38,7 +57,6 @@ const MyStaffAttendance = () => {
 
     const calendarGrid = useMemo(() => {
         const startOfMonth = currentMonth.clone().startOf('month');
-        const endOfMonth = currentMonth.clone().endOf('month');
         const startDay = startOfMonth.day();
         const daysInMonth = currentMonth.daysInMonth();
         
@@ -67,22 +85,22 @@ const MyStaffAttendance = () => {
                 <div className="space-y-4">
                     <div className="flex items-center gap-4 mb-4">
                         <span className="w-16 h-[2px] bg-teacher-primary rounded-full"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-teacher-primary font-outfit">Workforce Node</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.5em] text-teacher-primary font-outfit">Teacher Attendance</span>
                     </div>
-                    <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">My Presence Log</h1>
+                    <h1 className="text-5xl font-black text-white italic uppercase tracking-tighter leading-none font-outfit">My Attendance Ledger</h1>
                     <div className="flex items-center gap-4 py-2 px-6 bg-white/[0.03] rounded-2xl border border-white/5 w-fit group">
                         <div className="w-10 h-10 rounded-full bg-teacher-primary/10 flex items-center justify-center text-teacher-primary">
                             <Activity size={20} className="animate-pulse" />
                         </div>
-                        <p className="text-slate-500 font-bold text-sm tracking-wide italic">Institutional participation telemetry & personal arrival logs.</p>
+                        <p className="text-slate-500 font-bold text-sm tracking-wide italic">View your daily attendance history and monthly summary.</p>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
                     {[
-                        { label: 'Signal Ratio', val: `${stats.percentage}%`, color: 'text-emerald-400' },
-                        { label: 'Active', val: stats.present, color: 'text-emerald-400' },
-                        { label: 'Delayed', val: stats.late, color: 'text-amber-400' },
+                        { label: 'Attendance Percentage', val: `${stats.percentage}%`, color: 'text-emerald-400' },
+                        { label: 'Present', val: stats.present, color: 'text-emerald-400' },
+                        { label: 'Late', val: stats.late, color: 'text-amber-400' },
                         { label: 'Absent', val: stats.absent, color: 'text-rose-500' },
                     ].map((st, i) => (
                         <div key={i} className="flex flex-col items-center justify-center px-10 py-6 bg-slate-950/40 border border-white/5 rounded-2xl shadow-2xl transition-all duration-500 hover:border-white/10">
@@ -103,13 +121,13 @@ const MyStaffAttendance = () => {
                             <h2 className="text-6xl font-black text-white tracking-tighter uppercase italic leading-none font-outfit">{currentMonth.format('MMMM YYYY')}</h2>
                             <div className="flex items-center gap-4">
                                 <span className="w-10 h-[1px] bg-slate-700"></span>
-                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] font-outfit">Operational Presence Matrix</p>
+                                <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] font-outfit">Attendance Calendar</p>
                             </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-4 bg-slate-950/80 p-4 rounded-3xl border border-white/10 shadow-3xl">
                         <button onClick={() => setCurrentMonth(currentMonth.clone().subtract(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronLeft size={28} className="group-active:-translate-x-1 transition-transform" /></button>
-                        <button onClick={() => setCurrentMonth(moment())} className="px-12 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase text-white transition-all tracking-[0.4em] font-outfit border border-white/5">Sync Today</button>
+                        <button onClick={() => setCurrentMonth(moment())} className="px-12 py-5 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black uppercase text-white transition-all tracking-[0.4em] font-outfit border border-white/5">Today</button>
                         <button onClick={() => setCurrentMonth(currentMonth.clone().add(1, 'month'))} className="p-5 hover:bg-white/5 rounded-2xl transition-all text-slate-400 hover:text-white group"><ChevronRight size={28} className="group-active:translate-x-1 transition-transform" /></button>
                     </div>
                 </div>
@@ -132,7 +150,7 @@ const MyStaffAttendance = () => {
                                 moment(date).isSameOrBefore(moment(l.endDate), 'day')
                             );
                             if (onLeave) {
-                                record = { ...record, status: 'Leave', arrivalTime: 'Registry Leave' };
+                                record = { ...record, status: 'Leave', arrivalTime: 'Approved Leave' };
                             }
                         }
 
@@ -157,7 +175,7 @@ const MyStaffAttendance = () => {
                                             </div>
                                             <div className="text-center space-y-1">
                                                 <p className={`text-[12px] font-black uppercase tracking-widest font-outfit ${config.color}`}>{record.status}</p>
-                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{record.arrivalTime || 'Signal Active'}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">{record.arrivalTime || '--'}</p>
                                             </div>
                                         </>
                                     ) : (
@@ -181,7 +199,7 @@ const MyStaffAttendance = () => {
                             <div className="p-16 space-y-12">
                                 <div className="flex items-center justify-between">
                                     <div className="space-y-3">
-                                        <p className="text-[10px] font-black uppercase tracking-[0.6em] text-teacher-primary font-outfit">Presence Signal</p>
+                                        <p className="text-[10px] font-black uppercase tracking-[0.6em] text-teacher-primary font-outfit">Attendance Details</p>
                                         <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none font-outfit">{moment(selectedDate.date).format('MMMM DD, YYYY')}</h3>
                                     </div>
                                     <div className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] font-outfit ${statusConfig[selectedDate.status]?.bg} ${statusConfig[selectedDate.status]?.color} border-2 ${statusConfig[selectedDate.status]?.border} shadow-2xl`}>
@@ -193,25 +211,25 @@ const MyStaffAttendance = () => {
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-4 text-slate-500">
                                             <div className="p-3 bg-white/5 rounded-xl"><Clock size={16} /></div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Temporal Marker</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Time Record</p>
                                         </div>
                                         <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
                                             <p className="text-3xl font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{selectedDate.arrivalTime || '--:--'}</p>
-                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic font-outfit">Arrival Timestamp</p>
+                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic font-outfit">Arrival Time</p>
                                         </div>
                                     </div>
                                     <div className="space-y-6">
                                         <div className="flex items-center gap-4 text-slate-500">
                                             <div className="p-3 bg-white/5 rounded-xl"><Info size={16} /></div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Operational Log</p>
+                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Remarks</p>
                                         </div>
                                         <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
-                                            <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '-- No Exceptions Logged --'}</p>
+                                            <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '--'}</p>
                                         </div>
                                     </div>
                                 </div>
 
-                                <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500 font-outfit">Dismiss Terminal</button>
+                                <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500 font-outfit">Close</button>
                             </div>
                         </motion.div>
                     </div>

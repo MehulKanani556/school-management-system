@@ -328,6 +328,7 @@ router.put('/teacher/meetings/:id', ...teacher, tc.updateMeeting);
 router.delete('/teacher/meetings/:id', ...teacher, tc.deleteMeeting);
 router.get('/teacher/student-attendance/:studentId', ...teacher, tc.getStudentFullAttendance);
 router.post('/teacher/retract-announcement/:id', ...teacher, tc.deleteAnnouncement);
+router.put('/teacher/update-announcement/:id', ...teacher, tc.updateAnnouncement);
 router.post('/teacher/bulk-attendance', ...teacher, tc.bulkAttendanceImport);
 router.get('/teacher/reviews', ...teacher, tc.getMyReviews);
 router.get('/teacher/unified-calendar', ...teacher, tc.getUnifiedCalendar);
@@ -414,14 +415,15 @@ router.post('/school-admin/notices', ...communicationStaff, upload.single('file'
 router.patch('/school-admin/notices/:id/toggle-pin', ...communicationStaff, mc.toggleNoticePin);
 
 // Global (for teachers/students/parents to see)
-router.get('/announcements', auth, mc.getAnnouncements);
-router.get('/notices', auth, mc.getNotices);
+router.get('/announcements', auth, academicYear, mc.getAnnouncements);
+router.get('/notices', auth, academicYear, mc.getNotices);
 
 // Institutional Alerts (Notifications)
-router.get('/my-messages', auth, mc.getMyMessages);
+router.get('/my-messages', auth, academicYear, mc.getMyMessages);
 router.get('/chat-history/:otherUserId', auth, mc.getChatHistory);
+router.delete('/chat-history/:otherUserId', auth, mc.deleteChatHistory);
 router.delete('/school-admin/chat-history/:otherUserId', ...communicationStaff, mc.deleteChatHistory);
-router.post('/my-messages', auth, mc.sendMessage);
+router.post('/my-messages', auth, academicYear, mc.sendMessage);
 router.get('/contacts', auth, mc.getContacts);
 router.put('/messages/read/:partnerId', auth, mc.markMessagesAsRead);
 

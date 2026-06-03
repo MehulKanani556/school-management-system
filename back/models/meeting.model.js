@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const meetingSchema = new mongoose.Schema({
   schoolId: { type: mongoose.Schema.Types.ObjectId, ref: 'School', required: true },
+  academicYearId: { type: mongoose.Schema.Types.ObjectId, ref: 'AcademicYear' },
   teacherId: { type: mongoose.Schema.Types.ObjectId, ref: 'Teacher', required: true },
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'Student' }, // Optional for class-wide meetings
   parentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
@@ -13,7 +14,7 @@ const meetingSchema = new mongoose.Schema({
   endTime: { type: String, required: true },
   status: { type: String, enum: ['Scheduled', 'Completed', 'Cancelled'], default: 'Scheduled' },
   meetingLink: { type: String },
-  meetingType: { type: String, enum: ['Physical', 'Virtual'], default: 'Physical' },
+  meetingType: { type: String, enum: ['Physical', 'Virtual', 'In-Person', 'Online'], default: 'Physical' },
   scope: { type: String, enum: ['Individual', 'Class'], default: 'Individual' }, // NEW: To distinguish scope
 }, { timestamps: true });
 

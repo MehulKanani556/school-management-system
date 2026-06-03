@@ -144,11 +144,17 @@ export const SocketProvider = ({ children }) => {
 
                 socketRef.current.on('TICKET_STATUS_CHANGED', (data) => {
                     console.log('🔄 REAL-TIME: TICKET_STATUS_CHANGED received', data);
-                    dispatch(updateSATicketStatusRealTime(data));
-                    dispatch(updateSuperTicketStatusRealTime(data));
-                    toast(`🔄 Ticket Status update: ${data.subject} is now ${data.status}`, {
-                        id: `ticket-status-${data._id}-${data.status}`
-                    });
+                    const ticket = data?.ticket || data;
+                    const changerId = data?.changerId;
+
+                    dispatch(updateSATicketStatusRealTime(ticket));
+                    dispatch(updateSuperTicketStatusRealTime(ticket));
+
+                    if (changerId !== user?._id?.toString()) {
+                        toast(`🔄 Ticket Status update: ${ticket.subject} is now ${ticket.status}`, {
+                            id: `ticket-status-${ticket._id}-${ticket.status}`
+                        });
+                    }
                 });
             } else if (socketRef.current.connected) {
                 // Already connected but user/token might have updated, re-register

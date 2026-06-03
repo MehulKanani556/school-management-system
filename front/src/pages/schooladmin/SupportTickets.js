@@ -43,6 +43,7 @@ const SupportTickets = () => {
   const { socket, isConnected } = useSocket();
   const { tickets, selectedTicket, loading, message, error } = useSelector((s) => s.schoolAdmin);
   const { user } = useSelector((s) => s.auth);
+  const { activeAcademicYear } = useSelector((s) => s.academicYear);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -53,7 +54,7 @@ const SupportTickets = () => {
 
   useEffect(() => {
     dispatch(fetchTickets());
-  }, [dispatch]);
+  }, [dispatch, activeAcademicYear]);
 
   useEffect(() => {
     if (scrollRef.current) {

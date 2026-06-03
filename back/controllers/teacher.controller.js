@@ -51,7 +51,7 @@ exports.getTeacherDashboard = async (req, res) => {
         const enrollments = await StudentEnrollment.find({
             classSectionId: { $in: classIds },
             academicYearId: req.academicYearId,
-            status: 'Active'
+            status: { $in: ['Active', 'Graduated'] }
         }).populate({
             path: 'studentId',
             match: { deletedAt: null }
@@ -101,7 +101,7 @@ exports.getTeacherDashboard = async (req, res) => {
             const enrollmentsForClass = await StudentEnrollment.find({
                 classSectionId: c._id,
                 academicYearId: req.academicYearId,
-                status: 'Active'
+                status: { $in: ['Active', 'Graduated'] }
             }).populate({
                 path: 'studentId',
                 match: { deletedAt: null }
@@ -379,7 +379,8 @@ exports.sendMessage = async (req, res) => {
             targetRole: classSection ? 'Specific' : (targetRole || 'Student'),
             type: finalType,
             classSection: classSection || null,
-            subject, content, fileUrl
+            subject, content, fileUrl,
+            academicYearId: req.academicYearId || req.body.academicYearId
         });
 
         const populated = await message.populate('sender', 'firstName lastName photo role');
@@ -432,7 +433,7 @@ exports.getAssignedClassStudents = async (req, res) => {
             const enrollments = await StudentEnrollment.find({
                 classSectionId: classId,
                 academicYearId: academicYearId,
-                status: 'Active'
+                status: { $in: ['Active', 'Graduated'] }
             }).populate({
                 path: 'studentId',
                 match: { deletedAt: null }
@@ -471,7 +472,7 @@ exports.generateRollNumbers = async (req, res) => {
             const enrollments = await StudentEnrollment.find({
                 classSectionId: classId,
                 academicYearId: academicYearId,
-                status: 'Active'
+                status: { $in: ['Active', 'Graduated'] }
             }).populate({
                 path: 'studentId',
                 match: { deletedAt: null }
@@ -679,12 +680,24 @@ exports.getAssignmentSubmissions = async (req, res) => {
 exports.fetchMyMessages = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
+        
+        const systemMessageQuery = {
+            schoolId: teacher.schoolId._id,
+            $or: [
+                { targetRole: 'Teacher' },
+                { type: 'Announcement' }
+            ]
+        };
+        if (activeYearId) {
+            systemMessageQuery.academicYearId = activeYearId;
+        }
+
         const messages = await Message.find({
             $or: [
                 { sender: req.user._id },
                 { recipient: req.user._id },
-                { targetRole: 'Teacher', schoolId: teacher.schoolId._id },
-                { type: 'Announcement', schoolId: teacher.schoolId._id }
+                systemMessageQuery
             ]
         }).sort({ createdAt: -1 });
         res.json(messages);
@@ -814,7 +827,11 @@ exports.getAttendanceAnalytics = async (req, res) => {
 
             record.records.forEach(r => {
                 dailyStats[dateStr].total++;
-                if (r.status === 'Present') dailyStats[dateStr].present++;
+                if (['Present', 'Late'].includes(r.status)) {
+                    dailyStats[dateStr].present += 1;
+                } else if (r.status === 'Half-Day') {
+                    dailyStats[dateStr].present += 0.5;
+                }
             });
         });
 
@@ -830,14 +847,26 @@ exports.getAttendanceAnalytics = async (req, res) => {
             classAttendance.forEach(a => {
                 a.records.forEach(r => {
                     cTotal++;
-                    if (r.status === 'Present') cPresent++;
+                    if (['Present', 'Late'].includes(r.status)) {
+                        cPresent += 1;
+                    } else if (r.status === 'Half-Day') {
+                        cPresent += 0.5;
+                    }
                 });
             });
             return {
                 section: `Grade ${c.standardId?.level || 'N/A'} (${c.sectionLabel})`,
-                percentage: cTotal > 0 ? Number(((cPresent / cTotal) * 100).toFixed(1)) : 0
+                percentage: cTotal > 0 ? Number(((cPresent / cTotal) * 100).toFixed(1)) : null
             };
         }));
+
+        // Sort classWise: classes with data first (percentage descending) followed by classes with no data
+        classWise.sort((a, b) => {
+            if (a.percentage === null && b.percentage !== null) return 1;
+            if (a.percentage !== null && b.percentage === null) return -1;
+            if (a.percentage !== null && b.percentage !== null) return b.percentage - a.percentage;
+            return a.section.localeCompare(b.section);
+        });
 
         res.json({ timeline, classWise });
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1045,12 +1074,37 @@ exports.deleteAnnouncement = async (req, res) => {
         const message = await Message.findById(id);
 
         if (!message) return res.status(404).json({ message: 'Directive not found' });
-        if (message.sender.toString() !== req.user._id.toString()) {
+        if (message.sender.toString() !== req.user._id.toString() && req.user.role !== 'Teacher') {
             return res.status(403).json({ message: 'Unauthorized: Transmission retraction denied' });
         }
 
         await Message.findByIdAndDelete(id);
         res.json({ message: 'Institutional directive retracted successfully' });
+    } catch (err) { res.status(500).json({ message: err.message }); }
+};
+
+exports.updateAnnouncement = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { subject, content, classSection } = req.body;
+        const message = await Message.findById(id);
+
+        if (!message) return res.status(404).json({ message: 'Notice not found' });
+        if (message.sender.toString() !== req.user._id.toString() && req.user.role !== 'Teacher') {
+            return res.status(403).json({ message: 'Unauthorized: Update denied' });
+        }
+
+        message.subject = subject || message.subject;
+        message.content = content || message.content;
+        if (classSection !== undefined) {
+            message.classSection = classSection;
+        }
+        await message.save();
+
+        const populated = await Message.findById(id)
+            .populate('sender', 'firstName lastName photo role');
+
+        res.json({ message: 'Notice updated successfully', data: populated });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -1143,7 +1197,12 @@ exports.getMyReviews = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         if (!teacher) return res.status(404).json({ message: 'Teacher profile node not found' });
 
-        const reviews = await Review.find({ teacherId: teacher._id })
+        const query = { teacherId: teacher._id };
+        if (req.academicYearId) {
+            query.academicYearId = req.academicYearId;
+        }
+
+        const reviews = await Review.find(query)
             .populate('reviewerId', 'firstName lastName photo role')
             .sort({ createdAt: -1 });
 
@@ -1333,7 +1392,7 @@ exports.getBehaviorLogs = async (req, res) => {
         const logs = await BehaviorLog.find(query)
             .populate('studentId', 'firstName lastName')
             .populate('teacherId', 'firstName lastName')
-            .sort({ date: -1 });
+            .sort({ createdAt: -1 });
             
         res.json(logs);
     } catch (err) { res.status(500).json({ message: err.message }); }
@@ -1372,7 +1431,12 @@ exports.scheduleMeeting = async (req, res) => {
         if (!meetingData.parentId || meetingData.parentId === '') {
             delete meetingData.parentId;
         }
-        const meeting = new Meeting({ ...meetingData, teacherId: teacher._id, schoolId: teacher.schoolId._id });
+        const meeting = new Meeting({ 
+            ...meetingData, 
+            teacherId: teacher._id, 
+            schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId || req.body.academicYearId
+        });
         await meeting.save();
         const populated = await meeting.populate([
             { path: 'studentId', select: 'firstName lastName' },
@@ -1385,10 +1449,15 @@ exports.scheduleMeeting = async (req, res) => {
 exports.getMeetings = async (req, res) => {
     try {
         const teacher = await getTeacher(req.user._id);
-        const meetings = await Meeting.find({ 
+        const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
+        const query = { 
             teacherId: teacher._id,
-            schoolId: teacher.schoolId._id // Filter by school
-        })
+            schoolId: teacher.schoolId._id
+        };
+        if (activeYearId) {
+            query.academicYearId = activeYearId;
+        }
+        const meetings = await Meeting.find(query)
             .populate([
                 { path: 'studentId', select: 'firstName lastName' },
                 { path: 'classSection', select: 'sectionLabel gradeLevel standardId', populate: { path: 'standardId', select: 'level' } }
@@ -1462,7 +1531,8 @@ exports.addQuestion = async (req, res) => {
         const question = new QuestionBank({
             ...req.body,
             teacherId: teacher._id,
-            schoolId: teacher.schoolId._id
+            schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId
         });
         if (req.file) {
             question.fileUrl = req.file.location || req.file.path;
@@ -1482,7 +1552,8 @@ exports.bulkAddQuestions = async (req, res) => {
         const mapped = questions.map(q => ({
             ...q,
             teacherId: teacher._id,
-            schoolId: teacher.schoolId._id
+            schoolId: teacher.schoolId._id,
+            academicYearId: req.academicYearId
         }));
 
         const saved = await QuestionBank.insertMany(mapped);
@@ -1495,6 +1566,7 @@ exports.getQuestions = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         const { subjectId, classLevel } = req.query;
         let query = { teacherId: teacher._id };
+        if (req.academicYearId) query.academicYearId = req.academicYearId;
         if (subjectId) query.subject = subjectId;
         if (classLevel) query.classLevel = classLevel;
 
@@ -1510,11 +1582,14 @@ exports.generateExam = async (req, res) => {
         const teacher = await getTeacher(req.user._id);
         const { subject, classLevel, totalMarks } = req.body;
 
-        const questions = await QuestionBank.find({
+        const query = {
             teacherId: teacher._id,
             subject,
             classLevel
-        });
+        };
+        if (req.academicYearId) query.academicYearId = req.academicYearId;
+
+        const questions = await QuestionBank.find(query);
 
         // Simple random generation logic
         let examPaper = [];
@@ -1720,6 +1795,7 @@ module.exports = {
     getPerformanceAnalytics: exports.getPerformanceAnalytics,
     getStudentFullAttendance: exports.getStudentFullAttendance,
     deleteAnnouncement: exports.deleteAnnouncement,
+    updateAnnouncement: exports.updateAnnouncement,
     bulkAttendanceImport: exports.bulkAttendanceImport,
     getMyReviews: exports.getMyReviews,
     getUnifiedCalendar: exports.getUnifiedCalendar,
@@ -1738,21 +1814,7 @@ module.exports = {
     uploadResource: exports.uploadResource,
     getResources: exports.getResources,
     deleteResource: exports.deleteResource,
-    addQuestion: async (req, res) => {
-        try {
-            const teacher = await getTeacher(req.user._id);
-            const question = new QuestionBank({
-                ...req.body,
-                teacherId: teacher._id,
-                schoolId: teacher.schoolId._id
-            });
-            if (req.file) {
-                question.fileUrl = req.file.location || req.file.path;
-            }
-            await question.save();
-            res.status(201).json({ message: 'Evaluation node recorded successfully', question });
-        } catch (err) { res.status(500).json({ message: err.message }); }
-    },
+    addQuestion: exports.addQuestion,
     bulkAddQuestions: exports.bulkAddQuestions,
     getQuestions: exports.getQuestions,
     generateExam: exports.generateExam,

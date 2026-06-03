@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import { 
     Megaphone, 
     Layout, 
@@ -22,10 +23,11 @@ const Announcements = () => {
     const [searchTerm, setSearchTerm] = useState('');
 
     const { socket } = useSocket();
+    const { activeAcademicYearId } = useSelector(state => state.academicYear || {});
 
     useEffect(() => {
         fetchData();
-    }, [activeTab]);
+    }, [activeTab, activeAcademicYearId]);
 
     useEffect(() => {
         if (!socket) return;

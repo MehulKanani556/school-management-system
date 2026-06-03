@@ -549,7 +549,10 @@ const QuestionBank = () => {
                                     <div className="w-1.5 h-1.5 rounded-full bg-brand-primary"></div> Select Class
                                 </h4>
                                 <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
-                                    {Array.from(new Set(questions.map(q => q.classLevel))).sort().map(g => (
+                                    {Array.from(new Set([
+                                        ...classes.map(c => `Grade ${c.gradeLevel || c.standardId?.level}`),
+                                        ...questions.map(q => q.classLevel)
+                                    ].filter(Boolean))).sort().map(g => (
                                         <button 
                                             key={g} 
                                             onClick={() => setExamParams({ ...examParams, classLevel: g, subject: '' })}
@@ -577,25 +580,41 @@ const QuestionBank = () => {
                                         <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div> Select Subject [{examParams.classLevel}]
                                     </h4>
                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
-                                        {Array.from(new Map(
-                                            questions
-                                                .filter(q => q.classLevel === examParams.classLevel)
-                                                .map(q => [q.subject?._id, q.subject])
-                                        ).values()).map(s => (
-                                            <button 
-                                                key={s._id} 
-                                                onClick={() => setExamParams({ ...examParams, subject: s._id })}
-                                                className={`group relative p-4 rounded-md border transition-all ${examParams.subject === s._id ? 'bg-emerald-600 border-emerald-600 shadow-xl shadow-emerald-600/20' : 'bg-slate-950/60 border-slate-800/60 hover:border-slate-700'}`}
-                                            >
-                                                <div className="relative z-10 flex flex-col items-start gap-2">
-                                                    <div className={`p-2 rounded-md ${examParams.subject === s._id ? 'bg-white/10' : 'bg-emerald-500/10'}`}>
-                                                        <Target size={14} className={examParams.subject === s._id ? 'text-white' : 'text-emerald-500'} />
+                                        {(() => {
+                                            const assignedSubjs = Array.from(new Map(
+                                                classes
+                                                    ?.filter(c => `Grade ${c.gradeLevel || c.standardId?.level}` === examParams.classLevel)
+                                                    .flatMap(c => c.subjects || [])
+                                                    .filter(Boolean)
+                                                    .map(s => [s._id, s])
+                                            ).values());
+
+                                            const questionSubjs = Array.from(new Map(
+                                                questions
+                                                    .filter(q => q.classLevel === examParams.classLevel && q.subject)
+                                                    .map(q => [q.subject._id || q.subject, q.subject])
+                                            ).values());
+
+                                            const bankSubjects = Array.from(new Map(
+                                                [...assignedSubjs, ...questionSubjs].map(s => [s._id || s, s])
+                                            ).values());
+
+                                            return bankSubjects.map(s => (
+                                                <button 
+                                                    key={s._id} 
+                                                    onClick={() => setExamParams({ ...examParams, subject: s._id })}
+                                                    className={`group relative p-4 rounded-md border transition-all ${examParams.subject === s._id ? 'bg-emerald-600 border-emerald-600 shadow-xl shadow-emerald-600/20' : 'bg-slate-950/60 border-slate-800/60 hover:border-slate-700'}`}
+                                                >
+                                                    <div className="relative z-10 flex flex-col items-start gap-2">
+                                                        <div className={`p-2 rounded-md ${examParams.subject === s._id ? 'bg-white/10' : 'bg-emerald-500/10'}`}>
+                                                            <Target size={14} className={examParams.subject === s._id ? 'text-white' : 'text-emerald-500'} />
+                                                        </div>
+                                                        <span className={`text-[11px] font-black uppercase italic ${examParams.subject === s._id ? 'text-white' : 'text-slate-400'}`}>{s.name}</span>
+                                                        <span className={`text-[8px] font-bold opacity-60 ${examParams.subject === s._id ? 'text-white' : 'text-slate-600'}`}>{questions.filter(q => q.classLevel === examParams.classLevel && q.subject?._id === s._id).length} Items</span>
                                                     </div>
-                                                    <span className={`text-[11px] font-black uppercase italic ${examParams.subject === s._id ? 'text-white' : 'text-slate-400'}`}>{s.name}</span>
-                                                    <span className={`text-[8px] font-bold opacity-60 ${examParams.subject === s._id ? 'text-white' : 'text-slate-600'}`}>{questions.filter(q => q.classLevel === examParams.classLevel && q.subject?._id === s._id).length} Items</span>
-                                                </div>
-                                            </button>
-                                        ))}
+                                                </button>
+                                            ));
+                                        })()}
                                     </div>
                                 </motion.div>
                             )}
@@ -631,56 +650,94 @@ const QuestionBank = () => {
 
                         {/* Grouped Question Cards */}
                         {examParams.classLevel && examParams.subject && (
-                            <div className="space-y-10">
-                                {allTypes.filter(type => matchingQuestions.some(q => q.type === type)).map(type => (
-                                    <div key={type} className="space-y-4">
-                                        <div className="flex items-center gap-4">
-                                            <h3 className="text-xs font-black text-white italic uppercase tracking-[0.2em] whitespace-nowrap">{type.replace(/([A-Z])/g, ' $1')}</h3>
-                                            <div className="h-[1px] w-full bg-slate-800/50"></div>
-                                            <span className="text-[10px] font-black text-slate-600 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">{matchingQuestions.filter(q => q.type === type).length}</span>
-                                        </div>
+                            matchingQuestions.length > 0 ? (
+                                <div className="space-y-10">
+                                    {allTypes.filter(type => matchingQuestions.some(q => q.type === type)).map(type => (
+                                        <div key={type} className="space-y-4">
+                                            <div className="flex items-center gap-4">
+                                                <h3 className="text-xs font-black text-white italic uppercase tracking-[0.2em] whitespace-nowrap">{type.replace(/([A-Z])/g, ' $1')}</h3>
+                                                <div className="h-[1px] w-full bg-slate-800/50"></div>
+                                                <span className="text-[10px] font-black text-slate-600 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">{matchingQuestions.filter(q => q.type === type).length}</span>
+                                            </div>
 
-                                        <div className={`grid ${viewType === 'detailed' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
-                                            {matchingQuestions.filter(q => q.type === type).map((q) => (
-                                                <div 
-                                                    key={q._id}
-                                                    onClick={() => toggleSelection(q._id)}
-                                                    className={`group relative flex flex-col gap-4 p-5 rounded-md border transition-all cursor-pointer ${selectedIds.includes(q._id) ? 'bg-brand-primary/10 border-brand-primary shadow-lg shadow-brand-primary/10' : 'bg-slate-900/30 border-slate-800/60 hover:border-slate-700'}`}
-                                                >
-                                                    <div className="flex justify-between items-start gap-3">
-                                                        <p className={`font-bold leading-relaxed text-sm ${selectedIds.includes(q._id) ? 'text-white' : 'text-white/80'} line-clamp-3`}>{q.content}</p>
-                                                        <div className={`p-1 rounded-full border ${selectedIds.includes(q._id) ? 'bg-brand-primary border-white/20' : 'bg-slate-950 border-slate-800'}`}>
-                                                            {selectedIds.includes(q._id) ? <Check size={12} className="text-white" /> : <Plus size={12} className="text-slate-600" />}
+                                            <div className={`grid ${viewType === 'detailed' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1 md:grid-cols-2'} gap-4`}>
+                                                {matchingQuestions.filter(q => q.type === type).map((q) => (
+                                                    <div 
+                                                        key={q._id}
+                                                        onClick={() => toggleSelection(q._id)}
+                                                        className={`group relative flex flex-col gap-4 p-5 rounded-md border transition-all cursor-pointer ${selectedIds.includes(q._id) ? 'bg-brand-primary/10 border-brand-primary shadow-lg shadow-brand-primary/10' : 'bg-slate-900/30 border-slate-800/60 hover:border-slate-700'}`}
+                                                    >
+                                                        <div className="flex justify-between items-start gap-3">
+                                                            <p className={`font-bold leading-relaxed text-sm ${selectedIds.includes(q._id) ? 'text-white' : 'text-white/80'} line-clamp-3`}>{q.content}</p>
+                                                            <div className={`p-1 rounded-full border ${selectedIds.includes(q._id) ? 'bg-brand-primary border-white/20' : 'bg-slate-950 border-slate-800'}`}>
+                                                                {selectedIds.includes(q._id) ? <Check size={12} className="text-white" /> : <Plus size={12} className="text-slate-600" />}
+                                                            </div>
                                                         </div>
-                                                    </div>
 
-                                                    <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-                                                        <div className="flex items-center gap-3">
-                                                            <span className={`text-[8px] font-black px-2 py-1 rounded tracking-widest uppercase ${q.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-500' : q.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
-                                                                {q.difficulty}
-                                                            </span>
-                                                            <span className="text-[8px] font-black text-slate-600 uppercase italic">ID: {q._id.slice(-6)}</span>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="text-[10px] font-black text-white italic">[{q.marks} PTS]</span>
-                                                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                                                <button onClick={(e) => { e.stopPropagation(); handleEditClick(q); }} className="p-1 text-slate-500 hover:text-white"><Edit2 size={12} /></button>
-                                                                <button onClick={async (e) => { 
-                                                                    e.stopPropagation(); 
-                                                                    if(await window.confirm('Delete this question?')) {
-                                                                        await axiosInstance.delete(`/teacher/questions/${q._id}`);
-                                                                        fetchQuestions();
-                                                                    }
-                                                                }} className="p-1 text-rose-500/30 hover:text-rose-500"><Trash2 size={12} /></button>
+                                                        <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                                                            <div className="flex items-center gap-3">
+                                                                <span className={`text-[8px] font-black px-2 py-1 rounded tracking-widest uppercase ${q.difficulty === 'Hard' ? 'bg-rose-500/10 text-rose-500' : q.difficulty === 'Medium' ? 'bg-amber-500/10 text-amber-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                                                                    {q.difficulty}
+                                                                </span>
+                                                                <span className="text-[8px] font-black text-slate-600 uppercase italic">ID: {q._id.slice(-6)}</span>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                <span className="text-[10px] font-black text-white italic">[{q.marks} PTS]</span>
+                                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                                    <button onClick={(e) => { e.stopPropagation(); handleEditClick(q); }} className="p-1 text-slate-500 hover:text-white"><Edit2 size={12} /></button>
+                                                                    <button onClick={async (e) => { 
+                                                                        e.stopPropagation(); 
+                                                                        if(await window.confirm('Delete this question?')) {
+                                                                            await axiosInstance.delete(`/teacher/questions/${q._id}`);
+                                                                            fetchQuestions();
+                                                                        }
+                                                                    }} className="p-1 text-rose-500/30 hover:text-rose-500"><Trash2 size={12} /></button>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                ))}
+                                            </div>
                                         </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 10 }} 
+                                    animate={{ opacity: 1, y: 0 }} 
+                                    className="flex flex-col items-center justify-center text-center p-12 bg-slate-900/10 border border-dashed border-slate-800/80 rounded-md space-y-4"
+                                >
+                                    <div className="p-4 bg-brand-primary/10 rounded-full text-brand-primary">
+                                        <Database size={32} />
                                     </div>
-                                ))}
-                            </div>
+                                    <div className="space-y-2">
+                                        <h3 className="text-white font-black text-sm uppercase tracking-wider font-outfit">No Questions in Vault</h3>
+                                        <p className="text-slate-500 text-xs font-medium max-w-sm">
+                                            You haven't archived any questions for <span className="text-white font-bold">{examParams.classLevel}</span> under <span className="text-white font-bold">{
+                                                classes
+                                                    .filter(c => `Grade ${c.gradeLevel || c.standardId?.level}` === examParams.classLevel)
+                                                    .flatMap(c => c.subjects || [])
+                                                    .find(s => s._id === examParams.subject)?.name || 'this subject'
+                                            }</span> yet.
+                                        </p>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setQData(prev => ({
+                                                ...prev,
+                                                classLevel: examParams.classLevel,
+                                                subject: examParams.subject
+                                            }));
+                                            setActiveTab('add');
+                                            setEditMode(false);
+                                            setEditingId(null);
+                                        }}
+                                        className="px-6 py-2.5 bg-white hover:bg-brand-primary text-black hover:text-white rounded-md font-black text-[10px] uppercase tracking-widest transition-all italic flex items-center gap-2"
+                                    >
+                                        <PlusCircle size={14} /> Add Question Now
+                                    </button>
+                                </motion.div>
+                            )
                         )}
                     </motion.div>
                 )}
