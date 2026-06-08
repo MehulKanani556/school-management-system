@@ -2,12 +2,12 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchStudentProfile, updateStudentProfile, changeStudentPassword, fetchStudentFees } from '../../redux/slice/student.slice';
 import { motion, AnimatePresence } from 'framer-motion';
-import { User, Phone, MapPin, ShieldCheck, Hash, Calendar, Info, Edit3, Save, X, Lock, Camera, CheckCircle, Fingerprint, CreditCard, AlertTriangle, Mail, GraduationCap } from 'lucide-react';
+import { User, Phone, MapPin, ShieldCheck, Hash, Calendar, Edit3, Save, X, Lock, Camera, CheckCircle, Fingerprint, CreditCard, AlertTriangle, Mail, GraduationCap } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 const StudentProfile = () => {
     const dispatch = useDispatch();
-    const { profile, fees, loading, message, error } = useSelector((state) => state.student);
+    const { profile, fees, loading } = useSelector((state) => state.student);
     
     // Calculate global fee status from fetched ledger
     const overallFeeStatus = fees?.length > 0 
@@ -16,7 +16,6 @@ const StudentProfile = () => {
 
     const [editMode, setEditMode] = useState(false);
     const [formData, setFormData] = useState({});
-    const [passwordModal, setPasswordModal] = useState(false);
     const [passData, setPassData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
     const [preview, setPreview] = useState(null);
 
@@ -52,13 +51,14 @@ const StudentProfile = () => {
         if (!res.error) {
             setEditMode(false);
             setPreview(null);
+            toast.success("Profile updated successfully!");
         }
     };
 
     const handlePasswordChange = async (e) => {
         e.preventDefault();
         if (passData.newPassword !== passData.confirmPassword) {
-            return toast.error("Credentials Mismatch: Confirmation failed.");
+            return toast.error("Passwords do not match.");
         }
         const res = await dispatch(changeStudentPassword({
             oldPassword: passData.oldPassword,
@@ -66,247 +66,267 @@ const StudentProfile = () => {
         }));
         if (!res.error) {
             setPassData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+            toast.success("Password changed successfully!");
         }
     };
 
     if (loading && !profile) {
         return (
             <div className="min-h-[400px] flex items-center justify-center font-outfit">
-                <div className="w-12 h-12 border-4 border-luxury-emerald/20 border-t-luxury-emerald rounded-md animate-spin shadow-[0_0_20px_rgba(16,185,129,0.2)]"></div>
+                <div className="w-12 h-12 border-4 border-emerald-500/20 border-t-emerald-500 rounded-full animate-spin"></div>
             </div>
         );
     }
 
     return (
         <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-7xl mx-auto space-y-12 pb-20 font-outfit"
+            transition={{ duration: 0.5 }}
+            className="max-w-7xl mx-auto space-y-8 pb-16 font-outfit text-slate-200"
         >
-            {/* High-Fidelity Profile Header Banner */}
-            <div className="relative group overflow-hidden rounded-md border border-slate-800 shadow-2xl bg-slate-950">
-                <div className="absolute inset-0 bg-gradient-to-r from-brand-primary/20 via-slate-950 to-luxury-emerald/20 opacity-40 group-hover:opacity-60 transition-all duration-700"></div>
-                <div className="absolute -top-24 -right-24 w-96 h-96 bg-brand-primary/10 rounded-full blur-[120px]"></div>
-                <div className="absolute -bottom-24 -left-24 w-96 h-96 bg-luxury-emerald/10 rounded-full blur-[120px]"></div>
-                
-                <div className="relative z-10 p-12 flex flex-col md:flex-row items-center gap-10">
-                    {/* Avatar System */}
-                    <div className="relative group">
-                        <div className="w-44 h-44 rounded-md bg-slate-800 p-1.5 shadow-2xl transform transition-transform group-hover:scale-[1.02]">
-                            <div className="w-full h-full rounded-md overflow-hidden bg-slate-900 border border-slate-700/50 relative">
+            {/* Header Banner */}
+            <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 shadow-2xl p-6 md:p-8">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-emerald-500/10 via-transparent to-transparent"></div>
+                <div className="absolute -top-10 -left-10 w-40 h-40 bg-brand-primary/10 rounded-full blur-[80px]"></div>
+
+                <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex flex-col md:flex-row items-center gap-6">
+                        {/* Avatar */}
+                        <div className="relative">
+                            <div className="w-28 h-28 rounded-2xl overflow-hidden bg-slate-900 border-2 border-slate-800 shadow-lg relative group">
                                 {preview || profile?.photo ? (
-                                    <img src={preview || profile.photo} alt="Student" className="w-full h-full object-cover" />
+                                    <img src={preview || profile.photo} alt="Student Profile" className="w-full h-full object-cover" />
                                 ) : (
-                                    <div className="w-full h-full flex items-center justify-center bg-slate-800">
-                                        <User size={64} className="text-slate-600" />
+                                    <div className="w-full h-full flex items-center justify-center bg-slate-800/50">
+                                        <User size={40} className="text-slate-500" />
                                     </div>
                                 )}
                                 {editMode && (
-                                    <label className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-all">
-                                        <Camera className="text-white mb-2" size={24} />
-                                        <span className="text-[10px] font-black uppercase tracking-widest text-white">Upload New</span>
+                                    <label className="absolute inset-0 bg-black/70 backdrop-blur-xs flex flex-col items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-all duration-200">
+                                        <Camera className="text-white mb-1" size={20} />
+                                        <span className="text-[9px] uppercase tracking-wider text-white font-bold">Upload</span>
                                         <input type="file" className="hidden" onChange={handlePhotoChange} />
                                     </label>
                                 )}
                             </div>
-                        </div>
-                        <div className="absolute -bottom-3 -right-3 w-10 h-10 bg-luxury-emerald rounded-md flex items-center justify-center shadow-xl border-4 border-slate-950 group-hover:rotate-12 transition-transform">
-                            <ShieldCheck size={18} className="text-white" />
-                        </div>
-                    </div>
-
-                    <div className="flex-1 text-center md:text-left space-y-4">
-                        <div className="space-y-1">
-                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-2">
-                                <span className="px-3 py-1 bg-brand-primary/10 border border-brand-primary/30 text-brand-primary text-[10px] font-black uppercase tracking-widest rounded-md italic">Student Identity</span>
-                                <span className="px-3 py-1 bg-luxury-emerald/10 border border-luxury-emerald/30 text-luxury-emerald text-[10px] font-black uppercase tracking-widest rounded-md italic">Verified Academic</span>
+                            <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center shadow-lg border-2 border-slate-950">
+                                <ShieldCheck size={16} className="text-white" />
                             </div>
-                            <h1 className="text-6xl font-black text-white italic uppercase tracking-tighter leading-none">{profile?.firstName} {profile?.lastName}</h1>
-                            <p className="text-slate-500 font-bold text-xl flex items-center justify-center md:justify-start gap-3 italic tracking-tight">
-                                <GraduationCap size={20} className="text-brand-primary" />
-                                Standard {profile?.classSection?.standardId?.level || 'N/A'} - Section {profile?.classSection?.sectionLabel || 'A'}
+                        </div>
+
+                        {/* Text Details */}
+                        <div className="text-center md:text-left space-y-2">
+                            <div className="flex flex-wrap items-center justify-center md:justify-start gap-2">
+                                <span className="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                    Verified Student
+                                </span>
+                                <span className="px-2.5 py-0.5 bg-brand-primary/10 border border-brand-primary/20 text-brand-primary text-[10px] font-bold uppercase tracking-wider rounded-md">
+                                    Active Session
+                                </span>
+                            </div>
+                            <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                                {profile?.firstName} {profile?.lastName}
+                            </h1>
+                            <p className="text-slate-400 text-sm flex items-center justify-center md:justify-start gap-2">
+                                <GraduationCap size={16} className="text-brand-primary" />
+                                Standard {profile?.classSection?.standardId?.level || 'N/A'} • Section {profile?.classSection?.sectionLabel || 'A'}
                             </p>
                         </div>
-                        
-                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 pt-4">
-                            <div className="flex items-center gap-3 bg-slate-900/60 px-5 py-3 rounded-md border border-slate-800 shadow-inner">
-                                <Hash size={14} className="text-slate-600" />
-                                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">Admission: {profile?.admissionNumber || 'ADM-2024-XXX'}</span>
-                            </div>
-                            <div className="flex items-center gap-3 bg-slate-900/60 px-5 py-3 rounded-md border border-slate-800 shadow-inner">
-                                <Fingerprint size={14} className="text-slate-600" />
-                                <span className="text-[11px] font-black uppercase tracking-widest text-slate-300">Roll No: #{profile?.rollNumber || '00'}</span>
-                            </div>
-                        </div>
                     </div>
 
-                    <div className="flex gap-4 self-center md:self-end">
+                    {/* Actions */}
+                    <div className="flex gap-3">
                         {!editMode ? (
                             <button
                                 onClick={() => setEditMode(true)}
-                                className="px-8 py-4 bg-brand-primary text-black rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all hover:bg-white active:scale-95 flex items-center gap-4 italic shadow-lg shadow-brand-primary/20"
+                                className="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-brand-primary/10"
                             >
-                                Edit Profile <Edit3 size={16} />
+                                <Edit3 size={14} /> Edit Profile
                             </button>
                         ) : (
-                            <div className="flex gap-3">
+                            <div className="flex gap-2">
                                 <button
                                     onClick={() => { setEditMode(false); setPreview(null); }}
-                                    className="px-8 py-4 bg-slate-800 text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all hover:bg-slate-700 italic border border-slate-700"
+                                    className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 font-bold rounded-xl text-xs uppercase tracking-wider transition-all border border-slate-800"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleUpdate}
-                                    className="px-8 py-4 bg-luxury-emerald text-white rounded-md text-[11px] font-black uppercase tracking-[0.3em] transition-all hover:bg-white hover:text-black italic shadow-lg shadow-luxury-emerald/20 flex items-center gap-4"
+                                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs uppercase tracking-wider transition-all flex items-center gap-2 shadow-lg shadow-emerald-600/10"
                                 >
-                                    Save Changes <CheckCircle size={16} />
+                                    <Save size={14} /> Save
                                 </button>
                             </div>
                         )}
                     </div>
                 </div>
+
+                {/* Meta stats */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8 pt-6 border-t border-slate-900 text-left">
+                    <div>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Admission ID</p>
+                        <p className="text-sm font-bold text-white mt-0.5">{profile?.admissionNumber || 'N/A'}</p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Roll Number</p>
+                        <p className="text-sm font-bold text-white mt-0.5">#{profile?.rollNumber || '00'}</p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Academic Year</p>
+                        <p className="text-sm font-bold text-white mt-0.5">{new Date().getFullYear()}-{new Date().getFullYear() + 1}</p>
+                    </div>
+                    <div>
+                        <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Registration Date</p>
+                        <p className="text-sm font-bold text-white mt-0.5">
+                            {profile?.createdAt ? new Date(profile.createdAt).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : 'N/A'}
+                        </p>
+                    </div>
+                </div>
             </div>
 
-            {/* Content Command Center Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-                {/* Left Side: Specialized Data Quadrants */}
-                <div className="space-y-12">
-                    {/* Financial Status DNA */}
-                    <div className="bg-[#0f0f12] border border-slate-800/80 p-8 rounded-md shadow-2xl relative group overflow-hidden text-left">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:scale-110 transition-transform duration-700">
-                            <CreditCard size={120} />
-                        </div>
-                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-brand-primary mb-8 italic border-b border-slate-800/60 pb-5">Financial DNA</h3>
-                        
-                        <div className="space-y-6">
-                            <div className="p-6 bg-slate-950/60 rounded-md border border-slate-800 flex items-center justify-between">
-                                <div className="space-y-1">
-                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Current Status</p>
-                                    <p className="text-2xl font-black text-white italic uppercase tracking-tighter">{overallFeeStatus}</p>
-                                </div>
-                                <div className={`w-12 h-12 rounded-md flex items-center justify-center ${overallFeeStatus === 'Paid' ? 'bg-luxury-emerald/10 text-luxury-emerald' : 'bg-luxury-rose/10 text-luxury-rose'}`}>
-                                    {overallFeeStatus === 'Paid' ? <CheckCircle size={24} /> : <AlertTriangle size={24} />}
-                                </div>
+            {/* Grid Layout */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left Column */}
+                <div className="space-y-8">
+                    {/* Financial Status */}
+                    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-4 text-left">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary flex items-center gap-2">
+                            <CreditCard size={16} /> Account & Fees
+                        </h3>
+                        <div className="p-4 bg-slate-950/40 rounded-xl border border-slate-800/60 flex items-center justify-between">
+                            <div>
+                                <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Status</p>
+                                <p className="text-lg font-bold text-white mt-0.5">{overallFeeStatus}</p>
                             </div>
-                            
-                            <div className="">
-                                <div className="p-4 bg-slate-950/60 rounded-md border border-slate-800">
-                                    <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic mb-2">Academic Year</p>
-                                    <p className="text-sm font-black text-white italic tracking-widest">{new Date().getFullYear()}-{new Date().getFullYear() + 1}</p>
-                                </div>
-                            
+                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${overallFeeStatus === 'Paid' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'}`}>
+                                {overallFeeStatus === 'Paid' ? <CheckCircle size={20} /> : <AlertTriangle size={20} />}
                             </div>
                         </div>
                     </div>
 
-                    {/* Security Vector Grid */}
-                    <div className="bg-[#0f0f12] border border-slate-800/80 p-8 rounded-md shadow-2xl relative overflow-hidden group text-left">
-                        <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:rotate-12 transition-transform duration-700">
-                            <Lock size={120} />
-                        </div>
-                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-rose mb-8 italic border-b border-slate-800/60 pb-5">Security Vector</h3>
-                        
-                        <form onSubmit={handlePasswordChange} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Current Signature</label>
+                    {/* Change Password */}
+                    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 p-6 rounded-2xl shadow-xl space-y-5 text-left">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-rose-400 flex items-center gap-2">
+                            <Lock size={16} /> Security Settings
+                        </h3>
+                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Current Password</label>
                                 <input
                                     type="password"
                                     required
                                     placeholder="••••••••"
                                     value={passData.oldPassword}
                                     onChange={(e) => setPassData({ ...passData, oldPassword: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-rose transition-colors text-sm tracking-widest"
+                                    className="w-full bg-slate-950/60 focus:bg-slate-950 border border-slate-800 focus:border-slate-700 p-3 rounded-xl text-white text-sm outline-none transition-all duration-200"
                                 />
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">New Signature</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">New Password</label>
                                 <input
                                     type="password"
                                     required
                                     placeholder="••••••••"
                                     value={passData.newPassword}
                                     onChange={(e) => setPassData({ ...passData, newPassword: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-emerald transition-colors text-sm tracking-widest"
+                                    className="w-full bg-slate-950/60 focus:bg-slate-950 border border-slate-800 focus:border-slate-700 p-3 rounded-xl text-white text-sm outline-none transition-all duration-200"
+                                />
+                            </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Confirm New Password</label>
+                                <input
+                                    type="password"
+                                    required
+                                    placeholder="••••••••"
+                                    value={passData.confirmPassword}
+                                    onChange={(e) => setPassData({ ...passData, confirmPassword: e.target.value })}
+                                    className="w-full bg-slate-950/60 focus:bg-slate-950 border border-slate-800 focus:border-slate-700 p-3 rounded-xl text-white text-sm outline-none transition-all duration-200"
                                 />
                             </div>
                             <button
                                 type="submit"
-                                className="w-full py-4 bg-luxury-rose/10 text-luxury-rose rounded-md text-[10px] font-black uppercase tracking-[0.3em] hover:bg-luxury-rose hover:text-white transition-all border border-luxury-rose/30 italic"
+                                className="w-full py-3 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 text-xs font-bold uppercase tracking-wider rounded-xl transition-all duration-200 border border-rose-500/20"
                             >
-                                Authenticate Security Wipe
+                                Update Security Signature
                             </button>
                         </form>
                     </div>
                 </div>
 
-                {/* Center & Right Combined: Institutional Profile Details */}
-                <div className="lg:col-span-2 space-y-12">
-                    {/* Personal Registry Card */}
-                    <div className="bg-[#0f0f12] border border-slate-800/80 p-10 rounded-md shadow-2xl relative group text-left">
-                        <div className="absolute top-0 right-0 p-10 opacity-5 group-hover:scale-95 transition-transform duration-1000">
-                            <User size={160} />
+                {/* Right / Content Column */}
+                <div className="lg:col-span-2 space-y-8">
+                    {/* Personal Registry */}
+                    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 p-8 rounded-2xl shadow-xl space-y-6 text-left">
+                        <div className="flex items-center justify-between border-b border-slate-800/60 pb-4">
+                            <h3 className="text-sm font-bold uppercase tracking-wider text-brand-primary flex items-center gap-2">
+                                <User size={16} /> Personal Information
+                            </h3>
+                            <span className="text-[9px] text-slate-500 bg-slate-950/80 px-2.5 py-1 rounded-md border border-slate-800">
+                                PROFILE_RECORD
+                            </span>
                         </div>
-                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-brand-primary mb-12 italic border-b border-slate-800/60 pb-6 flex items-center justify-between">
-                            Personal Registry
-                            <span className="text-[9px] text-slate-600 tracking-normal font-bold bg-slate-900 px-3 py-1 rounded-md border border-slate-800">RECORD_TYPE: PRIMARY_SENSITIVE</span>
-                        </h3>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-10 relative z-10 text-left">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Legal Birth Name</label>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">First Name</label>
                                 {!editMode ? (
-                                    <div className="text-xl font-black text-white italic tracking-tight uppercase border-b border-slate-800/30 pb-2 flex items-center gap-3">
-                                        <User size={16} className="text-brand-primary opacity-60" />
-                                        {profile?.firstName} {profile?.lastName}
+                                    <div className="text-sm font-bold text-white bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900">
+                                        {profile?.firstName || 'N/A'}
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <input
-                                            name="firstName"
-                                            value={formData.firstName || ''}
-                                            onChange={handleChange}
-                                            className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-brand-primary h-[54px]"
-                                            placeholder="First Name"
-                                        />
-                                        <input
-                                            name="lastName"
-                                            value={formData.lastName || ''}
-                                            onChange={handleChange}
-                                            className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-brand-primary h-[54px]"
-                                            placeholder="Last Name"
-                                        />
-                                    </div>
+                                    <input
+                                        name="firstName"
+                                        value={formData.firstName || ''}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all"
+                                        placeholder="First Name"
+                                    />
                                 )}
                             </div>
 
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Institutional Alias (Email)</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Last Name</label>
                                 {!editMode ? (
-                                    <div className="text-xl font-black text-slate-400 italic tracking-tight border-b border-slate-800/30 pb-2 flex items-center gap-3 text-left">
-                                        <Mail size={16} className="text-brand-primary opacity-60" />
+                                    <div className="text-sm font-bold text-white bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900">
+                                        {profile?.lastName || 'N/A'}
+                                    </div>
+                                ) : (
+                                    <input
+                                        name="lastName"
+                                        value={formData.lastName || ''}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all"
+                                        placeholder="Last Name"
+                                    />
+                                )}
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Email Address</label>
+                                {!editMode ? (
+                                    <div className="text-sm font-bold text-slate-300 bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900 flex items-center gap-2">
+                                        <Mail size={14} className="text-slate-500" />
                                         {profile?.email || 'N/A'}
                                     </div>
                                 ) : (
-                                    <div className="relative">
-                                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-primary opacity-60" />
-                                        <input
-                                            name="email"
-                                            value={formData.email || ''}
-                                            onChange={handleChange}
-                                            className="w-full bg-slate-950 border border-slate-800 p-4 pl-12 rounded-md text-white outline-none focus:border-brand-primary h-[54px] italic"
-                                            placeholder="Update active email address..."
-                                        />
-                                    </div>
+                                    <input
+                                        name="email"
+                                        value={formData.email || ''}
+                                        onChange={handleChange}
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all"
+                                        placeholder="Email Address"
+                                    />
                                 )}
                             </div>
 
-                            <div className="space-y-4 text-left">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Temporal Origin (Birthday)</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Date of Birth</label>
                                 {!editMode ? (
-                                    <div className="text-xl font-black text-white italic tracking-tight border-b border-slate-800/30 pb-2 flex items-center gap-3 uppercase text-left">
-                                        <Calendar size={16} className="text-luxury-emerald opacity-60" />
-                                        {profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'NOT RECORDED'}
+                                    <div className="text-sm font-bold text-white bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900 flex items-center gap-2">
+                                        <Calendar size={14} className="text-slate-500" />
+                                        {profile?.dateOfBirth ? new Date(profile.dateOfBirth).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                     </div>
                                 ) : (
                                     <input
@@ -314,24 +334,24 @@ const StudentProfile = () => {
                                         name="dateOfBirth"
                                         value={formData.dateOfBirth?.split('T')[0] || ''}
                                         onChange={handleChange}
-                                        className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-emerald h-[54px]"
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all"
                                     />
                                 )}
                             </div>
 
-                            <div className="space-y-4 text-left">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Gender Identification</label>
+                            <div className="space-y-1.5">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Gender</label>
                                 {!editMode ? (
-                                    <div className="text-xl font-black text-white italic tracking-tight border-b border-slate-800/30 pb-2 flex items-center gap-3 uppercase text-left">
-                                        <Fingerprint size={16} className="text-luxury-rose opacity-60" />
-                                        {profile?.gender || 'UNKNOWN'}
+                                    <div className="text-sm font-bold text-white bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900 flex items-center gap-2">
+                                        <Fingerprint size={14} className="text-slate-500" />
+                                        {profile?.gender || 'N/A'}
                                     </div>
                                 ) : (
                                     <select
                                         name="gender"
                                         value={formData.gender || ''}
                                         onChange={handleChange}
-                                        className="w-full bg-slate-950 border border-slate-800 p-4 rounded-md text-white outline-none focus:border-luxury-emerald h-[54px] uppercase font-black"
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all"
                                     >
                                         <option value="Male">Male</option>
                                         <option value="Female">Female</option>
@@ -340,63 +360,50 @@ const StudentProfile = () => {
                                 )}
                             </div>
 
-                            <div className="space-y-4 md:col-span-2 text-left">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Geolocation Coordinate (Address)</label>
+                            <div className="space-y-1.5 md:col-span-2">
+                                <label className="text-[10px] uppercase tracking-wider text-slate-400 font-medium block">Home Address</label>
                                 {!editMode ? (
-                                    <div className="text-lg font-medium text-slate-400 italic tracking-wide flex items-start gap-3 pt-2 text-left">
-                                        <MapPin size={16} className="text-brand-primary flex-shrink-0 mt-1" />
-                                        {profile?.address || 'Geolocation data unavailable'}
+                                    <div className="text-sm text-slate-300 bg-slate-950/20 px-4 py-3 rounded-xl border border-slate-900 flex items-start gap-2">
+                                        <MapPin size={14} className="text-slate-500 flex-shrink-0 mt-0.5" />
+                                        {profile?.address || 'Address details not available'}
                                     </div>
                                 ) : (
                                     <textarea
                                         name="address"
                                         value={formData.address || ''}
                                         onChange={handleChange}
-                                        className="w-full bg-slate-950 border border-slate-800 p-5 rounded-md text-white outline-none focus:border-brand-primary h-24 resize-none italic"
-                                        placeholder="Enter full physical address..."
+                                        rows={3}
+                                        className="w-full bg-slate-950 border border-slate-800 focus:border-brand-primary p-3 rounded-xl text-white text-sm outline-none transition-all resize-none"
+                                        placeholder="Home Address"
                                     />
                                 )}
                             </div>
                         </div>
                     </div>
 
-                    {/* Guardian Defense Node */}
-                    <div className="bg-[#0f0f12] border border-slate-800/80 p-10 rounded-md shadow-2xl relative overflow-hidden group text-left">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:scale-110 transition-transform duration-1000">
-                            <ShieldCheck size={140} />
-                        </div>
-                        <h3 className="text-xs font-black uppercase tracking-[0.5em] text-luxury-emerald mb-12 italic border-b border-slate-800/60 pb-6">Guardian Network</h3>
-                        
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Primary Guardian</label>
-                                <div className="p-6 bg-slate-950/40 rounded-md border border-slate-800/50 flex items-center gap-5 opacity-80 cursor-not-allowed">
-                                    <div className="w-12 h-12 rounded-md bg-luxury-emerald/5 flex items-center justify-center text-luxury-emerald/40 border border-luxury-emerald/10">
-                                        <ShieldCheck size={24} />
-                                    </div>
-                                    <div>
-                                        <p className="text-lg font-black text-slate-400 italic uppercase tracking-tighter">{profile?.guardianName || 'N/A'}</p>
-                                        <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest">Administrative Lead</p>
-                                    </div>
-                                    <div className="ml-auto opacity-20">
-                                        <Lock size={14} className="text-slate-500" />
-                                    </div>
+                    {/* Guardian Info */}
+                    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-800/80 p-8 rounded-2xl shadow-xl space-y-6 text-left">
+                        <h3 className="text-sm font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-2">
+                            <ShieldCheck size={16} /> Guardian Details
+                        </h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="p-4 bg-slate-950/40 rounded-xl border border-slate-800/60 flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-400">
+                                    <User size={18} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Guardian Name</p>
+                                    <p className="text-sm font-bold text-slate-200 mt-0.5">{profile?.guardianName || 'N/A'}</p>
                                 </div>
                             </div>
-                            
-                            <div className="space-y-4">
-                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic block">Secure Contact Link</label>
-                                <div className="p-6 bg-slate-950/40 rounded-md border border-slate-800/50 flex items-center gap-5 opacity-80 cursor-not-allowed">
-                                    <div className="w-12 h-12 rounded-md bg-brand-primary/5 flex items-center justify-center text-brand-primary/40 border border-brand-primary/10">
-                                        <Phone size={24} />
-                                    </div>
-                                    <div>
-                                        <p className="text-lg font-black text-slate-400 tracking-[0.2em]">{profile?.guardianContact || 'N/A'}</p>
-                                        <p className="text-[9px] font-bold text-slate-700 uppercase tracking-widest">Emergency Priority</p>
-                                    </div>
-                                    <div className="ml-auto opacity-20">
-                                        <Lock size={14} className="text-slate-500" />
-                                    </div>
+
+                            <div className="p-4 bg-slate-950/40 rounded-xl border border-slate-800/60 flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-lg bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+                                    <Phone size={18} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] uppercase tracking-wider text-slate-500 font-medium">Contact Number</p>
+                                    <p className="text-sm font-bold text-slate-200 mt-0.5">{profile?.guardianContact || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>

@@ -13,6 +13,7 @@ import {
     Edit2
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PortalModal from '../../components/PortalModal';
 
 const ClassNoticeboard = () => {
     const dispatch = useDispatch();
@@ -200,87 +201,49 @@ const ClassNoticeboard = () => {
                 )}
             </div>
 
-            {showPostModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-950/80">
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-slate-800 p-12 rounded-md shadow-[0_50px_150px_rgba(0,0,0,0.8)] max-w-2xl w-full relative">
-                        <button onClick={() => setShowPostModal(false)} className="absolute top-8 right-8 text-slate-600 hover:text-white transition-all"><Plus className="rotate-45" size={24} /></button>
-                        <header className="mb-10">
-                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">{isEditMode ? 'Edit Notice' : 'Create New Notice'}</h2>
-                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">{isEditMode ? 'Modify notice details below...' : 'Provide notice details below...'}</p>
-                        </header>
-                        <form onSubmit={handlePostNotice} className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Class Section</label>
-                                <div className="relative group">
-                                    <Users size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
-                                    <select
-                                        value={targetClass}
-                                        onChange={(e) => setTargetClass(e.target.value)}
-                                        className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-teacher-primary transition-all text-white shadow-xl italic"
-                                        required
-                                    >
-                                        <option value="all">All Classes</option>
-                                        {classes.map(c => (
-                                            <option key={c._id} value={c._id}>Std {c.standardId?.level || c.gradeLevel} - {c.sectionLabel}</option>
-                                        ))}
-                                    </select>
-                                </div>
+            <PortalModal isOpen={showPostModal} onClose={() => setShowPostModal(false)} maxWidth="max-w-2xl">
+                <div className="p-12">
+                    <header className="mb-10">
+                        <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">{isEditMode ? 'Edit Notice' : 'Create New Notice'}</h2>
+                        <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">{isEditMode ? 'Modify notice details below...' : 'Provide notice details below...'}</p>
+                    </header>
+                    <form onSubmit={handlePostNotice} className="space-y-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Target Class Section</label>
+                            <div className="relative group">
+                                <Users size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-500" />
+                                <select value={targetClass} onChange={(e) => setTargetClass(e.target.value)} className="w-full bg-slate-950 border border-slate-800 h-14 pl-14 pr-8 rounded-md text-[11px] font-black uppercase tracking-widest outline-none appearance-none focus:border-teacher-primary transition-all text-white shadow-xl italic" required>
+                                    <option value="all">All Classes</option>
+                                    {classes.map(c => (<option key={c._id} value={c._id}>Std {c.standardId?.level || c.gradeLevel} - {c.sectionLabel}</option>))}
+                                </select>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Subject</label>
-                                <input
-                                    type="text"
-                                    placeholder="Enter subject here..."
-                                    value={noticeInput.subject}
-                                    onChange={(e) => setNoticeInput({ ...noticeInput, subject: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic uppercase"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Message</label>
-                                <textarea
-                                    placeholder="Write your message here..."
-                                    value={noticeInput.content}
-                                    onChange={(e) => setNoticeInput({ ...noticeInput, content: e.target.value })}
-                                    className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic resize-none h-[180px] uppercase"
-                                />
-                            </div>
-                            <button type="submit" className="w-full h-16 bg-teacher-primary hover:bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-xl italic">
-                                <Send size={20} /> {isEditMode ? 'Save Notice' : 'Post Notice'}
-                            </button>
-                        </form>
-                    </motion.div>
-                </div>
-            )}
-
-            {showDeleteModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-xl bg-slate-950/80">
-                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="bg-slate-900 border border-slate-800 p-12 rounded-md shadow-[0_50px_150px_rgba(0,0,0,0.8)] max-w-md w-full relative">
-                        <button onClick={() => setShowDeleteModal(false)} className="absolute top-8 right-8 text-slate-600 hover:text-white transition-all"><Plus className="rotate-45" size={24} /></button>
-                        <header className="mb-10 text-center">
-                            <Trash2 size={40} className="mx-auto text-rose-500 mb-4 animate-bounce" />
-                            <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">Delete Notice?</h2>
-                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-relaxed">Are you sure you want to retract this announcement? This action cannot be undone.</p>
-                        </header>
-                        <div className="flex gap-4">
-                            <button
-                                type="button"
-                                onClick={() => setShowDeleteModal(false)}
-                                className="flex-1 h-14 bg-slate-850 hover:bg-slate-800 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all italic border border-slate-700/50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                type="button"
-                                onClick={handleConfirmDelete}
-                                className="flex-1 h-14 bg-luxury-rose hover:bg-rose-600 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(244,63,94,0.3)] italic"
-                            >
-                                Delete
-                            </button>
                         </div>
-                    </motion.div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Subject</label>
+                            <input type="text" placeholder="Enter subject here..." value={noticeInput.subject} onChange={(e) => setNoticeInput({ ...noticeInput, subject: e.target.value })} className="w-full bg-slate-950 border border-slate-800 h-14 px-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic uppercase" />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic ml-2">Notice Message</label>
+                            <textarea placeholder="Write your message here..." value={noticeInput.content} onChange={(e) => setNoticeInput({ ...noticeInput, content: e.target.value })} className="w-full bg-slate-950 border border-slate-800 p-8 rounded-md text-white text-sm font-bold outline-none focus:border-teacher-primary transition-all italic resize-none h-[180px] uppercase" />
+                        </div>
+                        <button type="submit" className="w-full h-16 bg-teacher-primary text-white rounded-md font-black text-[11px] uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-4 shadow-xl italic">
+                            <Send size={20} /> {isEditMode ? 'Save Notice' : 'Post Notice'}
+                        </button>
+                    </form>
                 </div>
-            )}
+            </PortalModal>
+
+            <PortalModal isOpen={showDeleteModal} onClose={() => setShowDeleteModal(false)} maxWidth="max-w-md">
+                <div className="p-12 text-center">
+                    <Trash2 size={40} className="mx-auto text-rose-500 mb-4 animate-bounce" />
+                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-2">Delete Notice?</h2>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest italic leading-relaxed mb-10">Are you sure you want to retract this announcement? This action cannot be undone.</p>
+                    <div className="flex gap-4">
+                        <button type="button" onClick={() => setShowDeleteModal(false)} className="flex-1 h-14 bg-slate-850 hover:bg-slate-800 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all italic border border-slate-700/50">Cancel</button>
+                        <button type="button" onClick={handleConfirmDelete} className="flex-1 h-14 bg-luxury-rose hover:bg-rose-600 text-white rounded-md font-black text-[11px] uppercase tracking-[0.2em] transition-all shadow-[0_0_30px_rgba(244,63,94,0.3)] italic">Delete</button>
+                    </div>
+                </div>
+            </PortalModal>
         </div>
     );
 };

@@ -87,7 +87,11 @@ const AccountantMessages = () => {
             if (!groups[pId]) groups[pId] = { partner, messages: [] };
             groups[pId].messages.push(msg);
         });
-        return Object.values(groups).sort((a,b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
+        return Object.values(groups).sort((a, b) => {
+            const aTime = Math.max(...a.messages.map(m => new Date(m.createdAt).getTime() || 0));
+            const bTime = Math.max(...b.messages.map(m => new Date(m.createdAt).getTime() || 0));
+            return bTime - aTime;
+        });
     }, [messages, currentUser]);
 
     const activeConversation = useMemo(() => {

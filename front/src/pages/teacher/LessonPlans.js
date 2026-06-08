@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ClipboardList, Plus, Search, Calendar, BookOpen, Clock, CheckCircle2, MoreVertical, X, FileText, ChevronRight, Edit2, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import moment from 'moment';
+import PortalModal from '../../components/PortalModal';
 
 const LessonPlans = () => {
     const dispatch = useDispatch();
@@ -259,228 +260,104 @@ const LessonPlans = () => {
                 </AnimatePresence>
             </div>
 
-            {/* Modal */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-950/80 backdrop-blur-md"
-                            onClick={() => setIsModalOpen(false)}
-                        />
-                        <div className="relative z-10 w-full max-w-2xl p-4">
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20 }}
-                                animate={{ scale: 1, y: 0 }}
-                                exit={{ scale: 0.9, y: 20 }}
-                                className="bg-slate-900 border border-slate-800 w-full rounded-md overflow-hidden relative shadow-2xl"
-                            >
-                            <div className="p-8 border-b border-slate-800 flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <Plus className="text-brand-primary" size={20} />
-                                    <h2 className="text-xl font-black uppercase font-outfit tracking-wider">
-                                        {isEditMode ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}
-                                    </h2>
-                                </div>
-                                <button onClick={handleCloseModal} className="p-2 hover:bg-slate-800 rounded-md transition-colors"><X size={20} /></button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Class/Section</label>
-                                        <select
-                                            required
-                                            className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.classSection}
-                                            onChange={(e) => {
-                                                const classId = e.target.value;
-                                                const selectedClassObj = classes?.find(c => c._id === classId);
-                                                const firstSubjectId = selectedClassObj?.subjects?.[0]?._id || '';
-                                                setFormData({ ...formData, classSection: classId, subject: firstSubjectId });
-                                            }}
-                                        >
-                                            <option value="">SELECT CLASS</option>
-                                            {classes?.map(c => <option key={c._id} value={c._id}>{c.standardId?.level} - {c.sectionLabel}</option>)}
-                                        </select>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Subject</label>
-                                        <select
-                                            required
-                                            className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.subject}
-                                            onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                                        >
-                                            <option value="">SELECT SUBJECT</option>
-                                            {/* Show subjects belonging to the selected class */}
-                                            {formData.classSection ? (
-                                                classes?.find(c => c._id === formData.classSection)?.subjects?.map(s => (
-                                                    <option key={s._id} value={s._id}>{s.name}</option>
-                                                ))
-                                            ) : (
-                                                <option disabled>Please select a class first</option>
-                                            )}
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Topic</label>
-                                    <input
-                                        required
-                                        type="text"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-600"
-                                        placeholder="E.G. ALGEBRA FUNDAMENTALS"
-                                        value={formData.topic}
-                                        onChange={(e) => setFormData({ ...formData, topic: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sub-Topics (Comma Separated)</label>
-                                    <input
-                                        type="text"
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-600"
-                                        placeholder="Introduction, Concepts, Examples..."
-                                        value={formData.subTopics}
-                                        onChange={(e) => setFormData({ ...formData, subTopics: e.target.value })}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Date</label>
-                                        <input
-                                            required
-                                            type="date"
-                                            className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.date}
-                                            onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</label>
-                                        <select
-                                            className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.status}
-                                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                                        >
-                                            <option value="Draft">DRAFT</option>
-                                            <option value="Published">PUBLISHED</option>
-                                            <option value="Completed">COMPLETED</option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Objectives</label>
-                                    <textarea
-                                        rows={4}
-                                        className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-medium tracking-tight outline-none focus:border-brand-primary text-white placeholder-slate-600"
-                                        placeholder="Outline the learning objectives for this lesson..."
-                                        value={formData.objectives}
-                                        onChange={(e) => setFormData({ ...formData, objectives: e.target.value })}
-                                    />
-                                </div>
-
-                                <button
-                                    type="submit"
-                                    disabled={isSubmitting}
-                                    className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
-                                >
-                                    {isSubmitting ? 'PROCESSING...' : (isEditMode ? 'UPDATE LESSON PLAN' : 'SAVE LESSON PLAN')}
-                                </button>
-                            </form>
-                        </motion.div>
+            {/* Create/Edit Modal */}
+            <PortalModal isOpen={isModalOpen} onClose={handleCloseModal} maxWidth="max-w-2xl">
+                <div className="p-8 border-b border-slate-800 flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <Plus className="text-brand-primary" size={20} />
+                        <h2 className="text-xl font-black uppercase font-outfit tracking-wider">{isEditMode ? 'Edit Lesson Plan' : 'Create New Lesson Plan'}</h2>
                     </div>
+                    <button onClick={handleCloseModal} className="p-2 hover:bg-slate-800 rounded-md transition-colors"><X size={20} /></button>
                 </div>
-                )}
-            </AnimatePresence>
-            {/* Detail Modal */}
-            <AnimatePresence>
-                {isDetailOpen && selectedPlan && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl"
-                            onClick={() => setIsDetailOpen(false)}
-                        />
-                        <div className="relative z-10 w-full max-w-3xl p-4">
-                            <motion.div
-                                initial={{ scale: 0.9, y: 20, opacity: 0 }}
-                                animate={{ scale: 1, y: 0, opacity: 1 }}
-                                exit={{ scale: 0.9, y: 20, opacity: 0 }}
-                                className="bg-slate-900 border border-brand-primary/20 w-full rounded-xl overflow-hidden relative shadow-2xl font-inter"
-                            >
-                                <div className="py-7 px-10 border-b border-slate-800 flex justify-between items-start bg-gradient-to-b from-slate-800/20 to-transparent">
-                                    <div>
-                                        <div className="flex items-center gap-3 mb-2">
-                                            <div className="px-3 py-1 bg-brand-primary/10 rounded-sm border border-brand-primary/30 text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none">
-                                                {selectedPlan.subject?.name}
-                                            </div>
-                                            <div className="text-slate-500 text-[9px] font-black uppercase tracking-widest leading-none">
-                                                {selectedPlan.classSection?.standardId?.level
-                                                    ? `${selectedPlan.classSection.standardId.name ? ` ${selectedPlan.classSection.standardId.name}` : ''} — ${selectedPlan.classSection.sectionLabel}`
-                                                    : selectedPlan.classSection?.sectionLabel}
-                                            </div>
-                                        </div>
-                                        <h2 className="text-2xl font-black uppercase font-outfit tracking-tighter text-white">{selectedPlan.topic}</h2>
-                                        <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2">
-                                            <Calendar size={12} className="text-brand-primary" />
-                                            CREATED ON {moment(selectedPlan.date).format('MMMM DD, YYYY').toUpperCase()}
-                                        </p>
-                                    </div>
-                                    <button onClick={() => setIsDetailOpen(false)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all"><X size={20} /></button>
-                                </div>
-
-                                <div className="py-8 px-10 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                    <section className="space-y-4">
-                                        <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary/80 italic">
-                                            <CheckCircle2 size={16} /> 1. Lesson Objectives
-                                        </h4>
-                                        <div className="bg-slate-950/40 p-7 rounded-xl border border-white/5 shadow-inner">
-                                            <p className="text-xs text-slate-400 leading-relaxed font-medium whitespace-pre-wrap italic">
-                                                {selectedPlan.objectives || 'No learning objectives specified for this lesson plan.'}
-                                            </p>
-                                        </div>
-                                    </section>
-
-                                    <section className="space-y-4">
-                                        <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary/80 italic">
-                                            <Clock size={16} /> 2. Sub-Topics Breakdown
-                                        </h4>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                            {selectedPlan.subTopics?.length > 0 ? selectedPlan.subTopics.map((sub, idx) => (
-                                                <div key={idx} className="flex items-center gap-4 p-5 bg-slate-800/20 rounded-xl border border-white/5 group hover:border-brand-primary/30 transition-all">
-                                                    <div className="w-8 h-8 rounded-lg bg-slate-950 border border-brand-primary/20 flex items-center justify-center font-black text-[10px] text-brand-primary group-hover:scale-110 transition-transform shadow-lg">
-                                                        {idx + 1 < 10 ? `0${idx + 1}` : idx + 1}
-                                                    </div>
-                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">{sub}</span>
-                                                </div>
-                                            )) : (
-                                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic col-span-2 text-center py-6">No sub-topics added for this lesson.</p>
-                                            )}
-                                        </div>
-                                    </section>
-
-                                    <div className="pt-8 border-t border-slate-800 flex justify-between items-center text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">
-                                        <div className="flex items-center gap-2">
-                                            <div className={`w-2 h-2 rounded-full ${selectedPlan.status === 'Completed' ? 'bg-emerald-500' : 'bg-brand-primary'} animate-pulse`}></div>
-                                            STATUS: {selectedPlan.status}
-                                        </div>
-                                        <div className="font-mono opacity-50">PLAN_ID: {selectedPlan._id.slice(-8).toUpperCase()}</div>
-                                    </div>
-                                </div>
-                            </motion.div>
+                <form onSubmit={handleSubmit} className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Class/Section</label>
+                            <select required className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white" value={formData.classSection} onChange={(e) => { const classId = e.target.value; const selectedClassObj = classes?.find(c => c._id === classId); const firstSubjectId = selectedClassObj?.subjects?.[0]?._id || ''; setFormData({ ...formData, classSection: classId, subject: firstSubjectId }); }}>
+                                <option value="">SELECT CLASS</option>
+                                {classes?.map(c => <option key={c._id} value={c._id}>{c.standardId?.level} - {c.sectionLabel}</option>)}
+                            </select>
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Subject</label>
+                            <select required className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white" value={formData.subject} onChange={(e) => setFormData({ ...formData, subject: e.target.value })}>
+                                <option value="">SELECT SUBJECT</option>
+                                {formData.classSection ? (classes?.find(c => c._id === formData.classSection)?.subjects?.map(s => (<option key={s._id} value={s._id}>{s.name}</option>))) : (<option disabled>Please select a class first</option>)}
+                            </select>
                         </div>
                     </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Topic</label>
+                        <input required type="text" className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-600" placeholder="E.G. ALGEBRA FUNDAMENTALS" value={formData.topic} onChange={(e) => setFormData({ ...formData, topic: e.target.value })} />
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Sub-Topics (Comma Separated)</label>
+                        <input type="text" className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-600" placeholder="Introduction, Concepts, Examples..." value={formData.subTopics} onChange={(e) => setFormData({ ...formData, subTopics: e.target.value })} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Date</label>
+                            <input required type="date" className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Status</label>
+                            <select className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white" value={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.value })}>
+                                <option value="Draft">DRAFT</option>
+                                <option value="Published">PUBLISHED</option>
+                                <option value="Completed">COMPLETED</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Lesson Objectives</label>
+                        <textarea rows={4} className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[11px] font-medium tracking-tight outline-none focus:border-brand-primary text-white placeholder-slate-600" placeholder="Outline the learning objectives for this lesson..." value={formData.objectives} onChange={(e) => setFormData({ ...formData, objectives: e.target.value })} />
+                    </div>
+                    <button type="submit" disabled={isSubmitting} className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-lg hover:-translate-y-1 disabled:opacity-50 disabled:cursor-not-allowed">
+                        {isSubmitting ? 'PROCESSING...' : (isEditMode ? 'UPDATE LESSON PLAN' : 'SAVE LESSON PLAN')}
+                    </button>
+                </form>
+            </PortalModal>
+            {/* Detail Modal */}
+            <PortalModal isOpen={isDetailOpen && !!selectedPlan} onClose={() => setIsDetailOpen(false)} maxWidth="max-w-3xl">
+                {selectedPlan && (
+                    <>
+                        <div className="py-7 px-10 border-b border-slate-800 flex justify-between items-start">
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="px-3 py-1 bg-brand-primary/10 rounded-sm border border-brand-primary/30 text-[9px] font-black text-brand-primary uppercase tracking-widest leading-none">{selectedPlan.subject?.name}</div>
+                                    <div className="text-slate-500 text-[9px] font-black uppercase tracking-widest leading-none">{selectedPlan.classSection?.standardId?.level ? `${selectedPlan.classSection.standardId.name ? ` ${selectedPlan.classSection.standardId.name}` : ''} — ${selectedPlan.classSection.sectionLabel}` : selectedPlan.classSection?.sectionLabel}</div>
+                                </div>
+                                <h2 className="text-2xl font-black uppercase font-outfit tracking-tighter text-white">{selectedPlan.topic}</h2>
+                                <p className="text-slate-500 text-[10px] font-bold uppercase tracking-[0.2em] mt-1 flex items-center gap-2"><Calendar size={12} className="text-brand-primary" />CREATED ON {moment(selectedPlan.date).format('MMMM DD, YYYY').toUpperCase()}</p>
+                            </div>
+                            <button onClick={() => setIsDetailOpen(false)} className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-400 hover:text-white transition-all"><X size={20} /></button>
+                        </div>
+                        <div className="py-8 px-10 space-y-10 overflow-y-auto max-h-[60vh]">
+                            <section className="space-y-4">
+                                <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary/80 italic"><CheckCircle2 size={16} /> 1. Lesson Objectives</h4>
+                                <div className="bg-slate-950/40 p-7 rounded-xl border border-white/5">
+                                    <p className="text-xs text-slate-400 leading-relaxed font-medium whitespace-pre-wrap italic">{selectedPlan.objectives || 'No learning objectives specified for this lesson plan.'}</p>
+                                </div>
+                            </section>
+                            <section className="space-y-4">
+                                <h4 className="flex items-center gap-3 text-[10px] font-black uppercase tracking-[0.3em] text-brand-primary/80 italic"><Clock size={16} /> 2. Sub-Topics Breakdown</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {selectedPlan.subTopics?.length > 0 ? selectedPlan.subTopics.map((sub, idx) => (
+                                        <div key={idx} className="flex items-center gap-4 p-5 bg-slate-800/20 rounded-xl border border-white/5 group hover:border-brand-primary/30 transition-all">
+                                            <div className="w-8 h-8 rounded-lg bg-slate-950 border border-brand-primary/20 flex items-center justify-center font-black text-[10px] text-brand-primary">{idx + 1 < 10 ? `0${idx + 1}` : idx + 1}</div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors">{sub}</span>
+                                        </div>
+                                    )) : <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic col-span-2 text-center py-6">No sub-topics added for this lesson.</p>}
+                                </div>
+                            </section>
+                            <div className="pt-8 border-t border-slate-800 flex justify-between items-center text-[10px] font-black text-slate-600 uppercase tracking-[0.3em]">
+                                <div className="flex items-center gap-2"><div className={`w-2 h-2 rounded-full ${selectedPlan.status === 'Completed' ? 'bg-emerald-500' : 'bg-brand-primary'} animate-pulse`}></div>STATUS: {selectedPlan.status}</div>
+                                <div className="font-mono opacity-50">PLAN_ID: {selectedPlan._id.slice(-8).toUpperCase()}</div>
+                            </div>
+                        </div>
+                    </>
                 )}
-            </AnimatePresence>
+            </PortalModal>
         </div>
     );
 };

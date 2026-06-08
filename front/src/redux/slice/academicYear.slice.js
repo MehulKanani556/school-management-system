@@ -25,6 +25,18 @@ import {
   fetchFinancialReport,
   fetchPayroll,
 } from './accountant.slice';
+import {
+  fetchStudentProfile,
+  fetchStudentAttendance,
+  fetchStudentResults,
+  fetchStudentAssignments,
+  fetchStudentTimetable,
+  fetchStudentFees,
+  fetchStudentExams,
+  fetchStudentNotices,
+  fetchStudentAnnouncements,
+  fetchMySubmissions,
+} from './student.slice';
 
 export const fetchAcademicYears = createAsyncThunk(
   'academicYear/fetchAll',
@@ -74,6 +86,19 @@ export const refetchYearSensitiveData = createAsyncThunk(
         dispatch(fetchAccountantFeeStructures()),
         dispatch(fetchPayroll()),
         dispatch(fetchFinancialReport({})),
+      );
+    } else if (role === 'Student') {
+      tasks.push(
+        dispatch(fetchStudentProfile()),
+        dispatch(fetchStudentAttendance()),
+        dispatch(fetchStudentResults()),
+        dispatch(fetchStudentAssignments()),
+        dispatch(fetchStudentTimetable()),
+        dispatch(fetchStudentFees()),
+        dispatch(fetchStudentExams()),
+        dispatch(fetchStudentNotices()),
+        dispatch(fetchStudentAnnouncements()),
+        dispatch(fetchMySubmissions()),
       );
     }
 

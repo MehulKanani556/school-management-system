@@ -10,9 +10,9 @@ export const fetchStudentProfile = createAsyncThunk('student/fetchProfile', asyn
     }
 });
 
-export const fetchStudentAttendance = createAsyncThunk('student/fetchAttendance', async (_, { rejectWithValue }) => {
+export const fetchStudentAttendance = createAsyncThunk('student/fetchAttendance', async (params, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.get('/student/attendance');
+        const response = await axiosInstance.get('/student/attendance', { params });
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data.message);
@@ -227,7 +227,7 @@ const studentSlice = createSlice({
                 state.submissions = action.payload;
             })
             .addCase(submitAssignment.fulfilled, (state, action) => {
-                state.message = action.payload.message;
+                state.message = "Assignment Submitted Successfully.";
             })
             .addCase(updateStudentProfile.fulfilled, (state, action) => {
                 state.profile = action.payload.student;

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchBooksSlice, addBookSlice, deleteBookSlice, updateBookSlice, fetchCategoriesSlice } from '../../redux/slice/librarian.slice';
 import { Library, Search, Plus, Trash2, Edit3, User, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PortalModal from '../../components/PortalModal';
 
 const BookInventory = () => {
     const dispatch = useDispatch();
@@ -179,231 +180,60 @@ const BookInventory = () => {
                 </div>
             </div>
 
-            <AnimatePresence>
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-6 sm:p-0">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }} 
-                            onClick={() => setIsModalOpen(false)} 
-                            className="fixed inset-0 bg-neutral-950/90 backdrop-blur-xl"
-                        ></motion.div>
-                        <motion.div initial={{ scale: 0.95, opacity: 0, y: 30 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 30 }} className="bg-neutral-900 w-full max-w-2xl rounded-2xl border border-white/5 shadow-[0_0_50px_-12px_rgba(79,70,229,0.3)] relative z-10 overflow-hidden font-outfit">
-                            <form onSubmit={handleSubmit} className="p-0">
-                                {/* Header */}
-                                <div className="px-10 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-xl font-black italic uppercase tracking-tighter text-librarian-primary leading-none">
-                                            {editingBook ? 'Update Book Details' : 'Add New Book'}
-                                        </h3>
-                                        <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic opacity-60">Enter book details below</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        {['Physical', 'E-Book'].map(t => (
-                                            <button 
-                                                key={t}
-                                                type="button" 
-                                                onClick={() => setFormData({...formData, type: t})}
-                                                className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${
-                                                    formData.type === t 
-                                                    ? 'bg-librarian-primary border-librarian-primary text-white shadow-lg shadow-librarian-primary/20' 
-                                                    : 'bg-neutral-950 border-slate-800/60 text-slate-500 hover:text-white'
-                                                }`}
-                                            >
-                                                {t}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                <div className="px-10 py-8 space-y-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                                    {/* Section: Core Identity */}
-                                    <div className="space-y-5">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-librarian-primary"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Basic Information</h4>
-                                        </div>
-                                        <div className="grid grid-cols-1 gap-5">
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <Library size={10} /> Title
-                                                </label>
-                                                <input 
-                                                    type="text" 
-                                                    required
-                                                    placeholder="The Chronicles of Knowledge..."
-                                                    value={formData.title}
-                                                    onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <Search size={10} /> ISBN Number
-                                                </label>
-                                                <input 
-                                                    type="text" 
-                                                    required
-                                                    placeholder="ISBN-000-00-000"
-                                                    value={formData.isbn}
-                                                    onChange={(e) => setFormData({...formData, isbn: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1 flex items-center gap-1.5">
-                                                    <User size={10} /> Author Name
-                                                </label>
-                                                <input 
-                                                    type="text" 
-                                                    required
-                                                    placeholder="Dr. John Doe..."
-                                                    value={formData.author}
-                                                    onChange={(e) => setFormData({...formData, author: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Section: Volume Archetype Specifics */}
-                                    <div className="space-y-5">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Stock & Location</h4>
-                                        </div>
-                                        
-                                        {formData.type === 'Physical' ? (
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Total Copies</label>
-                                                    <input 
-                                                        type="number" 
-                                                        required
-                                                        min="1"
-                                                        value={formData.totalCopies}
-                                                        onChange={(e) => setFormData({...formData, totalCopies: parseInt(e.target.value)})}
-                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Shelf / Location</label>
-                                                    <input 
-                                                        type="text" 
-                                                        placeholder="Shelf A-12, Sector 4..."
-                                                        value={formData.location}
-                                                        onChange={(e) => setFormData({...formData, location: e.target.value})}
-                                                        className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                    />
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-5 bg-purple-500/5 border border-purple-500/10 rounded-2xl p-6">
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-purple-400 italic ml-1 flex items-center gap-1.5">
-                                                        <Edit3 size={10} /> E-Book Link (URL)
-                                                    </label>
-                                                    <input 
-                                                        type="url" 
-                                                        placeholder="https://external-archive.com/volume.pdf"
-                                                        value={formData.fileUrl}
-                                                        onChange={(e) => setFormData({...formData, fileUrl: e.target.value})}
-                                                        className="w-full bg-neutral-950 border border-purple-500/20 rounded-xl py-4 px-5 text-xs font-bold text-slate-300 focus:outline-none focus:border-purple-500/50 transition-all italic placeholder:text-slate-800"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-[9px] font-black uppercase tracking-widest text-purple-400 italic ml-1">Upload E-Book File</label>
-                                                    <div className="relative group/upload h-32">
-                                                        <input 
-                                                            type="file" 
-                                                            accept=".pdf,.epub,.txt"
-                                                            onChange={(e) => setBookFile(e.target.files[0])}
-                                                            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
-                                                        />
-                                                        <div className="w-full h-full bg-black/40 border-2 border-dashed border-purple-500/20 rounded-xl flex flex-col items-center justify-center gap-2 group-hover/upload:border-purple-500/40 group-hover/upload:bg-purple-500/5 transition-all">
-                                                            <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400">
-                                                                <Plus size={20} />
-                                                            </div>
-                                                            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">
-                                                                {bookFile ? bookFile.name : 'Drag or click to upload PDF/E-Book'}
-                                                            </span>
-                                                            <span className="text-[8px] text-slate-600 uppercase tracking-widest font-bold">Max Limit: 5.0 MB Matrix</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    {/* Section: Secondary Metadata */}
-                                    <div className="space-y-5">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-slate-600"></span>
-                                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic">Other Details</h4>
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Category</label>
-                                                <input 
-                                                    list="categories"
-                                                    type="text" 
-                                                    placeholder="Scientific..."
-                                                    value={formData.category}
-                                                    onChange={(e) => setFormData({...formData, category: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                />
-                                                <datalist id="categories">
-                                                    {categories.map(c => <option key={c} value={c} />)}
-                                                </datalist>
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Publisher</label>
-                                                <input 
-                                                    type="text" 
-                                                    placeholder="Global Press..."
-                                                    value={formData.publisher}
-                                                    onChange={(e) => setFormData({...formData, publisher: e.target.value})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800"
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-600 italic ml-1">Publication Year</label>
-                                                <input 
-                                                    type="number" 
-                                                    value={formData.publicationYear}
-                                                    onChange={(e) => setFormData({...formData, publicationYear: parseInt(e.target.value)})}
-                                                    className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {/* Footer Actions */}
-                                <div className="p-8 border-t border-white/5 bg-white/[0.01] flex gap-4">
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setIsModalOpen(false)} 
-                                        className="flex-1 px-6 py-4 border border-white/5 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-white/5 transition-all rounded-xl leading-none"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button 
-                                        type="submit" 
-                                        className="flex-[2] px-6 py-4 bg-librarian-primary text-[11px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:bg-librarian-primary transition-all shadow-xl shadow-librarian-primary/20 leading-none flex items-center justify-center gap-2 group"
-                                    >
-                                        {editingBook ? 'Update Book' : 'Add Book'}
-                                        <Plus size={14} className="group-hover:rotate-90 transition-transform" />
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
+            <PortalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="max-w-2xl">
+                <form onSubmit={handleSubmit}>
+                    <div className="px-10 py-6 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                        <div>
+                            <h3 className="text-xl font-black italic uppercase tracking-tighter text-librarian-primary leading-none">{editingBook ? 'Update Book Details' : 'Add New Book'}</h3>
+                            <p className="text-[10px] text-slate-500 uppercase tracking-widest mt-1 font-bold italic opacity-60">Enter book details below</p>
+                        </div>
+                        <div className="flex gap-2">
+                            {['Physical', 'E-Book'].map(t => (<button key={t} type="button" onClick={() => setFormData({...formData, type: t})} className={`px-3 py-1.5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all border ${formData.type === t ? 'bg-librarian-primary border-librarian-primary text-white' : 'bg-neutral-950 border-slate-800/60 text-slate-500 hover:text-white'}`}>{t}</button>))}
+                        </div>
                     </div>
-                )}
-            </AnimatePresence>
+                    <div className="px-10 py-8 space-y-8 max-h-[65vh] overflow-y-auto">
+                        <div className="space-y-5">
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-librarian-primary inline-block"></span>Basic Information</h4>
+                            <input type="text" required placeholder="Book Title..." value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" />
+                            <div className="grid grid-cols-2 gap-5">
+                                <input type="text" required placeholder="ISBN-000-00-000" value={formData.isbn} onChange={(e) => setFormData({...formData, isbn: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" />
+                                <input type="text" required placeholder="Author Name..." value={formData.author} onChange={(e) => setFormData({...formData, author: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" />
+                            </div>
+                        </div>
+                        <div className="space-y-5">
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-purple-500 inline-block"></span>Stock & Location</h4>
+                            {formData.type === 'Physical' ? (
+                                <div className="grid grid-cols-2 gap-5">
+                                    <input type="number" required min="1" placeholder="Total Copies" value={formData.totalCopies} onChange={(e) => setFormData({...formData, totalCopies: parseInt(e.target.value)})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic" />
+                                    <input type="text" placeholder="Shelf / Location..." value={formData.location} onChange={(e) => setFormData({...formData, location: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" />
+                                </div>
+                            ) : (
+                                <div className="space-y-4 bg-purple-500/5 border border-purple-500/10 rounded-2xl p-6">
+                                    <input type="url" placeholder="E-Book URL (https://...)" value={formData.fileUrl} onChange={(e) => setFormData({...formData, fileUrl: e.target.value})} className="w-full bg-neutral-950 border border-purple-500/20 rounded-xl py-4 px-5 text-xs font-bold text-slate-300 focus:outline-none focus:border-purple-500/50 transition-all italic placeholder:text-slate-800" />
+                                    <div className="relative h-24">
+                                        <input type="file" accept=".pdf,.epub,.txt" onChange={(e) => setBookFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10" />
+                                        <div className="w-full h-full bg-black/40 border-2 border-dashed border-purple-500/20 rounded-xl flex items-center justify-center gap-2">
+                                            <span className="text-[10px] font-black uppercase tracking-tighter text-slate-400 italic">{bookFile ? bookFile.name : 'Upload PDF / E-Book'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        <div className="space-y-5">
+                            <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-slate-400 italic flex items-center gap-2"><span className="w-1.5 h-1.5 rounded-full bg-slate-600 inline-block"></span>Other Details</h4>
+                            <div className="grid grid-cols-3 gap-5">
+                                <div><input list="categories" type="text" placeholder="Category..." value={formData.category} onChange={(e) => setFormData({...formData, category: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" /><datalist id="categories">{categories.map(c => <option key={c} value={c} />)}</datalist></div>
+                                <input type="text" placeholder="Publisher..." value={formData.publisher} onChange={(e) => setFormData({...formData, publisher: e.target.value})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic placeholder:text-slate-800" />
+                                <input type="number" value={formData.publicationYear} onChange={(e) => setFormData({...formData, publicationYear: parseInt(e.target.value)})} className="w-full bg-neutral-950 border border-white/5 rounded-xl py-4 px-5 text-sm font-bold text-slate-200 focus:outline-none focus:border-librarian-primary/50 transition-all italic" />
+                            </div>
+                        </div>
+                    </div>
+                    <div className="p-8 border-t border-white/5 flex gap-4">
+                        <button type="button" onClick={() => setIsModalOpen(false)} className="flex-1 px-6 py-4 border border-white/5 text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-white/5 transition-all rounded-xl leading-none">Cancel</button>
+                        <button type="submit" className="flex-[2] px-6 py-4 bg-librarian-primary text-[11px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl transition-all shadow-xl shadow-librarian-primary/20 leading-none">{editingBook ? 'Update Book' : 'Add Book'}</button>
+                    </div>
+                </form>
+            </PortalModal>
         </motion.div>
     );
 };

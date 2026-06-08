@@ -202,7 +202,9 @@ exports.createNotice = async (req, res) => {
 exports.sendMessage = async (req, res) => {
     try {
         const { recipient, recipientId, subject, content, type, targetRole, classSection, academicYearId, schoolId: providedSchoolId } = req.body;
-        const schoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
+        // Normalize schoolId — for Students it may be a populated object
+        const rawSchoolId = req.user.role === 'Super_Admin' ? (providedSchoolId || null) : req.user.schoolId;
+        const schoolId = rawSchoolId?._id || rawSchoolId;
         const fileUrl = req.file ? req.file.location : null;
 
         const finalType = recipient || recipientId ? 'DirectMessage' : (type || 'Announcement');
@@ -351,39 +353,80 @@ exports.getNotices = async (req, res) => {
     }
 };
 
+// Helper to populate sender/recipient from Student collection if populate('sender/recipient') from User returns null
+const populateMessageSendersAndRecipients = async (messages, schoolId) => {
+    const enriched = [];
+    for (let msg of messages) {
+        const msgObj = msg.toObject();
+        
+        // Handle sender fallback if null after populate
+        if (!msgObj.sender) {
+            const rawSenderId = msg.populated('sender');
+            if (rawSenderId) {
+                const student = await Student.findById(rawSenderId).select('firstName lastName photo role email').lean();
+                if (student) {
+                    msgObj.sender = { ...student, role: 'Student', _id: student._id };
+                } else {
+                    msgObj.sender = { _id: rawSenderId, firstName: 'Unknown', lastName: 'User' };
+                }
+            }
+        }
+        
+        // Handle recipient fallback if null after populate
+        if (!msgObj.recipient) {
+            const rawRecipientId = msg.populated('recipient');
+            if (rawRecipientId) {
+                const student = await Student.findById(rawRecipientId).select('firstName lastName photo role email').lean();
+                if (student) {
+                    msgObj.recipient = { ...student, role: 'Student', _id: student._id };
+                } else {
+                    msgObj.recipient = { _id: rawRecipientId, firstName: 'Unknown', lastName: 'User' };
+                }
+            }
+        }
+
+        // Now run enrichUserProfiles if they exist
+        if (msgObj.sender) {
+            msgObj.sender = await enrichUserProfiles(msgObj.sender, schoolId);
+        }
+        if (msgObj.recipient) {
+            msgObj.recipient = await enrichUserProfiles(msgObj.recipient, schoolId);
+        }
+        enriched.push(msgObj);
+    }
+    return enriched;
+};
+
 // Get personal feed (messages/announcements where user is involved)
 exports.getMyMessages = async (req, res) => {
     try {
         const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
-        const baseQuery = { schoolId: req.user.schoolId };
-        if (activeYearId) {
-            baseQuery.academicYearId = activeYearId;
-        }
-
-        const messages = await Message.find({
-            ...baseQuery,
+        // Normalize schoolId — for Students it may be a populated object
+        const schoolId = req.user.schoolId?._id || req.user.schoolId;
+        const query = {
+            schoolId,
             $or: [
-                { recipient: req.user._id },
-                { sender: req.user._id },
-                { type: 'Announcement', targetRole: { $in: ['All', req.user.role] } }
+                {
+                    type: 'DirectMessage',
+                    $or: [
+                        { recipient: req.user._id },
+                        { sender: req.user._id }
+                    ]
+                },
+                {
+                    type: 'Announcement',
+                    targetRole: { $in: ['All', req.user.role] },
+                    ...(activeYearId ? { academicYearId: activeYearId } : {})
+                }
             ]
-        })
+        };
+
+        const messages = await Message.find(query)
         .populate('sender', 'firstName lastName photo role email')
         .populate('recipient', 'firstName lastName photo role email')
         .sort({ createdAt: -1 });
 
-        const enrichedMessages = [];
-        for (let msg of messages) {
-            const msgObj = msg.toObject();
-            if (msgObj.sender) {
-                msgObj.sender = await enrichUserProfiles(msgObj.sender, req.user.schoolId);
-            }
-            if (msgObj.recipient) {
-                msgObj.recipient = await enrichUserProfiles(msgObj.recipient, req.user.schoolId);
-            }
-            enrichedMessages.push(msgObj);
-        }
-        
+        const enrichedMessages = await populateMessageSendersAndRecipients(messages, schoolId);
         res.json(enrichedMessages);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -397,9 +440,11 @@ exports.getChatHistory = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = 50;
         const skip = (page - 1) * limit;
+        // Normalize schoolId — for Students it may be a populated object
+        const schoolId = req.user.schoolId?._id || req.user.schoolId;
 
         const messages = await Message.find({
-            schoolId: req.user.schoolId,
+            schoolId: schoolId,
             type: 'DirectMessage',
             $or: [
                 { sender: req.user._id, recipient: otherUserId },
@@ -412,7 +457,8 @@ exports.getChatHistory = async (req, res) => {
         .skip(skip)
         .limit(limit);
 
-        res.json(messages);
+        const enrichedMessages = await populateMessageSendersAndRecipients(messages, schoolId);
+        res.json(enrichedMessages);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -421,7 +467,8 @@ exports.getChatHistory = async (req, res) => {
 // Get available contacts in the school (excluding self and students for now)
 exports.getContacts = async (req, res) => {
     try {
-        const schoolId = req.user.schoolId;
+        // Normalize schoolId — for Students it may be a populated object
+        const schoolId = req.user.schoolId?._id || req.user.schoolId;
         const currentUserId = req.user._id;
         let contacts = [];
 
@@ -513,10 +560,12 @@ exports.markMessagesAsRead = async (req, res) => {
 exports.deleteChatHistory = async (req, res) => {
     try {
         const { otherUserId } = req.params;
+        // Normalize schoolId — for Students it may be a populated object
+        const schoolId = req.user.schoolId?._id || req.user.schoolId;
         
         // Delete all messages between current user and the other user
         const result = await Message.deleteMany({
-            schoolId: req.user.schoolId,
+            schoolId,
             type: 'DirectMessage',
             $or: [
                 { sender: req.user._id, recipient: otherUserId },

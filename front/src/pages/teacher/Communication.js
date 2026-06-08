@@ -378,7 +378,11 @@ const Communication = () => {
             if (!groups[pId]) groups[pId] = { partner, messages: [] };
             groups[pId].messages.push(msg);
         });
-        return Object.values(groups).sort((a, b) => new Date(b.messages[0].createdAt) - new Date(a.messages[0].createdAt));
+        return Object.values(groups).sort((a, b) => {
+            const aTime = Math.max(...a.messages.map(m => new Date(m.createdAt).getTime() || 0));
+            const bTime = Math.max(...b.messages.map(m => new Date(m.createdAt).getTime() || 0));
+            return bTime - aTime;
+        });
     }, [sentMessages, currentUser]);
 
     const activeConversation = useMemo(() => {
@@ -531,53 +535,51 @@ const Communication = () => {
                                     </div>
                                 </div>
                                 <div className="flex-1 overflow-y-auto p-3 space-y-1.5 custom-scrollbar">
-                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mb-4 italic">Active Conversations</p>
-                                    {filteredConversations.length > 0 ? (
-                                        filteredConversations.map(conv => {
-                                            const p = conv.partner;
-                                            const isActive = selectedChat === (p._id || p);
-                                            return (
-                                                <button
-                                                    key={p._id || p}
-                                                    onClick={() => setSelectedChat(p._id || p)}
-                                                    className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border group ${isActive ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
-                                                >
-                                                    <div className="w-11 h-11 rounded-md bg-slate-800 border border-white/5 overflow-hidden shadow-lg relative shrink-0">
-                                                        {p.photo ? <img src={p.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
-                                                        <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-md border-2 border-slate-900 shadow-xl"></div>
-                                                        {unreadCounts[p._id] > 0 && (
-                                                            <div className="absolute top-0 right-0 w-3 h-3 bg-brand-primary rounded-bl-sm flex items-center justify-center text-[7px] font-black text-white shadow-glow">{unreadCounts[p._id]}</div>
-                                                        )}
-                                                    </div>
-                                                    <div className="text-left min-w-0 flex-1">
-                                                        <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{p.firstName} {p.lastName}</h4>
-                                                        {p.role === 'Parent' ? (
-                                                            <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
-                                                                {p.parentInfo || 'Parent'}
-                                                            </p>
-                                                        ) : p.role === 'Student' ? (
-                                                            <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
-                                                                Student {p.studentInfo ? `(${p.studentInfo})` : ''}
-                                                            </p>
-                                                        ) : (
-                                                            p.role && <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">{p.role}</p>
-                                                        )}
-                                                        <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1.5">{conv.messages[0].content}</p>
-                                                    </div>
-                                                    <div className="flex flex-col items-end gap-1.5">
-                                                        <span className="text-[7px] font-bold text-slate-600">{new Date(conv.messages[0].createdAt).toLocaleDateString([], { day: '2-digit', month: 'short' })}</span>
-                                                        {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-glow shadow-lg"></div>}
-                                                    </div>
-                                                </button>
-                                            );
-                                        })
-                                    ) : (
-                                        <div className="text-center py-8">
-                                            <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest italic">No conversations found</p>
-                                        </div>
+                                    {filteredConversations.length > 0 && (
+                                        <>
+                                            <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mb-4 italic">Active Conversations</p>
+                                            {filteredConversations.map(conv => {
+                                                const p = conv.partner;
+                                                const isActive = selectedChat === (p._id || p);
+                                                return (
+                                                    <button
+                                                        key={p._id || p}
+                                                        onClick={() => setSelectedChat(p._id || p)}
+                                                        className={`w-full flex items-center gap-3 p-3 rounded-md transition-all border group ${isActive ? 'bg-brand-primary/10 border-brand-primary/30' : 'bg-transparent border-transparent hover:bg-slate-800/30'}`}
+                                                    >
+                                                        <div className="w-11 h-11 rounded-md bg-slate-800 border border-white/5 overflow-hidden shadow-lg relative shrink-0">
+                                                            {p.photo ? <img src={p.photo} alt="" className="w-full h-full object-cover" /> : <User className="w-full h-full p-2.5 text-slate-600" />}
+                                                            <div className="absolute top-1 right-1 w-2.5 h-2.5 bg-emerald-500 rounded-md border-2 border-slate-900 shadow-xl"></div>
+                                                            {unreadCounts[p._id] > 0 && (
+                                                                <div className="absolute top-0 right-0 w-3 h-3 bg-brand-primary rounded-bl-sm flex items-center justify-center text-[7px] font-black text-white shadow-glow">{unreadCounts[p._id]}</div>
+                                                            )}
+                                                        </div>
+                                                        <div className="text-left min-w-0 flex-1">
+                                                            <h4 className="text-white font-black text-[11px] uppercase tracking-tighter truncate italic">{p.firstName} {p.lastName}</h4>
+                                                            {p.role === 'Parent' ? (
+                                                                <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                                    {p.parentInfo || 'Parent'}
+                                                                </p>
+                                                            ) : p.role === 'Student' ? (
+                                                                <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">
+                                                                    Student {p.studentInfo ? `(${p.studentInfo})` : ''}
+                                                                </p>
+                                                            ) : (
+                                                                p.role && <p className="text-[7px] text-brand-primary font-black uppercase tracking-widest leading-none mt-0.5 truncate">{p.role}</p>
+                                                            )}
+                                                            <p className="text-[9px] text-slate-500 font-bold truncate italic leading-none mt-1.5">{conv.messages[0].content}</p>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-1.5">
+                                                            <span className="text-[7px] font-bold text-slate-600">{new Date(conv.messages[0].createdAt).toLocaleDateString([], { day: '2-digit', month: 'short' })}</span>
+                                                            {conv.messages.some(m => !m.isRead) && <div className="w-1.5 h-1.5 rounded-md bg-brand-primary animate-pulse shadow-glow shadow-lg"></div>}
+                                                        </div>
+                                                    </button>
+                                                );
+                                            })}
+                                        </>
                                     )}
 
-                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mt-8 mb-4 italic">Available Contacts</p>
+                                    <p className={`text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 mb-4 italic ${filteredConversations.length > 0 ? 'mt-8' : 'mt-2'}`}>Available Contacts</p>
                                     {filteredContacts.length > 0 ? (
                                         filteredContacts.map(t => (
                                             <button

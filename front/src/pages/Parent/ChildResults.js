@@ -19,10 +19,10 @@ const ChildResults = () => {
         const p = (obtained / total) * 100;
         if (p >= 90) return { label: 'A+', color: 'text-emerald-400' };
         if (p >= 80) return { label: 'A', color: 'text-emerald-500' };
-        if (p >= 70) return { label: 'B+', color: 'text-brand-primary' };
-        if (p >= 60) return { label: 'B', color: 'text-brand-secondary' };
-        if (p >= 50) return { label: 'C', color: 'text-parent-primary' };
-        return { label: 'D', color: 'text-rose-400' };
+        if (p >= 70) return { label: 'B', color: 'text-brand-primary' };
+        if (p >= 60) return { label: 'C', color: 'text-brand-secondary' };
+        if (p >= 40) return { label: 'D', color: 'text-parent-primary' };
+        return { label: 'F', color: 'text-rose-400' };
     };
 
     return (

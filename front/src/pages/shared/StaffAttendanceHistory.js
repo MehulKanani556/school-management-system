@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
+import PortalModal from '../../components/PortalModal';
 
 const StaffAttendanceHistory = () => {
     const dispatch = useDispatch();
@@ -171,50 +172,45 @@ const StaffAttendanceHistory = () => {
                 </div>
             </div>
 
-            <AnimatePresence>
+            <PortalModal isOpen={!!selectedDate} onClose={() => setSelectedDate(null)} maxWidth="max-w-2xl">
                 {selectedDate && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-8">
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setSelectedDate(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-xl" />
-                        <motion.div initial={{ scale: 0.9, opacity: 0, y: 40 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 40 }} className="relative bg-slate-900 border border-white/10 rounded-[4rem] w-full max-w-2xl overflow-hidden shadow-3xl ring-1 ring-white/10">
-                            <div className="p-16 space-y-12">
-                                <div className="flex items-center justify-between">
-                                    <div className="space-y-3">
-                                        <p className={`text-[10px] font-black uppercase tracking-[0.6em] ${roleColor}`}>Presence Signal</p>
-                                        <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">{moment(selectedDate.date).format('MMMM DD, YYYY')}</h3>
-                                    </div>
-                                    <div className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] ${statusConfig[selectedDate.status]?.bg} ${statusConfig[selectedDate.status]?.color} border-2 ${statusConfig[selectedDate.status]?.border} shadow-2xl`}>
-                                        {selectedDate.status}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-10">
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-4 text-slate-500">
-                                            <div className="p-3 bg-white/5 rounded-xl"><Clock size={16} /></div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Temporal Marker</p>
-                                        </div>
-                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
-                                            <p className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">{selectedDate.arrivalTime || '--:--'}</p>
-                                            <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic">Arrival Timestamp</p>
-                                        </div>
-                                    </div>
-                                    <div className="space-y-6">
-                                        <div className="flex items-center gap-4 text-slate-500">
-                                            <div className="p-3 bg-white/5 rounded-xl"><Info size={16} /></div>
-                                            <p className="text-[10px] font-black uppercase tracking-[0.3em]">Operational Log</p>
-                                        </div>
-                                        <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
-                                            <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '-- No Exceptions Logged --'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500">Dismiss Terminal</button>
+                    <div className="p-16 space-y-12">
+                        <div className="flex items-center justify-between">
+                            <div className="space-y-3">
+                                <p className={`text-[10px] font-black uppercase tracking-[0.6em] ${roleColor}`}>Presence Signal</p>
+                                <h3 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">{moment(selectedDate.date).format('MMMM DD, YYYY')}</h3>
                             </div>
-                        </motion.div>
+                            <div className={`px-10 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] ${statusConfig[selectedDate.status]?.bg} ${statusConfig[selectedDate.status]?.color} border-2 ${statusConfig[selectedDate.status]?.border} shadow-2xl`}>
+                                {selectedDate.status}
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-10">
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4 text-slate-500">
+                                    <div className="p-3 bg-white/5 rounded-xl"><Clock size={16} /></div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em]">Temporal Marker</p>
+                                </div>
+                                <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                    <p className="text-3xl font-black text-white italic tracking-tighter uppercase leading-none mb-1">{selectedDate.arrivalTime || '--:--'}</p>
+                                    <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest italic">Arrival Timestamp</p>
+                                </div>
+                            </div>
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-4 text-slate-500">
+                                    <div className="p-3 bg-white/5 rounded-xl"><Info size={16} /></div>
+                                    <p className="text-[10px] font-black uppercase tracking-[0.3em]">Operational Log</p>
+                                </div>
+                                <div className="p-8 bg-black/40 rounded-3xl border border-white/5">
+                                    <p className="text-[11px] font-black text-slate-400 uppercase leading-relaxed italic line-clamp-2">{selectedDate.remarks || '-- No Exceptions Logged --'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onClick={() => setSelectedDate(null)} className="w-full py-8 bg-white/5 hover:bg-white/10 border border-white/10 rounded-3xl text-[10px] font-black uppercase tracking-[0.5em] text-white transition-all duration-500">Dismiss Terminal</button>
                     </div>
                 )}
-            </AnimatePresence>
+            </PortalModal>
         </motion.div>
     );
 };

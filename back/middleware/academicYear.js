@@ -7,8 +7,13 @@ module.exports = async (req, res, next) => {
   const ayId = headerId || queryId;
 
   try {
-    const schoolId = req.user?.schoolId
-      ? new mongoose.Types.ObjectId(req.user.schoolId)
+    // Normalize schoolId — for Students it may be a populated School object
+    const rawSchoolId = req.user?.schoolId;
+    const resolvedSchoolId = (rawSchoolId && typeof rawSchoolId === 'object' && rawSchoolId._id)
+      ? rawSchoolId._id
+      : rawSchoolId;
+    const schoolId = resolvedSchoolId
+      ? new mongoose.Types.ObjectId(resolvedSchoolId)
       : null;
 
     if (ayId) {

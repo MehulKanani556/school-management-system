@@ -4,6 +4,7 @@ import { fetchAssignedClasses, fetchClassStudents, scheduleMeeting, fetchMeeting
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Clock, Search, Plus, X, Video, MapPin, CheckCircle2, MoreVertical, MessageSquare, ChevronRight } from 'lucide-react';
 import toast from 'react-hot-toast';
+import PortalModal from '../../components/PortalModal';
 
 const PTMMeetings = () => {
     const dispatch = useDispatch();
@@ -242,266 +243,113 @@ const PTMMeetings = () => {
                 </div>
             </div>
 
-            {/* Creation Matrix Modal */}
-            <AnimatePresence>
-                {isModalOpen && (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }} 
-                            className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl" 
-                            onClick={() => setIsModalOpen(false)} 
-                        />
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0, y: 50 }} 
-                            animate={{ scale: 1, opacity: 1, y: 0 }} 
-                            exit={{ scale: 0.9, opacity: 0, y: 50 }} 
-                            className="bg-slate-900 border border-slate-800/80 w-full max-w-2xl rounded-md overflow-hidden relative shadow-[0_0_100px_rgba(0,0,0,0.9)] z-10"
-                        >
-                            <div className="p-8 border-b border-white/5 flex justify-between items-center bg-slate-900/60 backdrop-blur-2xl">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
-                                        <Plus className="text-brand-primary" size={24} />
-                                    </div>
-                                    <div>
-                                        <h2 className="text-xl font-black uppercase font-outfit tracking-tighter">Schedule PTM Meeting</h2>
-                                        <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Enter Meeting Details</p>
-                                    </div>
-                                </div>
-                                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
+            {/* Schedule Meeting Modal */}
+            <PortalModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} maxWidth="max-w-2xl">
+                <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                    <div className="flex items-center gap-5">
+                        <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
+                            <Plus className="text-brand-primary" size={24} />
+                        </div>
+                        <div>
+                            <h2 className="text-xl font-black uppercase font-outfit tracking-tighter">Schedule PTM Meeting</h2>
+                            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-slate-500">Enter Meeting Details</p>
+                        </div>
+                    </div>
+                    <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-8 space-y-8 overflow-y-auto max-h-[70vh]">
+                    <div className="space-y-6">
+                        <div className="flex items-center gap-2 mb-4">
+                            {['Individual', 'Class'].map(s => (
+                                <button key={s} type="button" onClick={() => setFormData({...formData, scope: s})} className={`flex-1 py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${formData.scope === s ? 'bg-brand-primary border-brand-primary text-white' : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'}`}>{s} Meeting</button>
+                            ))}
+                        </div>
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Class/Section</label>
+                                <select required className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white transition-all appearance-none" value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); setFormData({...formData, classSection: e.target.value}); }}>
+                                    <option value="">SELECT CLASS</option>
+                                    {classes?.map(c => (<option key={c._id} value={c._id}>Std {c.standardId?.level || c.gradeLevel} ({c.sectionLabel})</option>))}
+                                </select>
                             </div>
+                            <div className="space-y-3">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Student Name</label>
+                                <select required={formData.scope === 'Individual'} disabled={formData.scope === 'Class'} className={`w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white transition-all appearance-none ${formData.scope === 'Class' ? 'opacity-30' : ''}`} value={formData.studentId} onChange={(e) => setFormData({...formData, studentId: e.target.value})}>
+                                    <option value="">{formData.scope === 'Class' ? 'NOT APPLICABLE' : 'SELECT STUDENT'}</option>
+                                    {students?.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Title</label>
+                        <input required type="text" className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-700 transition-all" placeholder="E.G. SEMESTER II PERFORMANCE REVIEW" value={formData.title} onChange={(e) => setFormData({...formData, title: e.target.value})} />
+                    </div>
+                    <div className="grid grid-cols-3 gap-6">
+                        <div className="space-y-3"><label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Date</label><input required type="date" className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black outline-none focus:border-brand-primary text-white" value={formData.date} onChange={(e) => setFormData({...formData, date: e.target.value})} /></div>
+                        <div className="space-y-3"><label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Start</label><input required type="time" className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black outline-none focus:border-brand-primary text-white" value={formData.startTime} onChange={(e) => setFormData({...formData, startTime: e.target.value})} /></div>
+                        <div className="space-y-3"><label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">End</label><input required type="time" className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black outline-none focus:border-brand-primary text-white" value={formData.endTime} onChange={(e) => setFormData({...formData, endTime: e.target.value})} /></div>
+                    </div>
+                    <div className="space-y-4 bg-slate-950/50 p-6 rounded-md border border-slate-800/80">
+                        <div className="flex items-center justify-between">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Mode</label>
+                            <div className="flex bg-slate-900 p-1 rounded-md border border-slate-800">
+                                {['In-Person', 'Online'].map(t => (<button key={t} type="button" onClick={() => setFormData({...formData, meetingType: t})} className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded transition-all ${formData.meetingType === t ? 'bg-brand-primary text-white' : 'text-slate-600 hover:text-slate-400'}`}>{t}</button>))}
+                            </div>
+                        </div>
+                        {formData.meetingType === 'Online' && (
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-2"><Video size={12} className="text-teacher-primary" />Meeting Link</label>
+                                <input type="url" className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-teacher-primary outline-none focus:border-teacher-primary/50 transition-all font-mono" placeholder="https://meet.google.com/xxx-xxxx-xxx" value={formData.meetingLink} onChange={(e) => setFormData({...formData, meetingLink: e.target.value})} />
+                            </div>
+                        )}
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description / Notes</label>
+                        <textarea rows={4} className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-medium outline-none focus:border-brand-primary text-white placeholder-slate-700 italic" placeholder="Outline the meeting agenda or points for discussion..." value={formData.description} onChange={(e) => setFormData({...formData, description: e.target.value})} />
+                    </div>
+                    <button type="submit" className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary text-white py-6 rounded-md font-black uppercase text-[12px] tracking-[0.3em] transition-all shadow-lg hover:-translate-y-1 active:scale-95">SAVE MEETING</button>
+                </form>
+            </PortalModal>
 
-                            <form onSubmit={handleSubmit} className="p-8 space-y-8 max-h-[80vh] overflow-y-auto custom-scrollbarThin">
-                                <div className="space-y-6">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        {['Individual', 'Class'].map(s => (
-                                            <button
-                                                key={s}
-                                                type="button"
-                                                onClick={() => setFormData({...formData, scope: s})}
-                                                className={`flex-1 py-3 rounded-md text-[10px] font-black uppercase tracking-widest border transition-all ${
-                                                    formData.scope === s ? 'bg-brand-primary border-brand-primary text-white' : 'bg-slate-950 border-slate-800 text-slate-500 hover:border-slate-700'
-                                                }`}
-                                            >
-                                                {s} Meeting
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div className="space-y-3">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Class/Section</label>
-                                            <select 
-                                                required
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white transition-all appearance-none"
-                                                value={selectedClass}
-                                                onChange={(e) => {
-                                                    setSelectedClass(e.target.value);
-                                                    setFormData({...formData, classSection: e.target.value});
-                                                }}
-                                            >
-                                                <option value="">SELECT CLASS</option>
-                                                {classes?.map(c => (
-                                                    <option key={c._id} value={c._id}>
-                                                        Std {c.standardId?.level || c.gradeLevel} ({c.sectionLabel})
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                        <div className="space-y-3">
-                                            <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Student Name</label>
-                                            <select 
-                                                required={formData.scope === 'Individual'}
-                                                disabled={formData.scope === 'Class'}
-                                                className={`w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white transition-all appearance-none ${formData.scope === 'Class' ? 'opacity-30' : ''}`}
-                                                value={formData.studentId}
-                                                onChange={(e) => setFormData({...formData, studentId: e.target.value})}
-                                            >
-                                                <option value="">{formData.scope === 'Class' ? 'NOT APPLICABLE' : 'SELECT STUDENT'}</option>
-                                                {students?.map(s => <option key={s._id} value={s._id}>{s.firstName} {s.lastName}</option>)}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Title</label>
-                                    <input 
-                                        required
-                                        type="text" 
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-700 transition-all hover:bg-slate-900"
-                                        placeholder="E.G. SEMESTER II PERFORMANCE REVIEW"
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-6">
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Date</label>
-                                        <input 
-                                            required
-                                            type="date" 
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.date}
-                                            onChange={(e) => setFormData({...formData, date: e.target.value})}
-                                        />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Start Time</label>
-                                        <input 
-                                            required
-                                            type="time" 
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.startTime}
-                                            onChange={(e) => setFormData({...formData, startTime: e.target.value})}
-                                        />
-                                    </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">End Time</label>
-                                        <input 
-                                            required
-                                            type="time" 
-                                            className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white"
-                                            value={formData.endTime}
-                                            onChange={(e) => setFormData({...formData, endTime: e.target.value})}
-                                        />
-                                    </div>
-                                </div>
-
-                                <div className="space-y-6 bg-slate-950/50 p-6 rounded-md border border-slate-800/80">
-                                    <div className="flex items-center justify-between mb-4">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 italic">Meeting Mode</label>
-                                        <div className="flex bg-slate-900 p-1 rounded-md border border-slate-800">
-                                            {['In-Person', 'Online'].map(t => (
-                                                <button 
-                                                    key={t}
-                                                    type="button"
-                                                    onClick={() => setFormData({...formData, meetingType: t})}
-                                                    className={`px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded transition-all ${formData.meetingType === t ? 'bg-brand-primary text-white shadow-lg shadow-brand-primary/20' : 'text-slate-600 hover:text-slate-400'}`}
-                                                >
-                                                    {t}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {formData.meetingType === 'Online' && (
-                                        <div className="space-y-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-2">
-                                                <Video size={12} className="text-teacher-primary" />
-                                                Meeting Link
-                                            </label>
-                                            <input 
-                                                type="url" 
-                                                className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-black text-teacher-primary outline-none focus:border-teacher-primary/50 transition-all font-mono"
-                                                placeholder="https://meet.google.com/xxx-xxxx-xxx"
-                                                value={formData.meetingLink}
-                                                onChange={(e) => setFormData({...formData, meetingLink: e.target.value})}
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-
-                                <div className="space-y-3">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Meeting Description / Notes</label>
-                                    <textarea 
-                                        rows={4}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-md p-5 text-[11px] font-medium tracking-tight outline-none focus:border-brand-primary text-white placeholder-slate-700 italic"
-                                        placeholder="Outline the meeting agenda or points for discussion..."
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                    />
-                                </div>
-
-                                <button 
-                                    type="submit"
-                                    className="w-full bg-gradient-to-r from-brand-primary to-brand-secondary hover:from-brand-primary/90 hover:to-brand-secondary/90 text-white py-6 rounded-md font-black uppercase text-[12px] tracking-[0.3em] transition-all shadow-[0_20px_40px_-15px_rgba(var(--brand-primary-rgb),0.3)] hover:-translate-y-1 active:scale-95"
-                                >
-                                    SAVE MEETING
+            {/* Detail Modal */}
+            <PortalModal isOpen={isDetailOpen && !!currentMeeting} onClose={() => setIsDetailOpen(false)} maxWidth="max-w-xl">
+                {currentMeeting && (
+                    <>
+                        <div className="p-8 border-b border-white/5 flex justify-between items-center">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center"><Clock className="text-brand-primary" size={20} /></div>
+                                <h2 className="text-lg font-black uppercase font-outfit tracking-tighter">Meeting Details</h2>
+                            </div>
+                            <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
+                        </div>
+                        <div className="p-8 space-y-8">
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Title</p>
+                                <h3 className="text-xl font-black text-white font-outfit uppercase">{currentMeeting.title}</h3>
+                            </div>
+                            <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-2"><p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Student Name</p><p className="text-sm font-black text-brand-primary uppercase">{currentMeeting.studentId?.firstName} {currentMeeting.studentId?.lastName}</p></div>
+                                <div className="space-y-2"><p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Time Slot</p><p className="text-sm font-black text-white uppercase font-mono italic">{new Date(currentMeeting.date).toLocaleDateString('en-IN')} | {currentMeeting.startTime} - {currentMeeting.endTime}</p></div>
+                            </div>
+                            <div className="space-y-2">
+                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Notes</p>
+                                <div className="bg-slate-950 p-6 rounded-md border border-slate-800 italic text-[11px] text-slate-400 font-medium leading-relaxed">{currentMeeting.description || 'No notes available.'}</div>
+                            </div>
+                            {(currentMeeting.meetingType === 'Online' || currentMeeting.meetingType === 'Virtual') && (
+                                <button onClick={() => handleJoinLink(currentMeeting.meetingLink)} className="w-full bg-teacher-primary/10 hover:bg-teacher-primary/20 text-teacher-primary py-4 rounded-md font-black uppercase text-[10px] tracking-widest border border-teacher-primary/20 transition-all flex items-center justify-center gap-3">
+                                    <Video size={16} />Join Online Meeting
                                 </button>
-                            </form>
-                        </motion.div>
-                    </div>
+                            )}
+                            {currentMeeting.status === 'Scheduled' && (
+                                <button onClick={() => { handleComplete(currentMeeting._id); setIsDetailOpen(false); }} className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-4 rounded-md font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-3">
+                                    <CheckCircle2 size={16} />Complete Meeting
+                                </button>
+                            )}
+                        </div>
+                    </>
                 )}
-            </AnimatePresence>
-            {/* Detail Protocol Modal */}
-            <AnimatePresence>
-                {isDetailOpen && currentMeeting && (
-                    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }} 
-                            className="fixed inset-0 bg-slate-950/90 backdrop-blur-xl" 
-                            onClick={() => setIsDetailOpen(false)} 
-                        />
-                        <motion.div 
-                            initial={{ scale: 0.9, opacity: 0 }} 
-                            animate={{ scale: 1, opacity: 1 }} 
-                            exit={{ scale: 0.9, opacity: 0 }} 
-                            className="bg-slate-900 border border-slate-800/80 w-full max-w-xl rounded-md overflow-hidden relative shadow-2xl z-10"
-                        >
-                            <div className="p-8 border-b border-white/5 bg-slate-900/60 flex justify-between items-center">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center">
-                                        <Clock className="text-brand-primary" size={20} />
-                                    </div>
-                                    <h2 className="text-lg font-black uppercase font-outfit tracking-tighter">Meeting Details</h2>
-                                </div>
-                                <button onClick={() => setIsDetailOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-all text-slate-500 hover:text-white"><X size={20}/></button>
-                            </div>
-                            
-                            <div className="p-8 space-y-8">
-                                <div className="space-y-2">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Title</p>
-                                    <h3 className="text-xl font-black text-white font-outfit uppercase">{currentMeeting.title}</h3>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Student Name</p>
-                                        <p className="text-sm font-black text-brand-primary uppercase">{currentMeeting.studentId?.firstName} {currentMeeting.studentId?.lastName}</p>
-                                    </div>
-                                    <div className="space-y-2">
-                                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Time Slot</p>
-                                        <p className="text-sm font-black text-white uppercase font-mono italic">{new Date(currentMeeting.date).toLocaleDateString('en-IN')} | {currentMeeting.startTime} - {currentMeeting.endTime}</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-2">
-                                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-500">Meeting Description / Notes</p>
-                                    <div className="bg-slate-950 p-6 rounded-md border border-slate-800 italic text-[11px] text-slate-400 font-medium tracking-tight leading-relaxed">
-                                        {currentMeeting.description || 'No notes available for this meeting.'}
-                                    </div>
-                                </div>
-
-                                {(currentMeeting.meetingType === 'Online' || currentMeeting.meetingType === 'Virtual') && (
-                                    <button 
-                                        onClick={() => handleJoinLink(currentMeeting.meetingLink)}
-                                        className="w-full bg-teacher-primary/10 hover:bg-teacher-primary/20 text-teacher-primary py-4 rounded-md font-black uppercase text-[10px] tracking-widest border border-teacher-primary/20 transition-all flex items-center justify-center gap-3 mb-2"
-                                    >
-                                        <Video size={16} />
-                                        Join Online Meeting
-                                    </button>
-                                )}
-                                {currentMeeting.status === 'Scheduled' && (
-                                    <button 
-                                        onClick={() => {
-                                            handleComplete(currentMeeting._id);
-                                            setIsDetailOpen(false);
-                                        }}
-                                        className="w-full bg-emerald-500 hover:bg-emerald-600 text-slate-950 py-4 rounded-md font-black uppercase text-[10px] tracking-widest transition-all flex items-center justify-center gap-3"
-                                    >
-                                        <CheckCircle2 size={16} />
-                                        Complete Meeting
-                                    </button>
-                                )}
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+            </PortalModal>
         </div>
     );
 };

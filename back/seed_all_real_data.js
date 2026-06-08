@@ -360,12 +360,19 @@ async function seed() {
           const { firstName, lastName } = H.personName(gender);
           const roll = String(s + 1).padStart(2, '0');
           const studentEmail = `student.${level}${secLabel.toLowerCase()}.${roll}@${content.SCHOOL.domain}`;
+          
+          const dob = H.faker.date.birthdate({ min: 5 + level, max: 6 + level, mode: 'age' });
+          const day = String(dob.getDate()).padStart(2, '0');
+          const month = String(dob.getMonth() + 1).padStart(2, '0');
+          const year = String(dob.getFullYear());
+          const plainPassword = `${day}${month}${year}`;
+          const hashedPassword = await H.hashPassword(plainPassword);
 
           const studentUser = await User.create({
             firstName,
             lastName,
             email: studentEmail,
-            password: hashedDefault,
+            password: hashedPassword,
             role: 'Student',
             schoolId,
             photo: H.avatarUrl(firstName, lastName),
@@ -396,9 +403,9 @@ async function seed() {
             firstName,
             lastName,
             email: studentEmail,
-            password: DEFAULT_PASSWORD,
+            password: hashedPassword,
             rollNumber: roll,
-            dateOfBirth: H.faker.date.birthdate({ min: 5 + level, max: 6 + level, mode: 'age' }),
+            dateOfBirth: dob,
             gender,
             guardianName: `${parentFirst} ${parentLast}`,
             guardianContact: parentUser.phoneNumber,

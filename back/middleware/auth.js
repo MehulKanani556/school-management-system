@@ -44,6 +44,17 @@ exports.auth = async (req, res, next) => {
                 currentUser = { ...currentUser._doc, role: 'Student' };
             }
 
+            // Normalize schoolId for students — flatten the populated School object to just the ObjectId
+            // This prevents bugs in controllers that do `schoolId: req.user.schoolId` expecting an ObjectId
+            if (decoded.role === 'Student' && currentUser.schoolId && typeof currentUser.schoolId === 'object' && currentUser.schoolId._id) {
+                const schoolDoc = currentUser.schoolId;
+                if (currentUser._doc) {
+                    currentUser = { ...currentUser._doc, role: 'Student', schoolId: schoolDoc._id, _schoolDoc: schoolDoc };
+                } else {
+                    currentUser = { ...currentUser, schoolId: schoolDoc._id, _schoolDoc: schoolDoc };
+                }
+            }
+
             req.user = currentUser;
             next();
         });

@@ -77,7 +77,8 @@ const AdminTimetable = () => {
     }, [selectedClass, dispatch]);
 
     useEffect(() => {
-        if (timetable && timetable.classSection === selectedClass) {
+        const timetableClassId = timetable?.classSection?._id || timetable?.classSection;
+        if (timetable && timetableClassId === selectedClass) {
             const newSchedule = {};
             days.forEach(day => {
                 const dayData = timetable.schedule.find(s => s.day === day);

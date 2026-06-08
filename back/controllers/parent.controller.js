@@ -21,6 +21,8 @@ const bcrypt = require('bcrypt');
 const nc = require('./notification.controller');
 const { Cashfree, CFEnvironment } = require('cashfree-pg');
 const { addAcademicYearFilter } = require('../utils/academicYearHelper');
+const StudentEnrollment = require('../models/studentEnrollment.model');
+const reportCardPDF = require('../utils/reportCardPDF');
 
 // Institutional Global Gateway Registry (v5/v6 Instance Mode)
 const cashfree = new Cashfree();
@@ -223,7 +225,17 @@ exports.downloadChildReportCard = async (req, res) => {
             .populate('standard classSection schoolId');
         if (!student) return res.status(404).json({ message: 'Child link unauthorized' });
 
-        const marks = await Mark.find({ studentId: student._id })
+        const school = student.schoolId;
+        if (!school) return res.status(404).json({ message: 'School not found' });
+
+        const enrollment = await StudentEnrollment.findOne({ studentId: student._id, academicYearId: req.academicYearId })
+            .populate('standardId')
+            .populate('classSectionId');
+        
+        const standardToPrint = enrollment?.standardId || student.standard;
+        const classSectionToPrint = enrollment?.classSectionId || student.classSection;
+
+        const marks = await Mark.find(addAcademicYearFilter({ studentId: student._id }, req.academicYearId))
             .populate({
                 path: 'examId',
                 match: { isPublished: true },
@@ -232,35 +244,15 @@ exports.downloadChildReportCard = async (req, res) => {
 
         const validMarks = marks.filter(m => m.examId !== null);
 
-        const doc = new PDFDocument({ margin: 40, size: 'A4' });
-        res.setHeader('Content-Type', 'application/pdf');
-        res.setHeader('Content-Disposition', `attachment; filename=ReportCard_${student.firstName}.pdf`);
-        doc.pipe(res);
-
-        // Reuse styling from student controller...
-        const darkColor = '#1e293b';
-        doc.rect(0, 0, 595, 120).fill(darkColor);
-        doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(student.schoolId?.name?.toUpperCase() || 'INSTITUTIONAL RECORD', 40, 45);
-        doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('GUARDIAN VERIFIED ACADEMIC REPORT', 40, 75, { characterSpacing: 2 });
-
-        doc.fillColor(darkColor).fontSize(12).font('Helvetica-Bold').text(`STUDENT: ${student.firstName} ${student.lastName}`, 40, 150);
-        doc.fontSize(10).font('Helvetica').text(`GRADE: ${student.standard?.level || 'N/A'} // SECTION: ${student.classSection?.sectionLabel || 'N/A'}`, 40, 170);
-
-        let y = 220;
-        doc.rect(40, y, 515, 25).fill('#f8fafc');
-        doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('SUBJECT', 50, y + 8);
-        doc.text('EXAM', 250, y + 8);
-        doc.text('MARKS', 450, y + 8, { align: 'right', width: 60 });
-        y += 30;
-
-        validMarks.forEach(m => {
-            doc.fillColor(darkColor).font('Helvetica').fontSize(9).text(m.examId.subject?.name?.toUpperCase() || 'N/A', 50, y);
-            doc.text(m.examId.name || 'N/A', 250, y);
-            doc.font('Helvetica-Bold').text(`${m.marksObtained} / ${m.examId.maxMarks || 100}`, 450, y, { align: 'right', width: 60 });
-            y += 20;
-        });
-
-        doc.end();
+        reportCardPDF.generatePDF(
+            res,
+            school,
+            student,
+            standardToPrint,
+            classSectionToPrint,
+            validMarks,
+            req.academicYearName
+        );
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
 

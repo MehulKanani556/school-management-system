@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchChildMeetings } from '../../redux/slice/parent.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Calendar, Users, Clock, Video, MapPin, CheckCircle2, MoreVertical, MessageSquare, ChevronRight, LayoutGrid } from 'lucide-react';
+import PortalModal from '../../components/PortalModal';
 
 const ChildMeetings = () => {
     const dispatch = useDispatch();
@@ -182,114 +183,97 @@ const ChildMeetings = () => {
                 </div>
             </div>
             {/* Detailed Manifest Modal */}
-            <AnimatePresence>
+            <PortalModal isOpen={!!selectedMeeting} onClose={() => setSelectedMeeting(null)} maxWidth="max-w-2xl">
                 {selectedMeeting && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-                        <motion.div 
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedMeeting(null)}
-                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                        ></motion.div>
-                        
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-2xl bg-[#0f0f12] border border-slate-800 rounded-md overflow-hidden shadow-2xl"
-                        >
-                            <div className="p-10">
-                                <div className="flex items-center justify-between mb-8">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
-                                            <Calendar className="text-brand-primary" size={24} />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-2xl font-black text-white uppercase tracking-tighter font-outfit">{selectedMeeting.title}</h2>
-                                            <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">PTM Protocol Manifest</p>
-                                        </div>
-                                    </div>
-                                    <button 
-                                        onClick={() => setSelectedMeeting(null)}
-                                        className="text-slate-500 hover:text-white transition-colors"
-                                    >
-                                        <MoreVertical size={24} />
-                                    </button>
+                    <div className="p-10">
+                        <div className="flex items-center justify-between mb-8">
+                            <div className="flex items-center gap-4">
+                                <div className="w-12 h-12 rounded-lg bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
+                                    <Calendar className="text-brand-primary" size={24} />
                                 </div>
-
-                                <div className="grid grid-cols-2 gap-6 mb-10">
-                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
-                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
-                                            <Calendar size={12} />
-                                            Date Session
-                                        </div>
-                                        <p className="text-lg font-black text-white">{new Date(selectedMeeting.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                                    </div>
-                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
-                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
-                                            <Clock size={12} />
-                                            Temporal Slot
-                                        </div>
-                                        <p className="text-lg font-black text-white">{selectedMeeting.startTime} - {selectedMeeting.endTime}</p>
-                                    </div>
-                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
-                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
-                                            <Users size={12} />
-                                            Faculty Anchor
-                                        </div>
-                                        <p className="text-lg font-black text-white">{selectedMeeting.teacherId?.firstName} {selectedMeeting.teacherId?.lastName}</p>
-                                    </div>
-                                    <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
-                                        <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
-                                            <MapPin size={12} />
-                                            Location Sector
-                                        </div>
-                                        <p className="text-lg font-black text-white">{selectedMeeting.meetingType} SECTOR</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-4 mb-10">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1">Directive Details</label>
-                                    <div className="bg-slate-900/40 p-8 rounded-md border border-brand-primary/20 italic">
-                                        <p className="text-[13px] text-slate-400 leading-relaxed font-outfit">{selectedMeeting.description || "No specific directives provided for this synchronization."}</p>
-                                    </div>
-                                </div>
-
-                                {selectedMeeting.meetingLink && (
-                                    <div className="space-y-4 mb-10">
-                                        <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1 font-outfit">Virtual Access Portal</label>
-                                        <a 
-                                            href={selectedMeeting.meetingLink}
-                                            target="_blank"
-                                            rel="noreferrer"
-                                            className="block p-8 bg-parent-primary/10 border border-parent-primary/40 rounded-md group hover:bg-parent-primary/20 transition-all text-center"
-                                        >
-                                            <p className="text-parent-primary font-black uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-4 group-hover:scale-105 transition-transform">
-                                                <Video size={18} />
-                                                OPEN VIRTUAL COORDINATES
-                                            </p>
-                                        </a>
-                                    </div>
-                                )}
-
-                                <div className="flex items-center justify-between pt-8 border-t border-slate-800/80">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic leading-none">Status: {selectedMeeting.status}</span>
-                                    </div>
-                                    <button 
-                                        onClick={() => setSelectedMeeting(null)}
-                                        className="bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] px-12 py-4 rounded-md shadow-[0_10px_30px_rgba(var(--brand-primary-rgb),0.3)] hover:scale-105 transition-all"
-                                    >
-                                        ACKNOWLEDGE
-                                    </button>
+                                <div>
+                                    <h2 className="text-2xl font-black text-white uppercase tracking-tighter font-outfit">{selectedMeeting.title}</h2>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic">PTM Protocol Manifest</p>
                                 </div>
                             </div>
-                        </motion.div>
+                            <button 
+                                onClick={() => setSelectedMeeting(null)}
+                                className="text-slate-500 hover:text-white transition-colors"
+                            >
+                                <MoreVertical size={24} />
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-6 mb-10">
+                            <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                    <Calendar size={12} />
+                                    Date Session
+                                </div>
+                                <p className="text-lg font-black text-white">{new Date(selectedMeeting.date).toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                            </div>
+                            <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                    <Clock size={12} />
+                                    Temporal Slot
+                                </div>
+                                <p className="text-lg font-black text-white">{selectedMeeting.startTime} - {selectedMeeting.endTime}</p>
+                            </div>
+                            <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                    <Users size={12} />
+                                    Faculty Anchor
+                                </div>
+                                <p className="text-lg font-black text-white">{selectedMeeting.teacherId?.firstName} {selectedMeeting.teacherId?.lastName}</p>
+                            </div>
+                            <div className="bg-slate-900/40 p-6 rounded-md border border-slate-800/80">
+                                <div className="flex items-center gap-3 mb-2 text-slate-500 uppercase tracking-widest text-[9px] font-black italic">
+                                    <MapPin size={12} />
+                                    Location Sector
+                                </div>
+                                <p className="text-lg font-black text-white">{selectedMeeting.meetingType} SECTOR</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4 mb-10">
+                            <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1">Directive Details</label>
+                            <div className="bg-slate-900/40 p-8 rounded-md border border-brand-primary/20 italic">
+                                <p className="text-[13px] text-slate-400 leading-relaxed font-outfit">{selectedMeeting.description || "No specific directives provided for this synchronization."}</p>
+                            </div>
+                        </div>
+
+                        {selectedMeeting.meetingLink && (
+                            <div className="space-y-4 mb-10">
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] italic ml-1 font-outfit">Virtual Access Portal</label>
+                                <a 
+                                    href={selectedMeeting.meetingLink}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="block p-8 bg-parent-primary/10 border border-parent-primary/40 rounded-md group hover:bg-parent-primary/20 transition-all text-center"
+                                >
+                                    <p className="text-parent-primary font-black uppercase tracking-[0.3em] text-[11px] flex items-center justify-center gap-4 group-hover:scale-105 transition-transform">
+                                        <Video size={18} />
+                                        OPEN VIRTUAL COORDINATES
+                                    </p>
+                                </a>
+                            </div>
+                        )}
+
+                        <div className="flex items-center justify-between pt-8 border-t border-slate-800/80">
+                            <div className="flex items-center gap-3">
+                                <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] italic leading-none">Status: {selectedMeeting.status}</span>
+                            </div>
+                            <button 
+                                onClick={() => setSelectedMeeting(null)}
+                                className="bg-brand-primary text-white text-[11px] font-black uppercase tracking-[0.3em] px-12 py-4 rounded-md shadow-[0_10px_30px_rgba(var(--brand-primary-rgb),0.3)] hover:scale-105 transition-all"
+                            >
+                                ACKNOWLEDGE
+                            </button>
+                        </div>
                     </div>
                 )}
-            </AnimatePresence>
+            </PortalModal>
         </div>
     );
 };

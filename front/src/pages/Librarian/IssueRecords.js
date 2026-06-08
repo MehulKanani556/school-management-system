@@ -5,6 +5,7 @@ import { fetchRecordsSlice, returnBookSlice, fetchBooksSlice, issueBookSlice, fe
 import { Clock, Search, RotateCcw, User, Calendar, Plus, BookOpen, Library, Loader2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
+import PortalModal from '../../components/PortalModal';
 
 const IssueRecords = ({ type = 'all' }) => {
     const dispatch = useDispatch();

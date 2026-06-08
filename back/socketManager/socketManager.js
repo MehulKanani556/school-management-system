@@ -156,7 +156,11 @@ function initializeSocket(io) {
             const senderId = socketUserMap.get(socket.id);
             if (!senderId) return;
 
-            const { recipient, subject, content, schoolId } = data;
+            const { recipient, content } = data;
+            const subject = data.subject || 'Direct Message';
+            // Normalize schoolId — student frontend may pass a populated School object
+            const rawSchoolId = data.schoolId;
+            const schoolId = (rawSchoolId && typeof rawSchoolId === 'object') ? rawSchoolId._id : rawSchoolId;
 
             // Save to DB
             const message = await Message.create({
@@ -169,15 +173,42 @@ function initializeSocket(io) {
                 content
             });
 
+            // Attempt to populate sender from User collection first (works for non-student senders)
             const populated = await message.populate([
                 { path: 'sender', select: 'firstName lastName photo role' },
                 { path: 'recipient', select: 'firstName lastName photo role' }
             ]);
 
-            // Transform data for frontend expectation if needed
+            // If sender is null after populate, the sender is a Student (not in User collection)
+            // Manually fetch from Student collection
+            let senderObj = populated.sender;
+            if (!senderObj) {
+                const Student = require('../models/student.model');
+                const studentDoc = await Student.findById(senderId).select('firstName lastName photo').lean();
+                if (studentDoc) {
+                    senderObj = { ...studentDoc, role: 'Student', _id: studentDoc._id };
+                }
+            }
+
+            // If recipient is null after populate, try Student collection too
+            let recipientObj = populated.recipient;
+            if (!recipientObj && recipient) {
+                const Student = require('../models/student.model');
+                const studentDoc = await Student.findById(recipient).select('firstName lastName photo').lean();
+                if (studentDoc) {
+                    recipientObj = { ...studentDoc, role: 'Student', _id: studentDoc._id };
+                }
+            }
+
+            const senderName = senderObj
+                ? `${senderObj.firstName} ${senderObj.lastName}`
+                : 'Unknown';
+
             const frontendData = {
                 ...populated.toJSON(),
-                senderName: `${populated.sender.firstName} ${populated.sender.lastName}`
+                sender: senderObj || { _id: senderId },
+                recipient: recipientObj || { _id: recipient },
+                senderName
             };
 
             // Real-time send to recipient
@@ -191,7 +222,7 @@ function initializeSocket(io) {
                 recipient,
                 sender: senderId,
                 type: 'Message',
-                title: `New Message from ${populated.sender.firstName} ${populated.sender.lastName}`,
+                title: `New Message from ${senderName}`,
                 message: content.length > 60 ? content.substring(0, 60) + '...' : content,
                 link: '/communication?tab=messages'
             }).catch(err => console.error("Error creating notification on DM socket event:", err));

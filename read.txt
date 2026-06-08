@@ -10,5 +10,13 @@ Teacher:
 
 Student:
 
-    email: [EMAIL_ADDRESS]
-    password: Password@123
+    name :Om Verma / grade - 1 / D
+    admissionnumber :  ADM-2026-VIDY-0101
+    password : 11012019 
+
+
+
+    name : kabir verma / grade - 1 / A 
+    admissionnumber :  ADM-2026-VIDY-0003
+    password : 17052019 
+    

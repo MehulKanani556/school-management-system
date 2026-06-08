@@ -5,6 +5,7 @@ import { Plane, Plus, Calendar, Edit2, Trash2, Globe, School, MoreVertical, X, C
 import { motion, AnimatePresence } from 'framer-motion';
 import moment from 'moment';
 import toast from 'react-hot-toast';
+import PortalModal from '../../components/PortalModal';
 
 const Holidays = () => {
     const dispatch = useDispatch();
@@ -143,78 +144,67 @@ const Holidays = () => {
 
 
             {/* Modal Overlay Form */}
-            <AnimatePresence>
-                {showForm && (
-                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 backdrop-blur-md bg-black/60">
-                        <motion.div 
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-slate-900 border border-slate-800 rounded-md w-full max-w-xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)]"
-                        >
-                            <div className="p-8 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
-                                <div>
-                                    <h2 className="text-xl font-black italic uppercase tracking-tight text-white leading-none">{editing ? 'Modify Suspension' : 'Register Suspension'}</h2>
-                                    <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic mt-2 opacity-60 px-0">Platform-wide temporal mapping protocol.</p>
-                                </div>
-                                <button onClick={() => setShowForm(false)} className="p-2 rounded-md hover:bg-white/5 text-slate-400 hover:text-white transition-all"><X size={20} /></button>
-                            </div>
-                            <form onSubmit={handleSubmit} className="p-8 space-y-6">
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Identity Qualifier <span className="text-superadmin-primary text-[10px]">*</span></label>
-                                    <input 
-                                        required
-                                        value={formData.title}
-                                        onChange={(e) => setFormData({...formData, title: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
-                                        placeholder="HOLIDAY ENTITY NAME..."
-                                    />
-                                </div>
-                                <div className="grid grid-cols-2 gap-6">
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Temporal Entry <span className="text-superadmin-primary text-[10px]">*</span></label>
-                                        <input 
-                                            required
-                                            type="date"
-                                            value={formData.startDate}
-                                            onChange={(e) => setFormData({...formData, startDate: e.target.value})}
-                                            className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
-                                        />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Temporal Exit <span className="text-superadmin-primary text-[10px]">*</span></label>
-                                        <input 
-                                            required
-                                            type="date"
-                                            value={formData.endDate}
-                                            onChange={(e) => setFormData({...formData, endDate: e.target.value})}
-                                            className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
-                                        />
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Institutional Infrastructure Description</label>
-                                    <textarea 
-                                        rows={4}
-                                        value={formData.description}
-                                        onChange={(e) => setFormData({...formData, description: e.target.value})}
-                                        className="w-full bg-slate-950 border border-slate-800 rounded-md px-6 py-4 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic resize-none"
-                                        placeholder="INPUT TELEMETRY DATA..."
-                                    />
-                                </div>
-                                <button 
-                                    disabled={loading}
-                                    type="submit" 
-                                    className="w-full h-14 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-4 shadow-xl shadow-superadmin-primary/20 hover:scale-[1.02] active:scale-95 transition-all group font-outfit uppercase tracking-widest text-[11px] font-black"
-                                >
-                                    <Check size={20} className="group-hover:rotate-12 transition-transform" />
-                                    <span>{editing ? 'Update Registry Entity' : 'Commit New Suspension Protocol'}</span>
-                                </button>
-                            </form>
-                        </motion.div>
+            <PortalModal isOpen={showForm} onClose={() => setShowForm(false)} maxWidth="max-w-xl">
+                <div className="p-8 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
+                    <div>
+                        <h2 className="text-xl font-black italic uppercase tracking-tight text-white leading-none">{editing ? 'Modify Suspension' : 'Register Suspension'}</h2>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic mt-2 opacity-60 px-0">Platform-wide temporal mapping protocol.</p>
                     </div>
-                )}
-            </AnimatePresence>
+                    <button onClick={() => setShowForm(false)} className="p-2 rounded-md hover:bg-white/5 text-slate-400 hover:text-white transition-all"><X size={20} /></button>
+                </div>
+                <form onSubmit={handleSubmit} className="p-8 space-y-6">
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Identity Qualifier <span className="text-superadmin-primary text-[10px]">*</span></label>
+                        <input 
+                            required
+                            value={formData.title}
+                            onChange={(e) => setFormData({...formData, title: e.target.value})}
+                            className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
+                            placeholder="HOLIDAY ENTITY NAME..."
+                        />
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Temporal Entry <span className="text-superadmin-primary text-[10px]">*</span></label>
+                            <input 
+                                required
+                                type="date"
+                                value={formData.startDate}
+                                onChange={(e) => setFormData({...formData, startDate: e.target.value})}
+                                className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
+                            />
+                        </div>
+                        <div className="space-y-2">
+                            <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Temporal Exit <span className="text-superadmin-primary text-[10px]">*</span></label>
+                            <input 
+                                required
+                                type="date"
+                                value={formData.endDate}
+                                onChange={(e) => setFormData({...formData, endDate: e.target.value})}
+                                className="w-full bg-slate-950 border border-slate-800 h-12 rounded-md px-6 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic"
+                            />
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic flex items-center gap-2 px-1">Institutional Infrastructure Description</label>
+                        <textarea 
+                            rows={4}
+                            value={formData.description}
+                            onChange={(e) => setFormData({...formData, description: e.target.value})}
+                            className="w-full bg-slate-950 border border-slate-800 rounded-md px-6 py-4 text-[10px] font-black text-white uppercase tracking-widest outline-none focus:border-superadmin-primary transition-all italic resize-none"
+                            placeholder="INPUT TELEMETRY DATA..."
+                        />
+                    </div>
+                    <button 
+                        disabled={loading}
+                        type="submit" 
+                        className="w-full h-14 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-4 shadow-xl shadow-superadmin-primary/20 hover:scale-[1.02] active:scale-95 transition-all group font-outfit uppercase tracking-widest text-[11px] font-black"
+                    >
+                        <Check size={20} className="group-hover:rotate-12 transition-transform" />
+                        <span>{editing ? 'Update Registry Entity' : 'Commit New Suspension Protocol'}</span>
+                    </button>
+                </form>
+            </PortalModal>
         </motion.div>
     );
 };

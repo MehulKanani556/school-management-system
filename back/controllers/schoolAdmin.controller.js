@@ -23,6 +23,7 @@ const AcademicYear = require('../models/academicYear.model');
 const PromotionHistory = require('../models/promotionHistory.model');
 const { sendFeeReminderMail } = require('../utils/mail');
 const { addAcademicYearFilter } = require('../utils/academicYearHelper');
+const reportCardPDF = require('../utils/reportCardPDF');
 const nc = require('./notification.controller');
 const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
@@ -521,13 +522,13 @@ exports.createStudent = async (req, res) => {
     const body = { ...req.body };
     if (req.file) body.photo = req.file.location;
 
-    // Generate password from DOB (DDMMYY)
+    // Generate password from DOB (DDMMYYYY)
     let plainPassword = '';
     if (dateOfBirth) {
       const d = new Date(dateOfBirth);
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).substring(2);
+      const year = String(d.getFullYear());
       plainPassword = `${day}${month}${year}`;
     }
 
@@ -596,12 +597,12 @@ exports.updateStudent = async (req, res) => {
     const body = { ...req.body };
     if (req.file) body.photo = req.file.location;
 
-    // If DOB is changed, update password as well (DDMMYY)
+    // If DOB is changed, update password as well (DDMMYYYY)
     if (body.dateOfBirth) {
       const d = new Date(body.dateOfBirth);
       const day = String(d.getDate()).padStart(2, '0');
       const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = String(d.getFullYear()).substring(2); // YY format
+      const year = String(d.getFullYear()); // YYYY format
       const plainPassword = `${day}${month}${year}`;
       body.password = await bcrypt.hash(plainPassword, 10);
     }
@@ -1795,7 +1796,14 @@ exports.generateReportCard = async (req, res) => {
     const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
     if (!student) return res.status(404).json({ message: 'Student not found' });
 
-    const marks = await Mark.find({ studentId: id, schoolId })
+    const enrollment = await StudentEnrollment.findOne({ studentId: id, academicYearId: req.academicYearId })
+        .populate('standardId')
+        .populate('classSectionId');
+    
+    const standardToPrint = enrollment?.standardId || student.standard;
+    const classSectionToPrint = enrollment?.classSectionId || student.classSection;
+
+    const marks = await Mark.find(addAcademicYearFilter({ studentId: id, schoolId }, req.academicYearId))
       .populate({
         path: 'examId',
         match: { isPublished: true },
@@ -1804,133 +1812,15 @@ exports.generateReportCard = async (req, res) => {
 
     const validMarks = marks.filter(m => m.examId !== null);
 
-    const doc = new PDFDocument({ margin: 40, size: 'A4' });
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `attachment; filename=ReportCard_${student.firstName}_${student.lastName}.pdf`);
-    doc.pipe(res);
-
-    const primaryColor = '#2563eb';
-    const darkColor = '#1e293b';
-    const lightColor = '#f8fafc';
-    const borderColor = '#e2e8f0';
-
-    // ─── Header ───────────────────────────────────────────────────────────────
-    doc.rect(0, 0, 595, 120).fill(darkColor);
-    doc.fillColor('#ffffff').fontSize(24).font('Helvetica-Bold').text(school.name.toUpperCase(), 40, 45);
-    doc.fontSize(10).font('Helvetica').fillColor('#94a3b8').text('OFFICIAL ACADEMIC REPORT CARD', 40, 75, { characterSpacing: 2 });
-
-    // Academic Year / Term (Optional placeholder)
-    doc.fontSize(10).font('Helvetica-Bold').fillColor('#ffffff').text('ANNUAL SESSION 2025-26', 430, 45, { align: 'right', width: 125 });
-
-    let currentY = 150;
-
-    // ─── Student Information ──────────────────────────────────────────────────
-    doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('STUDENT INFORMATION', 40, currentY);
-    currentY += 15;
-    doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
-    currentY += 15;
-
-    const col1 = 40;
-    const col2 = 300;
-    doc.fillColor(darkColor).fontSize(9).font('Helvetica-Bold');
-
-    // Grid row 1
-    doc.text('Student Name:', col1, currentY);
-    doc.font('Helvetica').text(`${student.firstName} ${student.lastName}`, col1 + 80, currentY);
-    doc.font('Helvetica-Bold').text('Admission No:', col2, currentY);
-    doc.font('Helvetica').text(student.admissionNumber || 'N/A', col2 + 80, currentY);
-
-    currentY += 20;
-    // Grid row 2
-    doc.font('Helvetica-Bold').text('Standard/Grade:', col1, currentY);
-    doc.font('Helvetica').text(`Grade ${student.standard?.level || 'N/A'}`, col1 + 80, currentY);
-    doc.font('Helvetica-Bold').text('Class Section:', col2, currentY);
-    doc.font('Helvetica').text(student.classSection?.sectionLabel || 'N/A', col2 + 80, currentY);
-
-    currentY += 40;
-
-    // ─── Performance Table ────────────────────────────────────────────────────
-    doc.fillColor(primaryColor).fontSize(11).font('Helvetica-Bold').text('ACADEMIC RECORD', 40, currentY);
-    currentY += 15;
-    doc.moveTo(40, currentY).lineTo(555, currentY).strokeColor(borderColor).lineWidth(0.5).stroke();
-    currentY += 15;
-
-    // Table Header
-    const colSubject = 40;
-    const colExam = 240;
-    const colMarks = 400;
-    const colTotal = 480;
-
-    doc.rect(40, currentY, 515, 25).fill(lightColor);
-    doc.fillColor(darkColor).font('Helvetica-Bold').fontSize(9);
-    doc.text('SUBJECT', colSubject + 10, currentY + 8);
-    doc.text('EXAMINATION', colExam + 10, currentY + 8);
-    doc.text('OBTAINED', colMarks + 10, currentY + 8);
-    doc.text('MAX MARKS', colTotal + 10, currentY + 8);
-
-    currentY += 25;
-    let totalObtained = 0;
-    let totalMax = 0;
-
-    validMarks.forEach((m, i) => {
-      if (currentY > 700) { doc.addPage(); currentY = 50; }
-
-      const subjectName = m.examId.subject?.name || 'Subject';
-      const examName = m.examId.name;
-      const obtained = m.marksObtained;
-      const max = m.examId.maxMarks || 100;
-
-      totalObtained += obtained;
-      totalMax += max;
-
-      doc.fillColor(darkColor).font('Helvetica').fontSize(9);
-      doc.text(subjectName.toUpperCase(), colSubject + 10, currentY + 8);
-      doc.text(examName, colExam + 10, currentY + 8);
-      doc.font('Helvetica-Bold').text(obtained.toString(), colMarks + 10, currentY + 8, { width: 60, align: 'center' });
-      doc.font('Helvetica').text(max.toString(), colTotal + 10, currentY + 8, { width: 60, align: 'center' });
-
-      doc.moveTo(40, currentY + 25).lineTo(555, currentY + 25).strokeColor(lightColor).lineWidth(0.5).stroke();
-      currentY += 25;
-    });
-
-    currentY += 30;
-
-    // ─── Result Summary ───────────────────────────────────────────────────────
-    const summaryX = 350;
-    doc.rect(summaryX, currentY, 205, 100).fill(lightColor).strokeColor(borderColor).stroke();
-    doc.fillColor(darkColor).fontSize(10).font('Helvetica-Bold').text('FINAL SUMMARY', summaryX + 15, currentY + 15);
-
-    const percentage = totalMax > 0 ? (totalObtained / totalMax) * 100 : 0;
-    let grade = 'F';
-    let color = '#ef4444';
-    if (percentage >= 90) { grade = 'A+'; color = '#10b981'; }
-    else if (percentage >= 80) { grade = 'A'; color = '#10b981'; }
-    else if (percentage >= 70) { grade = 'B'; color = '#2563eb'; }
-    else if (percentage >= 60) { grade = 'C'; color = '#f59e0b'; }
-    else if (percentage >= 40) { grade = 'D'; color = '#f59e0b'; }
-
-    doc.font('Helvetica').fontSize(9);
-    doc.text(`Total Marks: ${totalObtained} / ${totalMax}`, summaryX + 15, currentY + 35);
-    doc.text(`Percentage: ${percentage.toFixed(1)}%`, summaryX + 15, currentY + 50);
-
-    doc.fillColor(color).fontSize(28).font('Helvetica-Bold').text(grade, summaryX + 140, currentY + 35);
-    doc.fontSize(8).fillColor('#64748b').text('GRADE', summaryX + 140, currentY + 65, { width: 40, align: 'center' });
-
-    // ─── Signatures ───────────────────────────────────────────────────────────
-    currentY += 150;
-    doc.moveTo(40, currentY).lineTo(180, currentY).strokeColor(darkColor).stroke();
-    doc.moveTo(225, currentY).lineTo(365, currentY).strokeColor(darkColor).stroke();
-    doc.moveTo(410, currentY).lineTo(550, currentY).strokeColor(darkColor).stroke();
-
-    doc.fillColor(darkColor).fontSize(8).font('Helvetica-Bold');
-    doc.text('CLASS TEACHER', 40, currentY + 10, { width: 140, align: 'center' });
-    doc.text('PRINCIPAL', 225, currentY + 10, { width: 140, align: 'center' });
-    doc.text('PARENT/GUARDIAN', 410, currentY + 10, { width: 140, align: 'center' });
-
-    // Footer
-    doc.fontSize(7).fillColor('#94a3b8').text(`${school.name} // Generated on ${new Date().toLocaleDateString()}`, 0, 810, { align: 'center', width: 595 });
-
-    doc.end();
+    reportCardPDF.generatePDF(
+        res,
+        school,
+        student,
+        standardToPrint,
+        classSectionToPrint,
+        validMarks,
+        req.academicYearName
+    );
   } catch (err) { res.status(500).json({ message: err.message }); }
 };
 
@@ -2872,7 +2762,7 @@ exports.importStudents = async (req, res) => {
             if (dob) {
               const day = String(dob.getDate()).padStart(2, '0');
               const month = String(dob.getMonth() + 1).padStart(2, '0');
-              const year = String(dob.getFullYear()).substring(2);
+              const year = String(dob.getFullYear());
               plainPassword = `${day}${month}${year}`;
             }
             const hashedPassword = await bcrypt.hash(plainPassword, 10);

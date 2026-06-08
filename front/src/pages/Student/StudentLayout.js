@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
+import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
 import toast from 'react-hot-toast';
 
 const StudentLayout = () => {
@@ -221,6 +222,8 @@ const StudentLayout = () => {
           </div>
 
           <div className="flex items-center gap-6 font-outfit">
+            <AcademicYearSwitcher />
+
             <div className="relative font-outfit">
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
