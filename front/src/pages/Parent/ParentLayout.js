@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
-import { fetchMyChildren, setSelectedChild } from '../../redux/slice/parent.slice';
+import { fetchMyChildren, setSelectedChild, fetchChildAttendance, fetchChildOverview } from '../../redux/slice/parent.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
@@ -105,8 +105,32 @@ const ParentLayout = () => {
         }
       });
     });
-    return () => socket.off('NEW_NOTIFICATION');
-  }, [socket, dispatch]);
+
+    socket.on('ATTENDANCE_UPDATED', (data) => {
+      if (selectedChild && selectedChild._id) {
+        dispatch(fetchChildAttendance({ studentId: selectedChild._id }));
+        dispatch(fetchChildOverview(selectedChild._id));
+      }
+      toast.success(`📝 Ward's Attendance Registry Updated!`, {
+        icon: '📝',
+        style: {
+          borderRadius: '1.5rem',
+          background: '#0f172a',
+          color: '#fff',
+          border: '1px solid #f43f5e',
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          fontSize: '11px'
+        }
+      });
+    });
+
+    return () => {
+      socket.off('NEW_NOTIFICATION');
+      socket.off('ATTENDANCE_UPDATED');
+    };
+  }, [socket, dispatch, selectedChild]);
 
   useEffect(() => {
     const activeParent = navItems.find(item =>

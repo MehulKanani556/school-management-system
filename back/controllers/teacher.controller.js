@@ -257,6 +257,14 @@ exports.markAttendance = async (req, res) => {
             },
             { upsert: true, new: true }
         );
+
+        // Real-time broadcast to class section
+        const socketManager = require('../socketManager/socketManager');
+        socketManager.sendToClass(targetClass, 'ATTENDANCE_UPDATED', {
+            date: new Date(date),
+            classSection: targetClass
+        });
+
         res.json({ message: 'Attendance registry synchronized', attendance });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -408,6 +416,11 @@ exports.sendMessage = async (req, res) => {
             }
         } else {
             socketManager.broadcastToRole(targetRole || 'Student', 'NEW_ANNOUNCEMENT', populated);
+        }
+
+        if (finalType === 'Announcement') {
+            const { handleAnnouncementEmail } = require('../utils/mail');
+            handleAnnouncementEmail(populated, req.user).catch(err => console.error('Error sending announcement email:', err));
         }
 
         res.status(201).json({ message: 'Communication dispatched successfully', data: populated });
@@ -1181,6 +1194,13 @@ exports.bulkAttendanceImport = async (req, res) => {
         attendance.records = currentRecords;
         attendance.submittedBy = req.user._id;
         await attendance.save();
+
+        // Real-time broadcast to class section
+        const socketManager = require('../socketManager/socketManager');
+        socketManager.sendToClass(classSectionId, 'ATTENDANCE_UPDATED', {
+            date: new Date(date),
+            classSection: classSectionId
+        });
 
         res.json({
             message: `Synchronized ${resolvedRecords.length} records successfully.`,

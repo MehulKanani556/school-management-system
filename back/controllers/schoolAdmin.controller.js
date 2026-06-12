@@ -1910,6 +1910,14 @@ exports.saveAttendance = async (req, res) => {
       },
       { upsert: true, new: true }
     );
+
+    // Real-time broadcast to class section
+    const socketManager = require('../socketManager/socketManager');
+    socketManager.sendToClass(classSection, 'ATTENDANCE_UPDATED', {
+      date: new Date(date),
+      classSection
+    });
+
     res.json({ message: 'Attendance registry committed successfully', data: attendance });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

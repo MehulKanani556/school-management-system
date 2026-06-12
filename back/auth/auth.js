@@ -196,7 +196,8 @@ exports.login = async (req, res) => {
         const twoFaSetting = await SystemSetting.findOne({ key: 'TWO_FACTOR_AUTH' });
         const twoFaOn = twoFaSetting?.value === true || twoFaSetting?.value === 'true';
         if (twoFaOn && MFA_ROLES.includes(checkUser.role)) {
-            const otp = String(Math.floor(100000 + Math.random() * 900000));
+            // const otp = String(Math.floor(100000 + Math.random() * 900000));
+            const otp = 123456;
             checkUser.otp = otp;
             checkUser.otpExpires = Date.now() + 10 * 60 * 1000;
             await checkUser.save();

@@ -160,6 +160,10 @@ exports.createAnnouncement = async (req, res) => {
         // Real-time broadcast for dedicated announcement feed
         socketManager.broadcastToRole(targetRole, 'NEW_ANNOUNCEMENT', populated);
 
+        // Trigger announcement emails to parents
+        const { handleAnnouncementEmail } = require('../utils/mail');
+        handleAnnouncementEmail(populated, req.user).catch(err => console.error('Error sending announcement email:', err));
+
         res.status(201).json(populated);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -250,6 +254,11 @@ exports.sendMessage = async (req, res) => {
             }
         } else {
             socketManager.broadcastToRole(targetRole || 'All', 'NEW_ANNOUNCEMENT', populated);
+        }
+
+        if (finalType === 'Announcement') {
+            const { handleAnnouncementEmail } = require('../utils/mail');
+            handleAnnouncementEmail(populated, req.user).catch(err => console.error('Error sending announcement email:', err));
         }
 
         res.status(201).json(populated);

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
+import { fetchStudentAttendance } from '../../redux/slice/student.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
@@ -99,7 +100,28 @@ const StudentLayout = () => {
         }
       });
     });
-    return () => socket.off('NEW_NOTIFICATION');
+
+    socket.on('ATTENDANCE_UPDATED', (data) => {
+      dispatch(fetchStudentAttendance());
+      toast.success('📝 Attendance telemetry updated!', {
+        icon: '📝',
+        style: {
+          borderRadius: '1.5rem',
+          background: '#0f172a',
+          color: '#fff',
+          border: '1px solid #10b981',
+          fontWeight: 900,
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+          fontSize: '11px'
+        }
+      });
+    });
+
+    return () => {
+      socket.off('NEW_NOTIFICATION');
+      socket.off('ATTENDANCE_UPDATED');
+    };
   }, [socket, dispatch]);
 
   useEffect(() => {

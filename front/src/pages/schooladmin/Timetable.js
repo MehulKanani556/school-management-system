@@ -134,10 +134,14 @@ const AdminTimetable = () => {
         if (field === 'subject') {
             const currentClass = classes.find(c => c._id === selectedClass);
             const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === value);
-            const allowedTeacherIds = assignment?.teachers?.map(t => t._id || t) || [];
             
-            if (!allowedTeacherIds.includes(updatedPeriod.teacher)) {
-                updatedPeriod.teacher = '';
+            // Only validate/reset if there are subject assignments configured with teachers for this classroom
+            const hasAssignedTeachers = assignment?.teachers && assignment.teachers.length > 0;
+            if (hasAssignedTeachers) {
+                const allowedTeacherIds = assignment.teachers.map(t => t._id || t) || [];
+                if (!allowedTeacherIds.includes(updatedPeriod.teacher)) {
+                    updatedPeriod.teacher = '';
+                }
             }
         }
 
@@ -630,9 +634,26 @@ const AdminTimetable = () => {
                                                                             <option value="">Subject</option>
                                                                             {(() => {
                                                                                 const currentClass = classes.find(c => c._id === selectedClass);
-                                                                                return currentClass?.subjectAssignments?.map(a => (
-                                                                                    <option key={a.subject?._id} value={a.subject?._id}>{a.subject?.name}</option>
-                                                                                )) || [];
+                                                                                const hasAssignments = currentClass?.subjectAssignments && currentClass.subjectAssignments.length > 0;
+                                                                                
+                                                                                if (hasAssignments) {
+                                                                                    return currentClass.subjectAssignments.map(a => {
+                                                                                        const subId = a.subject?._id || a.subject;
+                                                                                        const subName = a.subject?.name || subjects.find(s => s._id === subId)?.name || 'Subject';
+                                                                                        return (
+                                                                                            <option key={subId} value={subId}>{subName}</option>
+                                                                                        );
+                                                                                    });
+                                                                                }
+                                                                                
+                                                                                // Fallback: Display the standard's subjects or all subjects if classroom has no subject assignments
+                                                                                const classSubjects = subjects.filter(s => 
+                                                                                    currentClass?.subjects?.some(sid => (sid._id || sid) === s._id)
+                                                                                );
+                                                                                const displaySubjects = classSubjects.length > 0 ? classSubjects : subjects;
+                                                                                return displaySubjects.map(s => (
+                                                                                    <option key={s._id} value={s._id}>{s.name}</option>
+                                                                                ));
                                                                             })()}
                                                                         </select>
                                                                     </div>
@@ -650,7 +671,11 @@ const AdminTimetable = () => {
                                                                             {(() => {
                                                                                 const currentClass = classes.find(c => c._id === selectedClass);
                                                                                 const assignment = currentClass?.subjectAssignments?.find(a => (a.subject?._id || a.subject) === period.subject);
-                                                                                return assignment?.teachers?.map(t => {
+                                                                                const displayTeachers = (assignment?.teachers && assignment.teachers.length > 0) 
+                                                                                    ? assignment.teachers 
+                                                                                    : teachers;
+                                                                                
+                                                                                return displayTeachers.map(t => {
                                                                                     const conflict = getTeacherConflict(t._id, activeDay, period.startTime, period.endTime);
                                                                                     return (
                                                                                         <option 
@@ -662,7 +687,7 @@ const AdminTimetable = () => {
                                                                                             {t.firstName} {t.lastName} {conflict ? `[BUSY: ${conflict.className}-${conflict.section} | RM:${conflict.room}]` : ''}
                                                                                         </option>
                                                                                     );
-                                                                                }) || [];
+                                                                                });
                                                                             })()}
                                                                         </select>
                                                                     </div>

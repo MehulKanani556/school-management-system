@@ -46,6 +46,11 @@ exports.createAnnouncement = async (req, res) => {
         });
 
         await announcement.save();
+
+        // Trigger announcement emails to parents
+        const { handleAnnouncementEmail } = require('../utils/mail');
+        handleAnnouncementEmail(announcement, req.user).catch(err => console.error('Error sending announcement email:', err));
+
         res.status(201).json(announcement);
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
