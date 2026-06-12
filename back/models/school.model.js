@@ -27,6 +27,7 @@ const schoolSchema = new mongoose.Schema(
     address: { type: String },
     contact: { type: String },
     adminEmail: { type: String, required: true },
+    subscriptionTier: { type: String, enum: ['basic', 'standard', 'premium'], default: 'basic' },
     isActive: { type: Boolean, default: true },
     revenue: { // To track global revenue in stats
       type: Number,

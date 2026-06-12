@@ -53,7 +53,7 @@ const BehaviorLog = () => {
     };
 
     const handleDelete = async (id) => {
-        if (await window.confirm('Purge this conduct vector from institutional memory?')) {
+        if (await window.confirm('Are you sure you want to delete this behavior record?')) {
             await dispatch(deleteBehavior(id));
         }
     };
@@ -88,9 +88,9 @@ const BehaviorLog = () => {
                         <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
                             <Shield className="text-brand-primary" size={24} />
                         </div>
-                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Conduct <span className="text-brand-primary">Registry</span></h1>
+                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Behavior <span className="text-brand-primary">Log</span></h1>
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Monitor & Document Student Conduct Vectors</p>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Monitor & Document Student Behavior</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <select 
@@ -98,7 +98,7 @@ const BehaviorLog = () => {
                         value={selectedClass}
                         onChange={(e) => setSelectedClass(e.target.value)}
                     >
-                        <option value="">SELECT SECTOR</option>
+                        <option value="">SELECT CLASS</option>
                         {classes?.map(c => (
                             <option key={c._id} value={c._id}>
                                 Grade {c.standardId?.level || c.gradeLevel || 'N/A'} - {c.sectionLabel}
@@ -113,21 +113,21 @@ const BehaviorLog = () => {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-slate-900/40 border border-slate-800/60 rounded-md overflow-hidden backdrop-blur-xl">
                         <div className="p-6 border-b border-slate-800/60 flex items-center justify-between">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Student Manifest ({students?.length || 0})</span>
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Student List ({students?.length || 0})</span>
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full">
                                 <thead>
                                     <tr className="bg-slate-800/40">
                                         <th className="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Profile</th>
-                                        <th className="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Security ID</th>
-                                        <th className="px-6 py-4 text-right text-[9px] font-black text-slate-500 uppercase tracking-widest">Protocol</th>
+                                        <th className="px-6 py-4 text-left text-[9px] font-black text-slate-500 uppercase tracking-widest">Student ID</th>
+                                        <th className="px-6 py-4 text-right text-[9px] font-black text-slate-500 uppercase tracking-widest">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-800/40">
                                     {!selectedClass ? (
                                         <tr>
-                                            <td colSpan="3" className="px-6 py-12 text-center text-[10px] font-black uppercase tracking-widest text-slate-600 italic">Select a sector to view students</td>
+                                            <td colSpan="3" className="px-6 py-12 text-center text-[10px] font-black uppercase tracking-widest text-slate-600 italic">Select a class to view students</td>
                                         </tr>
                                     ) : students?.map((s) => (
                                         <tr key={s._id} className="hover:bg-slate-800/20 transition-colors group">
@@ -150,7 +150,7 @@ const BehaviorLog = () => {
                                                     onClick={() => { setSelectedStudent(s); setEditMode(false); setIsModalOpen(true); }}
                                                     className="px-4 py-2 bg-slate-800 hover:bg-brand-primary text-[9px] font-black uppercase tracking-widest rounded-md border border-slate-700 hover:border-brand-primary transition-all text-slate-400 hover:text-white"
                                                 >
-                                                    Inject Vector
+                                                    Log Behavior
                                                 </button>
                                             </td>
                                         </tr>
@@ -163,7 +163,7 @@ const BehaviorLog = () => {
 
                 {/* Recent Logs Sidebar */}
                 <div className="space-y-6 max-h-[680px] overflow-y-auto pr-2">
-                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 px-1 sticky top-0 bg-[#020617] py-3 z-10 border-b border-slate-900/60">Institutional Memory (Recent)</h2>
+                    <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 mb-4 px-1 sticky top-0 bg-[#020617] py-3 z-10 border-b border-slate-900/60">Recent Behavior Logs</h2>
                     {behaviorLogs?.slice(0, 10).map((log, i) => (
                         <motion.div 
                             key={log._id}
@@ -199,7 +199,7 @@ const BehaviorLog = () => {
                     {behaviorLogs?.length === 0 && (
                         <div className="py-12 border-2 border-dashed border-slate-800 rounded-md text-center">
                             <Shield size={24} className="mx-auto text-slate-700 mb-3" />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">Null registry state</p>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-700">No logs found</p>
                         </div>
                     )}
                 </div>
@@ -217,7 +217,7 @@ const BehaviorLog = () => {
                                         <Shield className="text-brand-primary" size={18} />
                                     </div>
                                     <div>
-                                        <h2 className="text-lg font-black uppercase font-outfit tracking-tight">{editMode ? 'Sector Recalibration' : 'Conduct Vector Injection'}</h2>
+                                        <h2 className="text-lg font-black uppercase font-outfit tracking-tight">{editMode ? 'Edit Behavior Log' : 'Add Behavior Log'}</h2>
                                         <p className="text-[8px] font-black uppercase tracking-widest text-slate-500">Student: {selectedStudent?.firstName} {selectedStudent?.lastName}</p>
                                     </div>
                                 </div>
@@ -227,7 +227,7 @@ const BehaviorLog = () => {
                             <form onSubmit={handleSubmit} className="p-8 space-y-6">
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Vector Type</label>
+                                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Behavior Type</label>
                                         <div className="flex bg-slate-800 p-1 rounded-md border border-slate-700">
                                             {['Positive', 'Negative', 'Warning'].map(t => (
                                                 <button 
@@ -262,19 +262,19 @@ const BehaviorLog = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Conduct Narrative</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Behavior Description</label>
                                     <textarea 
                                         required
                                         rows={4}
                                         className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[10px] font-medium tracking-tight outline-none focus:border-brand-primary text-white placeholder-slate-600 italic"
-                                        placeholder="Document the behavioral occurrences in descriptive detail..."
+                                        placeholder="Describe the student's behavior in detail..."
                                         value={formData.description}
                                         onChange={(e) => setFormData({...formData, description: e.target.value})}
                                     />
                                 </div>
 
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Corrective Logic (Action Taken)</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Action Taken</label>
                                     <input 
                                         type="text" 
                                         className="w-full bg-slate-800 border border-slate-700 rounded-md p-4 text-[10px] font-black uppercase tracking-widest outline-none focus:border-brand-primary text-white placeholder-slate-600"
@@ -288,7 +288,7 @@ const BehaviorLog = () => {
                                     type="submit"
                                     className="w-full bg-brand-primary hover:bg-brand-primary/90 text-white py-5 rounded-md font-black uppercase text-[10px] tracking-[0.2em] transition-all shadow-xl hover:-translate-y-1"
                                 >
-                                    {editMode ? 'RECALIBRATE VECTOR' : 'SYNCHRONIZE VECTOR'}
+                                    {editMode ? 'UPDATE LOG' : 'SAVE LOG'}
                                 </button>
                             </form>
                         </motion.div>

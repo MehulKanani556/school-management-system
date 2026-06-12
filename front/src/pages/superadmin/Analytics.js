@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchPlatformAnalytics } from '../../redux/slice/superAdmin.slice';
+import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { 
     Users, 
@@ -66,8 +67,8 @@ const Analytics = () => {
         >
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight text-slate-100 italic uppercase">Global Telemetry</h1>
-                    <p className="text-sm font-medium text-slate-400 mt-1 tracking-wide italic">Real-time infrastructure and user engagement matrix.</p>
+                    <h1 className="text-3xl font-bold tracking-tight text-slate-100 italic uppercase">System Analytics</h1>
+                    <p className="text-sm font-medium text-slate-400 mt-1 tracking-wide italic">Real-time schools and user engagement statistics.</p>
                 </div>
                 <div className="flex items-center gap-3 px-4 py-2 bg-brand-surface border border-brand-border rounded-md">
                     <div className="w-2 h-2 rounded-full bg-luxury-emerald animate-pulse"></div>
@@ -79,8 +80,8 @@ const Analytics = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                     { label: 'Platform Revenue', value: `$${revenue.total.toLocaleString()}`, icon: DollarSign, trend: '+12.5%', color: 'text-luxury-emerald' },
-                    { label: 'Active Nodes', value: infrastructure.activeSchools, icon: SchoolIcon, trend: infrastructure.totalSchools, color: 'text-brand-primary' },
-                    { label: 'Citizen Census', value: users.total.toLocaleString(), icon: Users, trend: `${users.active} Active`, color: 'text-brand-accent' },
+                    { label: 'Active Schools', value: infrastructure.activeSchools, icon: SchoolIcon, trend: infrastructure.totalSchools, color: 'text-brand-primary' },
+                    { label: 'Total Users', value: users.total.toLocaleString(), icon: Users, trend: `${users.active} Active`, color: 'text-brand-accent' },
                     { label: 'Expansion Rate', value: growth.newSchools30d, icon: TrendingUp, trend: 'Last 30 Days', color: 'text-luxury-gold' },
                 ].map((stat, idx) => (
                     <div key={idx} className="p-6 rounded-md bg-brand-surface border border-brand-border hover:border-brand-primary/30 transition-all group">
@@ -100,7 +101,7 @@ const Analytics = () => {
                 {/* User Distribution Pie */}
                 <div className="lg:col-span-1 p-6 rounded-md bg-brand-surface border border-brand-border flex flex-col items-center">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 self-start flex items-center gap-3 italic">
-                        <Users size={14} /> Census Distribution
+                        <Users size={14} /> User Distribution
                     </h3>
                     <div className="w-full h-[300px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -138,7 +139,7 @@ const Analytics = () => {
                 {/* Infrastructure Bar Chart */}
                 <div className="lg:col-span-2 p-6 rounded-md bg-brand-surface border border-brand-border">
                     <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-8 flex items-center gap-3 italic">
-                        <Layers size={14} /> Node Capacity Matrix
+                        <Layers size={14} /> School Capacity
                     </h3>
                     <div className="w-full h-[350px]">
                         <ResponsiveContainer width="100%" height="100%">
@@ -173,27 +174,33 @@ const Analytics = () => {
 
             {/* Bottom Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="p-8 rounded-md bg-brand-surface border border-brand-border border-dashed flex items-center justify-between group hover:bg-brand-primary/5 transition-colors cursor-default">
+                <Link 
+                    to="/superadmin/backups"
+                    className="p-8 rounded-md bg-brand-surface border border-brand-border border-dashed flex items-center justify-between group hover:bg-brand-primary/5 hover:border-brand-primary/30 transition-all cursor-pointer"
+                >
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <Database size={18} className="text-slate-500" />
+                            <Database size={18} className="text-slate-500 group-hover:text-brand-primary transition-colors" />
                             <h4 className="text-[11px] font-bold text-slate-200 uppercase tracking-[0.2em] font-outfit">Storage & Persistence</h4>
                         </div>
-                        <p className="text-[10px] font-medium text-slate-500 italic max-w-xs">Aggregate data volume across all institutional nodes optimized at 14.2TB.</p>
+                        <p className="text-[10px] font-medium text-slate-500 italic max-w-xs">Total storage and database operations are working efficiently.</p>
                     </div>
                     <div className="text-slate-700 group-hover:text-brand-primary transition-colors"><ArrowUpRight size={24} /></div>
-                </div>
+                </Link>
 
-                <div className="p-8 rounded-md bg-brand-surface border border-brand-border border-dashed flex items-center justify-between group hover:bg-luxury-emerald/5 transition-colors cursor-default">
+                <Link 
+                    to="/superadmin/revenue"
+                    className="p-8 rounded-md bg-brand-surface border border-brand-border border-dashed flex items-center justify-between group hover:bg-luxury-emerald/5 hover:border-luxury-emerald/30 transition-all cursor-pointer"
+                >
                     <div>
                         <div className="flex items-center gap-3 mb-2">
-                            <TrendingUp size={18} className="text-slate-500" />
+                            <TrendingUp size={18} className="text-slate-500 group-hover:text-luxury-emerald transition-colors" />
                             <h4 className="text-[11px] font-bold text-slate-200 uppercase tracking-[0.2em] font-outfit">Projected Growth</h4>
                         </div>
                         <p className="text-[10px] font-medium text-slate-500 italic max-w-xs">Analyzing current onboarding velocity suggests +24% expansion in Q3.</p>
                     </div>
                     <div className="text-slate-700 group-hover:text-luxury-emerald transition-colors"><ArrowUpRight size={24} /></div>
-                </div>
+                </Link>
             </div>
         </motion.div>
     );

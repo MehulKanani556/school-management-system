@@ -162,7 +162,7 @@ const Vehicles = () => {
     }
 
     const handleDelete = async (id) => {
-        if (await window.confirm('Decommission this vehicle node?')) {
+        if (await window.confirm('Are you sure you want to delete this vehicle?')) {
             dispatch(deleteVehicleSlice(id));
         }
     }
@@ -390,22 +390,22 @@ const Vehicles = () => {
                             <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
                                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                                     <form onSubmit={handleMaintenance} className="lg:col-span-1 space-y-5 bg-neutral-950/40 p-6 rounded-md border border-slate-800/60">
-                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-4 flex items-center gap-2"><Plus size={12} /> Log New Protocol</h4>
+                                        <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-transporter-primary italic mb-4 flex items-center gap-2"><Plus size={12} /> Add New Maintenance</h4>
                                         <div className="space-y-4">
                                             <div className="space-y-1">
                                                 <label className="text-[9px] font-black uppercase text-slate-600 italic">SVC Type</label>
                                                 <input type="text" required value={maintenanceFormData.serviceType} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, serviceType: e.target.value })} placeholder="e.g. Engine Calibration" className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Resource Allocation (Cost)</label>
+                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Cost</label>
                                                 <input type="number" required value={maintenanceFormData.cost} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, cost: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Timeline (Date)</label>
+                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Date</label>
                                                 <input type="date" required value={maintenanceFormData.date} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, date: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <div className="space-y-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Logic Logs (Notes)</label>
+                                                <label className="text-[9px] font-black uppercase text-slate-600 italic">Notes</label>
                                                 <textarea rows="3" value={maintenanceFormData.notes} onChange={(e) => setMaintenanceFormData({ ...maintenanceFormData, notes: e.target.value })} className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[11px] font-bold text-slate-200 focus:outline-none focus:border-transporter-primary/50 transition-all italic" />
                                             </div>
                                             <button type="submit" disabled={loading} className="w-full py-3 bg-transporter-primary text-[10px] font-black uppercase tracking-widest italic text-white rounded-md hover:bg-transporter-primary/80 transition-all shadow-lg shadow-transporter-primary/10">Save Service</button>

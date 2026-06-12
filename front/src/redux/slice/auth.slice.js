@@ -173,6 +173,10 @@ export const authSlice = createSlice({
         },
         clearAuthMessage: (state) => {
             state.message = null;
+        },
+        clearPending2FA: (state) => {
+            state.pending2FAEmail = null;
+            state.error = null;
         }
     },
 
@@ -336,6 +340,6 @@ export const authSlice = createSlice({
     }
 });
 
-export const { logout, updateUser, clearAuthError, clearAuthMessage } = authSlice.actions;
+export const { logout, updateUser, clearAuthError, clearAuthMessage, clearPending2FA } = authSlice.actions;
 export default authSlice.reducer;
 

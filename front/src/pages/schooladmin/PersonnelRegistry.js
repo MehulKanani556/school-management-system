@@ -146,7 +146,7 @@ const PersonnelRegistry = () => {
     };
 
     const handleDelete = async (id) => {
-        if (await window.confirm('Are you sure you want to decommission this personnel node?')) {
+        if (await window.confirm('Are you sure you want to remove this staff member?')) {
             if (activeTab === 'institutional') {
                 dispatch(deleteStaff(id));
             } else {
@@ -186,7 +186,7 @@ const PersonnelRegistry = () => {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                 <div>
                     <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter mb-1 font-outfit leading-none">Personnel Hub</h1>
-                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-80 leading-none">Institutional Human Resource & Operations Matrix.</p>
+                    <p className="text-[11px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-80 leading-none">Manage all school staff and drivers.</p>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-4">
@@ -212,7 +212,7 @@ const PersonnelRegistry = () => {
                         }}
                         className={`px-8 py-5 text-white text-[10px] font-black uppercase tracking-widest italic rounded-xl shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-3 ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-schooladmin-primary shadow-schooladmin-primary/20'}`}
                     >
-                        <UserPlus size={16} /> Provision Node
+                        <UserPlus size={16} /> Add Staff
                     </button>
                 </div>
             </div>
@@ -223,7 +223,7 @@ const PersonnelRegistry = () => {
                     <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-600" size={18} />
                     <input
                         type="text"
-                        placeholder={activeTab === 'institutional' ? "SEARCH BY IDENTITY OR EMAIL..." : "SEARCH BY OPERATOR NAME OR LICENSE..."}
+                        placeholder={activeTab === 'institutional' ? "SEARCH BY NAME OR EMAIL..." : "SEARCH BY NAME OR LICENSE..."}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="w-full bg-slate-900/60 border border-brand-border/40 rounded-xl py-5 pl-14 pr-6 text-[11px] font-black uppercase tracking-widest text-white focus:outline-none focus:border-brand-primary transition-all italic shadow-inner"
@@ -235,11 +235,11 @@ const PersonnelRegistry = () => {
                         onChange={(e) => setSelectedRole(e.target.value)}
                         className="bg-slate-900/60 border border-brand-border/40 rounded-xl py-5 px-8 text-[11px] font-black uppercase tracking-widest text-slate-400 focus:outline-none focus:border-brand-primary transition-all italic min-w-[200px]"
                     >
-                        <option value="All">All Operations</option>
-                        <option value="Accountant">Fiscal Sector</option>
-                        <option value="Librarian">Archive Sector</option>
-                        <option value="Transport_Manager">Logistics Sector</option>
-                        <option value="Driver">Operations Sector</option>
+                        <option value="All">All Roles</option>
+                        <option value="Accountant">Accountant</option>
+                        <option value="Librarian">Librarian</option>
+                        <option value="Transport_Manager">Transport Manager</option>
+                        <option value="Driver">Driver</option>
                     </select>
                 )}
             </div>
@@ -249,7 +249,7 @@ const PersonnelRegistry = () => {
                 {(userLoading || driverLoading) && !users.length && !drivers.length ? (
                     <div className="col-span-full py-20 flex flex-col items-center gap-4">
                         <Loader2 className="animate-spin text-brand-primary w-12 h-12" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 animate-pulse">Synchronizing Personnel Ledger...</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 animate-pulse">Loading staff members...</span>
                     </div>
                 ) : activeTab === 'institutional' ? (
                     filteredStaff.map((member, i) => (
@@ -275,7 +275,7 @@ const PersonnelRegistry = () => {
                 )}
                 {((activeTab === 'institutional' && filteredStaff.length === 0) || (activeTab === 'fleet' && filteredDrivers.length === 0)) && !userLoading && !driverLoading && (
                     <div className="col-span-full py-24 text-center bg-slate-900/40 rounded-3xl border border-brand-border/20 border-dashed">
-                        <p className="text-[11px] font-black uppercase italic text-slate-600 tracking-[0.3em]">No personnel signals detected in this sector.</p>
+                        <p className="text-[11px] font-black uppercase italic text-slate-600 tracking-[0.3em]">No staff members found.</p>
                     </div>
                 )}
             </div>
@@ -289,7 +289,7 @@ const PersonnelRegistry = () => {
                             <form onSubmit={isEditOpen ? handleUpdate : handleProvision} className="p-12 space-y-8">
                                 <div className="flex justify-between items-center pb-6 border-b border-brand-border/40">
                                     <h3 className="text-2xl font-black italic uppercase tracking-tighter text-white leading-none font-outfit">
-                                        {isEditOpen ? 'Update Personnel Logic' : 'Provision Staff Node'}
+                                        {isEditOpen ? 'Edit Staff Details' : 'Add Staff Member'}
                                     </h3>
                                     <button type="button" onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="p-2 bg-slate-900 rounded-lg text-slate-500 hover:text-white transition-colors"><X size={20} /></button>
                                 </div>
@@ -301,7 +301,7 @@ const PersonnelRegistry = () => {
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">First Name</label>
                                                 <input
                                                     type="text" required value={formData.firstName}
-                                                    placeholder="GIVEN NAME"
+                                                    placeholder="Enter first name..."
                                                     onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
@@ -310,7 +310,7 @@ const PersonnelRegistry = () => {
                                                 <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Last Name</label>
                                                 <input
                                                     type="text" required value={formData.lastName}
-                                                    placeholder="SURNAME"
+                                                    placeholder="Enter last name..."
                                                     onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
@@ -327,7 +327,7 @@ const PersonnelRegistry = () => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Operational Role</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Role</label>
                                                 <select
                                                     value={formData.role}
                                                     onChange={(e) => setFormData({ ...formData, role: e.target.value })}
@@ -340,10 +340,10 @@ const PersonnelRegistry = () => {
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Contact Link (Phone)</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Phone Number</label>
                                                 <input
                                                     type="text" value={formData.phone}
-                                                    placeholder="COMM PHONE LINK"
+                                                    placeholder="Enter phone number..."
                                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
                                                 />
@@ -383,9 +383,9 @@ const PersonnelRegistry = () => {
                                         )}
                                         {!isEditOpen && (
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Initial Passkey</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Password</label>
                                                 <input
-                                                    type="password" placeholder="MIN 8 CHARS"
+                                                    type="password" placeholder="At least 8 characters..."
                                                     value={formData.password}
                                                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-brand-primary transition-all"
@@ -397,7 +397,7 @@ const PersonnelRegistry = () => {
                                     <div className="space-y-6">
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Full Operator Name</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Full Name</label>
                                                 <input
                                                     type="text" required value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
@@ -405,7 +405,7 @@ const PersonnelRegistry = () => {
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Comms Connection (Phone)</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Phone Number</label>
                                                 <input
                                                     type="text" required value={formData.contact}
                                                     onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
@@ -433,17 +433,17 @@ const PersonnelRegistry = () => {
                                         </div>
                                         <div className="grid grid-cols-2 gap-6">
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Efficiency Rating</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Performance Rating</label>
                                                 <select
                                                     value={formData.performanceRating}
                                                     onChange={(e) => setFormData({ ...formData, performanceRating: parseInt(e.target.value) })}
                                                     className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-4 px-5 text-[11px] font-black uppercase italic text-white focus:outline-none focus:border-schooladmin-primary transition-all"
                                                 >
-                                                    {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star Efficiency</option>)}
+                                                    {[1,2,3,4,5].map(r => <option key={r} value={r}>{r} Star Rating</option>)}
                                                 </select>
                                             </div>
                                             <div className="space-y-2">
-                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Emergency Link</label>
+                                                <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Emergency Contact</label>
                                                 <input
                                                     type="text" value={formData.emergencyContact}
                                                     onChange={(e) => setFormData({ ...formData, emergencyContact: e.target.value })}
@@ -455,9 +455,9 @@ const PersonnelRegistry = () => {
                                 )}
 
                                 <div className="flex gap-4 pt-10">
-                                    <button type="button" onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-xl">Abort Protocol</button>
+                                    <button type="button" onClick={() => {setIsAddOpen(false); setIsEditOpen(false);}} className="flex-1 px-8 py-5 border border-brand-border text-[10px] font-black uppercase tracking-widest italic text-slate-500 hover:bg-slate-800 transition-all rounded-xl">Cancel</button>
                                     <button type="submit" className={`flex-1 px-8 py-5 text-[10px] font-black uppercase tracking-[0.2em] italic text-white rounded-xl hover:translate-y-[-2px] transition-all shadow-2xl ${activeTab === 'institutional' ? 'bg-brand-primary shadow-brand-primary/20' : 'bg-schooladmin-primary shadow-schooladmin-primary/20'}`}>
-                                        {isEditOpen ? 'Apply Modifications' : 'Finalize Provision'}
+                                        {isEditOpen ? 'Save Changes' : 'Add Staff'}
                                     </button>
                                 </div>
                             </form>
@@ -519,14 +519,14 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
                             <div className="flex flex-col gap-1">
                                 <div className="flex items-center gap-2">
                                     <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
-                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">{member.role} NODE</span>
+                                    <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">{member.role}</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">ID: {member.employeeId || 'GENERATING...'}</span>
+                                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">ID: {member.employeeId || 'Loading...'}</span>
                             </div>
                         ) : (
                             <div className="flex items-center gap-2">
                                 <span className={`w-2 h-2 rounded-full ${member.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`}></span>
-                                <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">OPERATOR: {member.licenseNumber}</span>
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">LICENSE: {member.licenseNumber}</span>
                             </div>
                         )}
                     </div>
@@ -534,32 +534,32 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
                         {isStaff && (
                             <button onClick={onView} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all shadow-xl" title="View Profile"><Eye size={16} /></button>
                         )}
-                        <button onClick={onEdit} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl" title="Edit Entity"><Edit3 size={16} /></button>
-                        <button onClick={onDelete} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl" title="Purge Node"><Trash2 size={16} /></button>
+                        <button onClick={onEdit} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl" title="Edit Staff"><Edit3 size={16} /></button>
+                        <button onClick={onDelete} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl" title="Remove Staff"><Trash2 size={16} /></button>
                     </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-brand-border/20">
                     <div className="space-y-1">
-                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Comm Link</p>
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Email</p>
                         <div className="flex items-center gap-3">
                             <Mail size={14} className="text-brand-primary opacity-60" />
                             <span className="text-[11px] font-bold text-slate-400 truncate">{isStaff ? member.email : member.contact}</span>
                         </div>
                     </div>
                     <div className="space-y-1">
-                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Nexus Link</p>
+                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Phone</p>
                         <div className="flex items-center gap-3">
                             <Phone size={14} className="text-brand-primary opacity-60" />
-                            <span className="text-[11px] font-bold text-slate-400">{isStaff ? (member.phoneNumber || 'LOCKED') : (member.emergencyContact || 'UNSET')}</span>
+                            <span className="text-[11px] font-bold text-slate-400">{isStaff ? (member.phoneNumber || 'N/A') : (member.emergencyContact || 'Not Set')}</span>
                         </div>
                     </div>
                     {isStaff && (
                         <div className="space-y-1 sm:col-span-2 pt-2 border-t border-brand-border/10">
-                            <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Compensation Manifest</p>
+                            <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Salary Details</p>
                             <div className="flex items-center gap-2">
                                 <ShieldCheck size={14} className="text-emerald-500 opacity-60" />
-                                <span className="text-[12px] font-black text-white italic uppercase tracking-tighter">Base Yield: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
+                                <span className="text-[12px] font-black text-white italic uppercase tracking-tighter">Base Salary: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
                             </div>
                         </div>
                     )}

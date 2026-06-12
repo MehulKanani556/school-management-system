@@ -27,15 +27,15 @@ const ChildFees = () => {
     }, [orderIdParam]);
 
     const handleVerify = async (oid) => {
-        const toastId = toast.loading("Verifying financial transaction...");
+        const toastId = toast.loading("Verifying payment...");
         try {
             await dispatch(verifyFeePayment(oid)).unwrap();
-            toast.success("Institutional credit verified and ledger updated.", { id: toastId });
+            toast.success("Payment verified and updated.", { id: toastId });
             // Remove order_id from URL
             window.history.replaceState({}, document.title, window.location.pathname);
             if (selectedChild?._id) dispatch(fetchChildFees(selectedChild._id));
         } catch (err) {
-            toast.error(err.message || "Financial verification failed.", { id: toastId });
+            toast.error(err.message || "Payment verification failed.", { id: toastId });
         }
     };
 
@@ -43,7 +43,7 @@ const ChildFees = () => {
         return (
             <div className="flex flex-col items-center justify-center h-full pt-40 opacity-50 space-y-4">
                 <div className="w-10 h-10 border-2 border-luxury-rose border-t-transparent rounded-full animate-spin" />
-                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Synchronizing Financial Node...</span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Loading fees...</span>
             </div>
         );
     }
@@ -53,7 +53,7 @@ const ChildFees = () => {
     };
 
     const handlePay = async (feeId) => {
-        if (!await window.confirm("Authorize this institutional transaction?")) return;
+        if (!await window.confirm("Are you sure you want to authorize this fee payment?")) return;
         try {
             const res = await dispatch(payChildFee(feeId)).unwrap();
             
@@ -69,10 +69,10 @@ const ChildFees = () => {
 
                 cashfree.checkout(checkoutOptions);
             } else {
-                toast.success(res.message || 'Financial Delta Synchronized');
+                toast.success(res.message || 'Payment successful');
             }
         } catch (err) {
-            toast.error(err.message || 'Transaction Interrupted');
+            toast.error(err.message || 'Payment failed');
         }
     };
 
@@ -93,10 +93,10 @@ const ChildFees = () => {
                 <div className="space-y-2">
                     <div className="flex items-center gap-3 mb-2">
                         <span className="w-12 h-[2px] bg-luxury-rose rounded-md"></span>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Financial Node</span>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em] text-luxury-rose">Fees</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Financial Ledger</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide">Transactional reconciliation for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s institutional account.</p>
+                    <h1 className="text-4xl font-black text-white uppercase tracking-tighter leading-none font-outfit">Fee Payment Ledger</h1>
+                    <p className="text-slate-500 font-medium text-sm tracking-wide">Fee payments for <span className="text-white font-bold">{selectedChild?.firstName}</span>'s account.</p>
                 </div>
 
                 <div className="flex items-center gap-4 bg-black/40 border border-slate-800 p-4 px-8 rounded-md shadow-inner">
@@ -111,7 +111,7 @@ const ChildFees = () => {
             <div className="grid grid-cols-1 gap-6">
                 <div className="bg-brand-surface/40 border border-brand-border/40 rounded-md overflow-hidden">
                     <div className="p-8 border-b border-brand-border/40 bg-black/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Historical Registry</h3>
+                        <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400 font-outfit">Payment History</h3>
                         <div className="relative group">
                             <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-hover:text-luxury-rose transition-colors" />
                             <input 
@@ -126,11 +126,11 @@ const ChildFees = () => {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="bg-slate-900/40">
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Financial Domain</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Fee Category</th>
                                     <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Timeline</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Quantifiable Delta</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">State</th>
-                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic text-right">Ledger</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Amount</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Status</th>
+                                    <th className="px-8 py-6 text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-brand-border/20">
@@ -189,7 +189,7 @@ const ChildFees = () => {
                                     <tr>
                                         <td colSpan="5" className="px-8 py-20 text-center">
                                             <Activity size={48} className="mx-auto mb-4 text-slate-700 animate-pulse" />
-                                            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No Financial Records Indexed</p>
+                                            <p className="text-slate-500 font-bold uppercase tracking-widest text-[10px]">No Fee Records Found</p>
                                         </td>
                                     </tr>
                                 )}

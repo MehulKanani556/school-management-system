@@ -135,6 +135,13 @@ async function seed() {
 
     // ─── School & School Admin ───────────────────────────────────
     let school = await School.findOne({ subdomain: content.SCHOOL.subdomain });
+    if (school) {
+      console.log('Deleting existing school and users to ensure clean recreation...');
+      await clearSchoolData(school._id);
+      await User.deleteMany({ schoolId: school._id });
+      await School.deleteOne({ _id: school._id });
+      school = null;
+    }
     if (!school) {
       school = await School.create({
         name: content.SCHOOL.name,
@@ -1080,6 +1087,7 @@ async function seed() {
 
     await QuestionBank.create({
       schoolId,
+      academicYearId: ctx.currentYear._id,
       teacherId: ctx.teachers[0].teacher._id,
       subject: ctx.subjects[0]._id,
       classLevel: '10',

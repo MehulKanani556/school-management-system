@@ -4,6 +4,7 @@ import { fetchRevenueAnalytics } from '../../redux/slice/superAdmin.slice';
 import { DollarSign, TrendingUp, Globe, Activity, School, ArrowUpRight, BarChart3, TrendingDown, Shield } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const Revenue = () => {
     const dispatch = useDispatch();
@@ -17,7 +18,7 @@ const Revenue = () => {
         return (
             <div className="flex flex-col items-center justify-center h-[60vh] opacity-30 grayscale animate-pulse">
                 <BarChart3 size={64} className="mb-6" />
-                <h2 className="text-xl font-black uppercase italic tracking-widest text-slate-500">Synchronizing Fiscal Node...</h2>
+                <h2 className="text-xl font-black uppercase italic tracking-widest text-slate-500">Loading revenue data...</h2>
             </div>
         );
     }
@@ -33,10 +34,10 @@ const Revenue = () => {
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-2">
                 <div className="flex flex-col">
-                    <h1 className="text-2xl xs:text-3xl font-black tracking-tight text-white font-inter italic uppercase leading-tight">Gross Revenue Stream</h1>
+                    <h1 className="text-2xl xs:text-3xl font-black tracking-tight text-white font-inter italic uppercase leading-tight">Total Revenue</h1>
                     <p className="text-[11px] xs:text-sm font-medium text-slate-500 mt-1 tracking-wide flex items-center gap-3">
                         <span className="w-1.5 h-1.5 rounded-md bg-superadmin-primary animate-pulse shadow-[0_0_8px_rgba(37,99,235,0.4)]"></span>
-                        Institutional fiscal telemetry active. Global synchronization complete.
+                        School financial analytics loaded successfully.
                     </p>
                 </div>
                 <div className="px-6 py-4 rounded-md bg-superadmin-primary/10 border border-superadmin-primary/20 flex items-center gap-6 shadow-2xl group cursor-default transition-all hover:bg-superadmin-primary/20">
@@ -44,7 +45,7 @@ const Revenue = () => {
                         <TrendingUp size={24} />
                     </div>
                     <div>
-                        <p className="text-[10px] font-black uppercase text-superadmin-primary tracking-widest italic leading-none mb-1.5">Live Fiscal Flow</p>
+                        <p className="text-[10px] font-black uppercase text-superadmin-primary tracking-widest italic leading-none mb-1.5">Total Collected</p>
                         <p className="text-2xl font-black text-white tracking-tighter leading-none font-outfit uppercase italic">${revenue.totalRevenue?.toLocaleString()}</p>
                     </div>
                 </div>
@@ -56,8 +57,8 @@ const Revenue = () => {
                 <div className="xl:col-span-1 bg-slate-900/30 border border-slate-800/60 p-8 rounded-md backdrop-blur-3xl flex flex-col">
                     <div className="flex items-center justify-between mb-8">
                          <div>
-                            <h3 className="text-sm font-black text-white italic uppercase tracking-[0.2em] mb-1">Fiscal Flux</h3>
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic">Historical Memory Logs</p>
+                            <h3 className="text-sm font-black text-white italic uppercase tracking-[0.2em] mb-1">Revenue Trends</h3>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic">Monthly Overview</p>
                          </div>
                          <Activity size={16} className="text-superadmin-primary animate-pulse" />
                     </div>
@@ -79,7 +80,7 @@ const Revenue = () => {
                     <div className="pt-6 border-t border-white/5 flex items-center justify-between">
                          <div className="flex flex-col">
                             <span className="text-[14px] font-black text-white italic uppercase leading-none mb-1">Optimized</span>
-                            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Growth Vector</span>
+                            <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">Growth Rate</span>
                          </div>
                          <ArrowUpRight size={24} className="text-superadmin-primary" />
                     </div>
@@ -89,8 +90,8 @@ const Revenue = () => {
                 <div className="xl:col-span-2 bg-slate-900/30 border border-slate-800/60 rounded-md backdrop-blur-3xl overflow-hidden shadow-2xl">
                     <div className="px-8 py-6 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
                         <div>
-                            <h2 className="text-lg font-black italic uppercase tracking-tight text-white leading-none">Institutional Revenue Registry</h2>
-                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic mt-2 opacity-60 px-0">Mapping individual node performance against global protocol.</p>
+                            <h2 className="text-lg font-black italic uppercase tracking-tight text-white leading-none">Revenue by School</h2>
+                            <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest italic mt-2 opacity-60 px-0">Comparison of revenue collected across different schools.</p>
                         </div>
                         <BarChart3 size={20} className="text-superadmin-primary" />
                     </div>
@@ -102,7 +103,7 @@ const Revenue = () => {
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-md bg-slate-800 border border-white/5 flex items-center justify-center text-slate-500 group-hover/row:border-superadmin-primary/40 transition-colors shrink-0">
-                                                    {school.logo ? <img src={school.logo} alt="" className="w-full h-full object-cover rounded-md" /> : <School size={16} />}
+                                                     {getImageUrl(school.logo) ? <img src={getImageUrl(school.logo)} alt="" className="w-full h-full object-cover rounded-md" /> : <School size={16} />}
                                                 </div>
                                                 <div className="min-w-0">
                                                     <p className="font-black text-sm text-slate-200 tracking-tight group-hover/row:text-superadmin-primary transition-colors italic uppercase">{school.name}</p>
@@ -113,7 +114,7 @@ const Revenue = () => {
                                         <td className="px-8 py-5">
                                             <div className="flex items-center gap-2">
                                                 <Activity size={12} className="text-slate-600" />
-                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{school.studentCount} Nodes</span>
+                                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">{school.studentCount} Students</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-5 text-right">
@@ -121,7 +122,7 @@ const Revenue = () => {
                                                 <span className="text-sm font-black text-white tracking-tighter leading-none font-outfit uppercase italic">${school.revenue?.toLocaleString() || '0'}</span>
                                                 <div className="flex items-center gap-1">
                                                     <div className={`w-1 h-1 rounded-md animate-pulse ${school.revenue > 0 ? 'bg-emerald-500' : 'bg-superadmin-primary'}`}></div>
-                                                    <span className={`text-[8px] font-black uppercase tracking-widest italic ${school.revenue > 0 ? 'text-emerald-500' : 'text-slate-600'}`}>{school.revenue > 0 ? 'Sync Active' : 'Idle Node'}</span>
+                                                    <span className={`text-[8px] font-black uppercase tracking-widest italic ${school.revenue > 0 ? 'text-emerald-500' : 'text-slate-600'}`}>{school.revenue > 0 ? 'Active' : 'No Revenue'}</span>
                                                 </div>
                                             </div>
                                         </td>
@@ -136,9 +137,9 @@ const Revenue = () => {
             {/* Stats Aggregation */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Avg Node Revenue', value: `$${Math.round(revenue.totalRevenue / (revenue.schoolBreakdown?.length || 1)).toLocaleString()}`, icon: Globe, trend: 'STABLE' },
-                    { label: 'Platform Capacity', value: '1,440/node', icon: Activity, trend: '+4.2%' },
-                    { label: 'Fiscal Integrity', value: '99.9%', icon: Shield, trend: 'VERIFIED' }
+                    { label: 'Average School Revenue', value: `$${Math.round(revenue.totalRevenue / (revenue.schoolBreakdown?.length || 1)).toLocaleString()}`, icon: Globe, trend: 'STABLE' },
+                    { label: 'Avg School Size', value: '1,440 students', icon: Activity, trend: '+4.2%' },
+                    { label: 'Payment Success Rate', value: '99.9%', icon: Shield, trend: 'VERIFIED' }
                 ].map((s, i) => (
                     <div key={i} className="bg-slate-900/30 border border-slate-800/60 p-6 rounded-md backdrop-blur-3xl group hover:border-superadmin-primary/20 transition-all flex items-center justify-between">
                          <div>

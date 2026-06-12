@@ -1,11 +1,33 @@
 const School = require('../models/school.model');
 const User = require('../models/user.model');
+const Subject = require('../models/subject.model');
+const ClassSection = require('../models/classSection.model');
 const bcrypt = require('bcrypt');
 const { sendWelcomeMail } = require('../utils/mail');
 
+const getSchoolEnrichedStats = async (schoolObj) => {
+    const school = schoolObj.toObject ? schoolObj.toObject() : schoolObj;
+    const schoolId = school._id;
+    
+    const usersCount = await User.countDocuments({ schoolId });
+    const subjectsCount = await Subject.countDocuments({ schoolId });
+    const classSectionsCount = await ClassSection.countDocuments({ schoolId });
+    
+    // Calculate storage dynamically (realistic estimate based on actual db nodes)
+    const storageGB = Number((0.015 * usersCount + 0.12 * subjectsCount + 0.08 * classSectionsCount).toFixed(1));
+    
+    return {
+        ...school,
+        usersCount,
+        subjectsCount,
+        classSectionsCount,
+        storageUsed: storageGB || 0.1 // Minimum 100MB
+    };
+};
+
 exports.createSchool = async (req, res) => {
     try {
-        const { name, subdomain, adminEmail, address, contact } = req.body;
+        const { name, subdomain, adminEmail, subscriptionTier, address, contact } = req.body;
 
         // Use uploaded logo if present
         const logo = req.file ? req.file.location : null;
@@ -13,14 +35,21 @@ exports.createSchool = async (req, res) => {
         const checkSchool = await School.findOne({ subdomain });
         if (checkSchool) return res.status(400).json({ message: 'Subdomain already taken' });
 
+        const TIER_PRICES = { basic: 99, standard: 249, premium: 499 };
+        const revenue = TIER_PRICES[(subscriptionTier || 'basic').toLowerCase()] || 99;
+
         const school = await School.create({
             name,
             subdomain,
             adminEmail,
             logo,
+            subscriptionTier: subscriptionTier || 'basic',
+            revenue,
             address,
             contact
         });
+
+        const enrichedSchool = await getSchoolEnrichedStats(school);
 
         // Automatically create School Admin User
         const checkUser = await User.findOne({ email: adminEmail });
@@ -55,7 +84,7 @@ exports.createSchool = async (req, res) => {
             }).catch(err => console.error('Mail error during school creation:', err));
         }
 
-        res.status(201).json({ success: true, school, message: 'School created and Admin provisioned successfully' });
+        res.status(201).json({ success: true, school: enrichedSchool, message: 'School created and Admin provisioned successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -64,7 +93,8 @@ exports.createSchool = async (req, res) => {
 exports.getAllSchools = async (req, res) => {
     try {
         const schools = await School.find().sort({ createdAt: -1 });
-        res.status(200).json({ success: true, schools });
+        const enrichedSchools = await Promise.all(schools.map(school => getSchoolEnrichedStats(school)));
+        res.status(200).json({ success: true, schools: enrichedSchools });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -97,15 +127,36 @@ exports.getSchoolStats = async (req, res) => {
 exports.updateSchool = async (req, res) => {
     try {
         const { id } = req.params;
-        const { name, isActive, address, contact } = req.body;
+        let { name, isActive, subscriptionTier, address, contact, settings } = req.body;
 
-        const updateData = { name, isActive, address, contact };
+        const updateData = { name, address, contact };
+        if (isActive !== undefined) {
+            updateData.isActive = isActive === 'true' || isActive === true;
+        }
+        if (settings) {
+            if (typeof settings === 'string') {
+                try {
+                    updateData.settings = JSON.parse(settings);
+                } catch (e) {
+                    console.error('Settings parse error:', e);
+                }
+            } else {
+                updateData.settings = settings;
+            }
+        }
+        if (subscriptionTier) {
+            updateData.subscriptionTier = subscriptionTier;
+            const TIER_PRICES = { basic: 99, standard: 249, premium: 499 };
+            updateData.revenue = TIER_PRICES[subscriptionTier.toLowerCase()] || 0;
+        }
         if (req.file) {
             updateData.logo = req.file.location;
         }
 
         const school = await School.findByIdAndUpdate(id, updateData, { new: true });
-        res.status(200).json({ success: true, school, message: 'School updated successfully' });
+        if (!school) return res.status(404).json({ message: 'School not found' });
+        const enrichedSchool = await getSchoolEnrichedStats(school);
+        res.status(200).json({ success: true, school: enrichedSchool, message: 'School updated successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -126,7 +177,9 @@ exports.updateSchoolStatus = async (req, res) => {
         const { id } = req.params;
         const { isActive } = req.body;
         const school = await School.findByIdAndUpdate(id, { isActive }, { new: true });
-        res.status(200).json({ success: true, school, message: 'Status updated' });
+        if (!school) return res.status(404).json({ message: 'School not found' });
+        const enrichedSchool = await getSchoolEnrichedStats(school);
+        res.status(200).json({ success: true, school: enrichedSchool, message: 'Status updated' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

@@ -1788,22 +1788,70 @@ exports.toggleExamPublishStatus = async (req, res) => {
 exports.generateReportCard = async (req, res) => {
   try {
     const { id } = req.params;
-    const schoolId = getSchoolId(req);
 
+    // Load Student directly first to inspect details and authorize
+    const student = await Student.findById(id).populate('standard classSection');
+    if (!student) return res.status(404).json({ message: 'Student not found' });
+
+    // Authorization checks matching the unified profile permission model
+    const viewerRole = req.user.role;
+    const viewerId = req.user._id.toString();
+
+    let authorized = false;
+    if (viewerRole === 'Super_Admin') {
+      authorized = true;
+    } else if (viewerRole === 'School_Admin' || viewerRole === 'Accountant') {
+      if (student.schoolId.toString() === req.user.schoolId?.toString()) {
+        authorized = true;
+      }
+    } else if (viewerRole === 'Teacher') {
+      if (student.schoolId.toString() === req.user.schoolId?.toString()) {
+        authorized = true;
+      }
+    } else if (viewerRole === 'Student') {
+      if (id === viewerId) {
+        authorized = true;
+      }
+    } else if (viewerRole === 'Parent') {
+      if (student.parentId && student.parentId.toString() === viewerId) {
+        authorized = true;
+      }
+    }
+
+    if (!authorized) {
+      return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const schoolId = student.schoolId;
     const school = await School.findById(schoolId);
     if (!school) return res.status(404).json({ message: 'School not found' });
 
-    const student = await Student.findOne({ _id: id, schoolId }).populate('standard classSection');
-    if (!student) return res.status(404).json({ message: 'Student not found' });
+    // Dynamically resolve academicYearId if not provided (e.g. for Super_Admin)
+    let academicYearId = req.academicYearId;
+    let academicYearName = req.academicYearName;
 
-    const enrollment = await StudentEnrollment.findOne({ studentId: id, academicYearId: req.academicYearId })
+    if (!academicYearId) {
+      const current = await AcademicYear.findOne({ schoolId, isCurrent: true }).select('_id name');
+      if (current) {
+        academicYearId = current._id;
+        academicYearName = current.name;
+      } else {
+        const mostRecent = await AcademicYear.findOne({ schoolId }).sort({ startDate: -1 }).select('_id name');
+        if (mostRecent) {
+          academicYearId = mostRecent._id;
+          academicYearName = mostRecent.name;
+        }
+      }
+    }
+
+    const enrollment = await StudentEnrollment.findOne({ studentId: id, academicYearId })
         .populate('standardId')
         .populate('classSectionId');
     
     const standardToPrint = enrollment?.standardId || student.standard;
     const classSectionToPrint = enrollment?.classSectionId || student.classSection;
 
-    const marks = await Mark.find(addAcademicYearFilter({ studentId: id, schoolId }, req.academicYearId))
+    const marks = await Mark.find(addAcademicYearFilter({ studentId: id, schoolId }, academicYearId))
       .populate({
         path: 'examId',
         match: { isPublished: true },
@@ -1819,7 +1867,7 @@ exports.generateReportCard = async (req, res) => {
         standardToPrint,
         classSectionToPrint,
         validMarks,
-        req.academicYearName
+        academicYearName
     );
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

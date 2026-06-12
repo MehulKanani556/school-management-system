@@ -10,7 +10,9 @@ const Timetable = require('../models/timetable.model');
 const StaffAttendance = require('../models/staffAttendance.model');
 const ClassSection = require('../models/classSection.model');
 const FeePayment = require('../models/feePayment.model');
+const StudentEnrollment = require('../models/studentEnrollment.model');
 const bcrypt = require('bcrypt');
+const mongoose = require('mongoose');
 
 
 exports.getSingleUser = async (req,res)=>{
@@ -32,48 +34,142 @@ exports.getUniversalProfile = async (req, res) => {
         const viewerRole = req.user.role;
         const viewerId = req.user._id;
 
-        // 1. Try to find in Student model (since they don't have a separate User record)
-        let studentProfile = await Student.findById(id)
-            .populate('standard', 'level name')
-            .populate('classSection', 'sectionLabel')
-            .populate('schoolId', 'name logo')
-            .populate('parentId', 'firstName lastName email photo');
+        // Determine user and studentProfile
+        let studentProfile = null;
+        let user = null;
+
+        // Try to find in User model first
+        user = await User.findById(id).select('-password').populate('schoolId', 'name logo').populate('driverInfo');
+
+        if (user && user.role === 'Student') {
+            // Find Student document by email
+            studentProfile = await Student.findOne({ email: user.email })
+                .populate('standard', 'level name')
+                .populate('classSection', 'sectionLabel')
+                .populate('schoolId', 'name logo')
+                .populate('parentId', 'firstName lastName email photo');
+        } else {
+            // Check if id is a Student ID directly
+            studentProfile = await Student.findById(id)
+                .populate('standard', 'level name')
+                .populate('classSection', 'sectionLabel')
+                .populate('schoolId', 'name logo')
+                .populate('parentId', 'firstName lastName email photo');
+
+            if (studentProfile) {
+                // Find corresponding User account by email
+                user = await User.findOne({ email: studentProfile.email }).select('-password');
+            }
+        }
 
         if (studentProfile) {
+            // Convert to ObjectId for reliable sub-queries
+            const studentObjectId = studentProfile._id;
+            const studentUser = user;
+
+            // ── Fallback: if standard or classSection are null (stale references),
+            //    look up the most recent active StudentEnrollment record
+            if (!studentProfile.standard || !studentProfile.classSection) {
+                const enrollment = await StudentEnrollment.findOne({ studentId: studentObjectId, status: 'Active' })
+                    .sort({ createdAt: -1 })
+                    .populate('standardId', 'level name')
+                    .populate('classSectionId', 'sectionLabel');
+
+                if (enrollment) {
+                    if (!studentProfile.standard && enrollment.standardId) {
+                        studentProfile.standard = enrollment.standardId;
+                    }
+                    if (!studentProfile.classSection && enrollment.classSectionId) {
+                        studentProfile.classSection = enrollment.classSectionId;
+                    }
+                    // Also recover rollNumber from enrollment if missing
+                    if (!studentProfile.rollNumber && enrollment.rollNumber) {
+                        studentProfile.rollNumber = enrollment.rollNumber;
+                    }
+                }
+            }
+
+            // ── Auto-generate admissionNumber if missing
+            if (!studentProfile.admissionNumber) {
+                try {
+                    const School = mongoose.model('School');
+                    const school = await School.findById(studentProfile.schoolId?._id || studentProfile.schoolId);
+                    const schoolNameStr = school ? school.name.toUpperCase().replace(/[^A-Z0-9]/g, '').substring(0, 4) : 'SCHL';
+                    const year = new Date().getFullYear();
+                    const prefix = `ADM-${year}-${schoolNameStr}-`;
+                    const last = await Student.findOne(
+                        { schoolId: studentProfile.schoolId?._id || studentProfile.schoolId, admissionNumber: new RegExp(`^${prefix}`) },
+                        { admissionNumber: 1 }
+                    ).sort({ admissionNumber: -1 }).lean();
+                    let nextNum = 1;
+                    if (last?.admissionNumber) {
+                        const parts = last.admissionNumber.split('-');
+                        const lastNum = parseInt(parts[parts.length - 1], 10);
+                        if (!isNaN(lastNum)) nextNum = lastNum + 1;
+                    }
+                    const newAdmNo = `${prefix}${String(nextNum).padStart(4, '0')}`;
+                    await Student.findByIdAndUpdate(studentObjectId, { admissionNumber: newAdmNo });
+                    studentProfile.admissionNumber = newAdmNo;
+                } catch (admErr) {
+                    console.error('Could not auto-generate admissionNumber:', admErr.message);
+                }
+            }
+
             let studentDetails = {};
-            // If viewer is Admin or self or Parent of child
-            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === id || 
+            // Check if viewer has access
+            const isSelf = viewerId.toString() === studentObjectId.toString() || 
+                           (studentUser && viewerId.toString() === studentUser._id.toString());
+
+            if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || isSelf ||
                 viewerRole === 'Accountant' || viewerRole === 'Teacher' ||
-                (viewerRole === 'Parent' && studentProfile.parentId?._id.toString() === viewerId.toString())) {
-                const results = await Mark.find({ studentId: id })
+                (viewerRole === 'Parent' && studentProfile.parentId?._id?.toString() === viewerId.toString()) ||
+                (viewerRole === 'Parent' && studentProfile.parentId?.toString() === viewerId.toString())) {
+
+                // Use ObjectId for all sub-queries to avoid string vs ObjectId mismatch
+                const results = await Mark.find({ studentId: studentObjectId })
                     .populate({
                         path: 'examId',
                         populate: { path: 'subject', select: 'name' }
                     });
-                const rawAttendance = await Attendance.find({ 'records.studentId': id }).sort({ date: -1 }).limit(30);
+
+                const rawAttendance = await Attendance.find({ 'records.studentId': studentObjectId })
+                    .sort({ date: -1 })
+                    .limit(90);
                 const attendance = rawAttendance.map(att => {
-                    const record = att.records.find(r => r.studentId?.toString() === id);
+                    const record = att.records.find(r => r.studentId?.toString() === studentObjectId.toString());
                     return { date: att.date, status: record?.status || 'Unknown' };
                 });
-                const leaves = await Leave.find({ studentId: id }).sort({ createdAt: -1 });
-                const assignments = await Assignment.find({ 
-                    $or: [
-                        { classSectionId: studentProfile.classSection?._id },
-                        { standardId: studentProfile.standard?._id }
-                    ]
-                }).sort({ dueDate: -1 }).limit(10);
 
-                const timetableRaw = studentProfile.classSection ? await Timetable.findOne({ classSection: studentProfile.classSection._id })
-                    .populate('schedule.periods.subject', 'name')
-                    .populate('schedule.periods.teacher', 'firstName lastName') : null;
-                
+                const leaves = await Leave.find({ studentId: studentObjectId }).sort({ createdAt: -1 });
+
+                // Use effective standard/classSection (original or from enrollment)
+                const effectiveSectionId = studentProfile.classSection?._id;
+                const effectiveStandardId = studentProfile.standard?._id;
+
+                let assignments = [];
+                const assignmentOrConditions = [];
+                if (effectiveSectionId) assignmentOrConditions.push({ classSectionId: effectiveSectionId });
+                if (effectiveStandardId) assignmentOrConditions.push({ standardId: effectiveStandardId });
+
+                if (assignmentOrConditions.length > 0) {
+                    assignments = await Assignment.find({ $or: assignmentOrConditions })
+                        .sort({ dueDate: -1 })
+                        .limit(10);
+                }
+
+                const timetableRaw = effectiveSectionId
+                    ? await Timetable.findOne({ classSection: effectiveSectionId })
+                        .populate('schedule.periods.subject', 'name')
+                        .populate('schedule.periods.teacher', 'firstName lastName')
+                    : null;
+
                 let timetable = [];
                 if (timetableRaw) {
                     timetableRaw.schedule.forEach(dayNode => {
                         dayNode.periods.forEach(per => {
                             timetable.push({
                                 day: dayNode.day,
-                                courseId: { name: per.subject?.name || 'Institutional Period' },
+                                courseId: { name: per.subject?.name || 'Unknown Subject' },
                                 teacherId: { name: per.teacher ? `${per.teacher.firstName} ${per.teacher.lastName}` : 'TBD' },
                                 startTime: per.startTime,
                                 endTime: per.endTime
@@ -82,7 +178,9 @@ exports.getUniversalProfile = async (req, res) => {
                     });
                 }
 
-                const fees = await FeePayment.find({ studentId: id }).sort({ date: -1 }).limit(10);
+                const fees = await FeePayment.find({ studentId: studentObjectId })
+                    .sort({ createdAt: -1 })
+                    .limit(20);
 
                 studentDetails = { results, attendance, leaves, assignments, timetable, fees };
             }
@@ -91,18 +189,16 @@ exports.getUniversalProfile = async (req, res) => {
                 success: true,
                 role: 'Student',
                 data: {
-                    ...studentProfile._doc,
+                    ...studentProfile.toObject(),
                     ...studentDetails
                 }
             });
         }
 
-        // 2. Try to find in User model
-        let user = await User.findById(id).select('-password').populate('schoolId', 'name logo');
-        
+        // 2. Try to find in User model if we haven't already
         let teacherRecord = null;
         if (!user) {
-            // 3. Try to find in Teacher model directly (using Teacher _id)
+            // Try to find in Teacher model directly (using Teacher _id)
             teacherRecord = await Teacher.findById(id).populate('schoolId', 'name logo');
             if (teacherRecord && teacherRecord.userId) {
                 user = await User.findById(teacherRecord.userId).select('-password');
@@ -168,7 +264,7 @@ exports.getUniversalProfile = async (req, res) => {
         } else if (user.role === 'Parent') {
             const children = await Student.find({ parentId: activeId }).select('firstName lastName admissionNumber rollNumber photo');
             extraData = { children };
-        } else if (user.role === 'Accountant' || user.role === 'Librarian' || user.role === 'Transport_Manager') {
+        } else if (['Accountant', 'Librarian', 'Transport_Manager', 'Driver'].includes(user.role)) {
              // For staff members, fetch their specific record if needed, but for now we have User basic info
              if (viewerRole === 'School_Admin' || viewerRole === 'Super_Admin' || viewerId.toString() === activeId.toString()) {
                 const salary = await Payroll.find({ userId: activeId }).sort({ paidAt: -1 }).limit(12);

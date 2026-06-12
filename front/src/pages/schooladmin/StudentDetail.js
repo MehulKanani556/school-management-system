@@ -28,7 +28,7 @@ const StudentDetail = () => {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-brand-primary/20 border-t-brand-primary rounded-full animate-spin" />
-          <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Accessing Database Records...</p>
+          <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">Loading Student Profile...</p>
         </div>
       </div>
     );
@@ -40,14 +40,14 @@ const StudentDetail = () => {
          <AlertCircle size={32} />
       </div>
       <div>
-        <h3 className="text-xl font-black uppercase text-white font-outfit">Student Registry Fail</h3>
-        <p className="text-slate-500 text-sm">Target node specified could not be located in the current institutional sector.</p>
+        <h3 className="text-xl font-black uppercase text-white font-outfit">Student Not Found</h3>
+        <p className="text-slate-500 text-sm">The specified student could not be located in our records.</p>
       </div>
       <button 
         onClick={() => navigate('/school-admin/students')}
         className="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded font-black text-[10px] uppercase tracking-widest transition-all"
       >
-        Return to Registry
+        Back to Students
       </button>
     </div>
   );
@@ -62,10 +62,10 @@ const StudentDetail = () => {
   ];
 
   const tabs = [
-    { id: 'overview', label: 'Identity Overview', icon: User },
-    { id: 'performance', label: 'Academic Performance', icon: Award },
-    { id: 'attendance', label: 'Attendance logs', icon: Clock },
-    { id: 'financials', label: 'Financial ledger', icon: DollarSign },
+    { id: 'overview', label: 'Overview', icon: User },
+    { id: 'performance', label: 'Grades', icon: Award },
+    { id: 'attendance', label: 'Attendance', icon: Clock },
+    { id: 'financials', label: 'Fees', icon: DollarSign },
   ];
 
   return (
@@ -78,8 +78,8 @@ const StudentDetail = () => {
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">Student Intelligence Registry</h1>
-          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">UID: {id}</p>
+          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit">Student Profile</h1>
+          <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">ID: {id}</p>
         </div>
       </div>
 
@@ -178,7 +178,7 @@ const StudentDetail = () => {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 gap-6">
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Guardian Identity</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Guardian Name</p>
                       <p 
                         className={`font-bold transition-all ${student.parentId ? 'text-white hover:text-brand-primary cursor-pointer hover:italic' : 'text-white'}`}
                         onClick={() => student.parentId && navigate(`/school-admin/profile/${student.parentId?._id || student.parentId}`)}
@@ -188,11 +188,11 @@ const StudentDetail = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Contact Terminal</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Guardian Phone</p>
                       <p className="text-white font-bold">{student.guardianContact || '—'}</p>
                     </div>
                     <div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Electronic Mail</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Email Address</p>
                       <p className="text-white font-bold">{student.guardianEmail || '—'}</p>
                     </div>
                   </div>
@@ -201,7 +201,7 @@ const StudentDetail = () => {
 
               <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-6">
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-400 border-b border-brand-border/40 pb-4 mb-6 flex items-center gap-3">
-                  <AlertCircle size={16} className="text-brand-primary" /> System Directives
+                  <AlertCircle size={16} className="text-brand-primary" /> Quick Actions
                 </h3>
                 <div className="space-y-4">
                   <button 
@@ -213,8 +213,8 @@ const StudentDetail = () => {
                         <FileText size={18} />
                       </div>
                       <div className="text-left">
-                        <p className="text-xs font-black uppercase tracking-widest text-white">Generate report card</p>
-                        <p className="text-[10px] text-slate-500 font-medium">Export academic summary as PDF</p>
+                        <p className="text-xs font-black uppercase tracking-widest text-white">Download report card</p>
+                        <p className="text-[10px] text-slate-500 font-medium">Export grade summary as PDF</p>
                       </div>
                     </div>
                     <ChevronRight size={16} className="text-slate-600 group-hover:text-white transition-colors" />
@@ -222,7 +222,7 @@ const StudentDetail = () => {
 
                   <div className="p-4 bg-brand-primary/5 border border-brand-primary/10 rounded-md">
                     <p className="text-xs text-brand-primary leading-relaxed">
-                      All modifications to this identity node are logged in the institutional audit ledger. Access level: <strong>Administrative Command</strong>.
+                      System Note: All changes are logged for security auditing.
                     </p>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ const StudentDetail = () => {
                 </thead>
                 <tbody>
                   {exams.length === 0 ? (
-                    <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No academic performance records found.</td></tr>
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No academic records found.</td></tr>
                   ) : exams.map((exam, i) => (
                     <tr key={i} className="border-b border-brand-border/20 hover:bg-slate-800/10 transition-colors">
                       <td className="px-6 py-4 font-bold text-white text-sm">{exam.title}</td>
@@ -274,12 +274,12 @@ const StudentDetail = () => {
                   <thead>
                     <tr className="border-b border-brand-border/30">
                       <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Log Date</th>
-                      <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Status Vector</th>
+                      <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
                     </tr>
                   </thead>
                   <tbody>
                     {attendance.length === 0 ? (
-                      <tr><td colSpan={2} className="px-6 py-12 text-center text-slate-500 italic">No attendance registries found for this period.</td></tr>
+                      <tr><td colSpan={2} className="px-6 py-12 text-center text-slate-500 italic">No attendance records found.</td></tr>
                     ) : attendance.map((att, i) => (
                       <tr key={i} className="border-b border-brand-border/20 hover:bg-slate-800/10 transition-colors">
                         <td className="px-6 py-4 text-sm font-medium text-slate-300">{moment(att.date).format('DD MMMM YYYY')}</td>
@@ -299,7 +299,7 @@ const StudentDetail = () => {
 
               <div className="space-y-6">
                 <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/40 rounded-md p-6">
-                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Registry Summary</h4>
+                  <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-4">Attendance Summary</h4>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-xs text-slate-400">Presents</span>
                     <span className="text-xs text-emerald-400 font-black">{attendance.filter(a => a.status === 'Present').length}</span>
@@ -318,7 +318,7 @@ const StudentDetail = () => {
 
                 <div className="p-4 bg-slate-800/20 border border-brand-border/20 rounded-md text-center">
                   <p className="text-[10px] text-slate-500 italic leading-relaxed">
-                    Attendance records are extracted from the last 90 days of classroom registries.
+                    Attendance records display details from the last 90 days.
                   </p>
                 </div>
               </div>
@@ -335,12 +335,12 @@ const StudentDetail = () => {
                     <th className="px-6 py-4 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">Due Date</th>
                     <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Amount</th>
                     <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Paid</th>
-                    <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Ledger Status</th>
+                    <th className="px-6 py-4 text-center text-[10px] font-black uppercase tracking-widest text-slate-500">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {fees.length === 0 ? (
-                    <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No financial ledger entries found for this student.</td></tr>
+                    <tr><td colSpan={6} className="px-6 py-12 text-center text-slate-500 italic">No fee records found.</td></tr>
                   ) : fees.map((fee, i) => (
                     <tr key={i} className="border-b border-brand-border/20 hover:bg-slate-800/10 transition-colors">
                       <td className="px-6 py-4 text-xs font-mono text-slate-500">{fee._id.substring(0, 8)}...</td>

@@ -21,7 +21,7 @@ const SuperAdminDashboard = () => {
         if (!socket) return;
         socket.on('NEW_NOTIFICATION', (notif) => {
             dispatch(receiveNotification(notif));
-            toast.success(`Root Alert: ${notif.title}`, {
+            toast.success(`System Alert: ${notif.title}`, {
                 icon: '⚡',
                 style: {
                     borderRadius: '1.5rem',

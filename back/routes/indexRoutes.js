@@ -78,7 +78,7 @@ router.post('/school-admin/promote-students', ...schoolAdmin, sa.promoteStudents
 router.post('/school-admin/promote-all-students', ...schoolAdmin, sa.promoteAllStudents);
 router.post('/school-admin/generate-roll-numbers/:classId', ...schoolAdmin, sa.generateRollNumbers);
 router.get('/school-admin/students/:id', ...schoolAdmin, sa.getStudentDetail);
-router.get('/school-admin/students/:id/report-card', ...schoolAdmin, sa.generateReportCard);
+router.get('/school-admin/students/:id/report-card', auth, requireRole('School_Admin', 'Super_Admin', 'Teacher', 'Parent', 'Student'), academicYear, sa.generateReportCard);
 
 // Teachers
 router.get('/school-admin/teachers', ...schoolAdmin, sa.getTeachers);

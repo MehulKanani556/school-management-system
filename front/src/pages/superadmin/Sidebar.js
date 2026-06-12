@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../../redux/slice/auth.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown, ChevronRight, LayoutDashboard, Globe, Activity, DollarSign, Users, ShieldCheck, MessageSquare, Bell, LifeBuoy, Plane, Database, Settings, LogOut } from 'lucide-react';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const Sidebar = () => {
     const dispatch = useDispatch();
@@ -19,7 +20,6 @@ const Sidebar = () => {
             children: [
                 { path: '/superadmin/schools', icon: Globe, label: 'Registered Schools' },
                 { path: '/superadmin/analytics', icon: Activity, label: 'System Analytics' },
-                { path: '/superadmin/revenue', icon: DollarSign, label: 'Revenue Overview' },
             ]
         },
         {
@@ -79,14 +79,14 @@ const Sidebar = () => {
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-md bg-gradient-to-br from-superadmin-primary to-superadmin-secondary flex items-center justify-center font-black text-xl italic shadow-lg shadow-superadmin-primary/20 text-black">SA</div>
                     <div className="min-w-0">
-                        <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none text-white block">Root <span className="text-superadmin-primary">Node</span></span>
-                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 block truncate italic">System Authority</span>
+                        <span className="text-xl font-black tracking-tight uppercase font-outfit leading-none text-white block">Edu<span className="text-superadmin-primary">Manage</span></span>
+                        <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-1 block truncate italic">Super Admin Portal</span>
                     </div>
                 </div>
             </div>
 
             <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
-                <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Core Governance</p>
+                <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Menu</p>
                 {menuItems.map((item) => {
                     const hasChildren = !!item.children;
                     const isExpanded = expanded === item.label;
@@ -152,16 +152,16 @@ const Sidebar = () => {
             <div className="p-6 border-t border-brand-border/40 flex-shrink-0">
                 <div className="flex items-center gap-4 p-4 rounded-md bg-white/[0.03] border border-white/5 mb-4 group cursor-pointer hover:bg-white/[0.05] transition-all">
                     <div className="w-10 h-10 rounded-md bg-slate-800 overflow-hidden shrink-0 border border-white/10 group-hover:border-superadmin-primary/40 transition-all">
-                        {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <Users className="w-full h-full p-2 text-slate-600" />}
+                        {getImageUrl(user?.photo) ? <img src={getImageUrl(user.photo)} alt="" className="w-full h-full object-cover" /> : <Users className="w-full h-full p-2 text-slate-600" />}
                     </div>
                     <div className="min-w-0">
                         <p className="text-[10px] font-black text-white uppercase italic truncate mb-1 leading-none">{user?.firstName} {user?.lastName}</p>
-                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest truncate leading-none">ROOT ACCESS</p>
+                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest truncate leading-none">SUPER ADMIN</p>
                     </div>
                 </div>
                 <button onClick={handleLogout} className="w-full flex items-center gap-4 px-6 py-4 rounded-md text-slate-500 hover:bg-superadmin-primary/10 hover:text-superadmin-primary transition-all group font-outfit border border-transparent hover:border-superadmin-primary/20 uppercase tracking-widest text-[11px] font-black">
                     <LogOut size={20} />
-                    <span className="italic">Shutdown Root</span>
+                    <span className="italic">Log Out</span>
                 </button>
             </div>
         </aside>

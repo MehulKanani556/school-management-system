@@ -1,4 +1,5 @@
 const Message = require('../models/message.model');
+const SystemSetting = require('../models/systemSetting.model');
 const User = require('../models/user.model');
 const Student = require('../models/student.model');
 const Vehicle = require('../models/vehicle.model');
@@ -261,6 +262,12 @@ exports.sendMessage = async (req, res) => {
 // Get all announcements for the school (with role-based filtering)
 exports.getAnnouncements = async (req, res) => {
     try {
+        const setting = await SystemSetting.findOne({ key: 'SYSTEM_ANNOUNCEMENTS' });
+        const enabled = setting ? setting.value === true || setting.value === 'true' : true;
+        if (!enabled) {
+            return res.json([]);
+        }
+
         const activeYearId = req.academicYearId || req.query.academicYearId || req.headers['x-academic-year-id'];
         const query = { 
             schoolId: req.user.schoolId, 
@@ -404,7 +411,6 @@ exports.getMyMessages = async (req, res) => {
         // Normalize schoolId — for Students it may be a populated object
         const schoolId = req.user.schoolId?._id || req.user.schoolId;
         const query = {
-            schoolId,
             $or: [
                 {
                     type: 'DirectMessage',
@@ -420,6 +426,10 @@ exports.getMyMessages = async (req, res) => {
                 }
             ]
         };
+
+        if (req.user.role !== 'Super_Admin') {
+            query.schoolId = schoolId;
+        }
 
         const messages = await Message.find(query)
         .populate('sender', 'firstName lastName photo role email')
@@ -443,14 +453,19 @@ exports.getChatHistory = async (req, res) => {
         // Normalize schoolId — for Students it may be a populated object
         const schoolId = req.user.schoolId?._id || req.user.schoolId;
 
-        const messages = await Message.find({
-            schoolId: schoolId,
+        const query = {
             type: 'DirectMessage',
             $or: [
                 { sender: req.user._id, recipient: otherUserId },
                 { sender: otherUserId, recipient: req.user._id }
             ]
-        })
+        };
+
+        if (req.user.role !== 'Super_Admin') {
+            query.schoolId = schoolId;
+        }
+
+        const messages = await Message.find(query)
         .populate('sender', 'firstName lastName photo role email')
         .populate('recipient', 'firstName lastName photo role email')
         .sort({ createdAt: -1 })
@@ -563,15 +578,20 @@ exports.deleteChatHistory = async (req, res) => {
         // Normalize schoolId — for Students it may be a populated object
         const schoolId = req.user.schoolId?._id || req.user.schoolId;
         
-        // Delete all messages between current user and the other user
-        const result = await Message.deleteMany({
-            schoolId,
+        const query = {
             type: 'DirectMessage',
             $or: [
                 { sender: req.user._id, recipient: otherUserId },
                 { sender: otherUserId, recipient: req.user._id }
             ]
-        });
+        };
+
+        if (req.user.role !== 'Super_Admin') {
+            query.schoolId = schoolId;
+        }
+
+        // Delete all messages between current user and the other user
+        const result = await Message.deleteMany(query);
 
         res.json({ 
             message: 'Chat history cleared successfully',

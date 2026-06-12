@@ -389,7 +389,7 @@ const StudentDashboard = () => {
                                         <p className="text-xs text-slate-400 leading-relaxed">
                                             {pendingFees.length} fee payment{pendingFees.length > 1 ? 's' : ''} pending or overdue.
                                         </p>
-                                        <Link to="/student/fees" className="mt-3 inline-block text-[10px] font-black uppercase text-amber-500 hover:underline">Pay Now</Link>
+                                        <Link to="/student/fees" className="mt-3 inline-block text-[10px] font-black uppercase text-amber-500 hover:underline">View Fees</Link>
                                     </div>
                                 </div>
                             )}

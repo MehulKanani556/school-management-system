@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { useDispatch, useSelector } from 'react-redux';
-import { login, studentLogin, verifyLogin2FA, clearAuthError, clearAuthMessage } from '../../redux/slice/auth.slice';
+import { login, studentLogin, verifyLogin2FA, clearAuthError, clearAuthMessage, clearPending2FA } from '../../redux/slice/auth.slice';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2, ArrowRight, LogIn, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -129,6 +129,13 @@ const Auth = () => {
                             {error && <p className="text-[11px] text-luxury-rose text-center font-black uppercase">{error}</p>}
                             <button type="submit" disabled={loading || otpCode.length < 4} className="w-full bg-brand-primary text-white py-5 rounded-md font-black uppercase tracking-widest disabled:opacity-50">
                                 {loading ? <Loader2 className="animate-spin mx-auto" /> : 'Verify & Sign In'}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => { dispatch(clearPending2FA()); setOtpCode(''); }}
+                                className="w-full text-slate-500 hover:text-slate-300 text-[11px] font-black uppercase tracking-widest transition-colors pt-2"
+                            >
+                                ← Back To Login
                             </button>
                         </form>
                     ) : (

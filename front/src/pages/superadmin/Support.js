@@ -59,8 +59,8 @@ const Support = () => {
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-160px)] flex flex-col gap-8 font-outfit">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2">Global Support Terminal</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-70">Institutional inquiry mapping & resolution protocol.</p>
+                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2">Support Center</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] italic opacity-70">Manage support tickets and inquiries from registered schools.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <select 
@@ -179,7 +179,7 @@ const Support = () => {
                                             <input 
                                                 value={reply}
                                                 onChange={(e) => setReply(e.target.value)}
-                                                placeholder="TRANSMIT RESOLUTION PROTOCOL..." 
+                                                placeholder="Type your reply here..." 
                                                 className="w-full bg-slate-900 border border-white/5 h-14 pl-12 pr-6 rounded-md text-[10px] font-black uppercase tracking-widest text-white outline-none focus:border-superadmin-primary transition-all italic placeholder:text-slate-700"
                                             />
                                         </div>
@@ -188,7 +188,7 @@ const Support = () => {
                                             className="h-14 px-8 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-3 shadow-xl shadow-superadmin-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100"
                                         >
                                             <Send size={16} />
-                                            <span className="text-[10px] font-black uppercase italic tracking-widest">Transmit</span>
+                                            <span className="text-[10px] font-black uppercase italic tracking-widest">Send</span>
                                         </button>
                                     </form>
                                 </div>
@@ -196,8 +196,8 @@ const Support = () => {
                         ) : (
                             <div className="flex-1 flex flex-col items-center justify-center opacity-30 grayscale group hover:grayscale-0 transition-all p-20 text-center">
                                 <LifeBuoy size={64} className="mb-6 opacity-20" />
-                                <h4 className="text-xl font-black uppercase italic tracking-widest text-slate-500">Support Cluster Standby</h4>
-                                <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs mx-auto italic leading-relaxed">Awaiting institutional telemetry. Select a support inquiry from the registry to initiate resolution protocol.</p>
+                                <h4 className="text-xl font-black uppercase italic tracking-widest text-slate-500">No Ticket Selected</h4>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs mx-auto italic leading-relaxed">Select a support ticket from the list to view and reply.</p>
                             </div>
                         )}
                     </AnimatePresence>

@@ -4,7 +4,7 @@ const SystemSetting = require('../models/systemSetting.model');
 const logAudit = async (req, action, module, details) => {
     try {
         const setting = await SystemSetting.findOne({ key: 'AUDIT_LOGGING_LEVEL' });
-        const enabled = setting ? setting.value === true || setting.value === 'true' : true;
+        const enabled = setting ? setting.value !== false && setting.value !== 'false' : true;
         if (!enabled) return;
 
         await AuditLog.create({

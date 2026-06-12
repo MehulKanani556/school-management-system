@@ -1,0 +1,12 @@
+{
+  "exportedAt": "2026-06-11T11:29:20.000Z",
+  "type": "Full",
+  "counts": {
+    "schools": 4,
+    "users": 2938,
+    "students": 2400
+  },
+  "status": "Relayed",
+  "checksum": "SHA256_SEED_DATA",
+  "note": "This is a simulated system backup archive snapshot."
+}

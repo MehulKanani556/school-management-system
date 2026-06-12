@@ -378,14 +378,35 @@ exports.getPlatformUsers = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 20;
         const skip = (page - 1) * limit;
+        const { role, search, sortBy, sortOrder } = req.query;
 
-        const users = await User.find()
+        const query = {};
+        if (role && role !== 'All') {
+            query.role = role;
+        }
+        if (search) {
+            const searchRegex = new RegExp(search, 'i');
+            query.$or = [
+                { firstName: searchRegex },
+                { lastName: searchRegex },
+                { email: searchRegex }
+            ];
+        }
+
+        let sortObj = { createdAt: -1 }; // default
+        if (sortBy === 'name') {
+            sortObj = { firstName: sortOrder === 'asc' ? 1 : -1, lastName: sortOrder === 'asc' ? 1 : -1 };
+        } else if (sortBy === 'createdAt') {
+            sortObj = { createdAt: sortOrder === 'asc' ? 1 : -1 };
+        }
+
+        const users = await User.find(query)
             .populate('schoolId', 'name')
-            .sort({ createdAt: -1 })
+            .sort(sortObj)
             .skip(skip)
             .limit(limit);
 
-        const total = await User.countDocuments();
+        const total = await User.countDocuments(query);
 
         res.status(200).json({
             success: true,
@@ -456,34 +477,50 @@ exports.triggerSystemBackup = async (req, res) => {
                 const upBackup = await Backup.findById(backup._id);
                 if (!upBackup) return;
 
-                const School = require('../models/school.model');
-                const User = require('../models/user.model');
-                const Student = require('../models/student.model');
+                const mongoose = require('mongoose');
+                // Ensure all models are registered by requiring all files in models directory
+                const modelsDir = path.join(__dirname, '..', 'models');
+                fs.readdirSync(modelsDir).forEach(file => {
+                    if (file.endsWith('.js')) {
+                        require(path.join(modelsDir, file));
+                    }
+                });
+
+                // Dump all collections dynamically
+                const dump = {};
+                const counts = {};
+                for (const modelName of Object.keys(mongoose.models)) {
+                    if (modelName === 'Backup') continue; // Avoid logging the backup itself recursively
+                    const Model = mongoose.models[modelName];
+                    const documents = await Model.find().lean();
+                    dump[modelName] = documents;
+                    counts[modelName] = documents.length;
+                }
+
                 const dir = path.join('uploads', 'backups');
                 if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
                 const snapshot = {
                     exportedAt: new Date().toISOString(),
                     type: upBackup.type,
-                    counts: {
-                        schools: await School.countDocuments(),
-                        users: await User.countDocuments(),
-                        students: await Student.countDocuments(),
-                    },
+                    counts: counts,
+                    data: dump
                 };
+
                 const filename = `backup-${backup._id}.json`;
                 const filepath = path.join(dir, filename);
                 fs.writeFileSync(filepath, JSON.stringify(snapshot, null, 2));
                 const stat = fs.statSync(filepath);
 
                 upBackup.status = 'Relayed';
-                upBackup.service = 'JSON snapshot (metadata export)';
-                upBackup.fileSizeMB = Math.max(1, Math.round(stat.size / 1024 / 1024 * 100) / 100);
+                upBackup.service = 'JSON full database backup';
+                upBackup.fileSizeMB = Math.max(0.1, Math.round(stat.size / 1024 / 1024 * 100) / 100);
                 upBackup.completedAt = Date.now();
                 upBackup.checksum = `SHA256_${stat.size}`;
                 upBackup.downloadUrl = `/uploads/backups/${filename}`;
                 await upBackup.save();
             } catch (e) {
+                console.error("Backup processing failure:", e);
                 const failed = await Backup.findById(backup._id);
                 if (failed) {
                     failed.status = 'Failed';

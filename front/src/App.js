@@ -56,6 +56,7 @@ import SupportTickets from './pages/schooladmin/SupportTickets';
 import SuperAdminDashboard from './pages/superadmin/SuperAdminDashboard';
 import SuperAdminHome from './pages/superadmin/SuperAdminHome';
 import AllSchools from './pages/superadmin/AllSchools';
+import SchoolDetails from './pages/superadmin/SchoolDetails';
 import Revenue from './pages/superadmin/Revenue';
 import Security from './pages/superadmin/Security';
 import Analytics from './pages/superadmin/Analytics';
@@ -408,6 +409,7 @@ function AppRoutes() {
           }>
             <Route index element={<SuperAdminHome />} />
             <Route path="schools" element={<AllSchools />} />
+            <Route path="schools/:id" element={<SchoolDetails />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="revenue" element={<Revenue />} />
             <Route path="security" element={<Security />} />

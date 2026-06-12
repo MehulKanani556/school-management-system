@@ -31,10 +31,10 @@ const AcademicYear = () => {
             isCurrent: false
         },
         validationSchema: Yup.object({
-            name: Yup.string().required('Session identifier required').matches(/^\d{4}-\d{2}$/, 'Format must be YYYY-YY (e.g. 2024-25)'),
-            startDate: Yup.date().required('Initiation date required'),
-            endDate: Yup.date().required('Conclusion date required')
-                .min(Yup.ref('startDate'), 'Conclusion must follow initiation'),
+            name: Yup.string().required('Session name is required').matches(/^\d{4}-\d{2}$/, 'Format must be YYYY-YY (e.g. 2024-25)'),
+            startDate: Yup.date().required('Start date is required'),
+            endDate: Yup.date().required('End date is required')
+                .min(Yup.ref('startDate'), 'End date must be after start date'),
             isCurrent: Yup.boolean()
         }),
         onSubmit: (values) => {
@@ -61,7 +61,7 @@ const AcademicYear = () => {
     };
 
     const handleDelete = async (id) => {
-        if (await window.confirm('Retract this temporal cycle from institutional memory?')) {
+        if (await window.confirm('Are you sure you want to delete this academic year?')) {
             dispatch(deleteAcademicYear(id));
         }
     };
@@ -75,16 +75,16 @@ const AcademicYear = () => {
                         <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
                             <Calendar className="text-brand-primary" size={24} />
                         </div>
-                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Temporal <span className="text-brand-primary">Cycles</span></h1>
+                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Academic <span className="text-brand-primary">Years</span></h1>
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Archive & Orchestrate Academic Sessions</p>
+                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Archive & Manage Academic Sessions</p>
                 </div>
                 <button 
                     onClick={() => { setEditingId(null); formik.resetForm(); setIsModalOpen(true); }}
                     className="flex items-center justify-center gap-3 bg-brand-primary hover:bg-brand-primary/90 text-white px-8 py-4 rounded-md font-black uppercase text-[11px] tracking-widest transition-all shadow-lg hover:-translate-y-1"
                 >
                     <Plus size={18} />
-                    INITIALIZE SESSION
+                    ADD ACADEMIC YEAR
                 </button>
             </div>
 
@@ -93,7 +93,7 @@ const AcademicYear = () => {
                 {loading && academicYears.length === 0 ? (
                     <div className="col-span-full h-64 flex flex-col items-center justify-center opacity-50">
                         <Clock className="animate-spin text-brand-primary mb-4" size={32} />
-                        <p className="font-black text-[10px] uppercase tracking-widest text-slate-500">Synchronizing Temporal Hub...</p>
+                        <p className="font-black text-[10px] uppercase tracking-widest text-slate-500">Loading academic years...</p>
                     </div>
                 ) : (
                     <AnimatePresence>
@@ -107,7 +107,7 @@ const AcademicYear = () => {
                             >
                                 {year.isCurrent && (
                                     <div className="absolute top-0 right-0 px-6 py-2 bg-brand-primary text-white text-[9px] font-black uppercase tracking-widest rounded-bl-md shadow-lg">
-                                        Active Cycle
+                                        Active Year
                                     </div>
                                 )}
                                 
@@ -142,13 +142,13 @@ const AcademicYear = () => {
                                     <div className="bg-slate-950/40 p-4 rounded-md border border-slate-800/60 font-inter">
                                         <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Status</p>
                                         <p className={`text-[10px] font-black uppercase tracking-widest ${year.isCurrent ? 'text-brand-primary font-luxury-text bg-brand-primary/10 px-2 py-0.5 rounded-sm inline-block' : 'text-slate-500'}`}>
-                                            {year.isCurrent ? 'Current Session' : 'Archived Cycle'}
+                                            {year.isCurrent ? 'Current Session' : 'Archived Year'}
                                         </p>
                                     </div>
                                     <div className="bg-slate-950/40 p-4 rounded-md border border-slate-800/60">
                                         <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-1">Timeline</p>
                                         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
-                                            {Math.ceil((new Date(year.endDate) - new Date(year.startDate)) / (1000 * 60 * 60 * 24 * 30))} Epochs
+                                            {Math.ceil((new Date(year.endDate) - new Date(year.startDate)) / (1000 * 60 * 60 * 24 * 30))} Months
                                         </p>
                                     </div>
                                 </div>
@@ -169,14 +169,14 @@ const AcademicYear = () => {
                                     <div className="w-10 h-10 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20">
                                         <Plus className="text-brand-primary" size={18} />
                                     </div>
-                                    <h2 className="text-lg font-black uppercase font-outfit tracking-wider">{editingId ? 'Edit Temporal Cycle' : 'Initialize Session'}</h2>
+                                    <h2 className="text-lg font-black uppercase font-outfit tracking-wider">{editingId ? 'Edit Academic Year' : 'Add Academic Year'}</h2>
                                 </div>
                                 <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-slate-800 rounded-md transition-colors text-slate-500 hover:text-white"><X size={18}/></button>
                             </div>
 
                             <form onSubmit={formik.handleSubmit} className="p-8 space-y-6">
                                 <div className="space-y-2">
-                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Session Identifier</label>
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Session Name</label>
                                     <input 
                                         name="name"
                                         type="text" 
@@ -191,7 +191,7 @@ const AcademicYear = () => {
 
                                 <div className="grid grid-cols-2 gap-6">
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Initiation Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Start Date</label>
                                         <input 
                                             name="startDate"
                                             type="date" 
@@ -203,7 +203,7 @@ const AcademicYear = () => {
                                         )}
                                     </div>
                                     <div className="space-y-2">
-                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Conclusion Date</label>
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">End Date</label>
                                         <input 
                                             name="endDate"
                                             type="date" 
@@ -215,7 +215,6 @@ const AcademicYear = () => {
                                         )}
                                     </div>
                                 </div>
-
                                 <div className="flex items-center gap-3 p-4 bg-slate-800/50 rounded-md border border-slate-700/50">
                                     <input 
                                         name="isCurrent"
@@ -225,16 +224,16 @@ const AcademicYear = () => {
                                         checked={formik.values.isCurrent}
                                         onChange={formik.handleChange}
                                     />
-                                    <label htmlFor="isCurrent" className="text-[10px] font-black uppercase tracking-widest text-slate-300">Set as Active High-Priority Session</label>
+                                    <label htmlFor="isCurrent" className="text-[10px] font-black uppercase tracking-widest text-slate-300">Set as Current Academic Year</label>
                                 </div>
-
+ 
                                 <button 
                                     type="submit"
                                     disabled={loading}
                                     className="w-full bg-brand-primary hover:bg-brand-primary/90 disabled:opacity-50 text-white py-5 rounded-md font-black uppercase text-[11px] tracking-[0.2em] transition-all shadow-xl hover:-translate-y-1 flex items-center justify-center gap-2"
                                 >
                                     {loading && <Clock className="animate-spin" size={14}/>}
-                                    {editingId ? 'COMMIT CHANGES' : 'SYNCHRONIZE SESSION'}
+                                    {editingId ? 'SAVE CHANGES' : 'ADD ACADEMIC YEAR'}
                                 </button>
                             </form>
                         </motion.div>

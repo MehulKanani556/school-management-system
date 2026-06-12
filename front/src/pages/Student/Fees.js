@@ -361,11 +361,11 @@ const Fees = () => {
                                                                 <Download size={11} /> RECEIPT
                                                             </button>
                                                         ) : (
-                                                            <button 
+                                                            <button
                                                                 onClick={() => triggerSimulatedPayment(fee)}
-                                                                className="inline-flex items-center justify-center px-4 py-2 bg-luxury-rose/10 text-luxury-rose border border-luxury-rose/25 rounded-md text-[9px] font-black uppercase tracking-widest hover:bg-luxury-rose hover:text-white transition-all duration-300 h-[34px] italic hover:scale-105"
+                                                                className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-850 hover:text-white border border-slate-800 rounded-md text-[9px] font-black uppercase tracking-widest text-slate-400 transition-all duration-300 h-[34px] italic shadow-inner hover:scale-105"
                                                             >
-                                                                Pay Now <ArrowUpRight size={11} className="ml-1" />
+                                                                VIEW
                                                             </button>
                                                         )}
                                                     </td>
@@ -388,99 +388,67 @@ const Fees = () => {
 
             </div>
 
-            {/* Simulated Payment Portal Modal */}
+            {/* Invoice Details Modal */}
             <PortalModal isOpen={!!selectedPayment} onClose={() => setSelectedPayment(null)} maxWidth="max-w-md">
                 {selectedPayment && (
                     <div className="p-8 space-y-6 text-left font-outfit">
                         <header className="space-y-2 border-b border-slate-900/60 pb-4 text-left relative">
-                            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Simulated Checkout</h2>
-                            <p className="text-slate-505 text-[9px] font-black uppercase tracking-widest">
-                                Secure Payment Gateway Simulation
+                            <h2 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none">Invoice Details</h2>
+                            <p className="text-slate-500 text-[9px] font-black uppercase tracking-widest">
+                                Detailed ledger statement
                             </p>
                         </header>
 
-                        {!paymentSuccess ? (
-                            <form onSubmit={handlePaymentSubmit} className="space-y-6 text-left">
-                                <div className="p-4 bg-slate-950/60 border border-slate-850 rounded-xl space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Category</span>
-                                        <span className="text-xs font-black text-white uppercase">{selectedPayment.category || 'Tuition Fee'}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Statement Period</span>
-                                        <span className="text-xs font-black text-slate-400 uppercase">{selectedPayment.month || 'Current Session'}</span>
-                                    </div>
-                                    <div className="h-px bg-slate-950 my-2" />
-                                    <div className="flex justify-between items-center">
-                                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider">Simulated Amount</span>
-                                        <span className="text-lg font-black text-brand-primary">
-                                            ₹{((selectedPayment.totalAmount || selectedPayment.amount || 0) - (selectedPayment.paidAmount || 0)).toLocaleString()}
-                                        </span>
-                                    </div>
+                        <div className="space-y-4">
+                            <div className="p-5 bg-slate-950/60 border border-slate-850 rounded-xl space-y-4">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Fee Category</span>
+                                    <span className="text-xs font-black text-white uppercase">{selectedPayment.category || 'Tuition Fee'}</span>
                                 </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Statement Period</span>
+                                    <span className="text-xs font-black text-slate-450 uppercase">{selectedPayment.month || 'Current Session'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Academic Year</span>
+                                    <span className="text-xs font-black text-slate-450 uppercase">{selectedPayment.academicYear}</span>
+                                </div>
+                                
+                                <div className="h-px bg-slate-900/80 my-2" />
 
-                                {/* Select payment method */}
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-widest block ml-1 leading-none">Simulation Method</label>
-                                    <div className="grid grid-cols-3 gap-3">
-                                        {[
-                                            { id: 'CARD', label: 'Credit Card', icon: CreditCard },
-                                            { id: 'UPI', label: 'UPI QR Code', icon: QrCode },
-                                            { id: 'NET', label: 'Net Banking', icon: Landmark }
-                                        ].map(method => (
-                                            <button
-                                                key={method.id}
-                                                type="button"
-                                                onClick={() => setPaymentMethod(method.id)}
-                                                className={`p-4 rounded-xl border flex flex-col items-center justify-center gap-2 transition-all duration-300 ${
-                                                    paymentMethod === method.id 
-                                                    ? 'border-brand-primary bg-brand-primary/5 text-brand-primary' 
-                                                    : 'border-slate-850 bg-slate-950/40 text-slate-500 hover:text-slate-300'
-                                                }`}
-                                            >
-                                                <method.icon size={18} />
-                                                <span className="text-[8px] font-black uppercase tracking-wider">{method.label}</span>
-                                            </button>
-                                        ))}
-                                    </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Billed Amount</span>
+                                    <span className="text-sm font-black text-white">
+                                        ₹{(selectedPayment.totalAmount || selectedPayment.amount || 0).toLocaleString()}
+                                    </span>
                                 </div>
-
-                                {/* Simulated confirmation */}
-                                <div className="pt-2">
-                                    <button
-                                        type="submit"
-                                        disabled={simulating}
-                                        className="w-full py-4 bg-luxury-emerald hover:bg-emerald-500 text-black disabled:opacity-50 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] transition-all shadow-[0_0_20px_rgba(16,185,129,0.15)] h-[48px]"
-                                    >
-                                        {simulating ? 'AUTHORIZING transaction...' : 'SIMULATE PAYMENT PROCESS'}
-                                    </button>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Settled Amount</span>
+                                    <span className="text-sm font-black text-emerald-450">
+                                        ₹{(selectedPayment.paidAmount || 0).toLocaleString()}
+                                    </span>
                                 </div>
-                            </form>
-                        ) : (
-                            <div className="py-8 text-center space-y-6">
-                                <div className="w-16 h-16 rounded-full bg-luxury-emerald/10 border border-luxury-emerald/30 flex items-center justify-center mx-auto text-luxury-emerald shadow-[0_0_30px_rgba(16,185,129,0.1)]">
-                                    <ShieldCheck size={36} className="animate-bounce" />
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-wider font-bold">Outstanding Due</span>
+                                    <span className={`text-base font-black ${
+                                        (selectedPayment.totalAmount || selectedPayment.amount || 0) - (selectedPayment.paidAmount || 0) > 0 
+                                        ? 'text-rose-400' 
+                                        : 'text-slate-400'
+                                    }`}>
+                                        ₹{((selectedPayment.totalAmount || selectedPayment.amount || 0) - (selectedPayment.paidAmount || 0)).toLocaleString()}
+                                    </span>
                                 </div>
-                                <div className="space-y-2">
-                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">Transaction Completed</h3>
-                                    <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                                        Your payment has been simulated successfully!
-                                    </p>
-                                </div>
-                                <div className="p-4 bg-slate-950/60 border border-slate-850 rounded-xl text-left max-w-xs mx-auto text-[10px] font-bold text-slate-400 space-y-1.5">
-                                    <p className="uppercase font-black text-slate-500 text-[8px] tracking-widest mb-1.5 border-b border-slate-900 pb-1">Receipt Details</p>
-                                    <p>REF NO: TXN_SIM_{Math.random().toString(36).substr(2, 9).toUpperCase()}</p>
-                                    <p>ACADEMIC SESSION: {selectedPayment.academicYear}</p>
-                                    <p>SETTLEMENT TYPE: {selectedPayment.category}</p>
-                                </div>
-                                <button
-                                    onClick={() => setSelectedPayment(null)}
-                                    className="px-6 py-3 bg-slate-900 hover:bg-slate-850 border border-slate-800 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-white transition-all mx-auto block"
-                                >
-                                    Dismiss Portal
-                                </button>
                             </div>
-                        )}
+                        </div>
+
+                        <div className="pt-2">
+                            <button
+                                onClick={() => setSelectedPayment(null)}
+                                className="w-full py-4 bg-slate-900 hover:bg-slate-850 hover:text-white border border-slate-800 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all h-[48px]"
+                            >
+                                Dismiss Details
+                            </button>
+                        </div>
                     </div>
                 )}
             </PortalModal>

@@ -67,11 +67,11 @@ const AssignmentOverview = () => {
     };
 
     const handleDelete = async (assignmentId) => {
-        if (await window.confirm("Are you sure you want to decommission this active homework directive? This will also purge all student submissions associated with it.")) {
+        if (await window.confirm("Are you sure you want to delete this homework assignment? This will also delete all student submissions for it.")) {
             try {
                 await dispatch(deleteAssignment(assignmentId)).unwrap();
             } catch (err) {
-                await alert(err.message || "Failed to decommission assignment.");
+                await alert(err.message || "Failed to delete assignment.");
             }
         }
     };
@@ -80,8 +80,8 @@ const AssignmentOverview = () => {
         <div className="space-y-6 relative">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Assignment Matrix</h1>
-                    <p className="text-slate-400 text-sm mt-1">Cross-institutional academic task surveillance</p>
+                    <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Assignments</h1>
+                    <p className="text-slate-400 text-sm mt-1">Monitor and manage all assignments</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="relative">
@@ -99,7 +99,7 @@ const AssignmentOverview = () => {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {[
-                    { label: 'Active Directives', val: stats.total, icon: BookOpen, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/10' },
+                    { label: 'Active Assignments', val: stats.total, icon: BookOpen, color: 'text-schooladmin-primary', bg: 'bg-schooladmin-primary/10' },
                     { label: 'Total Submissions', val: stats.totalSubmissions, icon: FileText, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
                     { label: 'Global Completion', val: `${stats.avgSubmissionRate}%`, icon: BarChart3, color: 'text-amber-400', bg: 'bg-amber-400/10' },
                 ].map((s, i) => (
@@ -123,7 +123,7 @@ const AssignmentOverview = () => {
                 ) : filtered.length === 0 ? (
                     <div className="col-span-full py-24 text-center border border-dashed border-slate-850 rounded-md bg-slate-900/10">
                         <BookOpen size={48} className="text-slate-800 mx-auto mb-4 opacity-20" />
-                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">No active directives detected in this sector</p>
+                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">No active assignments found</p>
                     </div>
                 ) : filtered.map((a, i) => (
                     <motion.div 
@@ -226,7 +226,7 @@ const AssignmentOverview = () => {
                                                  disabled
                                                  className="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-slate-600 cursor-not-allowed font-outfit italic"
                                              >
-                                                 No Resource Attached
+                                                 No File Attached
                                              </button>
                                          )}
                                          <div className="border-t border-slate-800 my-1" />
@@ -237,7 +237,7 @@ const AssignmentOverview = () => {
                                              }}
                                              className="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-wider text-rose-500 hover:bg-rose-500/10 rounded transition-all font-outfit italic flex items-center gap-2"
                                          >
-                                             <Trash2 size={12} /> Delete Directive
+                                             <Trash2 size={12} /> Delete Assignment
                                          </button>
                                      </motion.div>
                                  )}
@@ -290,7 +290,7 @@ const AssignmentOverview = () => {
                                 {loadingSubmissions ? (
                                     <div className="flex flex-col items-center justify-center py-20 gap-4">
                                         <div className="w-10 h-10 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
-                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Synchronizing academic deliverables...</p>
+                                        <p className="text-xs text-slate-500 font-bold uppercase tracking-widest italic">Loading submissions...</p>
                                     </div>
                                 ) : error ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -300,13 +300,13 @@ const AssignmentOverview = () => {
                                 ) : submissions.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-20 text-center">
                                         <FileText className="text-slate-800 mb-4 opacity-30" size={48} />
-                                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">No active submissions submitted for this directive</p>
+                                        <p className="text-slate-500 font-black uppercase tracking-widest text-[10px]">No submissions for this assignment</p>
                                     </div>
                                 ) : (
                                     <table className="w-full text-left border-collapse">
                                         <thead>
                                             <tr className="border-b border-slate-800">
-                                                {['Student Entity', 'Submitted Date', 'Status', 'Evaluation', 'Action'].map(h => (
+                                                {['Student', 'Submitted Date', 'Status', 'Evaluation', 'Action'].map(h => (
                                                     <th key={h} className="py-4 text-[10px] font-black uppercase tracking-wider text-slate-500 font-outfit italic">{h}</th>
                                                 ))}
                                             </tr>
@@ -430,14 +430,14 @@ const AssignmentOverview = () => {
 
                             <div className="space-y-6">
                                 <div>
-                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 font-outfit italic">Task Instruction Narrative</h4>
+                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 font-outfit italic">Instructions</h4>
                                     <div className="bg-slate-950 border border-slate-850 p-4 rounded-md text-slate-300 text-xs italic font-medium leading-relaxed font-outfit">
-                                        {selectedDetailsAssignment.description || 'No specific instruction narrative provided for this homework task directive.'}
+                                        {selectedDetailsAssignment.description || 'No instructions provided for this assignment.'}
                                     </div>
                                 </div>
 
                                 <div>
-                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 font-outfit italic">Asset Reference</h4>
+                                    <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 font-outfit italic">Attached File</h4>
                                     {selectedDetailsAssignment.fileUrl ? (
                                         <div className="flex items-center justify-between p-4 bg-slate-950 border border-slate-850 rounded-md">
                                             <div className="flex items-center gap-3 text-slate-400">
@@ -450,13 +450,13 @@ const AssignmentOverview = () => {
                                                 rel="noreferrer"
                                                 className="inline-flex items-center gap-2 px-4 py-2 text-[9px] font-black uppercase tracking-widest rounded bg-brand-primary/10 border border-brand-primary/20 text-brand-primary hover:bg-brand-primary hover:text-white transition-all transform active:scale-95 font-outfit italic shadow-md"
                                             >
-                                                <Download size={12} /> Download Asset
+                                                <Download size={12} /> Download File
                                             </a>
                                         </div>
                                     ) : (
                                         <div className="flex items-center gap-3 p-4 bg-slate-950 border border-slate-850 rounded-md text-slate-500">
                                             <AlertCircle size={16} />
-                                            <span className="text-[10px] font-black uppercase tracking-wider">No auxiliary files attached to this directive node.</span>
+                                            <span className="text-[10px] font-black uppercase tracking-wider">No files attached to this assignment.</span>
                                         </div>
                                     )}
                                 </div>
@@ -467,7 +467,7 @@ const AssignmentOverview = () => {
                                     onClick={() => setSelectedDetailsAssignment(null)}
                                     className="px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded bg-slate-800 hover:bg-slate-700 text-white font-outfit italic transition-all transform active:scale-95"
                                 >
-                                    Dismiss Panel
+                                    Close
                                 </button>
                             </div>
                         </motion.div>

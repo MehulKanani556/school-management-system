@@ -7,6 +7,7 @@ import { fetchNotifications, receiveNotification } from '../../redux/slice/notif
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import toast from 'react-hot-toast';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const Header = ({ user, onLogout }) => {
     const dispatch = useDispatch();
@@ -24,7 +25,7 @@ const Header = ({ user, onLogout }) => {
         if (!socket) return;
         socket.on('NEW_NOTIFICATION', (notif) => {
             dispatch(receiveNotification(notif));
-            toast.success(`Root Alert: ${notif.title}`, {
+            toast.success(`System Alert: ${notif.title}`, {
                 icon: '🔑',
                 style: {
                     borderRadius: '1.5rem',
@@ -49,9 +50,9 @@ const Header = ({ user, onLogout }) => {
     return (
         <header className="h-20 flex items-center justify-between px-8 bg-brand-surface/80 backdrop-blur-xl border-b border-brand-border/60 sticky top-0 z-10 w-full transition-all">
             <div className="flex items-center gap-4 text-slate-500">
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Global Infrastructure</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] bg-brand-background px-4 py-2 rounded-md border border-brand-border hidden sm:block leading-none italic shadow-inner">Admin Portal</span>
                 <ChevronRight size={14} className="hidden sm:block opacity-20" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-superadmin-primary italic font-outfit">Super User Node</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-superadmin-primary italic font-outfit">Dashboard</span>
             </div>
 
             <div className="flex items-center gap-6">
@@ -75,11 +76,11 @@ const Header = ({ user, onLogout }) => {
                     >
                         <div className="text-right hidden sm:block">
                             <p className="text-sm font-black text-white italic tracking-tighter uppercase font-outfit leading-none mb-1">{user?.firstName} {user?.lastName}</p>
-                            <p className="text-[9px] font-black text-superadmin-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Root Administrator</p>
+                            <p className="text-[9px] font-black text-superadmin-primary uppercase tracking-[0.4em] opacity-80 leading-none italic">Super Administrator</p>
                         </div>
                         <div className="w-10 h-10 rounded-md bg-brand-background border border-brand-border overflow-hidden flex items-center justify-center shadow-xl hover:ring-2 hover:ring-superadmin-primary transition-all p-0.5">
                             <div className="w-full h-full rounded-md overflow-hidden bg-brand-surface border border-brand-border flex items-center justify-center">
-                                {user?.photo ? <img src={user.photo} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
+                                {getImageUrl(user?.photo) ? <img src={getImageUrl(user.photo)} alt="" className="w-full h-full object-cover" /> : <User size={20} className="text-slate-600" />}
                             </div>
                         </div>
                     </button>
@@ -120,7 +121,7 @@ const Header = ({ user, onLogout }) => {
                                             className="w-full flex items-center gap-3 px-4 py-3 rounded-md hover:bg-superadmin-primary/10 text-superadmin-primary transition-all text-[10px] font-black uppercase tracking-widest group italic"
                                         >
                                             <LogOut size={18} className="group-hover:-rotate-6 transition-transform" />
-                                            Log Out Matrix
+                                            Log Out
                                         </button>
                                     </div>
                                 </motion.div>

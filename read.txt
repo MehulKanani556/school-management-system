@@ -1,3 +1,9 @@
+Super_admin:
+
+    email: superadmin@edumanage.in
+    password: Password@123
+
+
 School_admin:
 
     email: principal@vidyamandir.edu.in

@@ -252,10 +252,10 @@ const Messages = () => {
     };
 
     const handleDeleteMessage = async (id) => {
-        if (!await window.confirm('Retract this transmission?')) return;
+        if (!await window.confirm('Are you sure you want to delete this announcement?')) return;
         try {
             await axiosInstance.delete(`/school-admin/messages/${id}`);
-            toast.success('Transmission Decommissioned');
+            toast.success('Announcement deleted');
             fetchData();
         } catch (err) {
             toast.error('Deletion failure');
@@ -349,7 +349,7 @@ const Messages = () => {
                     <div className="space-y-1">
                         <div className="flex items-center gap-2">
                             <div className="h-[2px] w-6 bg-transporter-primary rounded-md"></div>
-                            <span className="text-[8px] font-black text-transporter-primary uppercase tracking-[0.4em] italic leading-none">Logistics Comms Node</span>
+                            <span className="text-[8px] font-black text-transporter-primary uppercase tracking-[0.4em] italic leading-none">Transport Communications</span>
                         </div>
                         <h1 className="text-2xl lg:text-3xl font-black text-white uppercase tracking-tighter italic leading-none">
                             {activeTab === 'feed' ? (
@@ -399,7 +399,7 @@ const Messages = () => {
                                 <div className="flex items-center justify-between">
                                     <h2 className="text-[10px] font-black text-white uppercase tracking-widest italic flex items-center gap-2 leading-none">
                                         <Activity size={14} className="text-transporter-primary" />
-                                        Active Nodes
+                                        Active Contacts
                                     </h2>
                                     <div className="w-6 h-6 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center">
                                         <div className="w-1.5 h-1.5 rounded-md bg-transporter-primary shadow-glow animate-pulse"></div>
@@ -408,7 +408,7 @@ const Messages = () => {
                                 <div className="relative group">
                                     <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-700 group-focus-within:text-transporter-primary transition-colors" />
                                     <input
-                                        placeholder="SYNC SEARCH..."
+                                        placeholder="SEARCH CONTACTS..."
                                         className="w-full h-10 bg-slate-950/50 border border-slate-800 rounded-md pl-10 pr-4 text-[9px] font-black text-white italic tracking-widest outline-none focus:border-transporter-primary transition-all placeholder:text-slate-800 uppercase"
                                     />
                                 </div>
@@ -459,7 +459,7 @@ const Messages = () => {
                                     </div>
                                 )}
 
-                                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mt-4 mb-2 italic">Available Nodes</p>
+                                <p className="text-[9px] font-black text-slate-600 uppercase tracking-widest px-3 mt-4 mb-2 italic">Available Contacts</p>
                                 {filteredContacts.map(t => (
                                     <button
                                         key={t._id}
@@ -498,7 +498,7 @@ const Messages = () => {
                                                     </h3>
                                                     <div className="flex items-center gap-2">
                                                         <div className="h-1 w-1 rounded-md bg-green-500 animate-pulse"></div>
-                                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic">Secure Link Active</span>
+                                                        <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest italic">Connected</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -559,7 +559,7 @@ const Messages = () => {
                                             <input
                                                 value={messageInput}
                                                 onChange={(e) => setMessageInput(e.target.value)}
-                                                placeholder="ENTER TRANS MISSION..."
+                                                placeholder="TYPE A MESSAGE..."
                                                 className="flex-1 bg-transparent border-none text-white text-[11px] font-black italic tracking-widest outline-none placeholder:text-slate-800 uppercase h-10"
                                             />
                                             <button
@@ -579,8 +579,8 @@ const Messages = () => {
                                             <Shield size={32} className="text-slate-800" />
                                         </div>
                                     </div>
-                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">SELECT FREQUENCY</h3>
-                                    <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest leading-relaxed max-w-[200px] mx-auto italic">Select a node from the left to establish connection.</p>
+                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tighter">SELECT A CONTACT</h3>
+                                    <p className="text-[9px] font-black text-slate-700 uppercase tracking-widest leading-relaxed max-w-[200px] mx-auto italic">Select a contact from the left to start chatting.</p>
                                 </div>
                             )}
                         </div>
@@ -593,7 +593,7 @@ const Messages = () => {
                                 <div className="relative z-10 space-y-6">
                                     <h2 className="text-base font-black text-white uppercase italic tracking-tight flex items-center gap-3 leading-none">
                                         <Megaphone className="text-transporter-primary" size={20} />
-                                        New Fleet Directive
+                                        New Announcement
                                     </h2>
                                     <form onSubmit={handleSendAnnouncement} className="space-y-4">
                                         <div className="grid grid-cols-2 gap-2">
@@ -618,14 +618,14 @@ const Messages = () => {
                                         <textarea
                                             required
                                             rows={4}
-                                            placeholder="DIRECTIVE CONTENT..."
+                                            placeholder="ANNOUNCEMENT CONTENT..."
                                             value={announcementInput.content}
                                             onChange={(e) => setAnnouncementInput({ ...announcementInput, content: e.target.value })}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-transporter-primary transition-all italic resize-none uppercase"
                                         />
                                         <button type="submit" className="w-full py-4 rounded-md bg-transporter-primary text-white flex items-center justify-center gap-2 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95">
                                             <Send size={16} />
-                                            BROADCAST TO FLEET
+                                            SEND ANNOUNCEMENT
                                         </button>
                                     </form>
                                 </div>
@@ -636,7 +636,7 @@ const Messages = () => {
                             <div className="flex items-center justify-between px-2 shrink-0">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
                                     <Filter size={14} className="text-transporter-primary" />
-                                    RECENT TRANSMISSIONS
+                                    RECENT ANNOUNCEMENTS
                                 </h3>
                                 <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{sentMessages.filter(m => m.type === 'Announcement').length} LOGGED</span>
                             </div>
@@ -685,14 +685,14 @@ const Messages = () => {
                                 <div className="space-y-1">
                                     <div className="flex items-center gap-2">
                                         <Shield size={14} className="text-transporter-primary" />
-                                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Issue Route Advisory</h3>
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em] italic">Send Route Notice</h3>
                                     </div>
                                     <p className="text-[8px] text-slate-500 font-bold uppercase tracking-widest italic">Targeted notices for specific transport routes.</p>
                                 </div>
 
                                 <form onSubmit={handleSendNotice} className="space-y-4">
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Affected Route Node</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Target Route</label>
                                         <select 
                                             value={noticeInput.classSection} 
                                             onChange={(e) => setNoticeInput({...noticeInput, classSection: e.target.value})}
@@ -704,31 +704,30 @@ const Messages = () => {
                                             ))}
                                         </select>
                                     </div>
-
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Advisory Subject</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Notice Subject</label>
                                         <input 
-                                            placeholder="ENTER SUBJECT..."
+                                            placeholder="NOTICE SUBJECT..."
                                             value={noticeInput.subject}
                                             onChange={(e) => setNoticeInput({...noticeInput, subject: e.target.value})}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-3 text-white text-[11px] font-bold outline-none focus:border-transporter-primary/50 transition-all italic h-12 uppercase tracking-tight"
                                         />
                                     </div>
-
+ 
                                     <div className="space-y-2">
-                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Advisory Content</label>
+                                        <label className="text-[8px] font-black text-slate-600 uppercase tracking-widest ml-1">Notice Content</label>
                                         <textarea 
                                             rows={5}
-                                            placeholder="ENTER DETAILS..."
+                                            placeholder="NOTICE DETAILS..."
                                             value={noticeInput.content}
                                             onChange={(e) => setNoticeInput({...noticeInput, content: e.target.value})}
                                             className="w-full bg-slate-950 border border-slate-800 rounded-md p-4 text-white text-[11px] font-bold outline-none focus:border-transporter-primary/50 transition-all italic resize-none uppercase tracking-tight"
                                         />
                                     </div>
-
+ 
                                     <button type="submit" className="w-full py-4 rounded-md bg-transporter-primary text-white flex items-center justify-center gap-3 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-xl active:scale-95">
                                         <Plus size={16} />
-                                        POST ADVISORY
+                                        SEND NOTICE
                                     </button>
                                 </form>
                             </div>
@@ -738,10 +737,10 @@ const Messages = () => {
                             <div className="flex items-center justify-between px-2 shrink-0">
                                 <h3 className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-2 italic leading-none">
                                     <Layout size={16} className="text-transporter-primary" />
-                                    ROUTE ADVISORY BOARD
+                                    ROUTE NOTICES
                                 </h3>
                                 <div className="flex items-center gap-3">
-                                    <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{notices.length} ACTIVE ADVISORIES</span>
+                                    <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest italic">{notices.length} ACTIVE NOTICES</span>
                                 </div>
                             </div>
 

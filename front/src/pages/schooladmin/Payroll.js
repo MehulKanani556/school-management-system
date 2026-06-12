@@ -259,7 +259,7 @@ const Payroll = () => {
             ...formik.values,
             basicSalary: basic,
             deductions: deductions,
-            remarks: absentDays > 0 ? `Predictive Sync. Attendance Deduction for ${absentDays} days.` : 'Standard Payroll Cycle.'
+            remarks: absentDays > 0 ? `Attendance deduction for ${absentDays} days.` : 'Standard payroll.'
           });
           return;
         }
@@ -284,27 +284,27 @@ const Payroll = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Payroll Node</h1>
-          <p className="text-slate-400 text-sm mt-1">Institutional workforce financial registry</p>
+          <h1 className="text-2xl font-black uppercase tracking-tighter font-outfit text-white">Payroll</h1>
+          <p className="text-slate-400 text-sm mt-1">Manage staff payroll</p>
         </div>
         <div className="flex gap-4">
           <button onClick={openBulk} className="flex items-center gap-2 px-6 py-3.5 bg-schooladmin-primary/10 hover:bg-schooladmin-primary rounded-md font-black text-xs uppercase tracking-widest transition-all border border-schooladmin-primary/20 text-schooladmin-primary hover:text-white shadow-[0_0_20px_rgba(99,102,241,0.2)]">
             <Zap size={18} /> Bulk Generation
           </button>
           <button onClick={openAdd} className="flex items-center gap-2 px-6 py-3.5 bg-brand-primary hover:bg-blue-600 rounded-md font-black text-xs uppercase tracking-widest transition-all shadow-[0_0_20px_rgba(37,99,235,0.2)] text-white">
-            <Plus size={18} /> Push Entry
+            <Plus size={18} /> Add Payroll
           </button>
         </div>
       </div>
 
       {/* Bulk Generation Modal */}
-      <Modal open={bulkModal} onClose={() => setBulkModal(false)} title="Bulk Payroll Generation Pulse">
+      <Modal open={bulkModal} onClose={() => setBulkModal(false)} title="Bulk Payroll Generation">
         <div className="space-y-6 p-2">
           <div className="bg-schooladmin-primary/10 border border-schooladmin-primary/20 rounded-md p-6 flex items-start gap-4">
             <AlertCircle className="text-schooladmin-primary shrink-0 mt-1" size={20} />
             <div className="space-y-2">
-              <p className="text-xs font-black text-white uppercase tracking-widest">Protocol Intelligence</p>
-              <p className="text-[11px] text-slate-400 leading-relaxed font-bold">This operation will calculate net yields for all active personnel based on attendance deltas and base salary parameters. Existing records for this month will be bypassed.</p>
+              <p className="text-xs font-black text-white uppercase tracking-widest">Important Information</p>
+              <p className="text-[11px] text-slate-400 leading-relaxed font-bold">This operation will calculate payroll for all staff based on attendance and base salary. Existing records for this month will be skipped.</p>
             </div>
           </div>
 
@@ -336,7 +336,7 @@ const Payroll = () => {
 
           <button onClick={handleBulkGenerate} disabled={loading}
             className="w-full py-5 bg-schooladmin-primary hover:bg-schooladmin-primary rounded-md font-black text-[13px] uppercase tracking-[0.3em] transition-all font-outfit mt-4 shadow-[0_0_30px_rgba(99,102,241,0.3)] text-white">
-            {loading ? 'CALCULATING DELTA...' : 'INITIALIZE GENERATION'}
+            {loading ? 'Calculating...' : 'Generate Payroll'}
           </button>
         </div>
       </Modal>
@@ -403,7 +403,7 @@ const Payroll = () => {
         {totalPages > 1 && (
           <div className="p-6 border-t border-brand-border/30 flex items-center justify-between bg-black/20">
             <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 font-outfit italic">
-              Telemetry Page {currentPage} of {totalPages}
+              Page {currentPage} of {totalPages}
             </div>
             <div className="flex gap-2">
               <button
@@ -443,7 +443,7 @@ const Payroll = () => {
           {error && (
             <div className="bg-red-500/10 border border-red-500/30 rounded-md p-4 mb-4 flex items-start gap-3">
               <XCircle className="text-red-500 shrink-0 mt-0.5" size={16} />
-              <div className="flex flex-col"><span className="text-[10px] font-black text-red-500 uppercase italic">Validation Protocol Failure</span><p className="text-[11px] font-bold text-red-200 mt-1 italic">{typeof error === 'object' ? error.message || JSON.stringify(error) : error}</p></div>
+              <div className="flex flex-col"><span className="text-[10px] font-black text-red-500 uppercase italic">Validation Error</span><p className="text-[11px] font-bold text-red-200 mt-1 italic">{typeof error === 'object' ? error.message || JSON.stringify(error) : error}</p></div>
             </div>
           )}
           <div>
@@ -456,12 +456,12 @@ const Payroll = () => {
               disabled={!!editing}
             >
               <option value="">Choose a staff member...</option>
-              <optgroup label="Pedagogical Staff (Teachers)" className="bg-slate-900 text-slate-400">
+              <optgroup label="Teachers" className="bg-slate-900 text-slate-400">
                 {teachers.map(t => (
                   <option key={t._id} value={t._id}>{t.firstName} {t.lastName} ({t.employeeId})</option>
                 ))}
               </optgroup>
-              <optgroup label="Operational Personnel" className="bg-slate-900 text-slate-400">
+              <optgroup label="Other Staff" className="bg-slate-900 text-slate-400">
                 {(staffList?.otherStaff || []).map(s => (
                   <option key={s._id} value={s._id}>{s.firstName} {s.lastName} ({s.role})</option>
                 ))}
@@ -522,23 +522,23 @@ const Payroll = () => {
           <button type="submit" disabled={submitting || previewing}
             className="w-full py-4 bg-brand-primary hover:bg-blue-500 disabled:opacity-60 rounded-md font-black text-sm uppercase tracking-wider transition-all font-outfit mt-4 flex items-center justify-center gap-2">
             <Banknote size={16} />
-            {submitting ? 'Committing Record...' : previewing ? 'Synchronizing Attendance...' : editing ? 'Update Record' : 'Generate Payroll'}
+            {submitting ? 'Saving...' : previewing ? 'Loading attendance...' : editing ? 'Update Record' : 'Generate Payroll'}
           </button>
         </form>
       </Modal>
       {/* Delete Confirmation Modal */}
-      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Decommission Payroll Record" maxWidth="max-w-sm">
+      <Modal open={!!deleteTarget} onClose={() => setDeleteTarget(null)} title="Delete Payroll Record" maxWidth="max-w-sm">
         <div className="space-y-6 text-center">
           <div className="w-20 h-20 rounded-md bg-rose-500/10 border border-rose-500/20 flex items-center justify-center mx-auto mb-4">
             <Trash2 size={32} className="text-rose-500" />
           </div>
           <div className="space-y-2">
             <h4 className="text-lg font-black text-white italic uppercase tracking-tighter">Confirm Deletion</h4>
-            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-widest">Are you sure you want to purge the payroll record for <span className="text-white">{(deleteTarget?.teacherId || deleteTarget?.userId)?.firstName} {(deleteTarget?.teacherId || deleteTarget?.userId)?.lastName}</span> ({months[(deleteTarget?.month || 1) - 1]} {deleteTarget?.year})?</p>
+            <p className="text-slate-500 text-xs font-bold leading-relaxed uppercase tracking-widest">Are you sure you want to delete the payroll record for <span className="text-white">{(deleteTarget?.teacherId || deleteTarget?.userId)?.firstName} {(deleteTarget?.teacherId || deleteTarget?.userId)?.lastName}</span> ({months[(deleteTarget?.month || 1) - 1]} {deleteTarget?.year})?</p>
           </div>
           <div className="flex gap-4 pt-4">
-            <button onClick={() => setDeleteTarget(null)} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Abort</button>
-            <button onClick={() => { dispatch(deletePayroll(deleteTarget._id)); setDeleteTarget(null); }} className="flex-1 py-4 bg-rose-500 hover:bg-rose-600 rounded-md text-[10px] font-black uppercase tracking-widest text-white transition-all shadow-lg shadow-rose-500/20">Purge Node</button>
+            <button onClick={() => setDeleteTarget(null)} className="flex-1 py-4 bg-slate-900 border border-slate-800 rounded-md text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-white transition-all">Cancel</button>
+            <button onClick={() => { dispatch(deletePayroll(deleteTarget._id)); setDeleteTarget(null); }} className="flex-1 py-4 bg-rose-500 hover:bg-rose-600 rounded-md text-[10px] font-black uppercase tracking-widest text-white transition-all shadow-lg shadow-rose-500/20">Delete</button>
           </div>
         </div>
       </Modal>
