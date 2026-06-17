@@ -78,59 +78,59 @@ const AcademicResults = () => {
         <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="space-y-8 max-w-7xl mx-auto font-outfit"
+            className="space-y-6 max-w-7xl mx-auto font-outfit"
         >
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-8">
-                <div className="space-y-3 font-outfit">
-                    <h1 className="text-4xl font-black text-white italic uppercase tracking-tighter leading-none">Academic Results</h1>
-                    <p className="text-slate-500 font-medium text-lg italic leading-relaxed max-w-xl">
+            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div className="space-y-2 font-outfit">
+                    <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none">Academic Results</h1>
+                    <p className="text-slate-500 font-medium text-sm italic leading-relaxed max-w-xl">
                         Track your subject-wise performance and exam results for {activeAcademicYear ? `Session ${activeAcademicYear.name}` : 'the active session'}.
                     </p>
                 </div>
                 
-                <div className="flex bg-[#0f0f12] border border-slate-800/60 p-6 rounded-md items-center gap-10 shadow-2xl relative overflow-hidden group">
-                   <div className="absolute top-0 right-0 w-24 h-24 bg-luxury-emerald/5 rounded-md blur-2xl -mr-10 -mt-10 group-hover:bg-luxury-emerald/10 transition-all"></div>
+                <div className="flex bg-[#0f0f12] border border-slate-800/60 p-4 rounded-md items-center gap-6 shadow-2xl relative overflow-hidden group">
+                   <div className="absolute top-0 right-0 w-20 h-20 bg-luxury-emerald/5 rounded-md blur-xl -mr-8 -mt-8 group-hover:bg-luxury-emerald/10 transition-all"></div>
                    
                    <div className="text-center">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 italic">Overall Percentage</p>
-                        <p className="text-3xl font-black text-luxury-emerald italic font-outfit tracking-tighter">{overallPercentage}%</p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5 italic">Overall Percentage</p>
+                        <p className="text-2xl font-black text-luxury-emerald italic font-outfit tracking-tighter">{overallPercentage}%</p>
                    </div>
                    
-                   <div className="w-px h-12 bg-slate-800/60"></div>
+                   <div className="w-px h-8 bg-slate-800/60"></div>
                    
                    <div className="text-center">
-                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 italic">Performance Grade</p>
-                        <div className="flex items-center gap-1 text-3xl font-black text-white italic font-outfit tracking-tighter">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5 italic">Performance Grade</p>
+                        <div className="flex items-center gap-1 text-2xl font-black text-white italic font-outfit tracking-tighter">
                             <span className="text-brand-accent">{overallGrade}</span>
                         </div>
                    </div>
                 </div>
             </header>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
                 {/* Statistics Sidebar */}
-                <div className="lg:col-span-4 space-y-6 lg:sticky lg:top-24 font-outfit">
-                    <div className="bg-[#0f0f12] border border-slate-800/60 p-8 rounded-md shadow-2xl space-y-10">
-                        <div className="space-y-6">
-                            <h3 className="text-sm font-black text-white uppercase tracking-widest mb-6 flex items-center gap-3 italic font-outfit">
-                                <span className="w-8 h-px bg-luxury-emerald"></span> Quick Actions
+                <div className="lg:col-span-4 space-y-4 lg:sticky lg:top-24 font-outfit">
+                    <div className="bg-[#0f0f12] border border-slate-800/60 p-5 rounded-md shadow-2xl space-y-6">
+                        <div className="space-y-4">
+                            <h3 className="text-xs font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2 italic font-outfit">
+                                <span className="w-6 h-px bg-luxury-emerald"></span> Quick Actions
                             </h3>
                             <button 
                                 onClick={handleDownloadReport}
-                                className="w-full py-5 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-[0.3em] transition-all shadow-[0_0_30px_rgba(16,185,129,0.25)] border border-white/10 group"
+                                className="w-full py-3 bg-luxury-emerald hover:bg-emerald-500 text-black rounded-md flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-[0.25em] transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] border border-white/10 group"
                             >
-                                Download Report Card <Download size={16} className="group-hover:translate-y-1 transition-transform" />
+                                Download Report Card <Download size={14} className="group-hover:translate-y-0.5 transition-transform" />
                             </button>
                         </div>
 
-                        <div className="pt-10 border-t border-slate-800/40 space-y-6 font-outfit">
-                            <h4 className="text-[10px] font-black text-slate-600 uppercase italic tracking-[0.25em]">Academic Progress</h4>
-                            <div className="space-y-5">
+                        <div className="pt-6 border-t border-slate-800/40 space-y-4 font-outfit">
+                            <h4 className="text-[9px] font-black text-slate-600 uppercase italic tracking-[0.2em]">Academic Progress</h4>
+                            <div className="space-y-4">
                                 {[
                                     { label: 'Completed Exams', value: results.length, total: profile?.subjectCount || 10 },
                                     { label: 'Overall Attendance', value: Math.round(parseFloat(attendanceStats.pct)), total: 100 }
                                 ].map((stat, i) => (
-                                    <div key={i} className="space-y-3">
+                                    <div key={i} className="space-y-2">
                                         <div className="flex justify-between text-[9px] font-black uppercase tracking-widest text-slate-500">
                                             <span>{stat.label}</span>
                                             <span className="text-white">{stat.value}/{stat.total}</span>
@@ -144,11 +144,11 @@ const AcademicResults = () => {
                         </div>
                     </div>
 
-                    <div className="bg-gradient-to-br from-brand-primary/10 to-transparent border border-brand-primary/20 p-8 rounded-md font-outfit">
-                        <h4 className="text-xs font-black text-brand-primary uppercase tracking-[.25em] mb-4 flex items-center gap-2 italic">
-                            <Star size={14} /> Official Disclaimer
+                    <div className="bg-gradient-to-br from-brand-primary/10 to-transparent border border-brand-primary/20 p-5 rounded-md font-outfit">
+                        <h4 className="text-xs font-black text-brand-primary uppercase tracking-[.2em] mb-2 flex items-center gap-2 italic">
+                            <Star size={12} /> Official Disclaimer
                         </h4>
-                        <p className="text-slate-500 text-xs font-medium leading-relaxed italic uppercase tracking-tighter">
+                        <p className="text-slate-500 text-[10px] font-medium leading-relaxed italic uppercase tracking-tighter">
                             All marks are subject to final verification by the school board. Please report any discrepancies within 48 hours.
                         </p>
                     </div>
@@ -156,24 +156,24 @@ const AcademicResults = () => {
 
                 {/* Main Results Feed */}
                 <div className="lg:col-span-8 bg-[#0f0f12] border border-slate-800/60 rounded-md shadow-2xl overflow-hidden font-outfit">
-                    <div className="p-10 border-b border-slate-800/60 bg-[#0a0a0c] flex items-center justify-between">
-                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-luxury-emerald/10 rounded-md border border-luxury-emerald/20"><Award size={20} className="text-luxury-emerald shadow-[0_0_10px_rgba(16,185,129,0.3)]" /></div>
-                            <h3 className="text-sm font-black uppercase tracking-[0.4em] text-white italic">Exam Results List</h3>
+                    <div className="p-6 border-b border-slate-800/60 bg-[#0a0a0c] flex items-center justify-between">
+                         <div className="flex items-center gap-3">
+                            <div className="p-2 bg-luxury-emerald/10 rounded-md border border-luxury-emerald/20"><Award size={16} className="text-luxury-emerald shadow-[0_0_8px_rgba(16,185,129,0.25)]" /></div>
+                            <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white italic">Exam Results List</h3>
                         </div>
                         <div className="relative group hidden sm:block">
-                            <Search size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-luxury-emerald" />
+                            <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600 transition-colors group-focus-within:text-luxury-emerald" />
                             <input 
                                 type="text" 
                                 placeholder="SEARCH BY SUBJECT..." 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="bg-slate-950/60 border border-slate-800 rounded-md py-3 pl-12 pr-6 text-[10px] font-black text-white italic w-56 outline-none focus:border-luxury-emerald placeholder:text-slate-900 uppercase tracking-widest transition-all" 
+                                className="bg-slate-950/60 border border-slate-800 rounded-md py-2 pl-9 pr-4 text-[9px] font-black text-white italic w-48 outline-none focus:border-luxury-emerald placeholder:text-slate-900 uppercase tracking-widest transition-all" 
                             />
                         </div>
                     </div>
 
-                    <div className="p-10 grid grid-cols-1 gap-8">
+                    <div className="p-6 grid grid-cols-1 gap-5">
                         {filteredResults.length > 0 ? (
                             filteredResults.map((res, idx) => {
                                 const maxAllowed = res.examId?.maxMarks || 100;
@@ -184,65 +184,65 @@ const AcademicResults = () => {
                                         initial={{ opacity: 0, x: 20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-slate-900/40 border border-slate-800/50 p-7 rounded-md hover:border-luxury-emerald/30 transition-all group relative overflow-hidden"
+                                        className="bg-slate-900/40 border border-slate-800/50 p-5 rounded-md hover:border-luxury-emerald/30 transition-all group relative overflow-hidden"
                                     >
-                                        <div className="absolute top-0 right-0 p-7 opacity-5 group-hover:opacity-10 transition-opacity">
-                                            <FileText size={80} />
+                                        <div className="absolute top-0 right-0 p-5 opacity-5 group-hover:opacity-10 transition-opacity">
+                                            <FileText size={60} />
                                         </div>
                                         
-                                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-7">
+                                        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-5">
                                             <div>
-                                                <div className="flex items-center gap-3 mb-3">
-                                                    <span className="px-3 py-1 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 rounded-md text-[9px] font-black uppercase tracking-[0.3em] italic">{(res.examId?.name || 'Internal Assessment').toUpperCase()}</span>
-                                                    <span className="w-1.5 h-1.5 rounded-md bg-slate-800"></span>
-                                                    <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest italic">Result ID: {res._id.slice(-6).toUpperCase()}</span>
+                                                <div className="flex items-center gap-2 mb-1.5">
+                                                    <span className="px-2 py-0.5 bg-luxury-emerald/10 text-luxury-emerald border border-luxury-emerald/20 rounded-md text-[8px] font-black uppercase tracking-[0.25em] italic">{(res.examId?.name || 'Internal Assessment').toUpperCase()}</span>
+                                                    <span className="w-1 h-1 rounded-md bg-slate-800"></span>
+                                                    <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest italic">Result ID: {res._id.slice(-6).toUpperCase()}</span>
                                                 </div>
-                                                <h4 className="text-3xl font-black text-white italic tracking-tighter uppercase font-outfit group-hover:text-luxury-emerald transition-all">{res.examId?.subject?.name || 'Subject Name'}</h4>
+                                                <h4 className="text-xl font-black text-white italic tracking-tighter uppercase font-outfit group-hover:text-luxury-emerald transition-all">{res.examId?.subject?.name || 'Subject Name'}</h4>
                                             </div>
-                                            <div className="text-left md:text-right bg-slate-950/40 px-6 py-4 rounded-md border border-slate-800/60 font-outfit">
-                                                <p className="text-4xl font-black text-white font-outfit leading-none tracking-tighter italic">{res.marksObtained}<span className="text-slate-600 text-lg ml-2">/ {maxAllowed}</span></p>
-                                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.3em] mt-3 italic">Marks Obtained</p>
+                                            <div className="text-left md:text-right bg-slate-950/40 px-4 py-2 rounded-md border border-slate-800/60 font-outfit">
+                                                <p className="text-2xl font-black text-white font-outfit leading-none tracking-tighter italic">{res.marksObtained}<span className="text-slate-600 text-sm ml-1.5">/ {maxAllowed}</span></p>
+                                                <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.25em] mt-1.5 italic">Marks Obtained</p>
                                             </div>
                                         </div>
 
-                                        <div className="relative z-10 space-y-4 mb-7 font-outfit">
+                                        <div className="relative z-10 space-y-2 mb-5 font-outfit">
                                             <div className="flex justify-between items-end px-1">
-                                                <span className="text-[10px] font-black uppercase tracking-[0.35em] text-slate-500 italic">Performance Percentage</span>
-                                                <span className="text-lg font-black text-luxury-emerald italic">{per}%</span>
+                                                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Performance Percentage</span>
+                                                <span className="text-sm font-black text-luxury-emerald italic">{per}%</span>
                                             </div>
-                                            <div className="h-2 w-full bg-slate-800/60 rounded-md overflow-hidden p-0.5 border border-slate-700/30">
+                                            <div className="h-1.5 w-full bg-slate-800/60 rounded-md overflow-hidden p-0.5 border border-slate-700/30">
                                                 <motion.div 
                                                     initial={{ width: 0 }}
                                                     animate={{ width: `${per}%` }}
                                                     transition={{ duration: 1.5, ease: "circOut", delay: 0.3 }}
-                                                    className="h-full bg-luxury-emerald rounded-sm shadow-[0_0_15px_rgba(16,185,129,0.35)]"
+                                                    className="h-full bg-luxury-emerald rounded-sm shadow-[0_0_10px_rgba(16,185,129,0.25)]"
                                                 />
                                             </div>
                                         </div>
 
-                                        <div className="relative z-10 flex items-center justify-between pt-5 border-t border-slate-800/60 font-outfit">
-                                            <div className="flex items-center gap-4">
-                                                <div className="flex items-center gap-2 bg-slate-950/60 px-4 py-2 rounded-md border border-slate-800/40">
-                                                    <div className="w-2 h-2 rounded-md bg-luxury-emerald animate-pulse"></div>
-                                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-300 italic">Assigned Grade: {res.grade || getPerformanceGrade(per)}</span>
+                                        <div className="relative z-10 flex items-center justify-between pt-4 border-t border-slate-800/60 font-outfit">
+                                            <div className="flex items-center gap-3">
+                                                <div className="flex items-center gap-1.5 bg-slate-950/60 px-3 py-1 rounded-md border border-slate-800/40">
+                                                    <div className="w-1.5 h-1.5 rounded-md bg-luxury-emerald animate-pulse"></div>
+                                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-300 italic">Assigned Grade: {res.grade || getPerformanceGrade(per)}</span>
                                                 </div>
-                                                <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest hidden sm:block italic">Verified Official</span>
+                                                <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest hidden sm:block italic">Verified Official</span>
                                             </div>
                                             <button 
                                                 onClick={() => setSelectedResult(res)}
-                                                className="flex items-center gap-3 text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] hover:text-white transition-all italic group/btn"
+                                                className="flex items-center gap-2 text-[9px] font-black text-slate-500 uppercase tracking-[0.15em] hover:text-white transition-all italic group/btn"
                                             >
-                                                View Details <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />
+                                                View Details <ChevronRight size={12} className="group-hover/btn:translate-x-0.5 transition-transform" />
                                             </button>
                                         </div>
                                     </motion.div>
                                 );
                             })
                         ) : (
-                            <div className="py-40 text-center bg-[#0a0a0c]/40 rounded-md border border-dashed border-slate-800/60 font-outfit">
-                                <TrendingUp size={64} className="text-slate-800/40 mx-auto mb-8 animate-pulse" />
-                                <h3 className="text-xl font-black text-slate-700 uppercase tracking-[0.4em] mb-3 italic">No Results Found</h3>
-                                <p className="text-slate-800 text-[10px] font-black uppercase tracking-widest leading-none">No exam results or assessments have been published yet.</p>
+                            <div className="py-20 text-center bg-[#0a0a0c]/40 rounded-md border border-dashed border-slate-800/60 font-outfit">
+                                <TrendingUp size={48} className="text-slate-800/40 mx-auto mb-4 animate-pulse" />
+                                <h3 className="text-lg font-black text-slate-700 uppercase tracking-[0.3em] mb-2 italic">No Results Found</h3>
+                                <p className="text-slate-800 text-[9px] font-black uppercase tracking-widest leading-none">No exam results or assessments have been published yet.</p>
                             </div>
                         )}
                     </div>

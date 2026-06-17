@@ -138,12 +138,8 @@ const StudentProfile = () => {
                     {/* Actions */}
                     <div className="flex gap-3">
                         {!editMode ? (
-                            <button
-                                onClick={() => setEditMode(true)}
-                                className="px-5 py-2.5 bg-brand-primary hover:bg-brand-primary/95 text-slate-950 font-bold rounded-xl text-xs uppercase tracking-wider transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-brand-primary/10"
-                            >
-                                <Edit3 size={14} /> Edit Profile
-                            </button>
+                            <>
+                            </>
                         ) : (
                             <div className="flex gap-2">
                                 <button

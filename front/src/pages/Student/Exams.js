@@ -117,11 +117,11 @@ const ExamCard = ({ exam, result, idx, navigate }) => {
                 </div>
 
                 {/* ── Row 3: 4-metric strip ── */}
-                <div className="grid grid-cols-4 gap-2 mb-5">
+                <div className="grid grid-cols-3 gap-2 mb-5">
                     {[
                         { icon: Calendar, label: 'Date',      val: fmtDate(exam.date) },
                         { icon: Clock,    label: 'Time',      val: exam.startTime || '09:00 AM' },
-                        { icon: MapPin,   label: 'Room',      val: exam.roomNo || 'Exam Hall' },
+                        // { icon: MapPin,   label: 'Room',      val: exam.roomNo || 'Exam Hall' },
                         { icon: Target,   label: 'Max Marks', val: `${exam.maxMarks || 100}` },
                     ].map(({ icon: I, label, val }) => (
                         <div key={label} className="bg-slate-950/60 border border-slate-800/60 rounded-xl p-3 text-center group/m hover:border-slate-700 transition-colors">
