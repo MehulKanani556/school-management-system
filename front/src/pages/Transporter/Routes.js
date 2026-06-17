@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchRoutesSlice, addRouteSlice, updateRouteSlice, deleteRouteSlice, fetchVehicles, clearTransportMessage, fetchTransportApplicantsSlice, assignStudentSlice, unassignStudentSlice } from '../../redux/slice/transport.slice';
-import { 
-    Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair, 
+import {
+    Navigation, Plus, MapPin, Trash2, Edit3, Bus, Loader2, X, Users, Activity, Crosshair,
     UserPlus, UserMinus, ShieldCheck, Search, Home, Info, Compass
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -46,12 +46,12 @@ const RoadNetworkPath = ({ stops, color1 = '#06b6d4', color2 = '#22d3ee', weight
                 const data = await resp.json();
                 if (data.routes && data.routes[0] && data.routes[0].geometry) {
                     const coords = data.routes[0].geometry.coordinates.map(c => [c[1], c[0]]); // OSRM returns [lng, lat]
-                    
+
                     // High-accuracy coordinate snapping patch:
                     // Force the route line to pass EXACTLY through the actual marker coordinates of every stop,
                     // by inserting/matching the exact marker coordinates into the OSRM path geometry.
                     const correctedCoords = [...coords];
-                    
+
                     const findClosestIndex = (path, target) => {
                         let minD = Infinity;
                         let closestIdx = 0;
@@ -150,9 +150,9 @@ const StopPickerMap = ({ onPick, stops = [], center }) => {
             />
             {stops.map((stop, idx) => (
                 stop.lat && stop.lng && (
-                    <Marker 
-                        key={idx} 
-                        position={[stop.lat, stop.lng]} 
+                    <Marker
+                        key={idx}
+                        position={[stop.lat, stop.lng]}
                         icon={L.divIcon({
                             html: `<div class="w-4 h-4 bg-blue-500 rounded-full border-2 border-white shadow-lg"></div>`,
                             className: 'custom-marker',
@@ -170,7 +170,7 @@ const Routes = () => {
     const dispatch = useDispatch();
     const { routes, vehicles, applicants, loading, message, error } = useSelector((state) => state.transport);
     const { students } = useSelector((state) => state.schoolAdmin);
-    
+
     // Build set of all assigned student IDs across all routes to filter out duplicates in assignment
     const assignedStudentIds = React.useMemo(() => {
         const ids = new Set();
@@ -189,9 +189,9 @@ const Routes = () => {
     const [isAssignOpen, setIsAssignOpen] = React.useState(false);
     const [selectedRoute, setSelectedRoute] = React.useState(null);
     const [selectedRouteForAssign, setSelectedRouteForAssign] = React.useState(null);
-    const [formData, setFormData] = React.useState({ 
-        name: '', 
-        vehicleId: '', 
+    const [formData, setFormData] = React.useState({
+        name: '',
+        vehicleId: '',
         stops: [
             {
                 name: 'School',
@@ -200,10 +200,10 @@ const Routes = () => {
                 lat: 21.1702,
                 lng: 72.8311
             }
-        ], 
-        status: 'active', 
-        fee: 0, 
-        startTime: '08:00 AM' 
+        ],
+        status: 'active',
+        fee: 0,
+        startTime: '08:00 AM'
     });
     const [newStop, setNewStop] = React.useState({ name: '', order: 2, estimatedTime: '08:00 AM', lat: null, lng: null });
     const [searchTerm, setSearchTerm] = React.useState('');
@@ -265,9 +265,9 @@ const Routes = () => {
     }, [message, error, dispatch]);
 
     const resetForm = () => {
-        setFormData({ 
-            name: '', 
-            vehicleId: '', 
+        setFormData({
+            name: '',
+            vehicleId: '',
             stops: [
                 {
                     name: 'School',
@@ -276,10 +276,10 @@ const Routes = () => {
                     lat: schoolLoc.lat,
                     lng: schoolLoc.lng
                 }
-            ], 
-            status: 'active', 
-            fee: 0, 
-            startTime: '08:00 AM' 
+            ],
+            status: 'active',
+            fee: 0,
+            startTime: '08:00 AM'
         });
         setNewStop({ name: '', order: 2, estimatedTime: '08:00 AM', lat: null, lng: null });
         setSelectedRoute(null);
@@ -427,7 +427,7 @@ const Routes = () => {
     const addStop = () => {
         if (!newStop.name) return toast.error('Stop name is required');
         if (!newStop.lat || !newStop.lng) return toast.error('Select location on map');
-        
+
         let finalTime = newStop.estimatedTime;
         if (isAutoTime) {
             if (formData.stops.length === 0) {
@@ -468,17 +468,17 @@ const Routes = () => {
                     <h1 className="text-3xl font-black italic uppercase tracking-tighter mb-1 leading-none text-transporter-primary">Routes</h1>
                     <p className="text-[11px] font-black text-slate-500 uppercase tracking-widest italic opacity-70 leading-none">Manage your bus routes and stops.</p>
                 </div>
-                
+
                 <div className="flex items-center gap-4 w-full md:w-auto">
                     <div className="relative flex-1 md:w-64">
-                         <input 
-                            type="text" 
-                            placeholder="SEARCH ROUTES..." 
+                        <input
+                            type="text"
+                            placeholder="SEARCH ROUTES..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full bg-neutral-900 border border-slate-800 rounded-md py-3 pl-10 pr-4 text-[10px] font-black uppercase italic text-white focus:border-blue-500/50 outline-none"
-                         />
-                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
+                        />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={14} />
                     </div>
                     <button
                         onClick={() => { resetForm(); setIsAddOpen(true); }}
@@ -508,17 +508,17 @@ const Routes = () => {
                                     </p>
                                 </div>
                             </div>
-                            
+
                             {/* Compact Quick Admin Actions */}
                             <div className="flex items-center gap-2 shrink-0">
-                                 <button 
-                                     onClick={() => toggleStatus(route)}
-                                     title={route.status === 'active' ? 'Deactivate Route' : 'Activate Route'}
-                                     className={`p-2.5 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
-                                 >
-                                     <Activity size={14} />
-                                 </button>
-                                <button 
+                                <button
+                                    onClick={() => toggleStatus(route)}
+                                    title={route.status === 'active' ? 'Deactivate Route' : 'Activate Route'}
+                                    className={`p-2.5 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg ${route.status === 'active' ? 'text-emerald-500 hover:text-rose-500' : 'text-rose-500 hover:text-emerald-500'}`}
+                                >
+                                    <Activity size={14} />
+                                </button>
+                                <button
                                     onClick={() => openEdit(route)}
                                     title="Edit Route"
                                     className="p-2.5 text-slate-400 hover:text-blue-400 bg-neutral-950 border border-slate-800 hover:border-slate-700 rounded-md transition-all shadow-lg"
@@ -538,20 +538,20 @@ const Routes = () => {
                         {/* Interactive Main Actions & Telemetry Stats Row */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                             <div className="flex gap-2">
-                                <button 
-                                     onClick={() => setActiveMapRoute(route)}
-                                     className="flex-1 py-3 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-600/20 hover:border-cyan-500 rounded-md transition-all shadow-lg text-cyan-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none animate-pulse hover:animate-none"
-                                 >
-                                     <MapPin size={14} /> Map View
-                                 </button>
-                                <button 
-                                     onClick={() => openAssign(route)}
-                                     className="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 border border-blue-600/20 hover:border-blue-500 rounded-md transition-all shadow-lg text-blue-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none"
-                                 >
-                                     <Users size={14} /> Enrollments
-                                 </button>
+                                <button
+                                    onClick={() => setActiveMapRoute(route)}
+                                    className="flex-1 py-3 bg-cyan-600/10 hover:bg-cyan-600 border border-cyan-600/20 hover:border-cyan-500 rounded-md transition-all shadow-lg text-cyan-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none animate-pulse hover:animate-none"
+                                >
+                                    <MapPin size={14} /> Map View
+                                </button>
+                                <button
+                                    onClick={() => openAssign(route)}
+                                    className="flex-1 py-3 bg-blue-600/10 hover:bg-blue-600 border border-blue-600/20 hover:border-blue-500 rounded-md transition-all shadow-lg text-blue-400 hover:text-white flex items-center justify-center gap-2 text-[10px] font-black uppercase italic leading-none"
+                                >
+                                    <Users size={14} /> Enrollments
+                                </button>
                             </div>
-                            
+
                             <div className="flex items-center justify-around px-4 py-2 bg-neutral-950/40 rounded-md border border-slate-800/60 text-slate-300">
                                 <div className="flex items-center gap-2">
                                     <Users size={12} className="text-cyan-500" />
@@ -568,7 +568,7 @@ const Routes = () => {
 
                         {/* Mini Map Preview */}
                         {route.stops?.some(s => s.lat) && (
-                            <div 
+                            <div
                                 onClick={() => setActiveMapRoute(route)}
                                 className="h-32 mb-6 rounded border border-slate-800 overflow-hidden grayscale hover:grayscale-0 transition-all opacity-50 hover:opacity-100 cursor-pointer relative group/map"
                             >
@@ -578,9 +578,9 @@ const Routes = () => {
                                         <MapPin size={10} className="animate-bounce" /> Click to Expand Interactive Map
                                     </span>
                                 </div>
-                                <MapContainer 
-                                    center={[route.stops.find(s => s.lat).lat, route.stops.find(s => s.lat).lng]} 
-                                    zoom={11} 
+                                <MapContainer
+                                    center={[route.stops.find(s => s.lat).lat, route.stops.find(s => s.lat).lng]}
+                                    zoom={11}
                                     className="h-full w-full"
                                     zoomControl={false}
                                     dragging={false}
@@ -588,17 +588,17 @@ const Routes = () => {
                                 >
                                     <TileLayer url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png" />
                                     {/* Real Road-Network Route path joining all stops dynamically */}
-                                    <RoadNetworkPath 
-                                        stops={route.stops} 
-                                        color1="#06b6d4" 
-                                        color2="#22d3ee" 
-                                        weight1={4} 
-                                        weight2={1.5} 
+                                    <RoadNetworkPath
+                                        stops={route.stops}
+                                        color1="#06b6d4"
+                                        color2="#22d3ee"
+                                        weight1={4}
+                                        weight2={1.5}
                                     />
                                     {route.stops.map((s, idx) => s.lat && (
-                                        <Marker 
-                                            key={idx} 
-                                            position={[s.lat, s.lng]} 
+                                        <Marker
+                                            key={idx}
+                                            position={[s.lat, s.lng]}
                                             icon={L.divIcon({ html: '<div class="w-2.5 h-2.5 bg-cyan-500 rounded-full border border-slate-900 shadow-md"></div>', className: 'm-0', iconSize: [10, 10] })}
                                         />
                                     ))}
@@ -611,12 +611,12 @@ const Routes = () => {
                             <div className="relative pl-6 space-y-6">
                                 {/* The Continuous Elegant Timeline Axis Line */}
                                 <div className="absolute left-[4px] top-2 bottom-2 w-0.5 bg-gradient-to-b from-cyan-500/50 via-slate-800 to-cyan-500/50"></div>
-                                
+
                                 {[...route.stops].sort((a, b) => a.order - b.order).map((stop, idx) => (
                                     <div key={idx} className="relative flex items-center group/stop">
                                         {/* Glowing Dot on the Axis (absolutely positioned relative to the list parent) */}
                                         <div className="absolute left-[-26px] w-2.5 h-2.5 rounded-full bg-slate-950 border-2 border-cyan-500 shadow-[0_0_8px_rgba(6,182,212,0.65)] z-10"></div>
-                                        
+
                                         {/* Stop Card */}
                                         <div className="flex-1 bg-neutral-950/40 p-3 rounded-md border border-slate-800/60 group-hover/stop:border-cyan-500/30 transition-all flex justify-between items-center ml-2">
                                             <div>
@@ -649,7 +649,7 @@ const Routes = () => {
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 sm:p-0 font-outfit">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => { setIsAddOpen(false); setIsEditOpen(false); }} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
                         <motion.div initial={{ scale: 0.9, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.9, opacity: 0, y: 20 }} className="bg-neutral-900 w-full max-w-4xl rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-y-auto xl:overflow-hidden custom-scrollbar max-h-[95vh] flex flex-col xl:flex-row">
-                            
+
                             {/* Left: Form */}
                             <form onSubmit={isEditOpen ? handleEdit : handleAdd} className="flex-1 space-y-6 p-10 overflow-y-visible xl:overflow-y-auto shrink-0">
                                 <h3 className="text-xl font-black italic uppercase tracking-tighter text-slate-100 mb-8 pb-4 border-b border-slate-800/60 leading-none">
@@ -657,58 +657,58 @@ const Routes = () => {
                                 </h3>
 
                                 <div className="space-y-4">
-                                     <div className="grid grid-cols-4 gap-4">
-                                          <div className="space-y-2 col-span-1">
-                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Route Name</label>
-                                              <input 
-                                                  type="text" 
-                                                  required
-                                                  value={formData.name}
-                                                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
-                                              />
-                                          </div>
-                                          <div className="space-y-2 col-span-1">
-                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-blue-500">Start Time</label>
-                                              <input 
-                                                  type="text" 
-                                                  required
-                                                  value={formData.startTime}
-                                                  onChange={(e) => {
-                                                      const val = e.target.value;
-                                                      setFormData(prev => {
-                                                          const updatedStops = [...prev.stops];
-                                                          if (updatedStops.length > 0 && updatedStops[0].name === 'School') {
-                                                              updatedStops[0] = { ...updatedStops[0], estimatedTime: val };
-                                                          }
-                                                          return { ...prev, startTime: val, stops: updatedStops };
-                                                      });
-                                                  }}
-                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
-                                              />
-                                          </div>
-                                          <div className="space-y-2 col-span-1">
-                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Fee (₹)</label>
-                                              <input 
-                                                  type="number" 
-                                                  required
-                                                  value={formData.fee}
-                                                  onChange={(e) => setFormData({...formData, fee: parseFloat(e.target.value)})}
-                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none h-[42px]"
-                                              />
-                                          </div>
-                                          <div className="space-y-2 col-span-1">
-                                              <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Status</label>
-                                              <select 
-                                                  value={formData.status}
-                                                  onChange={(e) => setFormData({...formData, status: e.target.value})}
-                                                  className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
-                                              >
-                                                  <option value="active">Active</option>
-                                                  <option value="inactive">Inactive</option>
-                                              </select>
-                                          </div>
-                                      </div>
+                                    <div className="grid grid-cols-4 gap-4">
+                                        <div className="space-y-2 col-span-1">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Route Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 col-span-1">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-blue-500">Start Time</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.startTime}
+                                                onChange={(e) => {
+                                                    const val = e.target.value;
+                                                    setFormData(prev => {
+                                                        const updatedStops = [...prev.stops];
+                                                        if (updatedStops.length > 0 && updatedStops[0].name === 'School') {
+                                                            updatedStops[0] = { ...updatedStops[0], estimatedTime: val };
+                                                        }
+                                                        return { ...prev, startTime: val, stops: updatedStops };
+                                                    });
+                                                }}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-blue-500 focus:outline-none focus:border-blue-600/50 transition-all italic leading-none h-[42px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 col-span-1">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1 text-emerald-500/80">Fee (₹)</label>
+                                            <input
+                                                type="number"
+                                                required
+                                                value={formData.fee}
+                                                onChange={(e) => setFormData({ ...formData, fee: parseFloat(e.target.value) })}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-xs font-bold text-emerald-500 focus:outline-none focus:border-emerald-600/50 transition-all italic leading-none h-[42px]"
+                                            />
+                                        </div>
+                                        <div className="space-y-2 col-span-1">
+                                            <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Status</label>
+                                            <select
+                                                value={formData.status}
+                                                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                                                className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-3 px-4 text-[11px] font-black uppercase italic text-slate-300 focus:outline-none appearance-none h-[42px] leading-none"
+                                            >
+                                                <option value="active">Active</option>
+                                                <option value="inactive">Inactive</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 italic ml-1">Select Bus</label>
                                         <select
@@ -726,20 +726,20 @@ const Routes = () => {
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 italic mb-6">Bus Stops</h4>
                                         <div className="space-y-4 mb-6">
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                <input 
-                                                    type="text" 
+                                                <input
+                                                    type="text"
                                                     placeholder="Stop Name"
                                                     value={newStop.name}
-                                                    onChange={(e) => setNewStop({...newStop, name: e.target.value})}
+                                                    onChange={(e) => setNewStop({ ...newStop, name: e.target.value })}
                                                     className="bg-neutral-950 border border-slate-800/60 rounded-md py-2 px-3 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-[38px] leading-none"
                                                 />
                                                 <div className="relative flex items-center h-[38px]">
-                                                    <input 
-                                                        type="text" 
+                                                    <input
+                                                        type="text"
                                                         placeholder="HH:MM AM/PM"
                                                         disabled={isAutoTime}
                                                         value={isAutoTime ? 'Auto-Calculated' : newStop.estimatedTime}
-                                                        onChange={(e) => setNewStop({...newStop, estimatedTime: e.target.value})}
+                                                        onChange={(e) => setNewStop({ ...newStop, estimatedTime: e.target.value })}
                                                         className="w-full bg-neutral-950 border border-slate-800/60 rounded-md py-2 pl-3 pr-16 text-[10px] font-black uppercase text-slate-200 focus:border-blue-600/40 h-full leading-none disabled:opacity-40 disabled:text-cyan-400"
                                                     />
                                                     <button
@@ -753,10 +753,10 @@ const Routes = () => {
                                             </div>
                                             <div className="flex items-center gap-4 bg-black/40 p-3 rounded-md border border-slate-800/40 flex-wrap">
                                                 <div className="flex items-center gap-2 text-[9px] font-black uppercase text-slate-500 italic">
-                                                    <Crosshair size={12} className={newStop.lat ? 'text-emerald-500' : ''} /> 
+                                                    <Crosshair size={12} className={newStop.lat ? 'text-emerald-500' : ''} />
                                                     {newStop.lat ? `COORD: ${newStop.lat.toFixed(4)}, ${newStop.lng.toFixed(4)}` : 'SELECT ON MAP'}
                                                 </div>
-                                                <button 
+                                                <button
                                                     type="button"
                                                     onClick={addStop}
                                                     disabled={!newStop.lat}
@@ -766,7 +766,7 @@ const Routes = () => {
                                                 </button>
                                             </div>
                                         </div>
-                                        
+
                                         <div className="space-y-2">
                                             {formData.stops.map((s, idx) => (
                                                 <div key={idx} className="flex justify-between items-center p-3 bg-neutral-950/60 rounded-md border border-slate-800/40 group/item transition-all">
@@ -803,7 +803,7 @@ const Routes = () => {
                                                                 <MapPin size={14} />
                                                             </button>
                                                         ) : (
-                                                            <button 
+                                                            <button
                                                                 type="button"
                                                                 onClick={() => removeStop(idx)}
                                                                 className="p-1.5 text-slate-600 hover:text-red-400 opacity-0 group-hover/item:opacity-100 transition-all bg-neutral-950 border border-slate-800 rounded-md"
@@ -834,56 +834,56 @@ const Routes = () => {
 
                             {/* Right: Map for Picking */}
                             <div className="w-full xl:w-[450px] bg-neutral-950 border-t xl:border-t-0 xl:border-l border-slate-800 flex flex-col shrink-0">
-                                 <div className="p-6 border-b border-slate-800/60 space-y-4">
-                                      <div>
+                                <div className="p-6 border-b border-slate-800/60 space-y-4">
+                                    <div>
                                         <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 italic">Route Map</h4>
                                         <p className="text-[8px] font-bold text-slate-600 uppercase italic mt-1.5">Click map to add bus stops</p>
-                                      </div>
-                                      <div className="flex gap-2 relative">
-                                          <div className="flex-1 relative">
-                                              <input 
-                                                type="text" 
-                                                placeholder="SEARCH LOCATION..." 
+                                    </div>
+                                    <div className="flex gap-2 relative">
+                                        <div className="flex-1 relative">
+                                            <input
+                                                type="text"
+                                                placeholder="SEARCH LOCATION..."
                                                 value={mapSearch}
                                                 onChange={(e) => setMapSearch(e.target.value)}
                                                 className="w-full bg-neutral-900 border border-slate-800 rounded-md py-2 px-3 text-[9px] font-black text-white focus:border-blue-500 outline-none uppercase"
-                                              />
-                                              {suggestions.length > 0 && (
-                                                  <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 border border-slate-800 rounded-md shadow-2xl z-[1000] overflow-hidden">
-                                                      {suggestions.map((s, idx) => (
-                                                          <button
-                                                              key={idx}
-                                                              type="button"
-                                                              onClick={() => selectSuggestion(s)}
-                                                              className="w-full text-left px-3 py-2 text-[8px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-white border-b border-slate-800/40 last:border-0 truncate"
-                                                          >
-                                                              {s.display_name}
-                                                          </button>
-                                                      ))}
-                                                  </div>
-                                              )}
-                                              {isSearching && (
-                                                  <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                                                      <Loader2 size={12} className="animate-spin text-blue-500" />
-                                                  </div>
-                                              )}
-                                          </div>
-                                          <button 
+                                            />
+                                            {suggestions.length > 0 && (
+                                                <div className="absolute top-full left-0 right-0 mt-1 bg-neutral-900 border border-slate-800 rounded-md shadow-2xl z-[1000] overflow-hidden">
+                                                    {suggestions.map((s, idx) => (
+                                                        <button
+                                                            key={idx}
+                                                            type="button"
+                                                            onClick={() => selectSuggestion(s)}
+                                                            className="w-full text-left px-3 py-2 text-[8px] font-black uppercase text-slate-400 hover:bg-slate-800 hover:text-white border-b border-slate-800/40 last:border-0 truncate"
+                                                        >
+                                                            {s.display_name}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {isSearching && (
+                                                <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                                                    <Loader2 size={12} className="animate-spin text-blue-500" />
+                                                </div>
+                                            )}
+                                        </div>
+                                        <button
                                             type="button"
                                             onClick={() => handleMapSearch()}
                                             className="p-2 bg-blue-600/10 border border-blue-600/20 rounded-md text-blue-400 hover:bg-blue-600 hover:text-white transition-all"
-                                          >
-                                              <Search size={14} />
-                                          </button>
-                                          <button 
+                                        >
+                                            <Search size={14} />
+                                        </button>
+                                        <button
                                             type="button"
                                             onClick={handleGetMyLocation}
                                             title="Use My Current Location"
                                             className="p-2 bg-cyan-600/10 border border-cyan-600/20 rounded-md text-cyan-400 hover:bg-cyan-600 hover:text-white transition-all"
-                                          >
-                                              <Compass size={14} className={isLocating ? "animate-spin" : ""} />
-                                          </button>
-                                          <button 
+                                        >
+                                            <Compass size={14} className={isLocating ? "animate-spin" : ""} />
+                                        </button>
+                                        <button
                                             type="button"
                                             onClick={() => {
                                                 if (newStop.lat) {
@@ -902,40 +902,40 @@ const Routes = () => {
                                             }}
                                             title="Set as School Base"
                                             className="p-2 bg-emerald-600/10 border border-emerald-600/20 rounded-md text-emerald-400 hover:bg-emerald-600 hover:text-white transition-all"
-                                          >
-                                              <Home size={14} />
-                                          </button>
-                                      </div>
-                                 </div>
-                                 <div className="h-[400px] xl:flex-1 w-full relative">
-                                     <MapContainer 
-                                         center={[
-                                             formData.stops.find(s => s.lat)?.lat || schoolLoc.lat,
-                                             formData.stops.find(s => s.lat)?.lng || schoolLoc.lng
-                                         ]} 
-                                         zoom={13} 
-                                         className="h-full w-full"
-                                         zoomControl={false}
-                                     >
-                                         <MapResizer />
-                                         <StopPickerMap 
-                                             stops={formData.stops} 
-                                             center={newStop.lat ? [newStop.lat, newStop.lng] : null}
-                                             onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })} 
-                                         />
-                                         <RoadNetworkPath stops={formData.stops} />
-                                         <Marker 
-                                            position={[schoolLoc.lat, schoolLoc.lng]} 
+                                        >
+                                            <Home size={14} />
+                                        </button>
+                                    </div>
+                                </div>
+                                <div className="h-[400px] xl:flex-1 w-full relative">
+                                    <MapContainer
+                                        center={[
+                                            formData.stops.find(s => s.lat)?.lat || schoolLoc.lat,
+                                            formData.stops.find(s => s.lat)?.lng || schoolLoc.lng
+                                        ]}
+                                        zoom={13}
+                                        className="h-full w-full"
+                                        zoomControl={false}
+                                    >
+                                        <MapResizer />
+                                        <StopPickerMap
+                                            stops={formData.stops}
+                                            center={newStop.lat ? [newStop.lat, newStop.lng] : null}
+                                            onPick={(latlng) => setNewStop({ ...newStop, lat: latlng.lat, lng: latlng.lng })}
+                                        />
+                                        <RoadNetworkPath stops={formData.stops} />
+                                        <Marker
+                                            position={[schoolLoc.lat, schoolLoc.lng]}
                                             icon={L.divIcon({
                                                 html: `<div class="w-8 h-8 bg-emerald-500 rounded-full border-2 border-white shadow-xl flex items-center justify-center text-white"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg></div>`,
                                                 className: 'school-marker',
                                                 iconSize: [32, 32],
                                                 iconAnchor: [16, 16]
                                             })}
-                                         />
+                                        />
                                         {newStop.lat && (
-                                            <Marker 
-                                                position={[newStop.lat, newStop.lng]} 
+                                            <Marker
+                                                position={[newStop.lat, newStop.lng]}
                                                 icon={L.divIcon({
                                                     html: `<div class="w-6 h-6 bg-orange-500 rounded-full border-2 border-white shadow-xl animate-pulse"></div>`,
                                                     className: 'target-marker',
@@ -954,12 +954,12 @@ const Routes = () => {
                 {isAssignOpen && (
                     <div className="fixed inset-0 z-50 flex items-start justify-center p-6 pt-16 font-outfit">
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setIsAssignOpen(false)} className="absolute inset-0 bg-neutral-950/80 backdrop-blur-md"></motion.div>
-                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-neutral-900 w-full max-w-5xl h-[85vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row">
-                            
+                        <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-brand-surface/95 backdrop-blur-2xl w-full max-w-5xl h-[85vh] rounded-2xl border border-brand-border/40 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row">
+
                             {/* Left: Assignment Form */}
-                            <div className="w-full md:w-1/3 p-6 border-r border-slate-800/60 overflow-y-auto">
+                            <div className="w-full md:w-1/3 p-6 border-r border-brand-border/30 overflow-y-auto">
                                 <div className="flex items-center gap-3 mb-8">
-                                    <UserPlus className="text-blue-500" size={24} />
+                                    <UserPlus className="text-cyan-400" size={24} />
                                     <h3 className="text-xl font-black italic uppercase text-white leading-none">Add Student</h3>
                                 </div>
 
@@ -968,24 +968,24 @@ const Routes = () => {
                                         <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Select Student</label>
                                         <div className="relative mb-2">
                                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={12} />
-                                            <input 
+                                            <input
                                                 type="text"
                                                 placeholder="SEARCH STUDENT BY NAME/ADM..."
                                                 value={studentSearch}
                                                 onChange={(e) => setStudentSearch(e.target.value)}
-                                                className="w-full bg-neutral-950 border border-slate-800 rounded-md py-2.5 pl-9 pr-4 text-[9px] font-black text-slate-300 uppercase italic focus:border-blue-500 outline-none"
+                                                className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-2.5 pl-9 pr-4 text-[9px] font-black text-slate-300 uppercase italic focus:outline-none focus:border-cyan-500/50 transition-all outline-none"
                                             />
                                         </div>
-                                        <select 
+                                        <select
                                             required
                                             value={assignData.studentId}
-                                            onChange={(e) => setAssignData({...assignData, studentId: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[11px] font-black uppercase text-slate-300 italic focus:border-blue-500 transition-all appearance-none"
+                                            onChange={(e) => setAssignData({ ...assignData, studentId: e.target.value })}
+                                            className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-3 px-4 text-[11px] font-black uppercase text-slate-300 italic focus:outline-none focus:border-cyan-500/50 transition-all appearance-none outline-none"
                                         >
                                             <option value="">Select Student...</option>
                                             {/* Priority 1: Applicants (Those who applied via portal) */}
                                             {applicants.filter(a => !assignedStudentIds.has(a._id.toString())).length > 0 && (
-                                                <optgroup label="PENDING APPLICATIONS" className="bg-neutral-900 text-blue-400">
+                                                <optgroup label="PENDING APPLICATIONS" className="bg-slate-950 text-cyan-400">
                                                     {applicants
                                                         .filter(a => !assignedStudentIds.has(a._id.toString()))
                                                         .map(a => (
@@ -995,11 +995,11 @@ const Routes = () => {
                                                 </optgroup>
                                             )}
                                             {/* Priority 2: All Other Students */}
-                                            <optgroup label="ALL STUDENTS" className="bg-neutral-950 text-slate-500">
+                                            <optgroup label="ALL STUDENTS" className="bg-slate-950 text-slate-500">
                                                 {students
-                                                    .filter(s => 
+                                                    .filter(s =>
                                                         !assignedStudentIds.has(s._id.toString()) &&
-                                                        !applicants.some(a => a._id === s._id) && 
+                                                        !applicants.some(a => a._id === s._id) &&
                                                         (`${s.firstName} ${s.lastName} ${s.admissionNumber}`.toLowerCase().includes(studentSearch.toLowerCase()))
                                                     )
                                                     .map(s => (
@@ -1008,24 +1008,24 @@ const Routes = () => {
                                                 }
                                             </optgroup>
                                         </select>
-                                        <div className="flex items-start gap-2 bg-blue-600/5 p-3 rounded border border-blue-600/10 mt-2">
-                                            <Info size={12} className="text-blue-500 mt-0.5 flex-shrink-0" />
+                                        <div className="flex items-start gap-2 bg-cyan-500/5 p-3 rounded-xl border border-brand-border/20 mt-2">
+                                            <Info size={12} className="text-cyan-400 mt-0.5 flex-shrink-0" />
                                             <p className="text-[8px] font-bold text-slate-500 uppercase italic leading-relaxed">
-                                                You can now enroll ANY student directly. Students who applied via the <span className="text-blue-400">Parent Portal</span> are highlighted at the top.
+                                                You can now enroll ANY student directly. Students who applied via the <span className="text-cyan-400">Parent Portal</span> are highlighted at the top.
                                             </p>
                                         </div>
                                     </div>
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Student Stop</label>
-                                        <select 
+                                        <select
                                             value={assignData.pickupStop}
                                             onChange={(e) => setAssignData({
                                                 ...assignData,
                                                 pickupStop: e.target.value,
                                                 dropoffStop: e.target.value
                                             })}
-                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic"
+                                            className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-3 px-4 text-[10px] font-black uppercase text-slate-300 italic focus:outline-none focus:border-cyan-500/50 transition-all appearance-none outline-none"
                                         >
                                             <option value="">Select Stop...</option>
                                             {selectedRouteForAssign?.stops
@@ -1037,12 +1037,12 @@ const Routes = () => {
 
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black uppercase text-slate-500 italic ml-1">Seat Assignment</label>
-                                        <input 
+                                        <input
                                             type="number"
                                             placeholder="Seat Number"
                                             value={assignData.seatNumber}
-                                            onChange={(e) => setAssignData({...assignData, seatNumber: e.target.value})}
-                                            className="w-full bg-neutral-950 border border-slate-800 rounded-md py-3 px-4 text-xs font-bold text-slate-200"
+                                            onChange={(e) => setAssignData({ ...assignData, seatNumber: e.target.value })}
+                                            className="w-full bg-slate-950 border border-brand-border/40 rounded-xl py-3 px-4 text-xs font-bold text-slate-200 focus:outline-none focus:border-cyan-500/50 transition-all outline-none"
                                         />
                                         {selectedRouteForAssign?.assignedStudents?.some(s => s.seatNumber) && (
                                             <div className="flex flex-wrap gap-1 mt-2">
@@ -1050,15 +1050,15 @@ const Routes = () => {
                                                 {selectedRouteForAssign.assignedStudents
                                                     .filter(s => s.seatNumber)
                                                     .map((s, idx) => (
-                                                        <span key={idx} className="text-[8px] font-black bg-rose-500/10 text-rose-500 border border-rose-500/20 px-1.5 py-0.5 rounded">#{s.seatNumber}</span>
+                                                        <span key={idx} className="text-[8px] font-black bg-rose-500/10 text-rose-400 border border-rose-500/20 px-2 py-0.5 rounded-lg text-[8px] font-mono">#{s.seatNumber}</span>
                                                     ))}
                                             </div>
                                         )}
                                     </div>
 
-                                    <button 
+                                    <button
                                         type="submit"
-                                        className="w-full py-4 bg-blue-600 text-[11px] font-black uppercase italic tracking-[.2em] text-white rounded-md shadow-xl shadow-blue-600/20 hover:bg-blue-700 transition-all mt-4"
+                                        className="w-full py-4 bg-cyan-600 hover:bg-cyan-500 text-[11px] font-black uppercase italic tracking-[.2em] text-white rounded-xl shadow-xl shadow-cyan-600/20 hover:translate-y-[-2px] transition-all mt-4"
                                     >
                                         Add to Route
                                     </button>
@@ -1066,55 +1066,55 @@ const Routes = () => {
                             </div>
 
                             {/* Right: Current Students */}
-                            <div className="flex-1 bg-black/20 overflow-y-auto custom-scrollbar">
-                                 <div className="p-6">
-                                    <div className="flex justify-between items-center mb-8 pb-4 border-b border-slate-800/60">
+                            <div className="flex-1 bg-slate-950/20 shadow-inner overflow-y-auto custom-scrollbar">
+                                <div className="p-6">
+                                    <div className="flex justify-between items-center mb-8 pb-4 border-b border-brand-border/20">
                                         <div>
-                                            <h3 className="text-2xl font-black text-slate-100 uppercase italic tracking-tighter leading-none">{selectedRouteForAssign?.name} Students</h3>
-                                            <p className="text-[10px] font-black italic uppercase text-slate-500 tracking-widest mt-2">{selectedRouteForAssign?.assignedStudents?.length || 0} Students Assigned</p>
+                                            <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none font-outfit">{selectedRouteForAssign?.name} Students</h3>
+                                            <p className="text-[10px] font-black italic uppercase text-slate-400 tracking-widest mt-2">{selectedRouteForAssign?.assignedStudents?.length || 0} Students Assigned</p>
                                         </div>
-                                        <button onClick={() => setIsAssignOpen(false)} className="p-2 text-slate-500 hover:text-white transition-all"><X size={20}/></button>
+                                        <button onClick={() => setIsAssignOpen(false)} className="p-2 text-slate-400 hover:text-cyan-400 bg-slate-950/40 hover:bg-slate-950 border border-transparent hover:border-brand-border/40 rounded-lg transition-all"><X size={20} /></button>
                                     </div>
 
                                     <div className="grid grid-cols-1 gap-4">
                                         {selectedRouteForAssign?.assignedStudents?.length > 0 ? selectedRouteForAssign.assignedStudents.map((entry, idx) => (
-                                            <div key={idx} className="bg-neutral-950/40 border border-slate-800/60 rounded-md p-6 flex flex-col md:flex-row md:items-center justify-between group hover:border-blue-600/30 transition-all">
+                                            <div key={idx} className="bg-slate-950/40 border border-brand-border/20 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between group hover:border-cyan-500/30 transition-all shadow-inner">
                                                 <div className="flex items-center gap-6">
-                                                    <div className="w-12 h-12 rounded bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500">
-                                                        <Bus size={24} />
+                                                    <div className="w-10 h-10 rounded-xl bg-slate-900 border border-brand-border/30 flex items-center justify-center text-cyan-400 shadow-md">
+                                                        <Bus size={20} />
                                                     </div>
                                                     <div>
                                                         <div className="flex items-center gap-3">
                                                             <h4 className="text-sm font-black text-slate-200 uppercase italic tracking-wide">{entry.studentId?.firstName} {entry.studentId?.lastName}</h4>
                                                             <ShieldCheck size={14} className="text-emerald-500" />
                                                         </div>
-                                                        <p className="text-[10px] font-bold text-slate-500 uppercase italic tracking-widest mt-1">Seat: {entry.seatNumber || 'N/A'} // {entry.studentId?.admissionNumber}</p>
+                                                        <p className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest mt-1">Seat: {entry.seatNumber || 'N/A'} // {entry.studentId?.admissionNumber}</p>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-10 mt-4 md:mt-0 px-6 py-3 bg-neutral-900/40 rounded border border-slate-800/40">
+                                                <div className="flex items-center gap-8 mt-4 md:mt-0 px-5 py-2.5 bg-slate-950/60 rounded-xl border border-brand-border/30 shadow-inner">
                                                     <div>
-                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Pickup</p>
-                                                        <p className="text-[10px] font-black text-blue-500 uppercase italic">{entry.pickupStop}</p>
+                                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Pickup</p>
+                                                        <p className="text-[10px] font-black text-cyan-400 uppercase italic">{entry.pickupStop}</p>
                                                     </div>
                                                     <div className="text-right">
-                                                        <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic mb-1">Drop</p>
-                                                        <p className="text-[10px] font-black text-rose-500 uppercase italic">{entry.dropoffStop}</p>
+                                                        <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest italic mb-1">Drop</p>
+                                                        <p className="text-[10px] font-black text-rose-400 uppercase italic">{entry.dropoffStop}</p>
                                                     </div>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => handleUnassign(entry.studentId?._id)}
-                                                    className="p-3 text-slate-600 hover:text-rose-500 hover:bg-rose-500/5 transition-all mt-4 md:mt-0 md:ml-6"
+                                                    className="p-2 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 border border-brand-border/30 hover:border-rose-500/25 rounded-lg transition-all mt-4 md:mt-0 md:ml-6 animate-none"
                                                 >
                                                     <UserMinus size={18} />
                                                 </button>
                                             </div>
                                         )) : (
-                                            <div className="p-20 border border-slate-800 border-dashed rounded-md text-center opacity-40">
-                                                <p className="text-[11px] font-black italic uppercase tracking-widest">No students assigned to this route.</p>
+                                            <div className="p-20 border border-brand-border/30 border-dashed rounded-xl text-center bg-slate-950/20">
+                                                <p className="text-[11px] font-black italic uppercase tracking-widest text-slate-500">No students assigned to this route.</p>
                                             </div>
                                         )}
                                     </div>
-                                 </div>
+                                </div>
                             </div>
                         </motion.div>
                     </div>
@@ -1122,27 +1122,27 @@ const Routes = () => {
 
                 {activeMapRoute && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-6 font-outfit">
-                        <motion.div 
-                            initial={{ opacity: 0 }} 
-                            animate={{ opacity: 1 }} 
-                            exit={{ opacity: 0 }} 
-                            onClick={() => setActiveMapRoute(null)} 
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setActiveMapRoute(null)}
                             className="absolute inset-0 bg-neutral-950/80 backdrop-blur-sm"
                         />
-                        <motion.div 
-                            initial={{ scale: 0.95, opacity: 0, y: 15 }} 
-                            animate={{ scale: 1, opacity: 1, y: 0 }} 
-                            exit={{ scale: 0.95, opacity: 0, y: 15 }} 
-                            className="bg-neutral-900 w-full max-w-5xl h-[80vh] rounded-md border border-slate-800 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row"
+                        <motion.div
+                            initial={{ scale: 0.95, opacity: 0, y: 15 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 15 }}
+                            className="bg-brand-surface/95 backdrop-blur-2xl w-full max-w-5xl h-[80vh] rounded-2xl border border-brand-border/40 shadow-2xl relative z-10 overflow-hidden flex flex-col md:flex-row"
                         >
                             {/* Left Column: Interactive Map */}
                             <div className="flex-1 h-full relative min-h-[400px]">
-                                <MapContainer 
+                                <MapContainer
                                     center={[
                                         activeMapRoute.stops.find(s => s.lat)?.lat || schoolLoc.lat,
                                         activeMapRoute.stops.find(s => s.lat)?.lng || schoolLoc.lng
-                                    ]} 
-                                    zoom={13} 
+                                    ]}
+                                    zoom={13}
                                     className="h-full w-full animate-fadeIn"
                                     zoomControl={true}
                                 >
@@ -1151,14 +1151,14 @@ const Routes = () => {
                                         url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
                                         attribution='&copy; CARTO'
                                     />
-                                    
+
                                     {/* Real Road-Network Route path joining all stops dynamically */}
                                     <RoadNetworkPath stops={activeMapRoute.stops} />
-                                    
+
                                     {activeMapRoute.stops.map((s, idx) => s.lat && (
-                                        <Marker 
-                                            key={idx} 
-                                            position={[s.lat, s.lng]} 
+                                        <Marker
+                                            key={idx}
+                                            position={[s.lat, s.lng]}
                                             icon={L.divIcon({
                                                 html: `
                                                     <div class="relative flex items-center justify-center">
@@ -1172,7 +1172,7 @@ const Routes = () => {
                                             })}
                                         >
                                             <Popup>
-                                                <div className="p-2 font-outfit text-xs text-slate-100 bg-neutral-900 border border-slate-800 rounded shadow-md leading-relaxed">
+                                                <div className="p-2 font-outfit text-xs text-slate-100 bg-slate-950 border border-brand-border/40 rounded-xl shadow-md leading-relaxed">
                                                     <strong className="block text-slate-200 uppercase tracking-widest text-[9px] font-black">Stop {s.order}: {s.name}</strong>
                                                     <span className="text-cyan-400 font-bold">Time: {s.estimatedTime}</span>
                                                 </div>
@@ -1180,17 +1180,17 @@ const Routes = () => {
                                         </Marker>
                                     ))}
                                 </MapContainer>
-                                
-                                <button 
-                                    onClick={() => setActiveMapRoute(null)} 
-                                    className="absolute top-4 right-4 z-[1000] p-2.5 bg-neutral-950/80 hover:bg-neutral-950 border border-slate-800 hover:border-slate-700 text-slate-400 hover:text-white rounded-md transition-all shadow-xl backdrop-blur-md"
+
+                                <button
+                                    onClick={() => setActiveMapRoute(null)}
+                                    className="absolute top-4 right-4 z-[1000] p-2.5 bg-slate-950/80 hover:bg-slate-950 border border-brand-border/40 hover:border-slate-700 text-slate-400 hover:text-white rounded-xl transition-all shadow-xl backdrop-blur-md"
                                 >
                                     <X size={16} />
                                 </button>
                             </div>
-                            
+
                             {/* Right Column: Route Details */}
-                            <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-slate-800/80 p-8 flex flex-col justify-between overflow-y-auto bg-neutral-900">
+                            <div className="w-full md:w-80 border-t md:border-t-0 md:border-l border-brand-border/30 p-6 flex flex-col justify-between overflow-y-auto bg-slate-950/40 backdrop-blur-md">
                                 <div className="space-y-6">
                                     <div>
                                         <div className="flex items-center gap-2 mb-1">
@@ -1199,19 +1199,19 @@ const Routes = () => {
                                         </div>
                                         <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest italic">Route Telemetry & Stops</p>
                                     </div>
-                                    
+
                                     <div className="space-y-4">
-                                        {[...activeMapRoute.stops].sort((a,b)=>a.order-b.order).map((s, idx) => (
+                                        {[...activeMapRoute.stops].sort((a, b) => a.order - b.order).map((s, idx) => (
                                             <div key={idx} className="flex gap-4 items-start group/telemetry">
                                                 <div className="flex flex-col items-center">
-                                                    <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/35 flex items-center justify-center text-[8px] font-black text-cyan-400 shrink-0">
+                                                    <div className="w-5 h-5 rounded-full bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-[8px] font-black text-cyan-400 shrink-0">
                                                         {s.order}
                                                     </div>
                                                     {idx !== activeMapRoute.stops.length - 1 && (
-                                                        <div className="w-px h-12 bg-slate-800/60 my-1"></div>
+                                                        <div className="w-px h-12 bg-brand-border/30 my-1"></div>
                                                     )}
                                                 </div>
-                                                <div className="flex-1 bg-neutral-950/40 border border-slate-800/40 group-hover/telemetry:border-cyan-500/20 rounded-md p-3 transition-all leading-tight">
+                                                <div className="flex-1 bg-slate-950/60 border border-brand-border/20 group-hover/telemetry:border-cyan-500/30 rounded-xl p-3 transition-all leading-tight shadow-inner">
                                                     <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-wide">{s.name}</h4>
                                                     <div className="flex justify-between items-center mt-1.5">
                                                         <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Eta</span>
@@ -1222,8 +1222,8 @@ const Routes = () => {
                                         ))}
                                     </div>
                                 </div>
-                                
-                                <div className="pt-6 border-t border-slate-800/60 mt-6 flex flex-col gap-2 bg-neutral-900">
+
+                                <div className="pt-5 border-t border-brand-border/20 mt-6 flex flex-col gap-2 bg-transparent">
                                     <div className="flex justify-between text-[9px] font-bold uppercase text-slate-500 tracking-wider">
                                         <span>Total Stops</span>
                                         <span className="font-black text-slate-300">{activeMapRoute.stops.length}</span>

@@ -181,7 +181,7 @@ const PersonnelRegistry = () => {
     };
 
     return (
-        <div className="space-y-8 font-inter pb-20">
+        <div className="space-y-6 font-inter pb-16">
             {/* Header Section */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 px-2">
                 <div>
@@ -245,7 +245,7 @@ const PersonnelRegistry = () => {
             </div>
 
             {/* Grid View */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 pb-20">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 pb-16">
                 {(userLoading || driverLoading) && !users.length && !drivers.length ? (
                     <div className="col-span-full py-20 flex flex-col items-center gap-4">
                         <Loader2 className="animate-spin text-brand-primary w-12 h-12" />
@@ -476,12 +476,12 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
         <motion.div
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className={`bg-brand-surface/60 backdrop-blur-3xl border border-brand-border/40 rounded-3xl p-8 shadow-2xl group hover:border-sky-500/30 transition-all flex flex-col sm:flex-row gap-8 relative overflow-hidden font-outfit border-l-4 ${isStaff ? 'border-l-brand-primary' : 'border-l-violet-500'}`}
+            className={`bg-brand-surface/60 backdrop-blur-3xl border border-brand-border/40 rounded-2xl p-5 shadow-xl group hover:border-sky-500/30 transition-all flex flex-col sm:flex-row gap-5 relative overflow-hidden font-outfit border-l-4 ${isStaff ? 'border-l-brand-primary' : 'border-l-violet-500'}`}
         >
-            <div className={`absolute top-0 right-0 w-44 h-44 ${isStaff ? 'bg-brand-primary/5' : 'bg-schooladmin-primary/5'} blur-[80px] rounded-full -mr-20 -mt-20`}></div>
+            <div className={`absolute top-0 right-0 w-36 h-36 ${isStaff ? 'bg-brand-primary/5' : 'bg-schooladmin-primary/5'} blur-[60px] rounded-full -mr-16 -mt-16`}></div>
 
-            <div className="relative z-10">
-                <div className="w-24 h-24 rounded-2xl bg-neutral-950 border border-brand-border/40 flex items-center justify-center text-slate-500 overflow-hidden shadow-2xl ring-1 ring-white/5 uppercase font-black text-3xl italic group-hover:scale-105 transition-transform">
+            <div className="relative z-10 flex flex-col items-center sm:items-start">
+                <div className="w-16 h-16 rounded-xl bg-neutral-950 border border-brand-border/40 flex items-center justify-center text-slate-500 overflow-hidden shadow-2xl ring-1 ring-white/5 uppercase font-black text-xl italic group-hover:scale-105 transition-transform">
                     {member.photo ? (
                         <img src={member.photo} alt={member.firstName || member.name} className="w-full h-full object-cover" />
                     ) : (
@@ -489,20 +489,20 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
                     )}
                 </div>
                 {!isStaff && (
-                    <div className="mt-4 flex items-center justify-center gap-1">
+                    <div className="mt-2 flex items-center justify-center gap-0.5">
                         {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={10} className={i < (member.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
+                            <Star key={i} size={8} className={i < (member.performanceRating || 0) ? 'fill-orange-500 text-orange-500' : 'text-slate-800'} />
                         ))}
                     </div>
                 )}
             </div>
 
-            <div className="flex-1 space-y-6 relative z-10">
-                <div className="flex justify-between items-start">
+            <div className="flex-1 space-y-4 relative z-10">
+                <div className="flex justify-between items-start gap-4">
                     <div>
                         {isStaff ? (
                             <h3 
-                                className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 group-hover:text-sky-400 transition-colors cursor-pointer"
+                                className="text-lg font-black text-white italic uppercase tracking-tighter leading-none mb-1 group-hover:text-sky-400 transition-colors cursor-pointer"
                                 onClick={(e) => {
                                     e.preventDefault();
                                     onView && onView();
@@ -511,55 +511,55 @@ const PersonnelCard = ({ member, onEdit, onDelete, onView, type }) => {
                                 {member.firstName} {member.lastName}
                             </h3>
                         ) : (
-                            <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 hover:text-schooladmin-primary transition-colors">
+                            <h3 className="text-lg font-black text-white italic uppercase tracking-tighter leading-none mb-1 hover:text-schooladmin-primary transition-colors">
                                 {member.name}
                             </h3>
                         )}
                         {isStaff ? (
-                            <div className="flex flex-col gap-1">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 rounded-full bg-brand-primary animate-pulse"></span>
+                            <div className="flex flex-col gap-0.5">
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-brand-primary animate-pulse"></span>
                                     <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">{member.role}</span>
                                 </div>
-                                <span className="text-[10px] font-bold text-slate-400 font-mono tracking-tighter">ID: {member.employeeId || 'Loading...'}</span>
+                                <span className="text-[9px] font-bold text-slate-400 font-mono tracking-tighter">ID: {member.employeeId || 'Loading...'}</span>
                             </div>
                         ) : (
-                            <div className="flex items-center gap-2">
-                                <span className={`w-2 h-2 rounded-full ${member.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`}></span>
+                            <div className="flex items-center gap-1.5">
+                                <span className={`w-1.5 h-1.5 rounded-full ${member.status === 'active' ? 'bg-emerald-500' : 'bg-rose-500'} animate-pulse`}></span>
                                 <span className="text-[10px] font-black uppercase tracking-[0.2em] italic text-slate-500">LICENSE: {member.licenseNumber}</span>
                             </div>
                         )}
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-1.5">
                         {isStaff && (
-                            <button onClick={onView} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all shadow-xl" title="View Profile"><Eye size={16} /></button>
+                            <button onClick={onView} className="p-2 bg-slate-900 border border-brand-border/40 rounded-lg text-slate-500 hover:text-brand-primary hover:bg-brand-primary/10 transition-all shadow-xl" title="View Profile"><Eye size={14} /></button>
                         )}
-                        <button onClick={onEdit} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl" title="Edit Staff"><Edit3 size={16} /></button>
-                        <button onClick={onDelete} className="p-3 bg-slate-900 border border-brand-border/40 rounded-xl text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl" title="Remove Staff"><Trash2 size={16} /></button>
+                        <button onClick={onEdit} className="p-2 bg-slate-900 border border-brand-border/40 rounded-lg text-slate-500 hover:text-white hover:bg-slate-800 transition-all shadow-xl" title="Edit Staff"><Edit3 size={14} /></button>
+                        <button onClick={onDelete} className="p-2 bg-slate-900 border border-brand-border/40 rounded-lg text-slate-500 hover:text-rose-500 hover:bg-rose-500/10 transition-all shadow-xl" title="Remove Staff"><Trash2 size={14} /></button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6 border-t border-brand-border/20">
-                    <div className="space-y-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 border-t border-brand-border/20">
+                    <div className="space-y-0.5">
                         <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Email</p>
-                        <div className="flex items-center gap-3">
-                            <Mail size={14} className="text-brand-primary opacity-60" />
-                            <span className="text-[11px] font-bold text-slate-400 truncate">{isStaff ? member.email : member.contact}</span>
+                        <div className="flex items-center gap-2">
+                            <Mail size={12} className="text-brand-primary opacity-60 flex-shrink-0" />
+                            <span className="text-[10px] font-bold text-slate-400 truncate">{isStaff ? member.email : member.contact}</span>
                         </div>
                     </div>
-                    <div className="space-y-1">
+                    <div className="space-y-0.5">
                         <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Phone</p>
-                        <div className="flex items-center gap-3">
-                            <Phone size={14} className="text-brand-primary opacity-60" />
-                            <span className="text-[11px] font-bold text-slate-400">{isStaff ? (member.phoneNumber || 'N/A') : (member.emergencyContact || 'Not Set')}</span>
+                        <div className="flex items-center gap-2">
+                            <Phone size={12} className="text-brand-primary opacity-60 flex-shrink-0" />
+                            <span className="text-[10px] font-bold text-slate-400">{isStaff ? (member.phoneNumber || 'N/A') : (member.emergencyContact || 'Not Set')}</span>
                         </div>
                     </div>
                     {isStaff && (
-                        <div className="space-y-1 sm:col-span-2 pt-2 border-t border-brand-border/10">
+                        <div className="space-y-0.5 sm:col-span-2 pt-1.5 border-t border-brand-border/10">
                             <p className="text-[8px] font-black text-slate-600 uppercase tracking-widest italic">Salary Details</p>
                             <div className="flex items-center gap-2">
-                                <ShieldCheck size={14} className="text-emerald-500 opacity-60" />
-                                <span className="text-[12px] font-black text-white italic uppercase tracking-tighter">Base Salary: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
+                                <ShieldCheck size={12} className="text-emerald-500 opacity-60 flex-shrink-0" />
+                                <span className="text-[11px] font-black text-white italic uppercase tracking-tighter">Base Salary: <span className="text-emerald-400">₹{member.baseSalary?.toLocaleString() || '0'}</span></span>
                             </div>
                         </div>
                     )}

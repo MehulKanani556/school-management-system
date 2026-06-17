@@ -189,7 +189,6 @@ const Teachers = () => {
                       title={t.isActive ? 'Deactivate' : 'Activate'}>
                       {t.isActive ? <ToggleRight size={17} /> : <ToggleLeft size={17} />}
                     </button>
-                    <button onClick={() => setDeleteTarget(t)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                   </div>
                 </td>
               </motion.tr>

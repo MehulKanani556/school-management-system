@@ -93,7 +93,7 @@ const navItems = [
     children: [
       { to: '/school-admin/library-inventory', icon: BookMarked, label: 'Book Inventory' },
       { to: '/school-admin/library-records', icon: ClipboardList, label: 'Issue Records' },
-      { to: '/school-admin/library-history', icon: History, label: 'Circulation History' },
+      // { to: '/school-admin/library-history', icon: History, label: 'Circulation History' },
       { to: '/school-admin/library-categories', icon: BookOpen, label: 'Book Categories' },
     ]
   },
@@ -197,7 +197,7 @@ const SchoolAdminLayout = () => {
         </div>
 
         <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
-          <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Navigation Menu</p>
+          {/* <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.3em] text-slate-600 italic">Navigation Menu</p> */}
           {navItems.map((item) => {
             const hasChildren = !!item.children;
             const isExpanded = expanded === item.label;

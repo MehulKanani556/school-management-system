@@ -494,7 +494,6 @@ const Students = () => {
                           <button onClick={() => dispatch(downloadReportCard({ id: s._id, name: `${s.firstName}_${s.lastName}` }))}
                             className="p-2 rounded-md hover:bg-slate-700/50 text-schooladmin-primary hover:text-schooladmin-primary transition-all" title="Report Card"><FileText size={15} /></button>
                           <button onClick={() => openEdit(s)} className="p-2 rounded-md hover:bg-brand-primary/20 text-slate-500 hover:text-brand-primary transition-all" title="Edit"><Pencil size={15} /></button>
-                          <button onClick={() => setDeleteTarget(s)} className="p-2 rounded-md hover:bg-red-500/10 text-slate-500 hover:text-red-400 transition-all" title="Delete"><Trash2 size={15} /></button>
                         </div>
                       </td>
                     </motion.tr>

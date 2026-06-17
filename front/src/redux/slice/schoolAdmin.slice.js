@@ -483,7 +483,7 @@ const schoolAdminSlice = createSlice({
         const item = a.payload.data || a.payload;
         state.subjects.unshift(item);
         state.loading = false;
-        state.message = a.payload.message || "Subject node created";
+        state.message = `Subject "${item.name}" created successfully`;
       })
       .addCase(createHoliday.fulfilled, (state, a) => {
         const item = a.payload.data || a.payload;
@@ -560,7 +560,7 @@ const schoolAdminSlice = createSlice({
         const i = state.subjects.findIndex(s => s._id === upd._id);
         if (i !== -1) state.subjects[i] = upd;
         state.loading = false;
-        state.message = a.payload.message || "Subject node modified";
+        state.message = `Subject "${upd.name}" updated successfully`;
       })
       .addCase(updateHoliday.fulfilled, (state, a) => {
         const upd = a.payload.data || a.payload;
@@ -591,7 +591,12 @@ const schoolAdminSlice = createSlice({
       .addCase(deleteClass.fulfilled, (state, a) => { state.classes = state.classes.filter(c => c._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Class section decommissioned"; })
       .addCase(deleteStandard.fulfilled, (state, a) => { state.standards = state.standards.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Standard node removed"; })
       .addCase(deleteExam.fulfilled, (state, a) => { state.exams = state.exams.filter(e => e._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Examination node removed"; })
-      .addCase(deleteSubject.fulfilled, (state, a) => { state.subjects = state.subjects.filter(s => s._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Subject removed from registry"; })
+      .addCase(deleteSubject.fulfilled, (state, a) => {
+        const sub = state.subjects.find(s => s._id === a.payload.id);
+        state.subjects = state.subjects.filter(s => s._id !== a.payload.id);
+        state.loading = false;
+        state.message = sub ? `Subject "${sub.name}" removed successfully` : "Subject removed from registry";
+      })
       .addCase(deleteHoliday.fulfilled, (state, a) => { state.holidays = state.holidays.filter(h => h._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Holiday terminal entry removed"; })
       .addCase(saveAttendance.fulfilled, (state, a) => { state.loading = false; state.message = a.payload.message || "Sector attendance committed"; })
       .addCase(deleteFee.fulfilled, (state, a) => { state.fees = state.fees.filter(f => f._id !== a.payload.id); state.loading = false; state.message = a.payload.message || "Fee node removed"; })

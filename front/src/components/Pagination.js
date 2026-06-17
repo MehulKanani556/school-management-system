@@ -41,10 +41,10 @@ const Pagination = ({
     <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-8 px-2">
       <div className="flex flex-col gap-1 items-center sm:items-start text-center sm:text-left">
         <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 font-outfit">
-          Telemetry Segment {currentPage} of {totalPages}
+          Page {currentPage} of {totalPages}
         </p>
         <p className="text-xs font-bold text-slate-400">
-          Viewing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} nodes
+          Showing {Math.min((currentPage - 1) * itemsPerPage + 1, totalItems)} - {Math.min(currentPage * itemsPerPage, totalItems)} of {totalItems} items
         </p>
       </div>
 
@@ -53,7 +53,7 @@ const Pagination = ({
           onClick={() => onPageChange(1)} 
           disabled={currentPage === 1}
           className={btnClass(false)}
-          title="First Instance"
+          title="First Page"
         >
           <ChevronsLeft size={18} />
         </button>
@@ -90,7 +90,7 @@ const Pagination = ({
           onClick={() => onPageChange(totalPages)} 
           disabled={currentPage === totalPages}
           className={btnClass(false)}
-          title="Final Instance"
+          title="Last Page"
         >
           <ChevronsRight size={18} />
         </button>

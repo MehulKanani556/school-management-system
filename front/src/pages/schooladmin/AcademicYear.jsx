@@ -70,14 +70,14 @@ const AcademicYear = () => {
         <div className="space-y-8 animate-in fade-in duration-700">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/40 p-8 rounded-md border border-slate-800/60 backdrop-blur-xl group">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
-                            <Calendar className="text-brand-primary" size={24} />
-                        </div>
-                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Academic <span className="text-brand-primary">Years</span></h1>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
+                        <Calendar className="text-brand-primary" size={24} />
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Archive & Manage Academic Sessions</p>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Academic <span className="text-brand-primary">Years</span></h1>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1.5">Archive & Manage Academic Sessions</p>
+                    </div>
                 </div>
                 <button 
                     onClick={() => { setEditingId(null); formik.resetForm(); setIsModalOpen(true); }}
@@ -89,7 +89,7 @@ const AcademicYear = () => {
             </div>
 
             {/* Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                 {loading && academicYears.length === 0 ? (
                     <div className="col-span-full h-64 flex flex-col items-center justify-center opacity-50">
                         <Clock className="animate-spin text-brand-primary mb-4" size={32} />

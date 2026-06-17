@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchClasses, fetchTeachers, fetchSubjects, fetchStandards, createClass, updateClass, deleteClass, createStandard, updateStandard, deleteStandard } from '../../redux/slice/schoolAdmin.slice';
+import { fetchClasses, fetchTeachers, fetchSubjects, fetchStandards, createClass, updateClass, deleteClass, createStandard, updateStandard, deleteStandard, createSubject } from '../../redux/slice/schoolAdmin.slice';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Pencil, Trash2, CheckCircle2, Layout, BookOpen } from 'lucide-react';
 import Modal from '../../components/Modal';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
+import toast from 'react-hot-toast';
 
 const validationSchema = Yup.object({
   standardId: Yup.string().required('Standard is required'),
@@ -31,6 +32,26 @@ const Classes = () => {
   const [editing, setEditing] = useState(null);
   const [stdModal, setStdModal] = useState(false);
   const [editingStd, setEditingStd] = useState(null);
+  const [showAddSubjectInline, setShowAddSubjectInline] = useState(false);
+  const [newSubject, setNewSubject] = useState({ name: '', code: '' });
+
+  const handleSaveSubject = async () => {
+    if (!newSubject.name.trim()) {
+      return toast.error("Subject name is required");
+    }
+    try {
+      const result = await dispatch(createSubject(newSubject)).unwrap();
+      if (result?._id) {
+        const cur = [...stdFormik.values.subjects];
+        cur.push(result._id);
+        stdFormik.setFieldValue('subjects', cur);
+      }
+      setNewSubject({ name: '', code: '' });
+      setShowAddSubjectInline(false);
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   useEffect(() => {
     if (activeAcademicYearId) {
@@ -196,7 +217,15 @@ const Classes = () => {
     });
     setModal(true);
   };
-
+  const availableTeachers = teachers.filter(t => {
+    const isAssignedToOtherClass = classes.some(c => {
+      const isCurrentClassBeingEdited = editing && c._id === editing;
+      if (isCurrentClassBeingEdited) return false;
+      const classTeacherId = c.classTeacher?._id || c.classTeacher;
+      return classTeacherId && classTeacherId.toString() === t._id.toString();
+    });
+    return !isAssignedToOtherClass;
+  });
 
   const sectionsByStandard = classes.reduce((acc, curr) => {
     const stdId = curr.standardId?._id || curr.standardId;
@@ -424,7 +453,7 @@ const Classes = () => {
               className="mt-1.5 w-full bg-slate-800/40 border border-brand-border/40 focus:border-brand-primary rounded-md py-2.5 px-4 text-white outline-none text-sm transition-all"
             >
               <option value="" className="bg-slate-900">Select Class Teacher</option>
-              {teachers.map(t => (
+              {availableTeachers.map(t => (
                 <option key={t._id} value={t._id} className="bg-slate-900">
                   {t.firstName} {t.lastName} ({t.employeeId})
                 </option>
@@ -535,7 +564,58 @@ const Classes = () => {
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit mb-3 block">Subjects for this Standard</label>
+            <div className="flex justify-between items-center mb-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 font-outfit">Subjects for this Standard</label>
+              <button
+                type="button"
+                onClick={() => setShowAddSubjectInline(!showAddSubjectInline)}
+                className="text-[9px] text-brand-primary font-black uppercase tracking-widest hover:underline"
+              >
+                {showAddSubjectInline ? 'Cancel' : '+ Add Subject'}
+              </button>
+            </div>
+            
+            <AnimatePresence>
+              {showAddSubjectInline && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="p-4 bg-slate-800/40 rounded-md border border-slate-700/50 mb-4 space-y-3 overflow-hidden"
+                >
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Subject Name</label>
+                      <input 
+                        type="text" 
+                        value={newSubject.name}
+                        onChange={(e) => setNewSubject({ ...newSubject, name: e.target.value })}
+                        placeholder="e.g. History"
+                        className="mt-1 w-full bg-slate-900 border border-slate-700 rounded-md py-1.5 px-3 text-white text-xs outline-none focus:border-brand-primary transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[8px] font-black text-slate-500 uppercase tracking-widest">Subject Code</label>
+                      <input 
+                        type="text" 
+                        value={newSubject.code}
+                        onChange={(e) => setNewSubject({ ...newSubject, code: e.target.value })}
+                        placeholder="e.g. HIST101"
+                        className="mt-1 w-full bg-slate-900 border border-slate-700 rounded-md py-1.5 px-3 text-white text-xs outline-none focus:border-brand-primary transition-all"
+                      />
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSaveSubject}
+                    className="w-full py-2 bg-brand-primary hover:bg-schooladmin-primary rounded-md text-[10px] font-black uppercase tracking-widest text-white transition-all"
+                  >
+                    Save Subject
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto pr-1">
               {subjects.map(s => {
                 const isSelected = stdFormik.values.subjects.includes(s._id);

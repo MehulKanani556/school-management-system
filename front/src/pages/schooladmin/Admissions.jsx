@@ -112,14 +112,14 @@ const Admissions = () => {
             <div className="space-y-8 animate-in fade-in duration-700">
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-slate-900/40 p-8 rounded-md border border-slate-800/60 backdrop-blur-xl group">
-                <div>
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
-                            <UserPlus className="text-brand-primary" size={24} />
-                        </div>
-                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Admission <span className="text-brand-primary">Terminal</span></h1>
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-md bg-brand-primary/10 flex items-center justify-center border border-brand-primary/20 group-hover:scale-110 transition-transform">
+                        <UserPlus className="text-brand-primary" size={24} />
                     </div>
-                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] ml-1">Manage Enquiries & Student Admissions</p>
+                    <div>
+                        <h1 className="text-3xl font-black uppercase tracking-tight font-outfit">Admission <span className="text-brand-primary">Portal</span></h1>
+                        <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] mt-1.5">Manage Enquiries & Student Admissions</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-4">
                     <button
