@@ -44,7 +44,7 @@ const TeacherDashboard = () => {
                 </div>
             </header>
 
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
                 {quickStats.map((stat, idx) => (
                     <motion.div
                         key={stat.label}
@@ -59,65 +59,6 @@ const TeacherDashboard = () => {
                         <div className="absolute top-8 right-8 w-2 h-2 rounded-full bg-brand-surface group-hover:bg-brand-primary transition-colors"></div>
                     </motion.div>
                 ))}
-            </div>
-  {/* Side-by-Side Notification and Homework Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Important Notifications */}
-                <div className="space-y-8">
-                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Important Notifications</h3>
-                    <div className="bg-brand-surface/60 backdrop-blur-xl border border-luxury-rose/20 p-8 rounded-md shadow-2xl space-y-6">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-2 h-2 rounded-full bg-luxury-rose animate-pulse shadow-glow"></div>
-                            <span className="text-[11px] font-black uppercase text-luxury-rose tracking-[0.3em] italic font-outfit">Priority Matters</span>
-                        </div>
-                        {dashboard?.alerts?.length > 0 ? (
-                            dashboard.alerts.map((alert) => (
-                                <div key={alert.id} className="p-4 bg-luxury-rose/5 border border-luxury-rose/10 rounded-md flex items-center justify-between group hover:bg-luxury-rose/10 transition-all">
-                                    <div className="flex items-center gap-3">
-                                        <AlertCircle size={14} className="text-luxury-rose" />
-                                        <p className="text-[10px] font-black text-white uppercase tracking-tight">{alert.title}</p>
-                                    </div>
-                                    <span className="text-[8px] font-black text-slate-500 uppercase italic">due {new Date(alert.due).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-[10px] font-black text-slate-700 uppercase tracking-widest text-center py-6 italic">No pending alerts</p>
-                        )}
-                    </div>
-                </div>
-
-                {/* Homework Tracking */}
-                <div className="space-y-8">
-                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Tracking</h3>
-                    <div className="bg-brand-surface/60 backdrop-blur-xl border border-brand-border/80 p-8 rounded-md shadow-2xl flex flex-col">
-                        <div className="flex items-center gap-3 mb-10">
-                            <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping"></div>
-                            <span className="text-[11px] font-black uppercase text-slate-400 tracking-[0.3em] italic font-outfit">Recent Submissions</span>
-                        </div>
-                        <div className="space-y-6 flex-1">
-                            {dashboard?.recentAssignments?.length > 0 ? (
-                                dashboard.recentAssignments.map((a, idx) => (
-                                    <div key={a.id} className="p-6 bg-brand-surface/40 rounded-md border border-brand-border/30 hover:border-brand-primary/40 transition-all cursor-pointer group shadow-lg">
-                                        <div className="flex items-center justify-between mb-3">
-                                            <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.3em] font-outfit italic">{a.subject}</p>
-                                            <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest">{a.submissions} SUBMITTED</span>
-                                        </div>
-                                        <p className="text-sm font-black text-slate-100 mb-2 group-hover:text-white transition-colors tracking-tight uppercase leading-tight">{a.title}</p>
-                                        <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Due: {new Date(a.dueDate).toLocaleDateString('en-IN')}</p>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="text-center py-20 opacity-30 italic">
-                                    <Activity className="w-12 h-12 mx-auto mb-4" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest whitespace-nowrap">No Recent Homework</p>
-                                </div>
-                            )}
-                        </div>
-                        <Link to="/teacher/assignments" className="w-full mt-10 py-5 bg-brand-surface/80 hover:bg-brand-primary rounded-md text-[10px] font-black hover:text-white transition-all border border-brand-border/50 flex items-center justify-center gap-4 text-slate-400 uppercase tracking-[0.3em] shadow-2xl">
-                            All Assignments <ArrowRight size={14} />
-                        </Link>
-                    </div>
-                </div>
             </div>
 
             {/* Assigned Class Sections (Full Width) */}
@@ -165,6 +106,84 @@ const TeacherDashboard = () => {
                             </div>
                         </motion.div>
                     ))}
+                </div>
+            </div>
+
+            {/* Side-by-Side Notification and Homework Section */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+                {/* Important Notifications */}
+                <div className="space-y-8 flex flex-col h-full">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Important Notifications</h3>
+                    <div className="bg-brand-surface/40 backdrop-blur-xl border border-luxury-rose/20 p-8 rounded-2xl shadow-2xl flex-1 flex flex-col justify-between hover:border-luxury-rose/40 transition-all duration-300">
+                        <div>
+                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-brand-border/30">
+                                <div 
+                                    className="w-2.5 h-2.5 rounded-full bg-luxury-rose animate-pulse"
+                                    style={{ boxShadow: '0 0 12px rgba(244, 63, 94, 0.8)' }}
+                                ></div>
+                                <span className="text-[11px] font-black uppercase text-luxury-rose tracking-[0.3em] italic font-outfit">Priority Matters</span>
+                            </div>
+                            <div className="space-y-4">
+                                {dashboard?.alerts?.length > 0 ? (
+                                    dashboard.alerts.map((alert) => (
+                                        <div key={alert.id} className="p-5 bg-luxury-rose/5 border border-luxury-rose/10 rounded-xl flex items-center justify-between group hover:bg-luxury-rose/10 transition-all duration-300">
+                                            <div className="flex items-center gap-3">
+                                                <AlertCircle size={16} className="text-luxury-rose shrink-0" />
+                                                <p className="text-[11px] font-black text-slate-200 uppercase tracking-tight group-hover:text-white transition-colors">{alert.title}</p>
+                                            </div>
+                                            <span className="text-[9px] font-black text-slate-500 uppercase italic">due {new Date(alert.due).toLocaleTimeString('en-IN', {hour: '2-digit', minute:'2-digit'})}</span>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-16 opacity-30 italic text-center">
+                                        <AlertCircle className="w-12 h-12 text-luxury-rose mb-4 animate-pulse" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">No Pending Alerts</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <Link to="/teacher/notifications" className="w-full mt-10 py-5 bg-brand-surface/80 hover:bg-luxury-rose/20 rounded-xl text-[10px] font-black hover:text-white transition-all border border-brand-border/50 flex items-center justify-center gap-4 text-slate-400 uppercase tracking-[0.3em] shadow-2xl hover:border-luxury-rose/30">
+                            System Alerts <ArrowRight size={14} />
+                        </Link>
+                    </div>
+                </div>
+
+                {/* Homework Tracking */}
+                <div className="space-y-8 flex flex-col h-full">
+                    <h3 className="text-xs font-black uppercase tracking-[0.4em] text-slate-500 font-outfit px-2 italic">Homework Tracking</h3>
+                    <div className="bg-brand-surface/40 backdrop-blur-xl border border-brand-border/80 p-8 rounded-2xl shadow-2xl flex-1 flex flex-col justify-between hover:border-brand-primary/40 transition-all duration-300">
+                        <div>
+                            <div className="flex items-center gap-3 mb-6 pb-4 border-b border-brand-border/30">
+                                <div 
+                                    className="w-2.5 h-2.5 rounded-full bg-brand-primary animate-ping"
+                                    style={{ boxShadow: '0 0 12px rgba(99, 102, 241, 0.8)' }}
+                                ></div>
+                                <span className="text-[11px] font-black uppercase text-slate-400 tracking-[0.3em] italic font-outfit">Recent Submissions</span>
+                            </div>
+                            <div className="space-y-4">
+                                {dashboard?.recentAssignments?.length > 0 ? (
+                                    dashboard.recentAssignments.map((a, idx) => (
+                                        <div key={a.id} className="p-5 bg-brand-surface/40 rounded-xl border border-brand-border/30 hover:border-brand-primary/40 transition-all cursor-pointer group shadow-lg">
+                                            <div className="flex items-center justify-between mb-3">
+                                                <p className="text-[9px] font-black text-brand-primary uppercase tracking-[0.3em] font-outfit italic">{a.subject}</p>
+                                                <span className="text-[9px] font-black text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-full uppercase tracking-widest">{a.submissions} SUBMITTED</span>
+                                            </div>
+                                            <p className="text-sm font-black text-slate-100 mb-2 group-hover:text-white transition-colors tracking-tight uppercase leading-tight">{a.title}</p>
+                                            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest italic">Due: {new Date(a.dueDate).toLocaleDateString('en-IN')}</p>
+                                        </div>
+                                    ))
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center py-16 opacity-30 italic text-center">
+                                        <Activity className="w-12 h-12 text-brand-primary mb-4 animate-pulse" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">No Recent Homework</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <Link to="/teacher/assignments" className="w-full mt-10 py-5 bg-brand-surface/80 hover:bg-brand-primary rounded-xl text-[10px] font-black hover:text-white transition-all border border-brand-border/50 flex items-center justify-center gap-4 text-slate-400 uppercase tracking-[0.3em] shadow-2xl hover:border-brand-primary/30">
+                            All Assignments <ArrowRight size={14} />
+                        </Link>
+                    </div>
                 </div>
             </div>          
         </div>

@@ -1,14 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchAssignedClasses } from '../../redux/slice/teacher.slice';
+import { fetchAssignedClasses, fetchClassStudents, fetchStudentDetail, generateRollNumbers } from '../../redux/slice/teacher.slice';
 import { motion } from 'framer-motion';
-import { BookOpen, Users, ArrowRight, ClipboardList, Activity } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { BookOpen, Users, ArrowRight, ClipboardList, Activity, ArrowLeft, Loader2, Info, Calendar, Award, CheckCircle, XCircle, TrendingUp, RotateCcw } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
+import Modal from '../../components/Modal';
 
 const AssignedClasses = () => {
     const dispatch = useDispatch();
-    const { classes, loading } = useSelector((state) => state.teacher);
+    const navigate = useNavigate();
+    const { classes, students, studentDetail, loading } = useSelector((state) => state.teacher);
     const { activeAcademicYearId } = useSelector((state) => state.academicYear);
+
+    const [selectedClassId, setSelectedClassId] = useState(null);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+    const [isGenerating, setIsGenerating] = useState(false);
 
     useEffect(() => {
         if (activeAcademicYearId) {
@@ -17,107 +24,331 @@ const AssignedClasses = () => {
         }
     }, [dispatch, activeAcademicYearId]);
 
+    useEffect(() => {
+        if (selectedClassId && activeAcademicYearId) {
+            console.log('👥 Class Students - Fetching for Class:', selectedClassId);
+            dispatch(fetchClassStudents(selectedClassId));
+        }
+    }, [dispatch, selectedClassId, activeAcademicYearId]);
+
+    const handleViewDetail = (studentId) => {
+        dispatch(fetchStudentDetail(studentId));
+        setSelectedStudent(studentId);
+    };
+
+    const handleGenerateRollNumbers = async () => {
+        if (await window.confirm('Do you want to re-synchronize roll sequence based on gender (girls first) and name?')) {
+            setIsGenerating(true);
+            try {
+                const result = await dispatch(generateRollNumbers(selectedClassId)).unwrap();
+                toast.success(result.message || 'Roll numbers updated successfully');
+            } catch (error) {
+                toast.error(error || 'Failed to update roll numbers');
+            } finally {
+                setIsGenerating(false);
+            }
+        }
+    };
+
     const sortedClasses = [...classes].sort((a, b) => {
         if (a.isClassTeacher && !b.isClassTeacher) return -1;
         if (!a.isClassTeacher && b.isClassTeacher) return 1;
         return 0;
     });
 
+    const currentClass = classes.find(c => c._id === selectedClassId);
+    const classLabel = currentClass ? `Class ${currentClass.standardId?.level || currentClass.standardId || 'N/A'} - ${currentClass.sectionLabel}` : '';
+
+    if (!selectedClassId) {
+        return (
+            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                        <h1 className="text-3xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit">Class Registry</h1>
+                        <p className="text-slate-500 font-medium text-sm tracking-wide">Managing 0{classes.length} active academic sectors assigned to your faculty profile.</p>
+                    </div>
+                    <div className="px-5 py-2.5 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Node-Level Access Only</div>
+                </header>
+
+                <div className="bg-slate-900/60 border border-slate-800 rounded-md shadow-2xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="bg-slate-800/40 border-b border-slate-800/60">
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Sect. ID</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Class Identity</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Subject Matrix</th>
+                                    <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit text-right">Rapid Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/50">
+                                {loading && classes.length === 0 ? (
+                                    [...Array(3)].map((_, i) => (
+                                        <tr key={i} className="animate-pulse">
+                                            <td colSpan="4" className="px-8 py-8 bg-slate-800/10 h-20"></td>
+                                        </tr>
+                                    ))
+                                ) : (
+                                    sortedClasses.map((cls, idx) => (
+                                        <tr key={cls._id} className="group hover:bg-white/[0.02] transition-colors">
+                                            <td className="px-8 py-7">
+                                                <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center font-black text-slate-400 font-outfit italic">0{idx + 1}</div>
+                                            </td>
+                                            <td className="px-8 py-7">
+                                                <div>
+                                                    <div className="flex items-center gap-3 mb-2.5">
+                                                        <p className="text-lg font-black text-white italic tracking-tight uppercase font-outfit leading-none group-hover:text-brand-primary transition-colors">
+                                                            Class {cls.standardId?.level || cls.standardId || 'N/A'} - {cls.sectionLabel}
+                                                        </p>
+                                                        {cls.isClassTeacher ? (
+                                                            <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-emerald-500/20 shadow-lg shadow-emerald-500/5 italic">
+                                                                Class Teacher
+                                                            </span>
+                                                        ) : (
+                                                            <span className="text-[8px] bg-brand-primary/10 text-indigo-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-brand-primary/20 shadow-lg shadow-brand-primary/5 italic">
+                                                                Subject Teacher
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Academic Sector</p>
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-7">
+                                                <div className="flex flex-wrap gap-2">
+                                                    {cls.subjects.map(sub => (
+                                                        <span key={sub._id} className="px-3 py-1 bg-slate-800/60 border border-slate-700/50 rounded-md text-[9px] font-black text-slate-400 uppercase tracking-wider italic">{sub.name}</span>
+                                                    ))}
+                                                </div>
+                                            </td>
+                                            <td className="px-8 py-7">
+                                                <div className="flex items-center justify-end gap-3">
+                                                    <button 
+                                                        onClick={() => setSelectedClassId(cls._id)} 
+                                                        className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-secondary hover:border-brand-secondary/40 transition-all shadow-lg backdrop-blur-md" 
+                                                        title="View Students"
+                                                    >
+                                                        <Users size={18} />
+                                                    </button>
+                                                    <Link to={`/teacher/attendance?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-luxury-emerald hover:border-luxury-emerald/40 transition-all shadow-lg backdrop-blur-md" title="Attendance">
+                                                        <ClipboardList size={18} />
+                                                    </Link>
+                                                    <Link to={`/teacher/marks?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all shadow-lg backdrop-blur-md" title="Add Marks">
+                                                        <Activity size={18} />
+                                                    </Link>
+                                                    <Link to={`/teacher/assignments?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-accent hover:border-brand-accent/40 transition-all shadow-lg backdrop-blur-md" title="Publish Assignment">
+                                                        <ArrowRight size={18} />
+                                                    </Link>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))
+                                )}
+                                {!loading && classes.length === 0 && (
+                                    <tr>
+                                        <td colSpan="4" className="px-8 py-20 text-center">
+                                            <div className="flex flex-col items-center">
+                                                <div className="p-4 rounded-md bg-slate-800/40 border border-slate-700/30 mb-4">
+                                                    <BookOpen size={30} className="text-slate-600" />
+                                                </div>
+                                                <p className="text-slate-500 font-bold uppercase tracking-widest text-[11px]">No classes assigned to this faculty ID</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </motion.div>
+        );
+    }
+
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-                <div>
-                    <h1 className="text-3xl text-left font-black text-white italic uppercase tracking-tighter leading-none mb-3 font-outfit">Class Registry</h1>
-                    <p className="text-slate-500 font-medium text-sm tracking-wide">Managing 0{classes.length} active academic sectors assigned to your faculty profile.</p>
+            <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                    <button 
+                        onClick={() => setSelectedClassId(null)} 
+                        className="p-3 bg-slate-800/60 border border-slate-700/50 rounded-md text-slate-400 hover:text-white transition-all hover:scale-105 shadow-xl"
+                        title="Back to Class Registry"
+                    >
+                        <ArrowLeft size={20} />
+                    </button>
+                    <div>
+                        <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2 font-outfit">Student Registry</h1>
+                        <p className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px]">Active Academic Sector Population {classLabel && `• ${classLabel}`}</p>
+                    </div>
                 </div>
-                <div className="px-5 py-2.5 bg-brand-primary/10 border border-brand-primary/20 rounded-md text-[10px] font-black text-brand-primary uppercase tracking-[0.2em]">Node-Level Access Only</div>
+
+                <button
+                    onClick={handleGenerateRollNumbers}
+                    disabled={isGenerating}
+                    className="px-8 py-4 bg-brand-primary hover:bg-brand-primary/80 disabled:opacity-50 disabled:cursor-not-allowed rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-white transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(37,99,235,0.3)] active:scale-95 border border-brand-primary/20"
+                >
+                    {isGenerating ? <Loader2 size={16} className="animate-spin" /> : <RotateCcw size={16} />}
+                    Sync Roll sequence
+                </button>
             </header>
 
-            <div className="bg-slate-900/60 border border-slate-800 rounded-md shadow-2xl overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="bg-slate-800/40 border-b border-slate-800/60">
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Sect. ID</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Class Identity</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit">Subject Matrix</th>
-                                <th className="px-8 py-6 text-[10px] font-black text-slate-500 uppercase tracking-widest font-outfit text-right">Rapid Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-800/50">
-                            {loading && classes.length === 0 ? (
-                                [...Array(3)].map((_, i) => (
-                                    <tr key={i} className="animate-pulse">
-                                        <td colSpan="4" className="px-8 py-8 bg-slate-800/10 h-20"></td>
-                                    </tr>
-                                ))
-                            ) : (
-                                sortedClasses.map((cls, idx) => (
-                                    <tr key={cls._id} className="group hover:bg-white/[0.02] transition-colors">
-                                        <td className="px-8 py-7">
-                                            <div className="w-10 h-10 rounded-md bg-slate-800 border border-slate-700/50 flex items-center justify-center font-black text-slate-400 font-outfit italic">0{idx + 1}</div>
-                                        </td>
-                                        <td className="px-8 py-7">
-                                            <div>
-                                                <div className="flex items-center gap-3 mb-2.5">
-                                                    <p className="text-lg font-black text-white italic tracking-tight uppercase font-outfit leading-none group-hover:text-brand-primary transition-colors">
-                                                        Class {cls.standardId?.level || cls.standardId || 'N/A'} - {cls.sectionLabel}
-                                                    </p>
-                                                    {cls.isClassTeacher ? (
-                                                        <span className="text-[8px] bg-emerald-500/10 text-emerald-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-emerald-500/20 shadow-lg shadow-emerald-500/5 italic">
-                                                            Class Teacher
-                                                        </span>
-                                                    ) : (
-                                                        <span className="text-[8px] bg-brand-primary/10 text-indigo-400 px-2.5 py-1 rounded-full font-black uppercase tracking-wider border border-brand-primary/20 shadow-lg shadow-brand-primary/5 italic">
-                                                            Subject Teacher
-                                                        </span>
-                                                    )}
-                                                </div>
-                                                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Academic Sector</p>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-7">
-                                            <div className="flex flex-wrap gap-2">
-                                                {cls.subjects.map(sub => (
-                                                    <span key={sub._id} className="px-3 py-1 bg-slate-800/60 border border-slate-700/50 rounded-md text-[9px] font-black text-slate-400 uppercase tracking-wider italic">{sub.name}</span>
-                                                ))}
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-7">
-                                            <div className="flex items-center justify-end gap-3">
-                                                <Link to={`/teacher/students/${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-secondary hover:border-brand-secondary/40 transition-all shadow-lg backdrop-blur-md" title="View Students">
-                                                    <Users size={18} />
-                                                </Link>
-                                                <Link to={`/teacher/attendance?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-luxury-emerald hover:border-luxury-emerald/40 transition-all shadow-lg backdrop-blur-md" title="Attendance">
-                                                    <ClipboardList size={18} />
-                                                </Link>
-                                                <Link to={`/teacher/marks?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-primary hover:border-brand-primary/40 transition-all shadow-lg backdrop-blur-md" title="Add Marks">
-                                                    <Activity size={18} />
-                                                </Link>
-                                                <Link to={`/teacher/assignments?classId=${cls._id}`} className="p-2.5 rounded-md border border-slate-700/50 bg-slate-800/40 text-slate-400 hover:text-brand-accent hover:border-brand-accent/40 transition-all shadow-lg backdrop-blur-md" title="Publish Assignment">
-                                                    <ArrowRight size={18} />
-                                                </Link>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                            {!loading && classes.length === 0 && (
-                                <tr>
-                                    <td colSpan="4" className="px-8 py-20 text-center">
-                                        <div className="flex flex-col items-center">
-                                            <div className="p-4 rounded-md bg-slate-800/40 border border-slate-700/30 mb-4">
-                                                <BookOpen size={30} className="text-slate-600" />
-                                            </div>
-                                            <p className="text-slate-500 font-bold uppercase tracking-widest text-[11px]">No classes assigned to this faculty ID</p>
-                                        </div>
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+            {loading && students.length === 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {[...Array(3)].map((_, i) => (
+                        <div key={i} className="animate-pulse bg-slate-900/40 border border-slate-800/80 rounded-md p-8 h-64 flex flex-col justify-between">
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-md bg-slate-800"></div>
+                                <div className="space-y-3 flex-1">
+                                    <div className="h-4 bg-slate-800 rounded-md w-3/4"></div>
+                                    <div className="h-3 bg-slate-800 rounded-md w-1/2"></div>
+                                </div>
+                            </div>
+                            <div className="h-10 bg-slate-800 rounded-md w-full"></div>
+                        </div>
+                    ))}
                 </div>
-            </div>
+            ) : !loading && students.length === 0 ? (
+                <motion.div 
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="max-w-2xl mx-auto py-24 px-8 rounded-2xl bg-gradient-to-br from-slate-900/90 to-slate-950/90 border border-slate-800/80 shadow-3xl text-center backdrop-blur-xl relative overflow-hidden group"
+                >
+                    <div className="absolute -top-24 -left-24 w-48 h-48 bg-brand-primary/10 rounded-full blur-3xl opacity-50"></div>
+                    <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-indigo-500/10 rounded-full blur-3xl opacity-50"></div>
+                    
+                    <div className="w-20 h-20 mx-auto rounded-2xl bg-brand-primary/10 border border-brand-primary/20 flex items-center justify-center text-brand-primary shadow-inner mb-8 group-hover:scale-105 transition-transform duration-300">
+                        <Users size={32} />
+                    </div>
+                    <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter font-outfit mb-3">No Student Records Found</h2>
+                    <p className="text-slate-400 text-sm max-w-md mx-auto leading-relaxed mb-8">
+                        There are no active student enrollments registered under this class section for the selected academic year.
+                    </p>
+                    <button 
+                        onClick={() => setSelectedClassId(null)} 
+                        className="inline-flex items-center gap-3 px-8 py-4 bg-brand-surface/80 hover:bg-brand-primary border border-brand-border hover:border-brand-primary/20 rounded-md text-[10px] font-black uppercase tracking-[0.2em] text-slate-300 hover:text-white transition-all shadow-xl active:scale-95"
+                    >
+                        <ArrowLeft size={14} /> Back To Class Registry
+                    </button>
+                </motion.div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {students.map((student, idx) => (
+                        <motion.div
+                            key={student._id}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className="bg-slate-900/40 border border-slate-800/80 rounded-md p-8 shadow-2xl relative overflow-hidden group hover:border-brand-primary/40 transition-all backdrop-blur-sm"
+                        >
+                            <div className="flex items-center gap-6 mb-8">
+                                <div className="w-16 h-16 rounded-md bg-slate-800 border border-slate-700/50 overflow-hidden shadow-xl">
+                                    {student.photo ? <img src={student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-2xl font-black text-slate-600 font-outfit uppercase">{student.firstName.charAt(0)}</div>}
+                                </div>
+                                <div 
+                                    className="cursor-pointer group/name"
+                                    onClick={() => navigate(`/teacher/profile/${student._id}`)}
+                                >
+                                    <h4 className="text-xl font-black text-white italic uppercase tracking-tighter font-outfit leading-tight mb-1 group-hover/name:text-brand-primary transition-colors">{student.firstName} <br /> {student.lastName}</h4>
+                                    <p className="text-[9px] font-black text-brand-primary uppercase tracking-widest">{student.studentId || student.admissionNumber}</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4 mb-8">
+                                <div className="flex items-center justify-between text-[10px] uppercase font-black tracking-widest text-slate-500">
+                                    <span>Roll Sequence</span>
+                                    <span className="text-slate-300 italic">#{student.rollNumber || 'N/A'}</span>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => handleViewDetail(student._id)}
+                                className="w-full py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md text-[9px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-white transition-all border border-slate-700/50 flex items-center justify-center gap-3 shadow-xl active:scale-95"
+                            >
+                                <Info size={14} /> Intelligence Profile
+                            </button>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
+
+            <Modal open={!!selectedStudent} onClose={() => setSelectedStudent(null)} title="Student Intelligence Terminal">
+                {(!studentDetail || loading) ? (
+                    <div className="py-20 flex flex-col items-center gap-4">
+                        <Loader2 className="animate-spin text-brand-primary w-10 h-10 opacity-50" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Decrypting Profile Metadata</p>
+                    </div>
+                ) : (
+                    <div className="space-y-10">
+                        <section className="flex items-center gap-8 p-6 bg-slate-800/30 rounded-md border border-slate-700/30 shadow-inner">
+                            <div className="w-24 h-24 rounded-md bg-slate-800 border-2 border-slate-700/50 overflow-hidden shadow-2xl">
+                                {studentDetail.student.photo ? <img src={studentDetail.student.photo} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-4xl font-black text-slate-700 font-outfit uppercase">{studentDetail.student.firstName.charAt(0)}</div>}
+                            </div>
+                            <div>
+                                <h2 className="text-3xl font-black text-white italic uppercase tracking-tighter mb-2 font-outfit">{studentDetail.student.firstName} {studentDetail.student.lastName}</h2>
+                                <div className="flex gap-3">
+                                    <span className="text-[9px] bg-brand-primary/10 text-brand-primary border border-brand-primary/20 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">{studentDetail.student.studentId}</span>
+                                    <span className="text-[9px] bg-teacher-primary/10 text-teacher-primary border border-teacher-primary/20 px-3 py-1 rounded-full font-black uppercase tracking-widest italic">Node Verified</span>
+                                </div>
+                            </div>
+                        </section>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="space-y-6">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-3 italic"> <Calendar size={14} className="text-brand-primary" /> Attendance Vector</h3>
+                                <div className="grid grid-cols-5 gap-2">
+                                    {studentDetail.attendance.slice(-20).map((a, i) => (
+                                        <div key={i} title={new Date(a.date).toLocaleDateString()} className={`h-6 rounded-md flex items-center justify-center border ${a.status === 'Present' ? 'bg-teacher-primary/10 border-teacher-primary/20 text-teacher-primary' : 'bg-red-500/10 border-red-500/20 text-red-500'} transition-all hover:scale-110 cursor-help shadow-lg`}>
+                                            {a.status === 'Present' ? <CheckCircle size={10} /> : <XCircle size={10} />}
+                                        </div>
+                                    ))}
+                                </div>
+                                <Link
+                                    to={`/teacher/student-attendance/${selectedStudent}`}
+                                    className="w-full mt-6 py-4 bg-slate-800/80 hover:bg-brand-primary rounded-md flex items-center justify-center gap-3 text-slate-400 hover:text-white text-[9px] font-black uppercase tracking-[0.2em] border border-slate-700/50 shadow-xl transition-all active:scale-[0.98]"
+                                >
+                                    Full Telemetry Log <TrendingUp size={14} />
+                                </Link>
+                            </div>
+
+                            <div className="space-y-6">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 flex items-center gap-3 italic"> <Award size={14} className="text-brand-secondary" /> Examination Metrics</h3>
+                                <div className="space-y-3">
+                                    {studentDetail.exams.length > 0 ? studentDetail.exams.map((e, i) => (
+                                        <div key={i} className="p-4 bg-slate-800/40 rounded-md border border-slate-700/30 flex justify-between items-center shadow-lg">
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase text-white tracking-widest mb-1">{e.subject}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase">{e.title}</p>
+                                            </div>
+                                            <p className="text-sm font-black text-brand-secondary italic">{e.score}<span className="text-[10px] opacity-40 ml-1">/{e.maxMarks}</span></p>
+                                        </div>
+                                    )) : <p className="text-[10px] text-slate-600 font-bold uppercase py-4">No examination records localized</p>}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-6 pt-4">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500 italic">Submission Pipeline (Latest)</h3>
+                            <div className="space-y-4">
+                                {studentDetail.submissions.length > 0 ? studentDetail.submissions.slice(0, 3).map((s, i) => (
+                                    <div key={i} className="p-5 bg-slate-800/20 rounded-md border border-slate-700/30 flex items-center justify-between group hover:border-brand-primary/30 transition-all shadow-xl">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-10 h-10 rounded-md bg-slate-800 flex items-center justify-center text-brand-primary shadow-lg border border-slate-700">
+                                                <Users size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[11px] font-black text-white uppercase tracking-tighter mb-1">{s.assignmentId?.title}</p>
+                                                <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">SUBMITTED ON {new Date(s.submittedAt).toLocaleDateString()}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full ${s.status === 'Graded' ? 'bg-teacher-primary/10 text-teacher-primary' : 'bg-brand-primary/10 text-brand-primary'}`}>{s.status}</span>
+                                            {s.fileUrl && <a href={s.fileUrl} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-md bg-slate-800 text-slate-400 hover:text-white border border-slate-700 shadow-xl transition-all active:scale-90"> <Info size={14} /> </a>}
+                                        </div>
+                                    </div>
+                                )) : <p className="text-[10px] text-slate-600 font-bold uppercase py-4">No submission data available in this sector</p>}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </Modal>
         </motion.div>
     );
 };

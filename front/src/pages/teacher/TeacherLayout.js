@@ -40,11 +40,6 @@ const TeacherLayout = () => {
 
     const academicChildren = [
         { to: '/teacher/classes', icon: Layout, label: 'Assigned Classes' },
-        ...(dashboard?.myClass ? [{ 
-            to: `/teacher/students/${dashboard.myClass.id}`, 
-            icon: Users, 
-            label: 'Student Register' 
-        }] : []),
         { to: '/teacher/lesson-plans', icon: ClipboardList, label: 'Lesson Planner' },
         { to: '/teacher/attendance', icon: CalendarIcon, label: 'Daily Attendance' },
         { to: '/teacher/bulk-attendance', icon: Upload, label: 'Bulk Attendance' },
@@ -101,7 +96,7 @@ const TeacherLayout = () => {
                 { to: '/teacher/profile', icon: User, label: 'My Profile' },
                 { to: '/teacher/noticeboard', icon: Layout, label: 'Class Noticeboard' },
                 { to: '/teacher/notifications', icon: Bell, label: 'System Alerts' },
-                { to: '/teacher/tickets', icon: Shield, label: 'Support Helpdesk' },
+                // { to: '/teacher/tickets', icon: Shield, label: 'Support Helpdesk' },
                 { to: '/teacher/unified-calendar', icon: CalendarIcon, label: 'School Calendar' },
                 { to: '/teacher/holidays', icon: Calendar, label: 'List of Holidays' },
             ]
