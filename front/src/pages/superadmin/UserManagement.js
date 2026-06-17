@@ -17,7 +17,7 @@ const UserManagement = () => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortBy, setSortBy] = useState('createdAt_desc');
-    const pageSize = 20;
+    const pageSize = 10;
 
     useEffect(() => {
         setCurrentPage(1);

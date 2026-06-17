@@ -335,7 +335,7 @@ const AllSchools = () => {
                                             <School size={14} />
                                             <span>View</span>
                                         </button>
-                                        <button
+                                        {/* <button
                                             onClick={() => openEditModal(school)}
                                             className="flex items-center justify-center p-2 rounded-lg bg-slate-700/30 hover:bg-slate-700/50 border border-slate-600/50 hover:border-slate-500 text-slate-300 hover:text-white transition-all"
                                             title="Edit"
@@ -348,7 +348,7 @@ const AllSchools = () => {
                                             title="Delete"
                                         >
                                             <Trash2 size={14} />
-                                        </button>
+                                        </button> */}
                                     </div>
                                 </motion.div>
                             );

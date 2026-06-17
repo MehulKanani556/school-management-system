@@ -1918,6 +1918,10 @@ exports.saveAttendance = async (req, res) => {
       classSection
     });
 
+    // Send parent email notifications asynchronously
+    const { handleAttendanceEmail } = require('../utils/mail');
+    handleAttendanceEmail(attendance).catch(err => console.error('Error sending attendance emails:', err));
+
     res.json({ message: 'Attendance registry committed successfully', data: attendance });
   } catch (err) { res.status(500).json({ message: err.message }); }
 };

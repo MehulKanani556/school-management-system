@@ -265,6 +265,10 @@ exports.markAttendance = async (req, res) => {
             classSection: targetClass
         });
 
+        // Send parent email notifications asynchronously
+        const { handleAttendanceEmail } = require('../utils/mail');
+        handleAttendanceEmail(attendance).catch(err => console.error('Error sending attendance emails:', err));
+
         res.json({ message: 'Attendance registry synchronized', attendance });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };
@@ -1202,6 +1206,10 @@ exports.bulkAttendanceImport = async (req, res) => {
             classSection: classSectionId
         });
 
+        // Send parent email notifications asynchronously
+        const { handleAttendanceEmail } = require('../utils/mail');
+        handleAttendanceEmail(attendance).catch(err => console.error('Error sending attendance emails:', err));
+
         res.json({
             message: `Synchronized ${resolvedRecords.length} records successfully.`,
             count: resolvedRecords.length,
@@ -1393,6 +1401,11 @@ exports.logBehavior = async (req, res) => {
             academicYearId: req.academicYearId
         });
         await log.save();
+
+        // Send parent email notifications asynchronously
+        const { handleBehaviorLogEmail } = require('../utils/mail');
+        handleBehaviorLogEmail(log).catch(err => console.error('Error sending behavior log email:', err));
+
         res.status(201).json({ message: 'Conduct vector localized to student registry' });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

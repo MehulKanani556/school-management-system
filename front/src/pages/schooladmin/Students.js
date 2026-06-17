@@ -522,7 +522,7 @@ const Students = () => {
               onChange={(e) => formik.setFieldValue('photo', e.target.files[0])} />
 
             <label htmlFor="photo-upload" className="relative group cursor-pointer block">
-              <div className={`w-full h-42 py-4 rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
+              <div className={`w-full h-[200px] py-4 rounded-md border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 overflow-hidden
                 ${formik.values.photo ? 'border-brand-primary' : 'border-slate-700 hover:border-brand-primary bg-slate-800/40'}`}>
 
                 {formik.values.photo ? (

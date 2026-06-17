@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>School Management System - Architecture Diagrams</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-color: #f1f5f9;
+      --card-bg: #ffffff;
+      --card-border: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --accent: #38bdf8;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Outfit', sans-serif;
+      background-color: #ffffff;
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+    header {
+      background: linear-gradient(135deg, #0b0f19 0%, #1e3a8a 100%);
+      padding: 40px 24px;
+      text-align: center;
+      border-bottom: 2px solid #0369a1;
+      position: relative;
+      box-shadow: 0 4px 20px rgba(15, 23, 42, 0.15);
+    }
+    header h1 {
+      font-size: 2.5rem;
+      font-weight: 800;
+      letter-spacing: -0.025em;
+      background: linear-gradient(to right, #38bdf8, #60a5fa, #c084fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: #94a3b8;
+      font-size: 1.1rem;
+      font-weight: 400;
+    }
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      margin: 32px auto;
+      padding: 0 24px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .tabs {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+    }
+    .tab-btn {
+      background: #ffffff;
+      border: 1px solid #cbd5e1;
+      color: #475569;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.05);
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .tab-btn:hover {
+      background: #f8fafc;
+      color: #0f172a;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(15, 23, 42, 0.08);
+    }
+    .tab-btn.active {
+      background: linear-gradient(135deg, #0284c7, #0369a1);
+      border-color: transparent;
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    }
+    .content-box {
+      background-color: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 40px;
+      min-height: 500px;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+      position: relative;
+    }
+    .export-container {
+      position: absolute;
+      top: 32px;
+      right: 40px;
+      z-index: 10;
+      display: flex;
+      gap: 8px;
+    }
+    .download-btn {
+      background: #ffffff;
+      border: 1.5px solid #cbd5e1;
+      color: #0369a1;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04);
+      transition: all 0.2s;
+    }
+    .download-btn:hover {
+      background: #f0f9ff;
+      border-color: #0284c7;
+      color: #0284c7;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(2, 132, 199, 0.15);
+    }
+    .download-btn:active {
+      transform: translateY(1px);
+    }
+    .tab-content {
+      width: 100%;
+      opacity: 1;
+      position: relative;
+      height: auto;
+      visibility: visible;
+      transition: opacity 0.3s ease;
+    }
+    .tab-content.hidden {
+      position: absolute;
+      height: 0;
+      overflow: hidden;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+    .diagram-title {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 24px;
+      text-align: center;
+      color: var(--text-main);
+    }
+    .mermaid-wrapper {
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.02);
+    }
+    .mermaid {
+      width: 100%;
+      opacity: 0;
+      transition: opacity 0.5s ease-in;
+    }
+    .mermaid[data-processed="true"] {
+      opacity: 1;
+    }
+    footer {
+      background-color: #ffffff;
+      padding: 24px;
+      text-align: center;
+      border-top: 1px solid var(--card-border);
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    @media print {
+      header, .tabs, .export-container, footer {
+        display: none !important;
+      }
+      body {
+        background: none !important;
+        color: #000000 !important;
+      }
+      .container {
+        margin: 0 !important;
+        padding: 0 !important;
+        max-width: 100% !important;
+      }
+      .content-box {
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        min-height: auto !important;
+      }
+      .tab-content {
+        page-break-inside: avoid;
+        display: block !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        position: relative !important;
+        height: auto !important;
+      }
+      .tab-content.hidden {
+        display: none !important;
+      }
+      .mermaid-wrapper {
+        background: none !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        min-height: auto !important;
+      }
+      .mermaid svg {
+        max-width: 100% !important;
+        height: auto !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>School Management System</h1>
+    <p>Architecture, Workflows & Database Relations (Four Core Roles)</p>
+  </header>
+
+  <div class="container">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab(0)">Use Case Diagram</button>
+      <button class="tab-btn" onclick="switchTab(1)">Activity Diagram</button>
+      <button class="tab-btn" onclick="switchTab(2)">Entity Relationship (ERD)</button>
+      <button class="tab-btn" onclick="switchTab(3)">DFD Level 0 (Context)</button>
+      <button class="tab-btn" onclick="switchTab(4)">DFD Level 1</button>
+      <button class="tab-btn" onclick="switchTab(5)">DFD Level 2</button>
+    </div>
+
+    <div class="content-box">
+      <!-- Export button container -->
+      <div class="export-container" style="align-items: center;">
+        <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">A4 Fit / Size:</span>
+        <select id="export-scale" style="padding: 6px 12px; border: 1.5px solid #cbd5e1; border-radius: 6px; font-size: 0.85rem; font-weight: 700; color: #0369a1; background: #ffffff; cursor: pointer; transition: all 0.2s;">
+          <option value="800" selected>A4 Portrait (800px)</option>
+          <option value="1120">A4 Landscape (1120px)</option>
+          <option value="1">Original (1x)</option>
+          <option value="1.5">Sharp (1.5x)</option>
+          <option value="2">High-Res (2x)</option>
+        </select>
+        <button class="download-btn" onclick="downloadActiveDiagram()">
+          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+          </svg>
+          Export SVG
+        </button>
+        <button class="download-btn" onclick="downloadActiveDiagramPNG()">
+          <svg style="width: 16px; height: 16px; fill: currentColor;" viewBox="0 0 24 24">
+            <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
+          </svg>
+          Export PNG
+        </button>
+      </div>
+
+      <!-- Tab 0: Use Case -->
+      <div class="tab-content" id="tab-0">
+        <h2 class="diagram-title">System Use Case Boundary</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Actors ["Actors"]
+        SuperAdmin["Super Admin"]
+        SchoolAdmin["School Admin"]
+        Teacher["Teacher"]
+        Student["Student"]
+    end
+
+    subgraph SystemBoundary ["School Management System"]
+        UC1(("`Manage Schools
+& Settings`"))
+        UC2(("`Manage Users
+& Roles`"))
+        UC3(("`Assign Classes
+& Subjects`"))
+        UC4(("`Admit
+Students`"))
+        UC5(("`Mark Student
+Attendance`"))
+        UC6(("`Log Behavior
+& Conduct`"))
+        UC7(("`View Dashboard
+& Reports`"))
+        UC8(("`View Grades
+& Timetables`"))
+    end
+
+    SuperAdmin --> UC1
+    SuperAdmin --> UC2
+    
+    SchoolAdmin --> UC2
+    SchoolAdmin --> UC3
+    SchoolAdmin --> UC4
+    SchoolAdmin --> UC5
+    SchoolAdmin --> UC7
+    
+    Teacher --> UC5
+    Teacher --> UC6
+    Teacher --> UC7
+    Teacher --> UC8
+    
+    Student --> UC7
+    Student --> UC8
+
+    style Actors fill:#f1f5f9,stroke-width:0px
+    style SystemBoundary fill:#f0f9ff,stroke-width:0px
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab 1: Activity -->
+      <div class="tab-content" id="tab-1">
+        <h2 class="diagram-title">System Execution & Interaction Flow</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+flowchart TD
+    subgraph Admins ["Admins"]
+        Start([Start]) --> CreateSchool["`Super Admin:
+Create School & Admin Account`"]
+        CreateSchool --> SetUpAcademic["`School Admin:
+Configure Academic Year & Standards`"]
+        SetUpAcademic --> AssignTeachers["`School Admin:
+Assign Teachers to Class Sections`"]
+        
+        AssignTeachers --> ViewReports["`School Admin:
+Review Attendance & Conduct Analytics`"]
+    end
+
+    subgraph AcademicRegistry ["System Processor"]
+        VerifyCredentials{Verify Roles & Limits}
+        VerifyCredentials -- Approved --> SaveConfig["`Persist Configurations
+to DB`"]
+        VerifyCredentials -- Denied --> ErrorMessage["`Display Access
+Denied Error`"]
+        
+        ProcessAttendance["`Register Attendance &
+Trigger Real-Time Socket Updates`"]
+        ProcessConduct["`Register Behavior Log &
+Log Audit Event`"]
+    end
+
+    subgraph TeachersStudents ["Teacher / Student"]
+        Login[Login to Dashboard] --> AccessClass["`Teacher: Access
+Designated Class Section`"]
+        AccessClass --> MarkAttendance["`Teacher:
+Mark Daily Attendance`"]
+        MarkAttendance --> SaveRegistry[Request System Sync]
+        
+        SaveRegistry --> VerifyCredentials
+        
+        AccessClass --> LogBehavior["`Teacher: Log Student
+Behavior / Conduct Record`"]
+        LogBehavior --> RequestLogSave[Request Log Save]
+        RequestLogSave --> VerifyCredentials
+        
+        SaveConfig --> ViewDashboard["`Student: View Real-Time
+Dashboard & Conduct Grades`"]
+    end
+
+    SaveRegistry -.-> ProcessAttendance
+    RequestLogSave -.-> ProcessConduct
+    ProcessAttendance -.-> ViewDashboard
+    ProcessConduct -.-> ViewDashboard
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab 2: ERD -->
+      <div class="tab-content" id="tab-2">
+        <h2 class="diagram-title">Entity Relationship Model</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+erDiagram
+    User ||--o| Student : "has profile"
+    User ||--o| Teacher : "has profile"
+    User {
+        string id PK
+        string firstName
+        string lastName
+        string email
+        string role
+        string password
+    }
+    
+    School ||--o{ Student : "enrolls"
+    School ||--o{ Teacher : "employs"
+    School {
+        string id PK
+        string name
+        string address
+    }
+
+    Student }|--o| ClassSection : "assigned to"
+    Student }|--o| Standard : "belongs to"
+    Student {
+        string id PK
+        string admissionNumber
+        string rollNumber
+        string firstName
+        string lastName
+        string email
+    }
+
+    Teacher {
+        string id PK
+        string userId FK
+        string employeeId
+        string firstName
+        string lastName
+        string email
+    }
+
+    ClassSection }|--|| Standard : "belongs to"
+    ClassSection }|--|| Teacher : "has class teacher"
+    ClassSection {
+        string id PK
+        string standardId FK
+        string classTeacher FK
+        string sectionLabel
+    }
+
+    Standard {
+        string id PK
+        int level
+        string name
+    }
+
+    Attendance }|--|| ClassSection : "recorded for"
+    Attendance }|--|| User : "submitted by"
+    Attendance ||--|{ AttendanceRecord : "contains"
+    Attendance {
+        string id PK
+        string schoolId FK
+        string standardId FK
+        string classSection FK
+        string date
+        string submittedBy FK
+    }
+
+    AttendanceRecord }|--|| Student : "references"
+    AttendanceRecord {
+        string studentId FK
+        string status
+    }
+
+    BehaviorLog }|--|| Student : "concerns"
+    BehaviorLog }|--|| Teacher : "logged by"
+    BehaviorLog {
+        string id PK
+        string studentId FK
+        string teacherId FK
+        string type
+        string category
+        string description
+        string actionTaken
+    }
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab 3: DFD Level 0 -->
+      <div class="tab-content" id="tab-3">
+        <h2 class="diagram-title">Data Flow Diagram (Level 0 - Context Diagram)</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+flowchart TD
+    %% External Entities (requested roles only)
+    SuperAdminEntity["Super Admin"]
+    SchoolAdminEntity["School Admin"]
+    TeacherEntity["Teacher"]
+    StudentEntity["Student"]
+
+    %% Central Process
+    P0(("0.0 School Management System"))
+
+    %% Data Flows
+    SuperAdminEntity -- "`Create School &
+Provision Admin`" --> P0
+    P0 -- "`Infrastructure
+Config Status`" --> SuperAdminEntity
+
+    SchoolAdminEntity -- "`Configure Standards &
+Section Assignments`" --> P0
+    SchoolAdminEntity -- "`Admit Students &
+Assign Teachers`" --> P0
+    P0 -- "`Analytics &
+Attendance Reports`" --> SchoolAdminEntity
+
+    TeacherEntity -- "`Class Attendance &
+Student Behavior Logs`" --> P0
+    P0 -- "`Roster &
+Student Profiles`" --> TeacherEntity
+
+    P0 -- "`Performance Dashboards &
+Timetable Views`" --> StudentEntity
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab 4: DFD Level 1 -->
+      <div class="tab-content" id="tab-4">
+        <h2 class="diagram-title">Data Flow Diagram (Level 1 DFD)</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+flowchart TD
+    %% External Entities (requested roles only)
+    SuperAdminEntity["Super Admin"]
+    SchoolAdminEntity["School Admin"]
+    TeacherEntity["Teacher"]
+    StudentEntity["Student"]
+
+    %% Processes
+    P1_0(("1.0 Manage Infrastructure"))
+    P2_0(("2.0 Class Setup and Allocations"))
+    P3_0(("3.0 Manage Academic Records"))
+    P4_0(("4.0 Live Dashboard Delivery"))
+
+    %% Data Stores
+    D1[("D1 - School and Users DB")]
+    D2[("D2 - Academic Setup DB")]
+    D3[("D3 - Attendance and Behavior Stores")]
+
+    %% Data Flows - Super Admin
+    SuperAdminEntity -- "`School Config &
+Admin Credentials`" --> P1_0
+    P1_0 -- "`Create School &
+User Docs`" --> D1
+
+    %% Data Flows - School Admin
+    SchoolAdminEntity -- "`Standard &
+Section Labels`" --> P2_0
+    SchoolAdminEntity -- "`Teacher Assignments`" --> P2_0
+    P2_0 -- "`Write Setup Configs`" --> D2
+    D1 -- "`Verify User Permissions`" --> P2_0
+
+    %% Data Flows - Teacher
+    TeacherEntity -- "`Daily Attendance Lists`" --> P3_0
+    TeacherEntity -- "`Student Behavior Reports`" --> P3_0
+    P3_0 -- "`Write Records`" --> D3
+    D2 -- "`Verify Teacher Sections`" --> P3_0
+
+    %% Data Flows - Student
+    D3 -- "`Fetch Performance Metrics`" --> P4_0
+    P4_0 -- "`Render Real-Time Dashboards`" --> StudentEntity
+    P4_0 -- "`Render Real-Time Dashboards`" --> TeacherEntity
+    P4_0 -- "`Render Real-Time Dashboards`" --> SchoolAdminEntity
+          </pre>
+        </div>
+      </div>
+
+      <!-- Tab 5: DFD Level 2 -->
+      <div class="tab-content" id="tab-5">
+        <h2 class="diagram-title">Data Flow Diagram (Level 2 DFD)</h2>
+        <div class="mermaid-wrapper">
+          <pre class="mermaid">
+flowchart TD
+    %% External Entities (requested roles only)
+    TeacherEntity["Teacher"]
+    StudentEntity["Student"]
+    SchoolAdminEntity["School Admin"]
+
+    %% Level 2 Sub-Processes for 3.0 Manage Academic Records
+    P3_1(("3.1 Validate Session & Schedule"))
+    P3_2(("3.2 Record Daily Attendance"))
+    P3_3(("3.3 Log Behavior Incident"))
+    P3_4(("3.4 Distribute Real-Time Notifications"))
+
+    %% Data Stores
+    D2[("D2 - Academic Setup DB")]
+    D3[("D3 - Attendance and Behavior Stores")]
+
+    %% Flows for 3.1
+    TeacherEntity -- "`Access Class /
+Section Request`" --> P3_1
+    D2 -- "`Fetch Class Roster &
+Schedules`" --> P3_1
+    P3_1 -- "`Provide Verified Class List`" --> TeacherEntity
+
+    %% Flows for 3.2
+    TeacherEntity -- "`Daily Attendance List`" --> P3_2
+    P3_2 -- "`Write Daily Records`" --> D3
+
+    %% Flows for 3.3
+    TeacherEntity -- "`Behavior Record (type,
+category, description)`" --> P3_3
+    P3_3 -- "`Write Behavior Logs`" --> D3
+
+    %% Flows for 3.4
+    D3 -- "`Stream Real-Time Status`" --> P3_4
+    P3_4 -- "`Real-Time Portal Alerts`" --> StudentEntity
+    P3_4 -- "`Real-Time Portal Alerts`" --> SchoolAdminEntity
+          </pre>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Institutional Systems Terminal. All rights reserved.</p>
+  </footer>
+
+  <script type="module">
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'base',
+      htmlLabels: false,
+      flowchart: { 
+        htmlLabels: false,
+        nodeSpacing: 30,
+        rankSpacing: 40
+      },
+      sequence: { htmlLabels: false },
+      gantt: { htmlLabels: false },
+      journey: { htmlLabels: false },
+      class: { htmlLabels: false },
+      state: { htmlLabels: false },
+      erd: { htmlLabels: false },
+      er: {
+        htmlLabels: false,
+        nodeSpacing: 30,
+        rankSpacing: 40,
+        entityPadding: 10
+      },
+      themeVariables: {
+        background: '#ffffff',
+        primaryColor: '#e0f2fe',      // Light sky blue fill
+        primaryTextColor: '#1e3a8a',  // Dark navy text
+        primaryBorderColor: '#0369a1',// Navy border
+        lineColor: '#0284c7',         // Navy connector lines
+        secondaryColor: '#f0f9ff',
+        tertiaryColor: '#ffffff',
+        nodeBorder: '#0369a1',
+        mainBkg: '#e0f2fe',
+        nodeTextColor: '#1e3a8a',
+        actorBorder: '#0369a1',
+        actorBkg: '#e0f2fe',
+        actorTextColor: '#1e3a8a',
+        signalColor: '#1e3a8a',
+        signalLineColor: '#0284c7',
+        entityBorder: '#0369a1',
+        entityBkg: '#e0f2fe',
+        entityTextColor: '#1e3a8a',
+        attributeBackgroundColor: '#f0f9ff',
+        attributeTextColor: '#1e3a8a',
+        titleColor: '#1e3a8a'
+      },
+      themeCSS: `
+        /* Custom styles matching the Corporate Blue design from screenshots */
+        .node rect, .node circle, .node polygon, .node path, .actor, .entityBox {
+          stroke: #0369a1 !important;
+          stroke-width: 1.5px !important;
+          fill: #e0f2fe !important;
+          rx: 8px !important;
+          ry: 8px !important;
+          filter: drop-shadow(0 4px 6px rgba(3, 105, 161, 0.12)) !important;
+        }
+        .edgePath .path {
+          stroke: #0284c7 !important;
+          stroke-width: 1.5px !important;
+        }
+        .edgeLabel rect {
+          fill: #ffffff !important;
+          stroke: #cbd5e1 !important;
+          stroke-width: 1px !important;
+          rx: 4px !important;
+        }
+        .label {
+          color: #1e3a8a !important;
+          font-family: 'Outfit', sans-serif !important;
+          font-weight: 600 !important;
+        }
+        text {
+          fill: #1e3a8a !important;
+          font-family: 'Outfit', sans-serif !important;
+        }
+        .actor-line {
+          stroke: #0284c7 !important;
+          stroke-width: 1.5px !important;
+        }
+        /* Style ERD table headers as dark blue, body as light blue */
+        .entityHeader {
+          fill: #0369a1 !important;
+          stroke: #0369a1 !important;
+        }
+        .entityHeader text {
+          fill: #ffffff !important;
+          font-weight: bold !important;
+        }
+        .entityBox {
+          fill: #f0f9ff !important;
+          stroke: #0369a1 !important;
+        }
+      `
+    });
+
+    window.addEventListener('load', () => {
+      // Small timeout to allow mermaid to render before hiding other tabs
+      setTimeout(() => {
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach((el, index) => {
+          if (index !== 0) {
+            el.classList.add('hidden');
+          }
+        });
+      }, 800);
+    });
+  </script>
+
+  <script>
+    function switchTab(index) {
+      // Toggle button states
+      const buttons = document.querySelectorAll('.tab-btn');
+      buttons.forEach((btn, idx) => {
+        if (idx === index) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+
+      // Toggle content visibility
+      const contents = document.querySelectorAll('.tab-content');
+      contents.forEach((el, idx) => {
+        if (idx === index) {
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    function downloadActiveDiagram() {
+      // Find the active tab content element
+      const activeContent = document.querySelector('.tab-content:not(.hidden)');
+      if (!activeContent) return;
+
+      // Find the SVG element inside the active tab content
+      const svg = activeContent.querySelector('.mermaid svg');
+      if (!svg) {
+        alert('Diagram is still rendering. Please wait.');
+        return;
+      }
+
+      // Clone SVG to modify it safely
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      // Get SVG source code
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(clone);
+
+      // Add xml declaration
+      source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+      // Use Blob to prevent URL size limits
+      const svgBlob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      // Get diagram title for filename
+      const titleEl = activeContent.querySelector('.diagram-title');
+      const title = titleEl ? titleEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'diagram';
+
+      // Trigger download
+      const downloadLink = document.createElement("a");
+      downloadLink.href = url;
+      downloadLink.download = `${title}.svg`;
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      document.body.removeChild(downloadLink);
+      
+      // Clean up URL
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadActiveDiagramPNG() {
+      // Find the active tab content element
+      const activeContent = document.querySelector('.tab-content:not(.hidden)');
+      if (!activeContent) return;
+
+      // Find the SVG element inside the active tab content
+      const svg = activeContent.querySelector('.mermaid svg');
+      if (!svg) {
+        alert('Diagram is still rendering. Please wait.');
+        return;
+      }
+
+      // Get SVG dimensions - prefer viewBox for exact coordinate boundaries
+      const bbox = svg.getBoundingClientRect();
+      let width = bbox.width || 1200;
+      let height = bbox.height || 800;
+
+      const viewBox = svg.getAttribute('viewBox');
+      if (viewBox) {
+        const parts = viewBox.split(' ');
+        if (parts.length === 4) {
+          const vbWidth = parseFloat(parts[2]);
+          const vbHeight = parseFloat(parts[3]);
+          if (!isNaN(vbWidth) && !isNaN(vbHeight) && vbWidth > 0 && vbHeight > 0) {
+            width = vbWidth;
+            height = vbHeight;
+          }
+        }
+      }
+
+      // Clone the SVG so we don't modify the displayed element, and set explicit size attributes
+      const clone = svg.cloneNode(true);
+      clone.setAttribute('width', width);
+      clone.setAttribute('height', height);
+      clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      clone.setAttribute('xmlns:xlink', 'http://www.w3.org/1999/xlink');
+
+      // Remove any external font @import rules to prevent tainted canvas SecurityError
+      clone.querySelectorAll('style').forEach(style => {
+        if (style.textContent) {
+          style.textContent = style.textContent.replace(/@import\s+url\([^)]+\);?/gi, '');
+        }
+      });
+
+      // Get SVG source code
+      const serializer = new XMLSerializer();
+      let source = serializer.serializeToString(clone);
+
+      // Strip any remaining @import statements to prevent canvas tainting
+      source = source.replace(/@import\s+url\([^)]+\);?/gi, '');
+
+      // Create base64 data URL to prevent tainted canvas on local file protocol
+      const base64Source = btoa(unescape(encodeURIComponent(source)));
+      const url = 'data:image/svg+xml;base64,' + base64Source;
+
+      // Get target scale / width
+      const scaleSelect = document.getElementById('export-scale');
+      const selectedValue = scaleSelect ? scaleSelect.value : '800';
+      
+      let scale = 1;
+      let canvasWidth = width;
+      let canvasHeight = height;
+
+      if (selectedValue === '1' || selectedValue === '1.5' || selectedValue === '2') {
+        scale = parseFloat(selectedValue);
+        canvasWidth = width * scale;
+        canvasHeight = height * scale;
+      } else {
+        // Selected value is a target width (e.g. 800 or 1120)
+        const targetWidth = parseFloat(selectedValue);
+        scale = targetWidth / width;
+        canvasWidth = targetWidth;
+        canvasHeight = height * scale;
+      }
+
+      // Create image and load
+      const img = new Image();
+
+      img.onload = function() {
+        try {
+          // Create canvas
+          const canvas = document.createElement('canvas');
+          canvas.width = canvasWidth;
+          canvas.height = canvasHeight;
+          
+          const ctx = canvas.getContext('2d');
+          
+          // Fill canvas with solid white background so the pasted image remains highly visible on dark documents
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+          
+          ctx.drawImage(img, 0, 0, canvasWidth, canvasHeight);
+          
+          // Generate PNG data URL
+          const pngUrl = canvas.toDataURL('image/png');
+          
+          // Get diagram title for filename
+          const titleEl = activeContent.querySelector('.diagram-title');
+          const title = titleEl ? titleEl.textContent.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-') : 'diagram';
+          
+          // Trigger download
+          const downloadLink = document.createElement("a");
+          downloadLink.href = pngUrl;
+          downloadLink.download = `${title}.png`;
+          document.body.appendChild(downloadLink);
+          downloadLink.click();
+          document.body.removeChild(downloadLink);
+        } catch (err) {
+          console.error('Failed to convert SVG to PNG:', err);
+          alert('Failed to generate PNG. Please try using SVG format or check console logs.');
+        }
+      };
+
+      img.onerror = function(err) {
+        console.error('Failed to load SVG for PNG conversion:', err);
+        alert('Failed to generate PNG. Please use SVG format.');
+      };
+
+      img.src = url;
+    }
+  </script>
+</body>
+</html>
