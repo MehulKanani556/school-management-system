@@ -73,17 +73,17 @@ const Backups = () => {
 
     const relayedCount = Array.isArray(backups) ? backups.filter((b) => b.status === 'Relayed').length : 0;
     const stats = [
-        { label: 'Recorded Archives', value: String(Array.isArray(backups) ? backups.length : 0), icon: HardDrive, note: `Last run: ${lastBackupTime}`, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20', tag: 'Dumps' },
-        { label: 'Completed Runs', value: String(relayedCount), icon: Shield, note: 'Platform backup active', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', tag: 'Runs' },
-        { label: 'Storage Tracked', value: storageDisplay, icon: Lock, note: 'Real JSON archive exports', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20', tag: 'Volume' }
+        { label: 'Total Backups', value: String(Array.isArray(backups) ? backups.length : 0), icon: HardDrive, note: `Last run: ${lastBackupTime}`, color: 'text-superadmin-primary bg-superadmin-primary/10 border-superadmin-primary/20', tag: 'Backups' },
+        { label: 'Successful Backups', value: String(relayedCount), icon: Shield, note: 'Backup service active', color: 'text-amber-400 bg-amber-500/10 border-amber-500/20', tag: 'Success' },
+        { label: 'Backup Storage', value: storageDisplay, icon: Lock, note: 'Database JSON files', color: 'text-sky-400 bg-sky-500/10 border-sky-500/20', tag: 'Size' }
     ];
 
     return (
         <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 pb-10 font-outfit">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div>
-                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-2 font-inter">Backups & Disaster Recovery</h1>
-                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-70">Generates full database JSON snapshots under uploads/backups for disaster recovery.</p>
+                    <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-2 font-inter text-left">Database Backups</h1>
+                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-70">Create and download backups of the system database.</p>
                 </div>
                 <div className="flex items-center gap-4">
                     <button 
@@ -92,7 +92,7 @@ const Backups = () => {
                         className="h-12 px-6 bg-superadmin-primary text-black rounded-md flex items-center justify-center gap-3 shadow-xl shadow-superadmin-primary/20 hover:scale-105 active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 group border border-superadmin-primary/40"
                     >
                         {isTriggering ? <RefreshCw className="animate-spin text-black" size={16} /> : <Database size={16} className="group-hover:rotate-12 transition-transform text-black" /> }
-                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Execute Full System Archive</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Run Full Database Backup</span>
                     </button>
                     <button 
                         disabled={loading || isTriggering}
@@ -100,7 +100,7 @@ const Backups = () => {
                         className="h-12 px-6 bg-white/5 border border-white/10 text-white rounded-md flex items-center justify-center gap-3 hover:bg-white/[0.08] active:scale-95 transition-all disabled:opacity-50 disabled:scale-100 group"
                     >
                         <Shield size={16} className="text-slate-500 group-hover:text-superadmin-primary transition-colors" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors leading-none">Backup SysConfig Only</span>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 group-hover:text-white transition-colors leading-none">Backup Configuration Only</span>
                     </button>
                 </div>
             </div>
@@ -130,8 +130,8 @@ const Backups = () => {
             <div className="bg-slate-900/30 border border-slate-800/60 rounded-md backdrop-blur-3xl overflow-hidden shadow-2xl">
                 <div className="px-8 py-6 border-b border-white/5 bg-white/[0.01] flex items-center justify-between">
                     <div>
-                        <h2 className="text-sm font-black uppercase tracking-wider text-white font-inter">Archival Sequence Registry</h2>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">Listing historical institutional snapshot cycles.</p>
+                        <h2 className="text-sm font-black uppercase tracking-wider text-white font-inter text-left">Backup History</h2>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">List of previously generated system backups.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <span className="text-[9px] font-black text-superadmin-primary uppercase bg-superadmin-primary/10 border border-superadmin-primary/20 px-3 py-1 rounded-md tracking-wider">Auto-Retention: 30 Days</span>
@@ -141,11 +141,11 @@ const Backups = () => {
                     <table className="w-full text-left">
                         <thead>
                             <tr className="bg-white/[0.02] border-b border-white/5">
-                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Snapshot ID</th>
-                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Temporal Stamp</th>
-                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">Node Vector</th>
-                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Density</th>
-                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Integrity Action</th>
+                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Backup ID</th>
+                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Date & Time</th>
+                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest whitespace-nowrap">System Service</th>
+                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest">Size</th>
+                                <th className="px-8 py-4 text-[9px] font-black text-slate-500 uppercase tracking-widest text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-white/5">
@@ -162,7 +162,7 @@ const Backups = () => {
                                                     <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md tracking-widest border ${
                                                         b.type === 'Full' ? 'bg-superadmin-primary/10 border-superadmin-primary/20 text-superadmin-primary' : 'bg-slate-800 border-white/5 text-slate-500'
                                                     }`}>
-                                                        {b.type} SNAPSHOT
+                                                        {b.type} BACKUP
                                                     </span>
                                                 </div>
                                             </div>
@@ -222,8 +222,8 @@ const Backups = () => {
                 {(!Array.isArray(backups) || backups.length === 0) && (
                     <div className="p-20 text-center flex flex-col items-center justify-center opacity-30 grayscale group hover:grayscale-0 transition-all">
                         <Database size={64} className="mb-6 opacity-20" />
-                        <h4 className="text-xl font-black uppercase tracking-widest text-slate-500">Archive Sequence Depleted</h4>
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs mx-auto leading-relaxed">System-wide archival logs are empty. Initiate a full system archive to begin redundancy protocol.</p>
+                        <h4 className="text-xl font-black uppercase tracking-widest text-slate-500">No Backups Found</h4>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] mt-4 max-w-xs mx-auto leading-relaxed">No database backups are currently available. Run a new backup to secure the system database.</p>
                     </div>
                 )}
             </div>
@@ -234,8 +234,8 @@ const Backups = () => {
                         <Terminal size={20} />
                     </div>
                     <div>
-                        <h3 className="text-lg font-black uppercase tracking-tight text-white leading-none font-inter">Database Restoration Protocol</h3>
-                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 opacity-60">Restore JSON snapshots directly into MongoDB collections</p>
+                        <h3 className="text-lg font-black uppercase tracking-tight text-white leading-none font-inter">Database Restore Guide</h3>
+                        <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-2 opacity-60">Instructions on how to restore a database backup</p>
                     </div>
                 </div>
                 
@@ -244,9 +244,9 @@ const Backups = () => {
                         <div className="flex items-start gap-3">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-superadmin-primary/10 border border-superadmin-primary/25 text-[10px] font-black text-superadmin-primary mt-0.5 shrink-0">1</span>
                             <div>
-                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Standard JSON Snapshot</h4>
+                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Standard JSON Backups</h4>
                                 <p className="text-slate-400 font-normal leading-relaxed text-[11px]">
-                                    The system generates a standard JSON database dump representing all records. No need for a <code className="text-superadmin-primary bg-superadmin-primary/5 px-1 py-0.5 rounded font-mono font-bold">.gzip</code> or binary format.
+                                    Backups are saved as clean JSON files containing all database records. No compression or binary formats are required.
                                 </p>
                             </div>
                         </div>
@@ -254,9 +254,9 @@ const Backups = () => {
                         <div className="flex items-start gap-3">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-superadmin-primary/10 border border-superadmin-primary/25 text-[10px] font-black text-superadmin-primary mt-0.5 shrink-0">2</span>
                             <div>
-                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Download Archive</h4>
+                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Download Backup File</h4>
                                 <p className="text-slate-400 font-normal leading-relaxed text-[11px]">
-                                    Click <strong className="text-white">Download</strong> to save the JSON file locally, or locate it directly on the host machine inside the server's <code className="text-sky-400 bg-sky-500/5 px-1 py-0.5 rounded font-mono">back/uploads/backups/</code> directory.
+                                    Click <strong className="text-white">Download</strong> to save the backup locally, or access it on the server at <code className="text-sky-400 bg-sky-500/5 px-1 py-0.5 rounded font-mono">back/uploads/backups/</code>.
                                 </p>
                             </div>
                         </div>
@@ -266,9 +266,9 @@ const Backups = () => {
                         <div className="flex items-start gap-3">
                             <span className="flex items-center justify-center w-5 h-5 rounded-full bg-superadmin-primary/10 border border-superadmin-primary/25 text-[10px] font-black text-superadmin-primary mt-0.5 shrink-0">3</span>
                             <div>
-                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Execute Restore Script</h4>
+                                <h4 className="text-white uppercase tracking-wider text-[11px] mb-1 font-inter">Run Restore Script</h4>
                                 <p className="text-slate-400 font-normal leading-relaxed text-[11px]">
-                                    Run the Node.js restoration utility directly on the server to wipe existing collections and restore the JSON file:
+                                    Execute the restore script on the server to clear current database data and restore the backup:
                                 </p>
                                 <div className="mt-3 p-3 bg-black/40 rounded border border-white/5 font-mono text-[10px] text-slate-300 relative group overflow-hidden flex justify-between items-center">
                                     <div className="flex-1">

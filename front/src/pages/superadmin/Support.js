@@ -56,7 +56,7 @@ const Support = () => {
     const filteredTickets = tickets.filter(t => filterStatus === 'All' || t.status === filterStatus);
 
     return (
-        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-160px)] flex flex-col gap-8 font-outfit">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} className="h-[calc(100vh-160px)] flex flex-col gap-8 font-outfit text-left">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-3xl font-black text-white italic uppercase tracking-tighter leading-none mb-2">Support Center</h1>

@@ -102,7 +102,7 @@ const SystemSettings = () => {
         <motion.div 
             initial={{ opacity: 0, y: 15 }} 
             animate={{ opacity: 1, y: 0 }} 
-            className="space-y-8 pb-10 font-outfit"
+            className="space-y-8 pb-10 font-outfit text-left"
         >
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
                 <div>

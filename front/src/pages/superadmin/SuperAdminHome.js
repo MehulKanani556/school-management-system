@@ -243,7 +243,7 @@ const SuperAdminHome = () => {
                                     </span>
                                     <span className="text-[8px] font-bold text-slate-600 uppercase tracking-widest">{moment(ticket.createdAt).fromNow()}</span>
                                 </div>
-                                <h4 className="text-xs font-black text-slate-200 uppercase italic truncate leading-none mt-1">{ticket.subject}</h4>
+                                <h4 className="text-xs text-left font-black text-slate-200 uppercase italic truncate leading-none mt-1">{ticket.subject}</h4>
                                 <div className="flex justify-between items-center text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1">
                                     <span>{ticket.schoolId?.name}</span>
                                     <span className={ticket.status === 'Resolved' ? 'text-emerald-500' : 'text-sky-500'}>{ticket.status}</span>

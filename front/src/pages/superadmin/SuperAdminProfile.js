@@ -86,18 +86,18 @@ const SuperAdminProfile = () => {
 
     // Mock logs & diagnostic levels for premium detailing
     const mockLogs = [
-        { time: '16:32:20', ip: '192.168.1.102', event: 'Master authorization verified', status: 'SECURE' },
-        { time: '15:45:10', ip: '127.0.0.1', event: 'Database backup synchronized', status: 'SUCCESS' },
-        { time: '14:20:05', ip: '192.168.1.102', event: 'System variables retrieved', status: 'AUDITED' },
-        { time: '12:10:00', ip: '10.0.0.4', event: 'System firewall heartbeat ok', status: 'ACTIVE' }
+        { time: '16:32:20', ip: '192.168.1.102', event: 'Admin logged in successfully', status: 'SUCCESS' },
+        { time: '15:45:10', ip: '127.0.0.1', event: 'Database backup completed', status: 'SUCCESS' },
+        { time: '14:20:05', ip: '192.168.1.102', event: 'System settings viewed', status: 'INFO' },
+        { time: '12:10:00', ip: '10.0.0.4', event: 'Firewall connection active', status: 'INFO' }
     ];
 
     const privilegeList = [
-        { name: 'School onboarding', allowed: true },
-        { name: 'Backup orchestration', allowed: true },
-        { name: 'System logs access', allowed: true },
-        { name: 'Master config bypass', allowed: true },
-        { name: 'Billing management', allowed: true }
+        { name: 'School management', allowed: true },
+        { name: 'Database backups', allowed: true },
+        { name: 'System logs', allowed: true },
+        { name: 'System configuration', allowed: true },
+        { name: 'Billing & payments', allowed: true }
     ];
 
     useEffect(() => {
@@ -194,18 +194,18 @@ const SuperAdminProfile = () => {
                 <div>
                     <h1 className="text-3xl font-black text-white uppercase tracking-tighter leading-none mb-2 font-inter flex items-center gap-3">
                         <Fingerprint size={28} className="text-superadmin-primary" />
-                        Admin Console Profile
+                        Admin Profile Settings
                     </h1>
                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] opacity-80 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                        Root Administrator Credentials & Diagnostics
+                        Manage admin account details and credentials
                     </p>
                 </div>
                 <div className="mt-4 md:mt-0 flex gap-4">
                     <div className="bg-slate-900/60 border border-slate-800 px-4 py-2 rounded-xl flex items-center gap-3 backdrop-blur-xl">
                         <Activity size={14} className="text-superadmin-primary animate-pulse" />
                         <div>
-                            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">SYS HEALTH</p>
+                            <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest leading-none">SYSTEM HEALTH</p>
                             <p className="text-[10px] font-bold text-emerald-400">99.98% OPERATIONAL</p>
                         </div>
                     </div>
@@ -268,7 +268,7 @@ const SuperAdminProfile = () => {
                     <div className="bg-slate-900/30 border border-slate-800/60 p-6 rounded-2xl backdrop-blur-3xl shadow-xl relative">
                         <div className="flex items-center gap-3 mb-6">
                             <Cpu size={16} className="text-superadmin-primary" />
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">REAL-TIME DIAGNOSTICS</h4>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SYSTEM PERFORMANCE</h4>
                         </div>
                         <div className="space-y-4">
                             {[
@@ -297,7 +297,7 @@ const SuperAdminProfile = () => {
                     <div className="bg-slate-900/30 border border-slate-800/60 p-6 rounded-2xl backdrop-blur-3xl shadow-xl">
                         <div className="flex items-center gap-3 mb-6">
                             <Shield size={16} className="text-superadmin-primary" />
-                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">SECURITY PRIVILEGE MATRIX</h4>
+                            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-widest italic">ADMINISTRATOR PERMISSIONS</h4>
                         </div>
                         <div className="space-y-3">
                             {privilegeList.map((priv, idx) => (
@@ -323,7 +323,7 @@ const SuperAdminProfile = () => {
                         
                         <div className="flex items-center gap-3 border-b border-white/5 pb-4 mb-6">
                             <User size={18} className="text-superadmin-primary" />
-                            <h3 className="text-sm font-black text-white uppercase tracking-widest">PROFILE SETTINGS CALIBRATION</h3>
+                            <h3 className="text-sm font-black text-white uppercase tracking-widest">EDIT PROFILE SETTINGS</h3>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-8">
@@ -399,8 +399,8 @@ const SuperAdminProfile = () => {
                                 <Lock size={20} className="group-hover:rotate-12 transition-transform" />
                             </div>
                             <div>
-                                <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-[0.2em] mb-1">SECURITY CREDENTIALS OVERRIDE</h4>
-                                <p className="text-[9px] font-medium text-slate-500 italic">Initiate credential pivot and authentication settings.</p>
+                                <h4 className="text-[10px] font-black text-slate-200 uppercase tracking-[0.2em] mb-1">CHANGE PASSWORD</h4>
+                                <p className="text-[9px] font-medium text-slate-500 italic">Update your password and secure your account.</p>
                             </div>
                         </div>
                         <div className="w-10 h-10 rounded-xl bg-slate-950/80 border border-slate-800 flex items-center justify-center text-slate-500 group-hover:text-superadmin-primary group-hover:border-superadmin-primary/30 transition-all">
@@ -413,9 +413,9 @@ const SuperAdminProfile = () => {
                         <div className="flex items-center justify-between border-b border-white/5 pb-4 mb-6">
                             <div className="flex items-center gap-3">
                                 <Clock size={18} className="text-superadmin-primary" />
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest">RECENT SESSION AUDIT TRAIL</h3>
+                                <h3 className="text-sm font-black text-white uppercase tracking-widest">RECENT ACTIVITY LOG</h3>
                             </div>
-                            <span className="text-[8px] font-mono text-slate-500 tracking-widest uppercase">REAL-TIME FEED</span>
+                            <span className="text-[8px] font-mono text-slate-500 tracking-widest uppercase">LATEST UPDATE</span>
                         </div>
                         <div className="space-y-4">
                             {mockLogs.map((log, idx) => (
@@ -426,7 +426,7 @@ const SuperAdminProfile = () => {
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-black text-slate-200 uppercase tracking-wider">{log.event}</p>
-                                            <p className="text-[8px] font-mono text-slate-600 tracking-wider">CLIENT ADDR: {log.ip}</p>
+                                            <p className="text-[8px] font-mono text-slate-600 tracking-wider">IP ADDRESS: {log.ip}</p>
                                         </div>
                                     </div>
                                     <span className="self-start sm:self-center text-[7px] font-mono font-black text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded uppercase tracking-wider">
@@ -444,9 +444,9 @@ const SuperAdminProfile = () => {
                 <div className="p-8 border-b border-white/5 bg-slate-950/20 flex items-center justify-between">
                     <div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-superadmin-primary/10 border border-superadmin-primary/25 text-superadmin-primary text-[8px] font-black uppercase tracking-widest mb-3">
-                            <LockKeyhole size={10} /> ACCESS OVERRIDES
+                            <LockKeyhole size={10} /> PASSWORD SECURITY
                         </div>
-                        <h2 className="text-xl font-black italic uppercase tracking-tight text-white leading-none">RECALIBRATE PASSWORD</h2>
+                        <h2 className="text-xl font-black italic uppercase tracking-tight text-white leading-none">CHANGE PASSWORD</h2>
                     </div>
                     <button 
                         onClick={() => setIsPasswordModalOpen(false)} 
@@ -500,7 +500,7 @@ const SuperAdminProfile = () => {
                         {passwordData.newPassword.length > 0 && (
                             <div className="mt-3 space-y-3 p-4 bg-slate-950/60 border border-white/5 rounded-xl transition-all duration-300">
                                 <div className="flex justify-between items-center text-[8px] font-black tracking-widest">
-                                    <span className="text-slate-500 uppercase">STRENGTH PARADIGM</span>
+                                    <span className="text-slate-500 uppercase">PASSWORD STRENGTH</span>
                                     <span className={`${metrics.textColor} uppercase font-mono`}>{metrics.label}</span>
                                 </div>
                                 <div className="grid grid-cols-4 gap-1.5 h-1">
@@ -515,9 +515,9 @@ const SuperAdminProfile = () => {
                                 </div>
                                 <div className="space-y-1.5 pt-1">
                                     {[
-                                        { label: 'Minimum 6 characters required', satisfied: metrics.hasLength },
-                                        { label: 'Contains alphanumeric integer', satisfied: metrics.hasNumber },
-                                        { label: 'Includes uppercase or special token', satisfied: metrics.hasUpperOrSpecial }
+                                        { label: 'At least 6 characters', satisfied: metrics.hasLength },
+                                        { label: 'Contains at least one number', satisfied: metrics.hasNumber },
+                                        { label: 'Contains uppercase letter or symbol', satisfied: metrics.hasUpperOrSpecial }
                                     ].map((rule, idx) => (
                                         <div key={idx} className="flex items-center gap-2 text-[8px] font-black uppercase tracking-wider transition-colors duration-300">
                                             <span className={`w-1.5 h-1.5 rounded-full ${rule.satisfied ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-slate-700'}`}></span>
@@ -555,7 +555,7 @@ const SuperAdminProfile = () => {
                         type="submit" 
                         className="w-full h-12 bg-gradient-to-r from-indigo-500 to-indigo-600 text-white rounded-xl flex items-center justify-center gap-3 shadow-lg shadow-superadmin-primary/10 hover:scale-[1.01] active:scale-95 transition-all font-outfit uppercase tracking-widest text-[10px] font-black italic border border-white/5"
                     >
-                        {changingPassword ? <RefreshCw className="animate-spin text-white" size={16} /> : <><Check size={16} className="text-white" /> INITIALIZE CREDENTIAL OVERRIDE</>}
+                        {changingPassword ? <RefreshCw className="animate-spin text-white" size={16} /> : <><Check size={16} className="text-white" /> UPDATE PASSWORD</>}
                     </button>
                 </form>
             </PortalModal>

@@ -86,7 +86,7 @@ const Sidebar = () => {
             </div>
 
             <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
-                <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Menu</p>
+                {/* <p className="px-4 mb-2 text-[10px] font-black uppercase tracking-[0.4em] text-slate-600 italic">Menu</p> */}
                 {menuItems.map((item) => {
                     const hasChildren = !!item.children;
                     const isExpanded = expanded === item.label;

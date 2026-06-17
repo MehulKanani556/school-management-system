@@ -218,7 +218,7 @@ const SchoolDetails = () => {
         <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }}
-            className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950"
+            className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 text-left"
         >
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-20">
@@ -294,12 +294,12 @@ const SchoolDetails = () => {
                                 <Edit size={18} />
                                 <span>Edit School</span>
                             </button>
-                            <button
+                            {/* <button
                                 onClick={() => setIsDeleteModalOpen(true)}
                                 className="flex items-center justify-center px-4 py-3 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/30 text-red-400 hover:text-red-300 transition-all"
                             >
                                 <Trash2 size={18} />
-                            </button>
+                            </button> */}
                         </div>
                     </div>
                 </div>

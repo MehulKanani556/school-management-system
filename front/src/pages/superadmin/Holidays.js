@@ -219,7 +219,7 @@ const Holidays = () => {
                 icon: <Sun className="text-orange-500 animate-spin-slow" size={16} />,
                 bg: 'bg-orange-500/10 border-orange-500/25 text-orange-400',
                 bannerBg: 'bg-gradient-to-r from-orange-500/20 to-amber-500/20',
-                tag: 'National Protocol',
+                tag: 'National Holiday',
                 glow: 'shadow-orange-500/5'
             };
         }
@@ -228,7 +228,7 @@ const Holidays = () => {
                 icon: <Flame className="text-pink-500" size={16} />,
                 bg: 'bg-pink-500/10 border-pink-500/25 text-pink-400',
                 bannerBg: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20',
-                tag: 'Festive Break',
+                tag: 'Festive Holiday',
                 glow: 'shadow-pink-500/5'
             };
         }
@@ -236,7 +236,7 @@ const Holidays = () => {
             icon: <CloudSnow className="text-sky-500" size={16} />,
             bg: 'bg-sky-500/10 border-sky-500/25 text-sky-400',
             bannerBg: 'bg-gradient-to-r from-sky-500/20 to-indigo-500/20',
-            tag: 'Academic Pause',
+            tag: 'School Break',
             glow: 'shadow-sky-500/5'
         };
     };
@@ -402,7 +402,7 @@ const Holidays = () => {
                         {getNextHoliday && (
                             <div className="bg-gradient-to-br from-slate-900/60 to-slate-950/60 border border-slate-800/60 p-6 rounded-md backdrop-blur-3xl shadow-xl relative overflow-hidden group">
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-superadmin-primary/10 rounded-full blur-3xl group-hover:bg-superadmin-primary/20 transition-all duration-500"></div>
-                                <span className="text-[8px] font-black text-superadmin-primary uppercase tracking-[0.25em] italic block mb-3">Break Node Ticking</span>
+                                <span className="text-[8px] font-black text-superadmin-primary uppercase tracking-[0.25em] italic block mb-3">Holiday Countdown</span>
                                 <h4 className="text-sm font-black text-white uppercase italic tracking-tighter truncate mb-2">{getNextHoliday.title}</h4>
                                 <div className="grid grid-cols-4 gap-2 text-center mt-4">
                                     {[
@@ -452,7 +452,7 @@ const Holidays = () => {
                                 className="w-full mt-6 flex items-center justify-center gap-3 bg-superadmin-primary hover:bg-superadmin-primary/90 text-black py-3 rounded-md font-black tracking-widest uppercase text-[9px] transition-all shadow-lg active:scale-95 italic"
                             >
                                 <Plus size={13} className="text-black" />
-                                Register Holiday Node
+                                Add Holiday
                             </button>
                         </div>
                     </div>
@@ -472,13 +472,13 @@ const Holidays = () => {
                                 <div className="space-y-3 text-center xl:text-left max-w-xl">
                                     <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-superadmin-primary/10 border border-superadmin-primary/20">
                                         <Sparkles size={11} className="text-superadmin-primary animate-pulse" />
-                                        <span className="text-[8px] font-black text-superadmin-primary uppercase tracking-[0.25em] italic">Immediate Break Node Pending</span>
+                                        <span className="text-[8px] font-black text-superadmin-primary uppercase tracking-[0.25em] italic">Next Holiday</span>
                                     </div>
                                     <h2 className="text-3xl xl:text-4xl font-black text-white italic uppercase tracking-tighter leading-none">
                                         {getNextHoliday.title}
                                     </h2>
                                     <p className="text-slate-400 text-xs font-semibold leading-relaxed italic">
-                                        {getNextHoliday.description || "Unified synchronization protocol is active for the upcoming break."}
+                                        {getNextHoliday.description || "The school will remain closed for the upcoming holiday break."}
                                     </p>
                                 </div>
 
@@ -514,7 +514,7 @@ const Holidays = () => {
                                     onClick={() => setActiveFilter(filter)}
                                     className={`py-2 px-5 rounded-md text-[9px] font-black uppercase tracking-widest transition-all italic shrink-0 ${activeFilter === filter ? 'bg-gradient-to-r from-superadmin-primary to-indigo-500 text-black font-black shadow-md shadow-superadmin-primary/10' : 'bg-transparent text-slate-500 border border-transparent hover:text-white hover:bg-slate-800/30'}`}
                                 >
-                                    {filter} Protocols
+                                    {filter} Holidays
                                 </button>
                             ))}
                         </div>
@@ -525,7 +525,7 @@ const Holidays = () => {
                                 <Search size={13} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600 group-focus-within:text-superadmin-primary transition-colors" />
                                 <input
                                     type="text"
-                                    placeholder="SCAN REGISTRY KEYWORDS..."
+                                    placeholder="Search Holidays..."
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full bg-slate-950/60 border border-slate-800 h-10 pl-11 pr-4 rounded-md text-[9px] font-black uppercase tracking-widest outline-none focus:border-superadmin-primary/50 focus:bg-slate-950/80 transition-all text-white italic"
@@ -536,7 +536,7 @@ const Holidays = () => {
                                 className="w-full sm:w-auto flex items-center justify-center gap-3 bg-superadmin-primary hover:bg-superadmin-primary/90 text-black px-6 h-10 rounded-md font-black tracking-[0.2em] uppercase text-[9px] transition-all shadow-lg active:scale-95 italic group shrink-0"
                             >
                                 <Plus size={14} className="group-hover:rotate-90 transition-transform duration-500 text-black" />
-                                Register Node
+                                Add Holiday
                             </button>
                         </div>
                     </div>
@@ -581,7 +581,7 @@ const Holidays = () => {
                                                             </div>
                                                             <div className="h-6 w-[1px] bg-slate-800"></div>
                                                             <div className="space-y-0.5">
-                                                                <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Commencement</span>
+                                                                <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest">Start Date</span>
                                                                 <p className="text-[9px] font-black text-white uppercase tracking-wider">{startDate.toLocaleDateString(undefined, { weekday: 'long' })}</p>
                                                             </div>
                                                         </div>
@@ -642,8 +642,8 @@ const Holidays = () => {
                             <div className="py-40 rounded-md bg-slate-900/10 border border-dashed border-slate-800 flex flex-col items-center justify-center gap-4">
                                 <Activity size={28} className="text-slate-700 opacity-40 animate-pulse" />
                                 <div className="text-center space-y-1">
-                                    <h4 className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] italic">Void Vector</h4>
-                                    <p className="text-slate-600 text-[8px] font-bold uppercase tracking-widest">No matching temporal break nodes detected</p>
+                                    <h4 className="text-slate-500 font-black uppercase tracking-[0.3em] text-[10px] italic">No Holidays</h4>
+                                    <p className="text-slate-600 text-[8px] font-bold uppercase tracking-widest">No holidays scheduled for this category.</p>
                                 </div>
                             </div>
                         )}
@@ -671,7 +671,7 @@ const Holidays = () => {
                             <div className="p-6 border-b border-slate-800 flex items-center justify-between">
                                 <div className="space-y-1">
                                     <h3 className="text-xl font-black text-white italic uppercase tracking-tighter leading-none">{selectedDate?.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</h3>
-                                    <p className="text-[10px] font-black text-superadmin-primary uppercase tracking-[0.3em] italic">{selectedDate?.toLocaleDateString('en-IN', { weekday: 'long' })} Break Nodes</p>
+                                    <p className="text-[10px] font-black text-superadmin-primary uppercase tracking-[0.3em] italic">{selectedDate?.toLocaleDateString('en-IN', { weekday: 'long' })} Holidays</p>
                                 </div>
                                 <button onClick={() => setShowDayModal(false)} className="w-10 h-10 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white transition-all">
                                     <X size={20} />
@@ -720,7 +720,7 @@ const Holidays = () => {
                                 })}
                             </div>
                             <div className="p-6 bg-slate-950/50 border-t border-slate-800">
-                                <p className="text-[8px] font-medium text-slate-600 uppercase tracking-[0.2em] italic">Temporal Break Calibration Protocol Active</p>
+                                <p className="text-[8px] font-medium text-slate-600 uppercase tracking-[0.2em] italic">Holiday Management Console Active</p>
                             </div>
                         </motion.div>
                     </div>
@@ -735,10 +735,10 @@ const Holidays = () => {
                             <div className="space-y-1">
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-superadmin-primary/10 border border-superadmin-primary/20">
                                     <AlertCircle size={10} className="text-superadmin-primary" />
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-superadmin-primary">Break Node Calibration</span>
+                                    <span className="text-[8px] font-black uppercase tracking-widest text-superadmin-primary">Holiday Settings</span>
                                 </div>
                                 <h2 className="text-2xl font-black text-white italic uppercase tracking-tighter leading-none">
-                                    {editingHoliday ? 'Recalibrate' : 'Synchronize'} <span className="text-superadmin-primary">Node</span>
+                                    {editingHoliday ? 'Edit' : 'Add'} <span className="text-superadmin-primary">Holiday</span>
                                 </h2>
                             </div>
                             <button type="button" onClick={closeModal} className="w-10 h-10 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-500 hover:text-white hover:border-slate-600 transition-all active:scale-95">
@@ -748,11 +748,11 @@ const Holidays = () => {
 
                         <div className="space-y-6">
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Node Title</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Holiday Title</label>
                                 <input
                                     name="title"
                                     {...formik.getFieldProps('title')}
-                                    placeholder="e.g. Winter Solstice Break"
+                                    placeholder="e.g. Winter Break"
                                     className="w-full bg-slate-950 border border-slate-800 h-12 px-5 rounded-md text-slate-100 outline-none focus:border-superadmin-primary transition-all italic font-black text-xs"
                                 />
                                 {formik.touched.title && formik.errors.title && <p className="text-rose-500 text-[8px] font-black uppercase tracking-widest ml-2 animate-pulse">{formik.errors.title}</p>}
@@ -760,7 +760,7 @@ const Holidays = () => {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Commencement</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Start Date</label>
                                     <input
                                         type="date"
                                         name="startDate"
@@ -769,7 +769,7 @@ const Holidays = () => {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Termination</label>
+                                    <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">End Date</label>
                                     <input
                                         type="date"
                                         name="endDate"
@@ -780,11 +780,11 @@ const Holidays = () => {
                             </div>
 
                             <div className="space-y-2">
-                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Temporal Context</label>
+                                <label className="text-[9px] font-black text-slate-500 uppercase tracking-[0.4em] ml-2 italic">Description</label>
                                 <textarea
                                     name="description"
                                     {...formik.getFieldProps('description')}
-                                    placeholder="Append metadata regarding this temporal break node..."
+                                    placeholder="Enter details regarding this holiday..."
                                     className="w-full bg-slate-950 border border-slate-800 h-28 p-5 rounded-md text-slate-100 outline-none focus:border-superadmin-primary transition-all italic font-black text-xs resize-none"
                                 ></textarea>
                             </div>
@@ -797,7 +797,7 @@ const Holidays = () => {
                             onClick={closeModal}
                             className="flex-1 h-12 rounded-md border border-slate-800 font-black tracking-[0.2em] uppercase text-[9px] text-slate-500 hover:text-white hover:bg-slate-900 transition-all italic active:scale-95"
                         >
-                            Abort
+                            Cancel
                         </button>
                         <button
                             type="submit"
@@ -805,7 +805,7 @@ const Holidays = () => {
                             className="flex-[2] h-12 rounded-md bg-gradient-to-r from-superadmin-primary to-indigo-500 text-black font-black tracking-[0.2em] uppercase text-[9px] shadow-lg shadow-superadmin-primary/20 hover:shadow-superadmin-primary/40 transition-all active:scale-95 flex items-center justify-center gap-2.5 italic"
                         >
                             {loading ? <Activity size={16} className="animate-spin text-black" /> : <Save size={16} className="text-black" />}
-                            Initialize Protocol
+                            {editingHoliday ? 'Save Changes' : 'Add Holiday'}
                         </button>
                     </div>
                 </form>

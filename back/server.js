@@ -7,6 +7,11 @@ if (!process.env.MONGO_URI && !process.env.MONGODB_URI) {
     console.warn('[CONFIG] Database URI not set (MONGO_URI or MONGODB_URI).');
 }
 
+const  dns = require("node:dns/promises");
+dns.setServers(["1.1.1.1", "8.8.8.8"]);
+ 
+ 
+
 const express = require('express');
 const connectDb = require('./db/db');
 const cors = require('cors');

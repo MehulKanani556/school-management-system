@@ -18,7 +18,8 @@ Student:
 
     name :Om Verma / grade - 1 / D
     admissionnumber :  ADM-2026-VIDY-0101
-    password : 11012019 
+    password : 24082018
+ 
 
 
 
