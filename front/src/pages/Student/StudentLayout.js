@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { fetchNotifications, receiveNotification } from '../../redux/slice/notification.slice';
-import { fetchStudentAttendance } from '../../redux/slice/student.slice';
+import { fetchStudentAttendance, fetchStudentAssignments, fetchStudentQuizzes } from '../../redux/slice/student.slice';
 import { useSocket } from '../../context/SocketContext';
 import NotificationPanel from '../../components/NotificationPanel';
 import AcademicYearSwitcher from '../../components/AcademicYearSwitcher';
@@ -85,6 +85,12 @@ const StudentLayout = () => {
     if (!socket) return;
     socket.on('NEW_NOTIFICATION', (notif) => {
       dispatch(receiveNotification(notif));
+      if (notif.type === 'Assignment') {
+        dispatch(fetchStudentAssignments());
+      }
+      if (notif.type === 'Quiz') {
+        dispatch(fetchStudentQuizzes());
+      }
       if (notif.type === 'Message') return;
       toast.success(`New Notification: ${notif.title}`, {
         icon: '🎯',

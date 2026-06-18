@@ -1781,6 +1781,33 @@ exports.toggleQuizPublish = async (req, res) => {
         if (!quiz) return res.status(404).json({ message: 'Quiz not found' });
         quiz.isPublished = !quiz.isPublished;
         await quiz.save();
+
+        if (quiz.isPublished) {
+            // Find all students in this class section or standard
+            const query = { schoolId: quiz.schoolId, deletedAt: null };
+            if (quiz.classSection) {
+                query.classSection = quiz.classSection;
+            } else {
+                query.standard = quiz.standardId;
+            }
+            const students = await Student.find(query);
+            
+            // Get subject name
+            const Subject = require('../models/subject.model');
+            const subject = await Subject.findById(quiz.subjectId);
+            const subjectLabel = subject ? subject.name : 'General';
+            
+            Promise.all(students.map(s => nc.sendNotification({
+                schoolId: quiz.schoolId,
+                recipient: s._id,
+                sender: req.user._id,
+                type: 'Quiz',
+                title: 'New Quiz Published',
+                message: `${subjectLabel}: ${quiz.title}`,
+                link: '/student/e-learning'
+            }))).catch(err => console.error("Error sending quiz notifications:", err));
+        }
+
         res.json({ message: `Quiz ${quiz.isPublished ? 'published' : 'unpublished'}`, isPublished: quiz.isPublished });
     } catch (err) { res.status(500).json({ message: err.message }); }
 };

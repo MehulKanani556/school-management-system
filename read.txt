@@ -26,4 +26,7 @@ Student:
     name : kabir verma / grade - 1 / A 
     admissionnumber :  ADM-2026-VIDY-0003
     password : 04022020 
+
+    admissionnumber :  ADM-2026-VIDY-1411
+    password : 17012008
     
